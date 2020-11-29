@@ -1,5 +1,12 @@
-import emoji
+"""
+Author: Soran Ghadri
+Date: Nov 2020
+"""
 
+"""
+This module provides the necessary emojis used by the agent (bot)
+"""
+import emoji
 
 # -------------Country Flags--------------------
 _en = emoji.EMOJI_ALIAS_UNICODE[':United_States:']
