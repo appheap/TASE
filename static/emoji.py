@@ -20,8 +20,6 @@ _grapes = emoji.EMOJI_ALIAS_UNICODE[':grapes:']
 _carrot = emoji.EMOJI_ALIAS_UNICODE[':carrot:']
 _ear_of_corn = emoji.EMOJI_ALIAS_UNICODE[':ear_of_corn:']
 _mushroom = emoji.EMOJI_ALIAS_UNICODE[':mushroom:']
-fruit_list = [_grapes, _tangerine, _pineapple, _lemon, _cherries, _apple, _candy, _watermelon,
-              _peach, _strawberry, _tea, _cherry_blossom, _maple_leaf, _carrot, _ear_of_corn, _mushroom]
 _en = emoji.EMOJI_ALIAS_UNICODE[':United_States:']
 _fa = emoji.EMOJI_ALIAS_UNICODE[':Iran:']
 _ar = emoji.EMOJI_ALIAS_UNICODE[':Saudi_Arabia:']
@@ -80,3 +78,8 @@ _face_blowing_a_kiss = emoji.EMOJI_ALIAS_UNICODE[':face_blowing_a_kiss:']
 _face_with_raised_eyebrow = emoji.EMOJI_ALIAS_UNICODE[':face_with_raised_eyebrow:']
 _smiling_face_with_sunglasses = emoji.EMOJI_ALIAS_UNICODE[':smiling_face_with_sunglasses:']
 _winking_face = emoji.EMOJI_ALIAS_UNICODE[':winking_face:']
+
+# a list to randomly choose from
+fruit_list = [_grapes, _tangerine, _pineapple, _lemon, _cherries, _apple, _candy, _watermelon,
+              _peach, _strawberry, _tea, _cherry_blossom, _maple_leaf, _carrot, _ear_of_corn, _mushroom]
+
