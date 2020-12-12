@@ -29,9 +29,7 @@ def channel_analyzer(history_messages, members_count):
 
     # Define initial values for supposed criteria
     importance = 1
-    members = 2
     # ----------------------------
-    members_count = int(members_count)
 
     # ----------------------------
     # Calculating the final score for density
@@ -44,14 +42,7 @@ def channel_analyzer(history_messages, members_count):
     # ----------------------------
     # Calculating the final score for members
     # use members as well to get more valid and initial files
-    if members_count < 1000:
-        members = 1
-    elif members_count < 10_000:
-        members = 1.2
-    elif members_count < 30_000:
-        members = 1.4
-    elif members_count < 50_000:
-        members = 1.6
+    members = members_score_calc(members_count)
 
     # ----------------------------
     # Calculating the final score
@@ -66,6 +57,20 @@ def channel_analyzer(history_messages, members_count):
         importance = 2
 
     return importance
+
+
+def members_score_calc(members_count):
+    members = 2
+    members_count = int(members_count)
+    if members_count < 1000:
+        members = 1
+    elif members_count < 10_000:
+        members = 1.2
+    elif members_count < 30_000:
+        members = 1.4
+    elif members_count < 50_000:
+        members = 1.6
+    return members
 
 
 def density_score_calc(audio_count, history_messages):
