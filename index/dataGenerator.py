@@ -41,3 +41,21 @@ def caption_extractor(audio):
     :param audio: Audio object from the whole message file
     :return: The caption extracted from the file and returned as string
     """
+
+    result = f""
+    try:
+        if audio.caption:
+            text = audio.caption
+
+            tokens = re.split(":|,| |\n|-|;|؛", text)
+            for token in tokens:
+                if (not "@" in token) and (not str(token).__contains__("https://")):
+                    result += str(token.replace("-", " ")) + " "
+        else:
+            return "-"
+    except Exception as e:
+        print(f"Exception from data generator caption extractor {e}")
+    finally:
+        if len(result) < 2:
+            result = " "
+    return result
