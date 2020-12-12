@@ -9,6 +9,11 @@ class Analyzer:
         self.members_count = members_count
         self.audio_count = 0
 
+    def __repr__(self) -> str:
+        return f"Analyzer class object" \
+               f"History_messages length: {len(self.history_messages)}\n" \
+               f"Members count: {len(self.members_count)}\n"
+
     def channel_analyzer(self) -> int:
         """
         This function returns the existing_channels_handler_by_importance of each channel which is a score between [0-5] and calculated as follow:
@@ -20,7 +25,6 @@ class Analyzer:
         :param members_count: The number of channel's members
         :return: Assigned number for each score calculated for each channel
         """
-
 
         if len(self.history_messages) < 100:
             return 0
