@@ -105,8 +105,8 @@ def real_name_extractor(audio_message, field):
 def audio_data_generator(history_messages):
     """
     A generator for audio-data based on the message object
-    :param history_messages:
-    :return:
+    :param history_messages: A list of audio message objects
+    :return: Yields an instance of the ready-to-store object of the audio metadata
     """
     for i in history_messages:
         try:
@@ -139,4 +139,11 @@ def audio_data_generator(history_messages):
             }
         except Exception as e:
             print(f"Exception from audio data generator {e}")
+
+def channel_data_generator(channel_list):  # pass the chat section from messages
+    """
+    A generator for audio-data based on the message object
+    :param channel_list: A list of chat objects
+    :return:
+    """
 
