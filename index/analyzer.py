@@ -1,7 +1,9 @@
 import time
 
+Vector = list(object)
 
-def channel_analyzer(history_messages, members_count):
+
+def channel_analyzer(history_messages: Vector, members_count: int) -> int:
     """
     This function returns the existing_channels_handler_by_importance of each channel which is a score between [0-5] and calculated as follow:
         score = (activity * density * members) / 60
@@ -22,12 +24,6 @@ def channel_analyzer(history_messages, members_count):
 
     if audio_count < 5:
         return 0
-
-    # Getting and calculating the gap between current time and the channel's last post
-    # ----------------------------
-
-    # Define initial values for supposed criteria
-    # ----------------------------
 
     # ----------------------------
     # Calculating the final score for density
@@ -127,6 +123,7 @@ def activity_score_calc(history_messages):
     """
     activity = 1
     one_month = 2_630_000
+    # Getting and calculating the gap between current time and the channel's last post
     activity_status = time.time() - int(history_messages[-1].date)
     activity_temp = activity_status / one_month  # a month in seconds!
     if activity_temp < one_month / 20:
