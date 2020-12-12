@@ -68,8 +68,7 @@ def importance_score_calc(activity, density, members):
 def members_score_calc(members_count):
     """
     Calculates the members score for each channel.
-    The score will be between 1 and 2 ([1-2
-    ]).
+    The score will be between 1 and 2 ([1-2]).
 
     :param members_count: The number of channel's members
     :return: Calculated score for the members -> [1-2]
