@@ -6,6 +6,9 @@ def channel_analyzer(history_messages, members_count):
 
     this function returns the existing_channels_handler_by_importance of each channel which is a score between [0-5] and calculated as follow:
         score = (activity * density * members) / 60
+        density: The proportion of the number of shared audios to the time
+        activity: The status of the latest activity timestamp of the channel --> calculated per month
+        members: Number of members of the channel at the analyzing time
     :param history_messages: a list of 100 latest messages shared by the channel
     :param members_count: the number of channel's members
     :return: existing_channels_handler_by_importance: assigned number for each score calculated for each channel
