@@ -62,7 +62,7 @@ class Analyzer:
         # ----------------------------
         # Calculating the final score for members
         # use members as well to get more valid and initial files
-        members = self.members_score_calc(self.members_count)
+        members = float(self.members_score_calc(self.members_count))
 
         # ----------------------------
         # Calculating the final score
@@ -71,7 +71,7 @@ class Analyzer:
         return importance
 
     @staticmethod
-    def importance_score_calc(activity: int, density: int, members: int) -> int:
+    def importance_score_calc(activity: int, density: int, members: float) -> int:
         """
         Calculates the final score for each channel based on the results from the following functions.
         The score will be between 0 and 5 ([0-5]).
@@ -94,7 +94,7 @@ class Analyzer:
         return importance
 
     @staticmethod
-    def members_score_calc(members_count: int) -> int:
+    def members_score_calc(members_count: int) -> float:
         """
         Calculates the members score for each channel.
         The score will be between 1 and 2 ([1-2]).
