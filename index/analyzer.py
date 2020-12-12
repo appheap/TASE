@@ -52,6 +52,13 @@ def channel_analyzer(history_messages, members_count):
 
 
 def importance_score_calc(activity, density, members):
+    """
+    Calculates the final score for each channel based on the results from the following functions.
+    :param activity: The final activity score calculated by activity_score_calc function
+    :param density: The final density score calculated by density_score_calc function
+    :param members: The final members score calculated by members_score_calc function
+    :return:
+    """
     importance = 1
     score = float((activity * density * members) / 60)
     if score > 0.69:
