@@ -21,8 +21,11 @@ def channel_analyzer(history_messages, members_count):
     if audio_count < 5:
         return 0
 
+    # Getting and calculating the gap between current time and the channel's last post
     activity_status = time.time() - int(history_messages[-1].date)
     # ----------------------------
+
+    # Define initial values for supposed criteria
     density = 0
     activity = 1
     importance = 1
