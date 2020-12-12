@@ -28,7 +28,6 @@ def channel_analyzer(history_messages, members_count):
     # ----------------------------
 
     # Define initial values for supposed criteria
-    importance = 1
     # ----------------------------
 
     # ----------------------------
@@ -46,6 +45,13 @@ def channel_analyzer(history_messages, members_count):
 
     # ----------------------------
     # Calculating the final score
+    importance = importance_score_calc(activity, density, members)
+
+    return importance
+
+
+def importance_score_calc(activity, density, members):
+    importance = 1
     score = float((activity * density * members) / 60)
     if score > 0.69:
         importance = 5
@@ -55,7 +61,6 @@ def channel_analyzer(history_messages, members_count):
         importance = 3
     elif score > 0.19:
         importance = 2
-
     return importance
 
 
