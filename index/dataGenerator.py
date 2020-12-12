@@ -34,3 +34,10 @@ def user_data_generator(message):
     except Exception as e:
         print(f"Exception from data generator {e}")
 
+
+def caption_extractor(audio):
+    """
+    Extracts the captions from audio files
+    :param audio: Audio object from the whole message file
+    :return: The caption extracted from the file and returned as string
+    """
