@@ -95,6 +95,12 @@ def density_score_calc(audio_count, history_messages):
 
 
 def activity_score_calc(history_messages):
+    """
+    Calculates the activity score for each channel.
+    The score will be between 1 and 5 ([1-5])
+    :param history_messages: A list of the channel's messages
+    :return: Calculated score for the activity -> [1-5]
+    """
     activity = 1
     one_month = 2_630_000
     activity_status = time.time() - int(history_messages[-1].date)
