@@ -12,7 +12,7 @@ class Analyzer:
     def __repr__(self) -> str:
         return f"Analyzer class object" \
                f"History_messages length: {len(self.history_messages)}\n" \
-               f"Members count: {len(self.members_count)}\n"
+               f"Members count: {self.members_count}\n"
 
     def channel_analyzer(self) -> int:
         """
