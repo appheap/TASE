@@ -1,10 +1,27 @@
+#######################################################################
+# Copyright (C)                                                       #
+# 2020 Soran Ghadri(soran.gdr.cs@gmail.com)                           #
+# Permission given to modify the code as long as you keep this        #
+# declaration at the top                                              #
+#######################################################################
+
 import time
 
 
 class Analyzer:
+    """
+    Analyzer class: Contains necessary functions to analyze channels and score them based on 3 characteristics:
+        1. Activity
+        2. Density
+        3. Number of current members
+    """
     Vector = list(object)
 
     def __init__(self, history_messages: Vector, members_count: int):
+        """
+        :param history_messages: A list of 100 latest messages shared by the channel
+        :param members_count: The number of channel's members
+        """
         self.history_messages = history_messages
         self.members_count = members_count
         self.audio_count = 0
@@ -21,8 +38,7 @@ class Analyzer:
             density: The proportion of the number of shared audios to the length of history_messages list
             activity: The status of the latest activity timestamp of the channel --> calculated per month
             members: Number of members of the channel at the analyzing time
-        :param history_messages: A list of 100 latest messages shared by the channel
-        :param members_count: The number of channel's members
+
         :return: Assigned number for each score calculated for each channel
         """
 
