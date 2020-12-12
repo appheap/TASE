@@ -1,5 +1,6 @@
 import time
 
+
 def channel_analyzer(history_messages, members_count):
     """
     DONE
@@ -65,6 +66,13 @@ def importance_score_calc(activity, density, members):
 
 
 def members_score_calc(members_count):
+    """
+    Calculates the members score for each channel.
+    The score will be between 1 and 2 ([1-2]).
+
+    :param members_count: The number of channel's members
+    :return: Calculated score for the members -> [1-2]
+    """
     members = 2
     members_count = int(members_count)
     if members_count < 1000:
@@ -85,7 +93,7 @@ def density_score_calc(audio_count, history_messages):
 
     :param audio_count: The number of audio messages in the last (100) messages
     :param history_messages: A list of the channel's messages
-    :return: Calculated score for the activity -> [0-6]
+    :return: Calculated score for the density -> [0-6]
     """
     density = 0
     density_temp = audio_count / len(history_messages)
