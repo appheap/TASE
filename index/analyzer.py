@@ -35,18 +35,7 @@ def channel_analyzer(history_messages, members_count):
 
     # ----------------------------
     # Calculating the final score for density
-    density = 0
-    density_temp = audio_count / len(history_messages)
-    if density_temp < 0.1 and density_temp > 0.05:
-        density = 1
-    elif density_temp < 0.2:
-        density = 2
-    elif density_temp < 0.3:
-        density = 3
-    elif density_temp < 0.4:
-        density = 5
-    elif density_temp > 0.39:
-        density = 6
+    density = density_score_calc(audio_count, history_messages)
 
     # ----------------------------
     # Calculating the final score for activity
@@ -77,6 +66,22 @@ def channel_analyzer(history_messages, members_count):
         importance = 2
 
     return importance
+
+
+def density_score_calc(audio_count, history_messages):
+    density = 0
+    density_temp = audio_count / len(history_messages)
+    if density_temp < 0.1 and density_temp > 0.05:
+        density = 1
+    elif density_temp < 0.2:
+        density = 2
+    elif density_temp < 0.3:
+        density = 3
+    elif density_temp < 0.4:
+        density = 5
+    elif density_temp > 0.39:
+        density = 6
+    return density
 
 
 def activity_score_calc(history_messages):
