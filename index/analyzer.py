@@ -80,6 +80,8 @@ def members_score_calc(members_count):
 
 def density_score_calc(audio_count, history_messages):
     """
+    Calculates the density score for each channel.
+    The score will be between 0 and 6 ([0-6]).
 
     :param audio_count: The number of audio messages in the last (100) messages
     :param history_messages: A list of the channel's messages
@@ -103,7 +105,8 @@ def density_score_calc(audio_count, history_messages):
 def activity_score_calc(history_messages):
     """
     Calculates the activity score for each channel.
-    The score will be between 1 and 5 ([1-5])
+    The score will be between 1 and 5 ([1-5]).
+
     :param history_messages: A list of the channel's messages
     :return: Calculated score for the activity -> [1-5]
     """
