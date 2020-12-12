@@ -74,10 +74,10 @@ class Analyzer:
     def importance_score_calc(activity: int, density: int, members: int) -> int:
         """
         Calculates the final score for each channel based on the results from the following functions.
-        The score will be between 5 and 0 ([0-5]).
-        :param activity: The final activity score calculated by activity_score_calc function -> type: int
-        :param density: The final density score calculated by density_score_calc function -> type: int
-        :param members: The final members score calculated by members_score_calc function -> type: int
+        The score will be between 0 and 5 ([0-5]).
+        :param activity: The final activity score calculated by activity_score_calc function
+        :param density: The final density score calculated by density_score_calc function
+        :param members: The final members score calculated by members_score_calc function
         :return: Final calculated score for each channel -> [0-5]
 
         """
@@ -94,7 +94,7 @@ class Analyzer:
         return importance
 
     @staticmethod
-    def members_score_calc(members_count):
+    def members_score_calc(members_count: int) -> int:
         """
         Calculates the members score for each channel.
         The score will be between 1 and 2 ([1-2]).
