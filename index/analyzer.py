@@ -115,7 +115,7 @@ class Analyzer:
         return members
 
     @staticmethod
-    def density_score_calc(audio_count, history_messages):
+    def density_score_calc(audio_count: int, history_messages: Vector) -> int:
         """
         Calculates the density score for each channel.
         The score will be between 0 and 6 ([0-6]).
@@ -139,7 +139,7 @@ class Analyzer:
         return density
 
     @staticmethod
-    def activity_score_calc(history_messages):
+    def activity_score_calc(history_messages: Vector) -> int:
         """
         Calculates the activity score for each channel.
         The score will be between 1 and 5 ([1-5]).
