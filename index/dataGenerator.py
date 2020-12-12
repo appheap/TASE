@@ -118,7 +118,7 @@ def audio_data_generator(history_messages):
                     "chat_id": int(i.chat.id),  # important: telegram won't work with id if the client hasn't already
                     "chat_username": i.chat.username,
                     # important: telegram won't work with id if the client hasn't already
-                    # indexed that chat peer itself --> this should be retieved from the
+                    # indexed that chat peer itself --> this should be retrieved from the
                     # channel index : retrieve the username and search by id --> if the
                     # retrieve client changed to something else
                     "message_id": int(i.message_id),

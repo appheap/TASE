@@ -25,22 +25,18 @@ def channel_analyzer(history_messages, members_count):
         return 0
 
     # Getting and calculating the gap between current time and the channel's last post
-    activity_status = time.time() - int(history_messages[-1].date)
     # ----------------------------
 
     # Define initial values for supposed criteria
-    density = 0
-    activity = 1
     importance = 1
     members = 2
     # ----------------------------
     members_count = int(members_count)
-    density_temp = audio_count / len(history_messages)
-    one_month = 2_630_000
-    activity_temp = activity_status / one_month  # a month in seconds!
 
     # ----------------------------
     # Calculating the final score for density
+    density = 0
+    density_temp = audio_count / len(history_messages)
     if density_temp < 0.1 and density_temp > 0.05:
         density = 1
     elif density_temp < 0.2:
@@ -54,14 +50,7 @@ def channel_analyzer(history_messages, members_count):
 
     # ----------------------------
     # Calculating the final score for activity
-    if activity_temp < one_month / 20:
-        activity = 5
-    elif activity_temp < one_month / 10:
-        activity = 4
-    elif activity_temp < one_month / 5:
-        activity = 3
-    elif activity_temp < one_month / 2:
-        activity = 2
+    activity = activity_score_calc(history_messages)
 
     # ----------------------------
     # Calculating the final score for members
@@ -88,3 +77,19 @@ def channel_analyzer(history_messages, members_count):
         importance = 2
 
     return importance
+
+
+def activity_score_calc(history_messages):
+    activity = 1
+    one_month = 2_630_000
+    activity_status = time.time() - int(history_messages[-1].date)
+    activity_temp = activity_status / one_month  # a month in seconds!
+    if activity_temp < one_month / 20:
+        activity = 5
+    elif activity_temp < one_month / 10:
+        activity = 4
+    elif activity_temp < one_month / 5:
+        activity = 3
+    elif activity_temp < one_month / 2:
+        activity = 2
+    return activity
