@@ -59,3 +59,11 @@ def caption_extractor(audio):
         if len(result) < 2:
             result = " "
     return result
+
+def real_name_extractor(audio_message, field):
+    """
+    Finds whether the audio title and performer are real or channel name
+    :param audio_message: Audio object from the whole message object
+    :param field: Fields of the audio object (i.e. title, performer)
+    :return: Extracted real-name from the specified field
+    """
