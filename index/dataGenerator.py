@@ -108,4 +108,35 @@ def audio_data_generator(history_messages):
     :param history_messages:
     :return:
     """
+    for i in history_messages:
+        try:
+            audio = i.audio
+            yield {
+                "_index": "audio_files",
+                "_id": str(audio.file_id[8:30:3]).replace("-", "d"),
+                "_source": {
+                    "chat_id": int(i.chat.id),  # important: telegram won't work with id if the client hasn't already
+                    "chat_username": i.chat.username,
+                    # important: telegram won't work with id if the client hasn't already
+                    # indexed that chat peer itself --> this should be retieved from the
+                    # channel index : retrieve the username and search by id --> if the
+                    # retrieve client changed to something else
+                    "message_id": int(i.message_id),
+                    "file_id": audio.file_id,
+                    "file_name": str(audio.file_name).replace("_", " ").replace("@", " "),
+                    # re.sub(r'[^\w]', ' ', str(audio.file_name).replace("_", " "))
+                    "file_size": audio.file_size,
+                    "duration": audio.duration,
+                    "performer": str(real_name_extractor(i, "performer")).replace("_",
+                                                                                  " ") if not audio.performer == None else " ",
+                    # re.sub(r'[^\w]', ' ', str(audio.performer).replace("_", " "))
+                    "title": str(real_name_extractor(i, "title")).replace("_", " ") if not audio.title == None else " ",
+                    # re.sub(r'[^\w]', ' ', str(audio.title).replace("_", " "))
+                    "times_downloaded": 0,
+                    "caption": str(caption_extractor(i)),
+                    "copyright": False  # TODO: if set to True only return the source of the file not the file itself
+                }
+            }
+        except Exception as e:
+            print(f"Exception from audio data generator {e}")
 
