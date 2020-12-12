@@ -67,3 +67,37 @@ def real_name_extractor(audio_message, field):
     :param field: Fields of the audio object (i.e. title, performer)
     :return: Extracted real-name from the specified field
     """
+    result = f""
+    try:
+        if audio_message.audio:
+            audio = audio_message.audio
+            if field == "title":
+                if audio.title:
+                    text = audio.title
+
+                    tokens = re.split(":|,| |\n|-|;|؛", text)
+                    for token in tokens:
+                        if (not "@" in token) and (not str(token).__contains__("https://")):
+                            if not (token == audio_message.chat.username or token == audio_message.chat.title):
+                                result += str(token.replace("-", " ")) + " "
+                else:
+                    return " "
+            elif field == "performer":
+                if audio.performer:
+                    text = audio.performer
+
+                    tokens = re.split(":|,| |\n|-|;|؛", text)
+                    for token in tokens:
+                        if (not "@" in token) and (not str(token).__contains__("https://")):
+                            if not (token == audio_message.chat.username or token == audio_message.chat.title):
+                                result += str(token.replace("-", " ")) + " "
+                else:
+                    return " "
+
+
+    except Exception as e:
+        print(f"Exception from data generator caption extractor {e}")
+    finally:
+        if len(result) < 2:
+            result = " "
+    return result
