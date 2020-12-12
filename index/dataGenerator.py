@@ -104,7 +104,7 @@ def real_name_extractor(audio_message, field):
 
 def audio_data_generator(history_messages):
     """
-    A generator for audio-data based on the message object
+    A generator for audio-data based on a list of message objects
     :param history_messages: A list of audio message objects
     :return: Yields an instance of the ready-to-store object of the audio metadata
     """
@@ -142,8 +142,23 @@ def audio_data_generator(history_messages):
 
 def channel_data_generator(channel_list):  # pass the chat section from messages
     """
-    A generator for audio-data based on the message object
+    A generator for audio-data based on a list of chat objects
     :param channel_list: A list of chat objects
-    :return:
+    :return: Yields an instance of the ready-to-store object of the channel metadata
     """
-
+    for channel in channel_list:
+        try:
+            yield {
+                "_index": "channel",
+                "_id": channel.id,
+                "_source": {
+                    "title": channel.title,
+                    "username": channel.username,
+                    "importance": 0,
+                    "indexed_from_audio_count": 0,
+                    "last_indexed_offset_date": 0,
+                    "downloaded_from_count": 0,
+                }
+            }
+        except:
+            pass
