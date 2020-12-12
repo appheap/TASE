@@ -4,7 +4,7 @@ import re
 
 def user_data_generator(message):
     """
-    A generator for user-data based on the message
+    A generator for user-data based on the message object
     :param message: The message containing the user, chat, etc. data
     :return:
     """
@@ -101,3 +101,11 @@ def real_name_extractor(audio_message, field):
         if len(result) < 2:
             result = " "
     return result
+
+def audio_data_generator(history_messages):
+    """
+    A generator for audio-data based on the message object
+    :param history_messages:
+    :return:
+    """
+
