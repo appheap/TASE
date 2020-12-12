@@ -78,8 +78,6 @@ def channel_analyzer(history_messages, members_count):
     # ----------------------------
     # Calculating the final score
     score = float((activity * density * members) / 60)
-    # print(f"ativity: {activity}\ndensity: {density}\nmembers: {members}\nscore: {score}"
-    #       f"\nactivity_status: {activity_status}\nactivity_temp: {activity_temp} - {timedelta(days=30).seconds} - {timedelta(days=1).seconds}")
     if score > 0.69:
         importance = 5
     elif score > 0.49:
