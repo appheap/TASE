@@ -40,6 +40,7 @@ def channel_analyzer(history_messages, members_count):
     activity_temp = activity_status / one_month  # a month in seconds!
 
     # ----------------------------
+    # Calculating the final score for density
     if density_temp < 0.1 and density_temp > 0.05:
         density = 1
     elif density_temp < 0.2:
@@ -50,7 +51,9 @@ def channel_analyzer(history_messages, members_count):
         density = 5
     elif density_temp > 0.39:
         density = 6
+
     # ----------------------------
+    # Calculating the final score for activity
     if activity_temp < one_month / 20:
         activity = 5
     elif activity_temp < one_month / 10:
@@ -59,7 +62,9 @@ def channel_analyzer(history_messages, members_count):
         activity = 3
     elif activity_temp < one_month / 2:
         activity = 2
+
     # ----------------------------
+    # Calculating the final score for members
     # use members as well to get more valid and initial files
     if members_count < 1000:
         members = 1
@@ -69,8 +74,9 @@ def channel_analyzer(history_messages, members_count):
         members = 1.4
     elif members_count < 50_000:
         members = 1.6
-    # ----------------------------
 
+    # ----------------------------
+    # Calculating the final score
     score = float((activity * density * members) / 60)
     # print(f"ativity: {activity}\ndensity: {density}\nmembers: {members}\nscore: {score}"
     #       f"\nactivity_status: {activity_status}\nactivity_temp: {activity_temp} - {timedelta(days=30).seconds} - {timedelta(days=1).seconds}")
