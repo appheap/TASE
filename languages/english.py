@@ -13,3 +13,6 @@ from static.emoji import _traffic_light, _checkmark_emoji, _floppy_emoji, _clock
     _green_heart, heart_list, _seedling, _evergreen_tree, _deciduous_tree, _palm_tree, _sheaf_of_rice, _herb, _shamrock, \
     _four_leaf_clover, _maple_leaf, _fallen_leaf, _leaf_fluttering_in_wind, _smiling_face_with_sunglasses, _winking_face, \
     _smiling_face_with_heart, _face_blowing_a_kiss,_face_with_raised_eyebrow
+
+plants_list = [_seedling, _evergreen_tree, _deciduous_tree, _palm_tree, _sheaf_of_rice, _herb, _shamrock,
+               _four_leaf_clover, _maple_leaf, _fallen_leaf, _leaf_fluttering_in_wind]
