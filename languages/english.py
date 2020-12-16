@@ -45,3 +45,11 @@ def back_to_the_bot(*args: str, **kwargs: str) -> str:
     """
     back_text = f"Back to the bot {_backhand_index_pointing_right}"
     return back_text
+
+def playlist_keyboard(*args, **kwargs):
+    """
+
+    :param args:
+    :param kwargs:
+    :return:
+    """
