@@ -2,6 +2,8 @@ import time
 import re
 
 
+# user this link to make the generators class-based:
+# https://stackoverflow.com/questions/42983569/how-to-write-a-generator-class
 def user_data_generator(message):
     """
     A generator for user-data based on the message object
@@ -18,7 +20,7 @@ def user_data_generator(message):
                 "username": user.username,
                 "date_joined": int(time.time()),
                 "downloaded_audio_id_list": [],
-                "favorite_audio_id_list": [], # when added to this list it'll be deleted from downloaded list
+                "favorite_audio_id_list": [],  # when added to this list it'll be deleted from downloaded list
                 "downloaded_audio_count": 0,
                 "lang_code": "en",
                 "limited": False,  # after 5 songs users should wait 1 min till receive the file
@@ -59,6 +61,7 @@ def caption_extractor(audio):
         if len(result) < 2:
             result = " "
     return result
+
 
 def real_name_extractor(audio_message, field):
     """
@@ -102,6 +105,7 @@ def real_name_extractor(audio_message, field):
             result = " "
     return result
 
+
 def audio_data_generator(history_messages):
     """
     A generator for audio-data based on a list of message objects
@@ -139,6 +143,7 @@ def audio_data_generator(history_messages):
             }
         except Exception as e:
             print(f"Exception from audio data generator {e}")
+
 
 def channel_data_generator(channel_list):  # pass the chat section from messages
     """
