@@ -46,10 +46,15 @@ def back_to_the_bot(*args: str, **kwargs: str) -> str:
     back_text = f"Back to the bot {_backhand_index_pointing_right}"
     return back_text
 
-def playlist_keyboard(*args, **kwargs):
+
+def playlist_keyboard(*args: list, **kwargs: object) -> list:
     """
     The necessary buttons for playlists
     :param args:
     :param kwargs:
     :return:
     """
+    playlists = args[0]
+    audio_file = args[1]
+    add_new_pl_header = args[2]
+    func = args[3]
