@@ -35,6 +35,7 @@ def music_file_keyboard(*args: str, **kwargs: str) -> list:
     ]
     return keyboard
 
+
 def back_to_the_bot(*args: str, **kwargs: str) -> str:
     """
     Returns the "back to the button" on top of the inline results
@@ -42,4 +43,5 @@ def back_to_the_bot(*args: str, **kwargs: str) -> str:
     :param kwargs:
     :return: A text contains the desired string
     """
-
+    back_text = f"Back to the bot {_backhand_index_pointing_right}"
+    return back_text
