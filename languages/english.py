@@ -48,7 +48,7 @@ def back_to_the_bot(*args: str, **kwargs: str) -> str:
 
 def playlist_keyboard(*args, **kwargs):
     """
-
+    The necessary buttons for playlists
     :param args:
     :param kwargs:
     :return:
