@@ -19,7 +19,7 @@ plants_list = [_seedling, _evergreen_tree, _deciduous_tree, _palm_tree, _sheaf_o
                _four_leaf_clover, _maple_leaf, _fallen_leaf, _leaf_fluttering_in_wind]
 
 
-def music_file_keyboard(*args, **kwargs):
+def music_file_keyboard(*args: str, **kwargs: str) -> list:
     """
     Generates a keyboard for the returned audio files
     :param args: Contains query = args[0] which is file id
@@ -34,3 +34,4 @@ def music_file_keyboard(*args, **kwargs):
 
     ]
     return keyboard
+
