@@ -50,11 +50,20 @@ def back_to_the_bot(*args: str, **kwargs: str) -> str:
 def playlist_keyboard(*args: list, **kwargs: object) -> list:
     """
     The necessary buttons for playlists
-    :param args:
+    :param args: 1. playlists, 2. audio_file, 3. add_new_pl_header, 4. function
     :param kwargs:
-    :return:
+    :return: Generated keyboard
     """
     playlists = args[0]
     audio_file = args[1]
     add_new_pl_header = args[2]
     func = args[3]
+    inp_message_content = ""
+    if func == "addpl":
+        inp_message_content = f"/addnewpl {audio_file['_id']}"
+        print("inp_message_content: ", inp_message_content)
+    elif func == "playlists":
+        add_new_pl_header = False
+        # inp_message_content = f"/showplaylist"
+    elif func == "history":
+        add_new_pl_header = False
