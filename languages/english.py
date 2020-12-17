@@ -67,3 +67,6 @@ def playlist_keyboard(*args: list, **kwargs: object) -> list:
         # inp_message_content = f"/showplaylist"
     elif func == "history":
         add_new_pl_header = False
+    hidden_character = "‏‏‎ ‎"
+    results = []
+    list_length = len((list(enumerate(playlists))))
