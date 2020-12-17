@@ -188,3 +188,9 @@ def edit_playlist_information_guide(*args, **kwargs):
     :param kwargs:
     :return: A text containing how to edit playlists
     """
+    field = args[0]
+    text = ""
+    if field == "title":
+        text = f"{_fountain_pen} Enter playlist name/description"
+    elif field == "description":
+        text = f"{_books} Please write new playlist information in the following text box "
