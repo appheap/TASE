@@ -172,3 +172,4 @@ def single_playlist_markup_list(*args, **kwargs):
         [InlineKeyboardButton(f"Home | {_house}", callback_data="home"),
          InlineKeyboardButton(f"Back | {_BACK_arrow}", callback_data=f"showmyplaylists {playlist_id}")]
     ]
+    return markup
