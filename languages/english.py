@@ -97,3 +97,28 @@ def playlist_keyboard(*args: list, **kwargs: object) -> list:
                 input_message_content=InputTextMessageContent(inp_message_content, parse_mode="HTML"),
 
             ))
+    else:
+        description = "New Playlist"
+        if add_new_pl_header:
+            results.append(InlineQueryResultArticle(
+                title="Add to a new playlist",
+                description="A new playlist will be created and the file will be added to it",
+                thumb_url="https://telegra.ph/file/cd08f00005cb527e6bcdb.jpg",
+                input_message_content=InputTextMessageContent(inp_message_content, parse_mode="HTML"),
+
+            ))
+
+        for index, playlist in reversed(list(enumerate(playlists))):
+            pl_id = playlist["_id"]
+            if func == "addpl":
+                inp_message_content = f"/addtoexistpl {pl_id} {audio_file['_id']}"
+            elif func == "playlists":
+                inp_message_content = f"/showplaylist {pl_id}"
+
+            results.append(InlineQueryResultArticle(
+                title=hidden_character + str(list_length - index) + '. ' + playlist["_source"]["title"],
+                description=hidden_character + playlist["_source"]["description"],
+                thumb_url="https://telegra.ph/file/cd08f00005cb527e6bcdb.jpg",
+                input_message_content=InputTextMessageContent(inp_message_content, parse_mode="HTML"),
+
+            ))
