@@ -210,3 +210,24 @@ def delete_audio_murkup_keyboard(*args, **kwargs):
     :param kwargs:
     :return: A keyboard markup containing the above buttons
     """
+    playlist_id = args[0]
+    pl_audio_files = args[1]
+    print("from delete audio_markup_keyboard - pl_audio_files: ", pl_audio_files)
+    markup = []
+    for _audio_file in pl_audio_files:
+        _audio_file_id = _audio_file["_id"]
+        markup.append([InlineKeyboardButton(f"{_cross_mark} | {_audio_file['_source']['title']}",
+                                            callback_data=f"afdelete {playlist_id} {_audio_file_id}")])
+
+    markup.append([InlineKeyboardButton(f"Back | {_BACK_arrow}",
+                                        callback_data=f"editpl {playlist_id}")])
+
+    # markup = [
+    #     [InlineKeyboardButton(f"{_house} Edit title",
+    #                           switch_inline_query_current_chat=f"#edit_title {playlist_id} "),
+    #      InlineKeyboardButton(f"{_house} Edit description",
+    #                           switch_inline_query_current_chat=f"#edit_description {playlist_id} ")],
+    #     [InlineKeyboardButton(f"{_house} Delete playlist", callback_data=f"delete {playlist_id}"),
+    #      InlineKeyboardButton(f"{_house} Delete audio file", callback_data=f"adelete {playlist_id}")],
+    #     [InlineKeyboardButton(f"{_house} Back", callback_data=f"showplaylist {playlist_id}")]
+    # ]
