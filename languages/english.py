@@ -131,3 +131,9 @@ def playlists_buttons(*args, **kwargs):
     :param kwargs:
     :return:
     """
+    markup = [
+        [InlineKeyboardButton(f"My Downloads | {_mobile_phone_with_arrow}",
+                              switch_inline_query_current_chat=f"#history"),
+         InlineKeyboardButton(f"My Playlists | {_headphone}", switch_inline_query_current_chat=f"#myplaylists")],
+        [InlineKeyboardButton(f"Home | {_house}", callback_data="home")]
+    ]
