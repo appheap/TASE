@@ -226,3 +226,11 @@ def delete_audio_murkup_keyboard(*args: list, **kwargs) -> list(object):
                                         callback_data=f"editpl {playlist_id}")])
 
     return markup
+
+def delete_audio_file_text(*args, **kwargs):
+    """
+
+    :param args:
+    :param kwargs:
+    :return:
+    """
