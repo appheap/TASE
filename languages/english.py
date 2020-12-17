@@ -139,3 +139,10 @@ def playlists_buttons(*args, **kwargs) -> list:
     ]
     return markup
 
+def mylists_menu_text(*args, **kwargs):
+    """
+
+    :param args:
+    :param kwargs:
+    :return:
+    """
