@@ -201,8 +201,12 @@ def edit_playlist_information_guide(*args: str, **kwargs) -> str:
 
 def delete_audio_murkup_keyboard(*args, **kwargs):
     """
-
-    :param args:
+    Generates a keyboard to ask for delete validation of the chosen playlist. This keyboard will be shown consecutive
+     to "Delete" button being pressed in the previous step which was edit playlist.
+     Buttons are:
+        1. Crossmark to proceed with the deletion
+        2. Back to cancel the process
+    :param args: Playlist_id = args[0]: The ID of the target playlist
     :param kwargs:
     :return:
     """
