@@ -157,8 +157,18 @@ def mylists_menu_text(*args, **kwargs) -> str:
 
 def single_playlist_markup_list(*args, **kwargs):
     """
-
+    Generates a keyboard for each playlist
     :param args:
     :param kwargs:
     :return:
     """
+    playlist_id = args[0]
+    markup = [
+        [InlineKeyboardButton(f"Audio files | {_headphone}",
+                              switch_inline_query_current_chat=f"#showfiles {playlist_id}"),
+         InlineKeyboardButton(f"Get list | {_studio_microphone}", callback_data=f"get_list {playlist_id}")],
+        [InlineKeyboardButton(f"Edit | {_gear}", callback_data=f"editpl {playlist_id}"),
+         InlineKeyboardButton(f"Delete | {_cross_mark}", callback_data=f"delete {playlist_id}")],
+        [InlineKeyboardButton(f"Home | {_house}", callback_data="home"),
+         InlineKeyboardButton(f"Back | {_BACK_arrow}", callback_data=f"showmyplaylists {playlist_id}")]
+    ]
