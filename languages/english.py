@@ -208,5 +208,5 @@ def delete_audio_murkup_keyboard(*args, **kwargs):
         2. Back to cancel the process
     :param args: Playlist_id = args[0]: The ID of the target playlist
     :param kwargs:
-    :return:
+    :return: A keyboard markup containing the above buttons
     """
