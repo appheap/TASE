@@ -148,7 +148,7 @@ def mylists_menu_text(*args, **kwargs):
         2. My playlists
     :param args:
     :param kwargs:
-    :return:
+    :return: Returns the generated text
     """
     text = f"<b>Please choose one of the lists below:</b>\n{34 * '-'}\n\n" \
            f"{_green_circle} <b>My Downloads:</b> your recently donwloaded audio files (up to 50)\n" \
