@@ -155,7 +155,7 @@ def mylists_menu_text(*args, **kwargs) -> str:
            f"{_green_circle} <b>My playlists:</b> your current playlists (5 playlists at maximum and 20 audio files per playlist)\n"
     return text
 
-def single_playlist_markup_list(*args, **kwargs):
+def single_playlist_markup_list(*args: str, **kwargs) -> list:
     """
     Generates a keyboard for each playlist; buttons:
         1. Audio files list (as an inline list)
