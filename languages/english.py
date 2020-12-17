@@ -122,3 +122,4 @@ def playlist_keyboard(*args: list, **kwargs: object) -> list:
                 input_message_content=InputTextMessageContent(inp_message_content, parse_mode="HTML"),
 
             ))
+    return results
