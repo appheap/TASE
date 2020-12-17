@@ -181,6 +181,7 @@ def single_playlist_markup_list(*args: str, **kwargs) -> list:
     ]
     return markup
 
+
 def edit_playlist_information_guide(*args: str, **kwargs) -> str:
     """
     Guides the users how to edit their playlists. Two fields are available to edit:
@@ -198,6 +199,7 @@ def edit_playlist_information_guide(*args: str, **kwargs) -> str:
         text = f"{_books} Please write new playlist information in the following text box "
 
     return text
+
 
 def delete_audio_murkup_keyboard(*args: list, **kwargs) -> list(object):
     """
@@ -223,13 +225,4 @@ def delete_audio_murkup_keyboard(*args: list, **kwargs) -> list(object):
     markup.append([InlineKeyboardButton(f"Back | {_BACK_arrow}",
                                         callback_data=f"editpl {playlist_id}")])
 
-    # markup = [
-    #     [InlineKeyboardButton(f"{_house} Edit title",
-    #                           switch_inline_query_current_chat=f"#edit_title {playlist_id} "),
-    #      InlineKeyboardButton(f"{_house} Edit description",
-    #                           switch_inline_query_current_chat=f"#edit_description {playlist_id} ")],
-    #     [InlineKeyboardButton(f"{_house} Delete playlist", callback_data=f"delete {playlist_id}"),
-    #      InlineKeyboardButton(f"{_house} Delete audio file", callback_data=f"adelete {playlist_id}")],
-    #     [InlineKeyboardButton(f"{_house} Back", callback_data=f"showplaylist {playlist_id}")]
-    # ]
     return markup
