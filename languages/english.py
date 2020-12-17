@@ -126,10 +126,10 @@ def playlist_keyboard(*args: list, **kwargs: object) -> list:
 
 def playlists_buttons(*args, **kwargs):
     """
-
+    Generates an inline keyboard for the playlists
     :param args:
     :param kwargs:
-    :return:
+    :return: Returns a list of buttons
     """
     markup = [
         [InlineKeyboardButton(f"My Downloads | {_mobile_phone_with_arrow}",
