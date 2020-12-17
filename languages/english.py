@@ -124,6 +124,7 @@ def playlist_keyboard(*args: list, **kwargs: object) -> list:
             ))
     return results
 
+
 def playlists_buttons(*args, **kwargs) -> list:
     """
     Generates an inline keyboard for the playlists
@@ -139,6 +140,7 @@ def playlists_buttons(*args, **kwargs) -> list:
     ]
     return markup
 
+
 def mylists_menu_text(*args, **kwargs):
     """
     A Guid text for the user about the available lists to choose from:
@@ -151,3 +153,4 @@ def mylists_menu_text(*args, **kwargs):
     text = f"<b>Please choose one of the lists below:</b>\n{34 * '-'}\n\n" \
            f"{_green_circle} <b>My Downloads:</b> your recently donwloaded audio files (up to 50)\n" \
            f"{_green_circle} <b>My playlists:</b> your current playlists (5 playlists at maximum and 20 audio files per playlist)\n"
+    return text
