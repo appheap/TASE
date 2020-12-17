@@ -141,7 +141,7 @@ def playlists_buttons(*args, **kwargs) -> list:
     return markup
 
 
-def mylists_menu_text(*args, **kwargs):
+def mylists_menu_text(*args, **kwargs) -> str:
     """
     A Guid text for the user about the available lists to choose from:
         1. My Downloads
