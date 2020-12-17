@@ -234,3 +234,7 @@ def delete_audio_file_text(*args, **kwargs):
     :param kwargs:
     :return:
     """
+    text = f"{_cross_mark} <b>Delete audio files from playlist</b>"
+    return text
+
+
