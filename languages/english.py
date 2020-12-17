@@ -155,6 +155,7 @@ def mylists_menu_text(*args, **kwargs) -> str:
            f"{_green_circle} <b>My playlists:</b> your current playlists (5 playlists at maximum and 20 audio files per playlist)\n"
     return text
 
+
 def single_playlist_markup_list(*args: str, **kwargs) -> list:
     """
     Generates a keyboard for each playlist; buttons:
@@ -179,3 +180,11 @@ def single_playlist_markup_list(*args: str, **kwargs) -> list:
          InlineKeyboardButton(f"Back | {_BACK_arrow}", callback_data=f"showmyplaylists {playlist_id}")]
     ]
     return markup
+
+def edit_playlist_information_guide(*args, **kwargs):
+    """
+
+    :param args:
+    :param kwargs:
+    :return:
+    """
