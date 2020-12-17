@@ -124,7 +124,7 @@ def playlist_keyboard(*args: list, **kwargs: object) -> list:
             ))
     return results
 
-def playlists_buttons(*args, **kwargs):
+def playlists_buttons(*args, **kwargs) -> list:
     """
     Generates an inline keyboard for the playlists
     :param args:
