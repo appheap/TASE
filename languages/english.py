@@ -227,6 +227,7 @@ def delete_audio_murkup_keyboard(*args: list, **kwargs) -> list(object):
 
     return markup
 
+
 def delete_audio_file_text(*args, **kwargs) -> str:
     """
     The header text for the audio file deletion from the playlist
@@ -236,6 +237,7 @@ def delete_audio_file_text(*args, **kwargs) -> str:
     """
     text = f"{_cross_mark} <b>Delete audio files from playlist</b>"
     return text
+
 
 def delete_playlist_validation_keyboard(*args, **kwargs):
     """
@@ -256,3 +258,4 @@ def delete_playlist_validation_keyboard(*args, **kwargs):
         [InlineKeyboardButton(f"Yes | {_thumbs_up}", callback_data=f"ydelete {return_args}"),
          InlineKeyboardButton(f"No | {_thumbs_down}", callback_data=f"ndelete {return_args}")]
     ]
+    return markup
