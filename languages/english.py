@@ -181,7 +181,7 @@ def single_playlist_markup_list(*args: str, **kwargs) -> list:
     ]
     return markup
 
-def edit_playlist_information_guide(*args, **kwargs):
+def edit_playlist_information_guide(*args: str, **kwargs) -> str:
     """
     Guides the users how to edit their playlists
     :param args: Field: the field that is going to be editted
