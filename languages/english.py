@@ -239,10 +239,12 @@ def delete_audio_file_text(*args, **kwargs) -> str:
     return text
 
 
-def delete_playlist_validation_keyboard(*args, **kwargs):
+def delete_playlist_validation_keyboard(*args: list(object), **kwargs) -> list(object):
     """
-
-    :param args:
+    Generates a validation form for the user weather they want to proceed with the deletion of the audio file or the
+     playlist itself
+    :param args:    1. playlist_id
+                    2. func: function type which means what do they want to delete
     :param kwargs:
     :return:
     """
