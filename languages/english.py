@@ -19,7 +19,7 @@ plants_list = [_seedling, _evergreen_tree, _deciduous_tree, _palm_tree, _sheaf_o
                _four_leaf_clover, _maple_leaf, _fallen_leaf, _leaf_fluttering_in_wind]
 
 
-def music_file_keyboard(*args: str, **kwargs: str) -> list:
+def music_file_keyboard(*args: str, **kwargs: str) -> list[object]:
     """
     Generates a keyboard for the returned audio files
     :param args: Contains query = args[0] which is file id
@@ -47,7 +47,7 @@ def back_to_the_bot(*args: str, **kwargs: str) -> str:
     return back_text
 
 
-def playlist_keyboard(*args: list, **kwargs: object) -> list:
+def playlist_keyboard(*args: list, **kwargs: object) -> list[object]:
     """
     The necessary buttons for playlists
     :param args: 1. playlists, 2. audio_file, 3. add_new_pl_header, 4. function
@@ -125,7 +125,7 @@ def playlist_keyboard(*args: list, **kwargs: object) -> list:
     return results
 
 
-def playlists_buttons(*args, **kwargs) -> list:
+def playlists_buttons(*args, **kwargs) -> list[object]:
     """
     Generates an inline keyboard for the playlists
     :param args:
@@ -156,7 +156,7 @@ def mylists_menu_text(*args, **kwargs) -> str:
     return text
 
 
-def single_playlist_markup_list(*args: str, **kwargs) -> list:
+def single_playlist_markup_list(*args: str, **kwargs) -> list[object]:
     """
     Generates a keyboard for each playlist; buttons:
         1. Audio files list (as an inline list)
@@ -201,7 +201,7 @@ def edit_playlist_information_guide(*args: str, **kwargs) -> str:
     return text
 
 
-def delete_audio_murkup_keyboard(*args: list, **kwargs) -> list(object):
+def delete_audio_murkup_keyboard(*args: list, **kwargs) -> list[object]:
     """
     Generates a keyboard for deleting single files from a specific playlist. This keyboard will be shown consecutive
      to "Edit" button being pressed in the previous step which was edit playlist.
@@ -239,7 +239,7 @@ def delete_audio_file_text(*args, **kwargs) -> str:
     return text
 
 
-def delete_playlist_validation_keyboard(*args: list(object), **kwargs) -> list(object):
+def delete_playlist_validation_keyboard(*args: list[object], **kwargs) -> list[object]:
     """
     Generates a validation form for the user weather they want to proceed with the deletion of the audio file or the
      playlist itself. The buttons included in this keyboard are:
