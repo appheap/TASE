@@ -154,3 +154,11 @@ def mylists_menu_text(*args, **kwargs) -> str:
            f"{_green_circle} <b>My Downloads:</b> your recently donwloaded audio files (up to 50)\n" \
            f"{_green_circle} <b>My playlists:</b> your current playlists (5 playlists at maximum and 20 audio files per playlist)\n"
     return text
+
+def single_playlist_markup_list(*args, **kwargs):
+    """
+
+    :param args:
+    :param kwargs:
+    :return:
+    """
