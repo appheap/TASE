@@ -227,7 +227,7 @@ def delete_audio_murkup_keyboard(*args: list, **kwargs) -> list(object):
 
     return markup
 
-def delete_audio_file_text(*args, **kwargs):
+def delete_audio_file_text(*args, **kwargs) -> str:
     """
     The header text for the audio file deletion from the playlist
     :param args:
