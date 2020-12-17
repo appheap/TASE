@@ -198,3 +198,11 @@ def edit_playlist_information_guide(*args: str, **kwargs) -> str:
         text = f"{_books} Please write new playlist information in the following text box "
 
     return text
+
+def delete_audio_murkup_keyboard(*args, **kwargs):
+    """
+
+    :param args:
+    :param kwargs:
+    :return:
+    """
