@@ -264,7 +264,13 @@ def mylists_menu_text(*args, **kwargs):
 
 def single_playlist_markup_list(*args, **kwargs):
     """
-
+    Generates a keyboard for each playlist; buttons:
+        1. Audio files list (as an inline list)
+        2. Get list (as a text message)
+        3. Edit
+        4. Delete
+        5. Home
+        6. Back
     :param args: args[0]: Playlist id
     :param kwargs:
     :return: A markup list containing mentioned buttons
