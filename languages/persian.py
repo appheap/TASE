@@ -353,3 +353,11 @@ def delete_audio_file_text(*args, **kwargs):
            f"حذف فایل صوتی از پلی‌لیست" \
            f"</b>"
     return text
+
+def delete_playlist_validation_keyboard(*args, **kwargs):
+    """
+
+    :param args:
+    :param kwargs:
+    :return:
+    """
