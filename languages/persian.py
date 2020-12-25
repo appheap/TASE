@@ -357,7 +357,8 @@ def delete_audio_file_text(*args, **kwargs):
 def delete_playlist_validation_keyboard(*args, **kwargs):
     """
 
-    :param args:
+    :param args:    1. playlist_id
+                    2. func: function type which means what do they want to delete
     :param kwargs:
-    :return:
+    :return: The generated keyboard for deletion validation
     """
