@@ -347,7 +347,7 @@ def delete_audio_file_text(*args, **kwargs):
 
     :param args:
     :param kwargs:
-    :return:
+    :return: Text containing the header text for the audtio file deletion message and keyboard
     """
     text = f"{_cross_mark} <b>" \
            f"حذف فایل صوتی از پلی‌لیست" \
