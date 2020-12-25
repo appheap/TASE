@@ -263,3 +263,11 @@ def delete_playlist_validation_keyboard(*args: list[object], **kwargs) -> list[o
          InlineKeyboardButton(f"No | {_thumbs_down}", callback_data=f"ndelete {return_args}")]
     ]
     return markup
+
+def delete_playlist_validation_text(*args, **kwargs):
+    """
+
+    :param args:
+    :param kwargs:
+    :return:
+    """
