@@ -239,3 +239,11 @@ def playlists_buttons(*args, **kwargs):
         [InlineKeyboardButton(f"خانه | {_house}", callback_data="home")]
     ]
     return markup
+
+def mylists_menu_text(*args, **kwargs):
+    """
+
+    :param args:
+    :param kwargs:
+    :return:
+    """
