@@ -137,3 +137,4 @@ def back_to_the_bot(*args, **kwargs):
     :param kwargs:
     :return: A text contains the desired string
     """
+    back_text = f"برگشت به بات {_backhand_index_pointing_right}"
