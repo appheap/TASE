@@ -162,3 +162,39 @@ def playlist_keyboard(*args, **kwargs):
     hidden_character = "‏‏‎ ‎"
     results = []
     list_length = len((list(enumerate(playlists))))
+    if func == "history":
+
+        for index, _audio_file in reversed(list(enumerate(playlists))):
+            print("audio_file", _audio_file)
+            file_id = _audio_file["_id"]
+            inp_message_content = f"/dl_{file_id}"
+            _title = str(_audio_file["_source"]["title"]).replace("@", "")
+            _title_line = "<b>نام:</b> " + str(_title) + "\n"
+            _performer = str(_audio_file["_source"]["performer"]).replace("@", "")
+            _performer_line = "<b>اجرا کننده:</b> " + str(_performer) + "\n"
+            _filename = str(_audio_file["_source"]["file_name"]).replace("@", "")
+            _filename_line = "<b>نام فایل:</b> " + str(_filename) + "\n"
+            # _title = str(_audio_file["_source"]["title"]).replace("@", "")
+            # _title_line = "<b>Title:</b> " + str(_title) + "\n"
+            # _performer = str(_audio_file["_source"]["performer"]).replace("@", "")
+            # _performer_line = "<b>Performer:</b> " + str(_performer) + "\n"
+            # _filename = str(_audio_file["_source"]["file_name"]).replace("@", "")
+            # _filename_line = "<b>File name:</b> " + str(_filename) + "\n"
+            if not len(_title) < 2:
+                audio_title = _title
+                description = _filename
+            elif not len(_performer) < 2:
+                audio_title = _performer
+                description = _filename
+            else:
+                audio_title = _filename
+                description = ""
+            audio_title = hidden_character + audio_title
+            description = hidden_character + description
+            results.append(InlineQueryResultArticle(
+                title=str(list_length - index) + '. ' + audio_title,
+                description=description,
+                thumb_url="https://telegra.ph/file/cd08f00005cb527e6bcdb.jpg",
+                input_message_content=InputTextMessageContent(inp_message_content, parse_mode="HTML"),
+
+            ))
