@@ -224,3 +224,11 @@ def playlist_keyboard(*args, **kwargs):
 
             ))
     return results
+
+def playlists_buttons(*args, **kwargs):
+    """
+
+    :param args:
+    :param kwargs:
+    :return:
+    """
