@@ -129,3 +129,11 @@ def music_file_keyboard(*args, **kwargs):
 
     ]
     return keyboard
+
+def back_to_the_bot(*args, **kwargs):
+    """
+
+    :param args:
+    :param kwargs:
+    :return:
+    """
