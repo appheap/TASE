@@ -294,3 +294,11 @@ def edit_playlist_information_guide(*args, **kwargs):
     :param kwargs:
     :return:
     """
+    field = args[0]
+    text = ""
+    if field == "title":
+        text = f"{_fountain_pen} " \
+               f"اطلاعات را وارد کنید"
+    elif field == "description":
+        text = f"{_books} " \
+               f"لطفا اطلاعات جدید را در ادامه‌ی متن زیر تایپ کنید"
