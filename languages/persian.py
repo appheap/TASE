@@ -117,7 +117,7 @@ plants_list = [_seedling, _evergreen_tree, _deciduous_tree, _palm_tree, _sheaf_o
 def music_file_keyboard(*args, **kwargs):
     """
 
-    :param args:
+    :param args: Contains query = args[0] which is file id
     :param kwargs:
-    :return:
+    :return: Generated keyboard
     """
