@@ -109,3 +109,6 @@ from static.emoji import _traffic_light, _checkmark_emoji, _floppy_emoji, _clock
 # # -------------Faces--------------------------
 # # ============================================================================
 # _house_emoji = emoji.EMOJI_ALIAS_UNICODE[':house_with_garden:']
+
+plants_list = [_seedling, _evergreen_tree, _deciduous_tree, _palm_tree, _sheaf_of_rice, _herb, _shamrock,
+               _four_leaf_clover, _maple_leaf, _fallen_leaf, _leaf_fluttering_in_wind]
