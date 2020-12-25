@@ -139,3 +139,11 @@ def back_to_the_bot(*args, **kwargs):
     """
     back_text = f"برگشت به بات {_backhand_index_pointing_right}"
     return back_text
+
+def playlist_keyboard(*args, **kwargs):
+    """
+
+    :param args:
+    :param kwargs:
+    :return:
+    """
