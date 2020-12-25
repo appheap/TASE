@@ -292,9 +292,9 @@ def edit_playlist_information_guide(*args, **kwargs):
     Guides the users how to edit their playlists. Two fields are available to edit:
         1. title
         2. description
-    :param args:
+    :param args: Field: the field that is going to be edited
     :param kwargs:
-    :return:
+    :return: A text containing how to edit playlists
     """
     field = args[0]
     text = ""
