@@ -266,7 +266,8 @@ def delete_playlist_validation_keyboard(*args: list[object], **kwargs) -> list[o
 
 def delete_playlist_validation_text(*args, **kwargs):
     """
-
+    This message asks the user to verify the deletion. In case yes was chosen, it will return the ID of the feature,
+    otherwise it will acts as back button.
     :param args:    type [str]: 1. playlist
                                 2. audio_file
     :param kwargs:
