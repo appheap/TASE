@@ -198,3 +198,28 @@ def playlist_keyboard(*args, **kwargs):
                 input_message_content=InputTextMessageContent(inp_message_content, parse_mode="HTML"),
 
             ))
+    else:
+        description = "پلی‌لیست جدید"
+        if add_new_pl_header:
+            results.append(InlineQueryResultArticle(
+                title="اضافه کردن به پلی‌لیست جدید",
+                description="یک پلی‌لیست جدید ایجاد شده و فایل به آن اضافه می‌شود",
+                thumb_url="https://telegra.ph/file/cd08f00005cb527e6bcdb.jpg",
+                input_message_content=InputTextMessageContent(inp_message_content, parse_mode="HTML"),
+
+            ))
+        for index, playlist in reversed(list(enumerate(playlists))):
+
+            pl_id = playlist["_id"]
+            if func == "addpl":
+                inp_message_content = f"/addtoexistpl {pl_id} {audio_file['_id']}"
+            elif func == "playlists":
+                inp_message_content = f"/showplaylist {pl_id}"
+
+            results.append(InlineQueryResultArticle(
+                title=str(list_length - index) + '. ' + playlist["_source"]["title"],
+                description=playlist["_source"]["description"],
+                thumb_url="https://telegra.ph/file/cd08f00005cb527e6bcdb.jpg",
+                input_message_content=InputTextMessageContent(inp_message_content, parse_mode="HTML"),
+
+            ))
