@@ -238,3 +238,4 @@ def playlists_buttons(*args, **kwargs):
          InlineKeyboardButton(f"پلی‌لیست‌های من | {_headphone}", switch_inline_query_current_chat=f"#myplaylists")],
         [InlineKeyboardButton(f"خانه | {_house}", callback_data="home")]
     ]
+    return markup
