@@ -232,3 +232,9 @@ def playlists_buttons(*args, **kwargs):
     :param kwargs:
     :return: Returns a list of buttons
     """
+    markup = [
+        [InlineKeyboardButton(f"دانلود‌های من | {_mobile_phone_with_arrow}",
+                              switch_inline_query_current_chat=f"#history"),
+         InlineKeyboardButton(f"پلی‌لیست‌های من | {_headphone}", switch_inline_query_current_chat=f"#myplaylists")],
+        [InlineKeyboardButton(f"خانه | {_house}", callback_data="home")]
+    ]
