@@ -242,8 +242,10 @@ def playlists_buttons(*args, **kwargs):
 
 def mylists_menu_text(*args, **kwargs):
     """
-
+    A Guid text for the user about the available lists to choose from:
+        1. My Downloads
+        2. My playlists
     :param args:
     :param kwargs:
-    :return:
+    :return: Returns the generated text
     """
