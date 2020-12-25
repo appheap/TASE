@@ -304,3 +304,11 @@ def edit_playlist_information_guide(*args, **kwargs):
                f"لطفا اطلاعات جدید را در ادامه‌ی متن زیر تایپ کنید"
 
     return text
+
+def delete_audio_murkup_keyboard(*args, **kwargs):
+    """
+
+    :param args:
+    :param kwargs:
+    :return:
+    """
