@@ -340,3 +340,4 @@ def delete_audio_murkup_keyboard(*args, **kwargs):
     #      InlineKeyboardButton(f"{_house} Delete audio file", callback_data=f"adelete {playlist_id}")],
     #     [InlineKeyboardButton(f"{_house} Back", callback_data=f"showplaylist {playlist_id}")]
     # ]
+    return markup
