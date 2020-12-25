@@ -341,3 +341,11 @@ def delete_audio_murkup_keyboard(*args, **kwargs):
     #     [InlineKeyboardButton(f"{_house} Back", callback_data=f"showplaylist {playlist_id}")]
     # ]
     return markup
+
+def delete_audio_file_text(*args, **kwargs):
+    """
+
+    :param args:
+    :param kwargs:
+    :return:
+    """
