@@ -352,3 +352,4 @@ def delete_audio_file_text(*args, **kwargs):
     text = f"{_cross_mark} <b>" \
            f"حذف فایل صوتی از پلی‌لیست" \
            f"</b>"
+    return text
