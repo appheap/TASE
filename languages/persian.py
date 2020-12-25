@@ -307,7 +307,11 @@ def edit_playlist_information_guide(*args, **kwargs):
 
 def delete_audio_murkup_keyboard(*args, **kwargs):
     """
-
+    Generates a keyboard for deleting single files from a specific playlist. This keyboard will be shown consecutive
+     to "Edit" button being pressed in the previous step which was edit playlist.
+     Buttons are:
+        1. Crossmark to proceed with the deletion
+        2. Back to cancel the process
     :param args:    1. Playlist_id = args[0]: The ID of the target playlist
                     2. Pl_audio_files = args[1]: A list of audio files withing this playlist
     :param kwargs:
