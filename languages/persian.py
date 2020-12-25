@@ -362,3 +362,15 @@ def delete_playlist_validation_keyboard(*args, **kwargs):
     :param kwargs:
     :return: The generated keyboard for deletion validation
     """
+    playlist_id = args[0]
+    func = args[1]
+    return_args = ""
+    if func == "playlist":
+        return_args = f"{playlist_id}"
+    elif func == "audio_file":
+        audio_file_id = args[2]
+        return_args = f"{playlist_id} {audio_file_id}"
+    markup = [
+        [InlineKeyboardButton(f"بله | {_thumbs_up}", callback_data=f"ydelete {return_args}"),
+         InlineKeyboardButton(f"خیر | {_thumbs_down}", callback_data=f"ndelete {return_args}")]
+    ]
