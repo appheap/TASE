@@ -121,3 +121,10 @@ def music_file_keyboard(*args, **kwargs):
     :param kwargs:
     :return: Generated keyboard
     """
+    query = args[0]
+    keyboard = [
+        [InlineKeyboardButton(text=f"اضافه به پلی‌لیست | {_plus}",
+                              switch_inline_query_current_chat=f"#addtopl: {query}"),
+         InlineKeyboardButton(text=f"خانه | {_house}", callback_data="home")]
+
+    ]
