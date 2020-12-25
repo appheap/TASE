@@ -289,7 +289,9 @@ def single_playlist_markup_list(*args, **kwargs):
 
 def edit_playlist_information_guide(*args, **kwargs):
     """
-
+    Guides the users how to edit their playlists. Two fields are available to edit:
+        1. title
+        2. description
     :param args:
     :param kwargs:
     :return:
