@@ -147,3 +147,18 @@ def playlist_keyboard(*args, **kwargs):
     :param kwargs:
     :return: Generated keyboard
     """
+    playlists = args[0]
+    audio_file = args[1]
+    add_new_pl_header = args[2]
+    func = args[3]
+    inp_message_content = ""
+    if func == "addpl":
+        inp_message_content = f"/addnewpl {audio_file['_id']}"
+    elif func == "playlists":
+        add_new_pl_header = False
+        # inp_message_content = f"/showplaylist"
+    elif func == "history":
+        add_new_pl_header = False
+    hidden_character = "‏‏‎ ‎"
+    results = []
+    list_length = len((list(enumerate(playlists))))
