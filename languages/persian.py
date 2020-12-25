@@ -142,7 +142,7 @@ def back_to_the_bot(*args, **kwargs):
 
 def playlist_keyboard(*args, **kwargs):
     """
-
+    The necessary buttons for playlists
     :param args: 1. playlists, 2. audio_file, 3. add_new_pl_header, 4. function
     :param kwargs:
     :return: Generated keyboard
