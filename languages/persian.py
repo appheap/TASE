@@ -227,8 +227,8 @@ def playlist_keyboard(*args, **kwargs):
 
 def playlists_buttons(*args, **kwargs):
     """
-
+    Generates an inline keyboard for the playlists
     :param args:
     :param kwargs:
-    :return:
+    :return: Returns a list of buttons
     """
