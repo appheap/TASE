@@ -261,3 +261,11 @@ def mylists_menu_text(*args, **kwargs):
            f"</b> " \
            f"پلی‌لیست‌های فعلی شما: (می‌توانید تا ۵ پلی‌لیست ایجاد کنید و به هرکدام تا ۲۰ فایل صوتی اضافه کنید)"
     return text
+
+def single_playlist_markup_list(*args, **kwargs):
+    """
+
+    :param args:
+    :param kwargs:
+    :return:
+    """
