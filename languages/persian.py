@@ -308,7 +308,8 @@ def edit_playlist_information_guide(*args, **kwargs):
 def delete_audio_murkup_keyboard(*args, **kwargs):
     """
 
-    :param args:
+    :param args:    1. Playlist_id = args[0]: The ID of the target playlist
+                    2. Pl_audio_files = args[1]: A list of audio files withing this playlist
     :param kwargs:
-    :return:
+    :return: A keyboard markup containing the above buttons
     """
