@@ -167,7 +167,7 @@ def single_playlist_markup_list(*args: str, **kwargs) -> list[object]:
         6. Back
     :param args: args[0]: Playlist id
     :param kwargs:
-    :return:
+    :return: A markup list containing mentioned buttons
     """
     playlist_id = args[0]
     markup = [

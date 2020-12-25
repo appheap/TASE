@@ -265,7 +265,7 @@ def mylists_menu_text(*args, **kwargs):
 def single_playlist_markup_list(*args, **kwargs):
     """
 
-    :param args:
+    :param args: args[0]: Playlist id
     :param kwargs:
-    :return:
+    :return: A markup list containing mentioned buttons
     """
