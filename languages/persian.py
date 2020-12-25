@@ -302,3 +302,5 @@ def edit_playlist_information_guide(*args, **kwargs):
     elif field == "description":
         text = f"{_books} " \
                f"لطفا اطلاعات جدید را در ادامه‌ی متن زیر تایپ کنید"
+
+    return text
