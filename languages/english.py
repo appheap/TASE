@@ -267,9 +267,11 @@ def delete_playlist_validation_keyboard(*args: list[object], **kwargs) -> list[o
 def delete_playlist_validation_text(*args, **kwargs):
     """
 
-    :param args:
+    :param args:    type [str]: 1. playlist
+                                2. audio_file
     :param kwargs:
-    :return:
+    :return: Returns a call-to-action message with button to verify the deletion. The result contains the IDs for
+    playlists and/or audio-files
     """
     playlist_id = args[0]
     func = args[1]
