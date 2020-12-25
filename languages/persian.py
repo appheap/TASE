@@ -269,3 +269,13 @@ def single_playlist_markup_list(*args, **kwargs):
     :param kwargs:
     :return: A markup list containing mentioned buttons
     """
+    playlist_id = args[0]
+    markup = [
+        [InlineKeyboardButton(f"فایل‌های صوتی | {_headphone}",
+                              switch_inline_query_current_chat=f"#showfiles {playlist_id}"),
+         InlineKeyboardButton(f"دریافت لیست | {_studio_microphone}", callback_data=f"get_list {playlist_id}")],
+        [InlineKeyboardButton(f"ویرایش | {_gear}", callback_data=f"editpl {playlist_id}"),
+         InlineKeyboardButton(f"حذف | {_cross_mark}", callback_data=f"delete {playlist_id}")],
+        [InlineKeyboardButton(f"خانه | {_house}", callback_data="home"),
+         InlineKeyboardButton(f"برگشت | {_BACK_arrow}", callback_data=f"showmyplaylists {playlist_id}")]
+    ]
