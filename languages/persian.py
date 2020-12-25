@@ -374,3 +374,4 @@ def delete_playlist_validation_keyboard(*args, **kwargs):
         [InlineKeyboardButton(f"بله | {_thumbs_up}", callback_data=f"ydelete {return_args}"),
          InlineKeyboardButton(f"خیر | {_thumbs_down}", callback_data=f"ndelete {return_args}")]
     ]
+    return markup
