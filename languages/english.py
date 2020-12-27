@@ -330,3 +330,7 @@ def edit_playlist_text(*args, **kwargs):
     :param kwargs:
     :return:
     """
+    playlist = args[0]
+    text = f"<b>Edit playlist | {_headphone}</b>\n{34 * '-'}\n\n" \
+           f"<b>Title</b>: \"{playlist['_source']['title']}\"\n\n" \
+           f"<b>Description</b>: {playlist['_source']['description']}"
