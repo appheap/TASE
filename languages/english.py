@@ -400,10 +400,10 @@ def button_language_list(*args, **kwargs):
 
 def button_joining_request_keyboard(*args, **kwargs):
     """
-
+    A keyboard containing buttons to join or announce if they are already joined
     :param args:
     :param kwargs:
-    :return:
+    :return: Generated keyboard markup
     """
     markup = [
         [InlineKeyboardButton(f"I've already joined | {_check_mark_button}", callback_data="joined"),
