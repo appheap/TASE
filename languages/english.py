@@ -377,3 +377,4 @@ def choose_language_text(*args, **kwargs):
     text = f"<b>Please choose your language {first_name} |</b> {_globe_showing_Americas}\n\nYou can change this later by :\n" \
            f"   1. Sending <b>/lang</b>\n" \
            f"   2. Go to <b>Home | {_house}</b>"
+    return text
