@@ -397,3 +397,11 @@ def button_language_list(*args, **kwargs):
         #                      callback_data="['key', '" + key + "']")])
 
     return markup
+
+def button_joining_request_keyboard(*args, **kwargs):
+    """
+
+    :param args:
+    :param kwargs:
+    :return:
+    """
