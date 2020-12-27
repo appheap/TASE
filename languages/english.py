@@ -316,3 +316,4 @@ def edit_playlist_keyboard(*args, **kwargs):
                               callback_data=f"adelete {playlist_id}")],
         [InlineKeyboardButton(f"Back | {_BACK_arrow}", callback_data=f"showplaylist {playlist_id}")]
     ]
+    return markup
