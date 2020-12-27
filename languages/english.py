@@ -441,3 +441,14 @@ def file_caption(*args, **kwargs):
     :param kwargs:
     :return:
     """
+    audio_track = args[0]
+    message_id = args[1]
+    chromusic_users_files_id = 165802777
+    include_source = True
+    _heart = random.choice(heart_list)
+    _plant = random.choice(plants_list)
+    text = f""
+    if len(args) == 3 or audio_track.chat.id == chromusic_users_files_id:
+        include_source = False
+        user_files_id = args[2]
+        print("its_from_file_caption")
