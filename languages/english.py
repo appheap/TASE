@@ -418,3 +418,11 @@ def button_joining_request_keyboard(*args, **kwargs):
         # [InlineKeyboardButton("Docs", url="https://docs.pyrogram.org")]
     ]
     return markup
+
+def welcome(*args, **kwargs):
+    """
+
+    :param args:
+    :param kwargs:
+    :return:
+    """
