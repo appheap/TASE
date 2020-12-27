@@ -364,3 +364,4 @@ def languages_list(*args, **kwargs):
            f"&lrm; {_fa}<b> فارسی </b> (Persian) - /lang_fa\n {34 * '-'} \n" \
            f"&lrm; {_ar}<b> العربية </b> (Arabic) - /lang_ar\n\n" \
            f"{25 * '='} \nYou can change this later by sending <b>/lang</b>"
+    return text
