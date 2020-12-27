@@ -352,7 +352,7 @@ def single_playlist_text(*args, **kwargs):
 
 def languages_list(*args, **kwargs):
     """
-
+    Generates a text containing a list of available languages (both in english and native writing system)
     :param args:
     :param kwargs:
     :return:
