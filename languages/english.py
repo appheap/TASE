@@ -296,3 +296,11 @@ def playlist_deleted_text(*args, **kwargs):
     """
     text = f"{_check_mark_button} Playlist deleted successfully"
     return text
+
+def edit_playlist_keyboard(*args, **kwargs):
+    """
+
+    :param args:
+    :param kwargs:
+    :return:
+    """
