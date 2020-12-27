@@ -432,3 +432,4 @@ def welcome(*args, **kwargs):
            f"get your searching up to <b>#speed</b>.{_zap}\n" \
            f"\n\n{_studio_microphone} <b>#Find</b> your audio (music, podcast, etc.) in <b>#milliseconds</b> {_smiling_face_with_sunglasses}" \
            f"\n\n{_green_circle} Any question? then press /help {_winking_face}"
+    return text
