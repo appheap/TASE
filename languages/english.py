@@ -339,7 +339,9 @@ def edit_playlist_text(*args, **kwargs):
 def single_playlist_text(*args, **kwargs):
     """
 
-    :param args:
-    :param kwargs:
-    :return:
     """
+    playlist = args[0]
+    text = f"<b>Playlist menu | {_headphone}</b>" \
+           f"\n{34 * '-'}\n\n" \
+           f"<b>Title</b>: \"{playlist['title']}\"\n\n" \
+           f"<b>Description</b>: {playlist['description']}"
