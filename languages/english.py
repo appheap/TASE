@@ -295,3 +295,4 @@ def playlist_deleted_text(*args, **kwargs):
     :return:
     """
     text = f"{_check_mark_button} Playlist deleted successfully"
+    return text
