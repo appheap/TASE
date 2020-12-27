@@ -299,8 +299,13 @@ def playlist_deleted_text(*args, **kwargs):
 
 def edit_playlist_keyboard(*args, **kwargs):
     """
-
-    :param args:
+    Generates a keyboard for playlists editing. Buttons are:
+        1. Edit title
+        2. Edit decription
+        3. Delete playlist
+        4. Delete audio-file
+        5. Back
+    :param args: Contains the playlist ID
     :param kwargs:
     :return:
     """
