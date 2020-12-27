@@ -421,8 +421,8 @@ def button_joining_request_keyboard(*args, **kwargs):
 
 def welcome(*args, **kwargs):
     """
-
-    :param args:
+    Shows a welcome message to the user after hitting 'start'
+    :param args: *[0] -> user's first name
     :param kwargs:
     :return:
     """
