@@ -322,3 +322,11 @@ def edit_playlist_keyboard(*args, **kwargs):
         [InlineKeyboardButton(f"Back | {_BACK_arrow}", callback_data=f"showplaylist {playlist_id}")]
     ]
     return markup
+
+def edit_playlist_text(*args, **kwargs):
+    """
+
+    :param args:
+    :param kwargs:
+    :return:
+    """
