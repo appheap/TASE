@@ -365,3 +365,11 @@ def languages_list(*args, **kwargs):
            f"&lrm; {_ar}<b> العربية </b> (Arabic) - /lang_ar\n\n" \
            f"{25 * '='} \nYou can change this later by sending <b>/lang</b>"
     return text
+
+def choose_language_text(*args, **kwargs):
+    """
+
+    :param args:
+    :param kwargs:
+    :return:
+    """
