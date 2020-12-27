@@ -348,3 +348,4 @@ def single_playlist_text(*args, **kwargs):
            f"\n{34 * '-'}\n\n" \
            f"<b>Title</b>: \"{playlist['title']}\"\n\n" \
            f"<b>Description</b>: {playlist['description']}"
+    return text
