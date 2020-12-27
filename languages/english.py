@@ -479,3 +479,11 @@ def file_caption(*args, **kwargs):
         print(f"from file caption: {e}")
 
     return text
+
+def inline_file_caption(*args, **kwargs):
+    """
+
+    :param args:
+    :param kwargs:
+    :return:
+    """
