@@ -381,7 +381,14 @@ def choose_language_text(*args, **kwargs):
 
 def button_language_list(*args, **kwargs):
     """
-
+    A keyboard containing the available languages:
+    Current languages:
+        1. English
+        2. Persian
+        # not implemented yet:
+        3. Hindi
+        4. Russian
+        5. Arabic
     :param args:
     :param kwargs:
     :return:
