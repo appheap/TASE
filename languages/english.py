@@ -378,3 +378,11 @@ def choose_language_text(*args, **kwargs):
            f"   1. Sending <b>/lang</b>\n" \
            f"   2. Go to <b>Home | {_house}</b>"
     return text
+
+def button_language_list(*args, **kwargs):
+    """
+
+    :param args:
+    :param kwargs:
+    :return:
+    """
