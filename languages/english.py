@@ -436,7 +436,12 @@ def welcome(*args, **kwargs):
 
 def file_caption(*args, **kwargs):
     """
-    Generates caption for the retrieved audio files
+    Generates caption for the retrieved audio files. Each caption contains:
+        1. Title
+        2. Performer
+        3. File name (In case above fields were not available)
+        4. File source (source channel username + message_id)
+
     :param args:    1. *[0] -> Audio track
                     2. *[1] -> Message id
     :param kwargs:
