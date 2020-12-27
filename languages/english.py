@@ -349,3 +349,11 @@ def single_playlist_text(*args, **kwargs):
            f"<b>Title</b>: \"{playlist['title']}\"\n\n" \
            f"<b>Description</b>: {playlist['description']}"
     return text
+
+def languages_list(*args, **kwargs):
+    """
+
+    :param args:
+    :param kwargs:
+    :return:
+    """
