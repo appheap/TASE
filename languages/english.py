@@ -436,10 +436,11 @@ def welcome(*args, **kwargs):
 
 def file_caption(*args, **kwargs):
     """
-
-    :param args:
+    Generates caption for the retrieved audio files
+    :param args:    1. *[0] -> Audio track
+                    2. *[1] -> Message id
     :param kwargs:
-    :return:
+    :return: A caption containing audio file information
     """
     audio_track = args[0]
     message_id = args[1]
