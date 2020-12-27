@@ -325,8 +325,8 @@ def edit_playlist_keyboard(*args, **kwargs):
 
 def edit_playlist_text(*args, **kwargs):
     """
-
-    :param args:
+    Generates a text about the current attributes of the chosen playlist in the edit window
+    :param args: Chosen playlist object
     :param kwargs:
     :return:
     """
