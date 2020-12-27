@@ -304,3 +304,15 @@ def edit_playlist_keyboard(*args, **kwargs):
     :param kwargs:
     :return:
     """
+    playlist_id = args[0]
+    # query_id = args[1]
+    markup = [
+        [InlineKeyboardButton(f"Edit title | {_wrench}",
+                              switch_inline_query_current_chat=f"#edit_title {playlist_id} "),
+         InlineKeyboardButton(f"Edit description | {_wrench}",
+                              switch_inline_query_current_chat=f"#edit_description {playlist_id} ")],
+        [InlineKeyboardButton(f"Delete playlist | {_cross_mark}{_headphone}", callback_data=f"delete {playlist_id}"),
+         InlineKeyboardButton(f"Delete audio file | {_cross_mark}{_musical_note}",
+                              callback_data=f"adelete {playlist_id}")],
+        [InlineKeyboardButton(f"Back | {_BACK_arrow}", callback_data=f"showplaylist {playlist_id}")]
+    ]
