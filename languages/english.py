@@ -471,3 +471,5 @@ def file_caption(*args, **kwargs):
         # f"{_pushpin} | <a href ='https://t.me/chromusic'>Persian Chromusic channel</a>\n" \
     except Exception as e:
         print(f"from file caption: {e}")
+
+    return text
