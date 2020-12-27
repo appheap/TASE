@@ -405,3 +405,8 @@ def button_joining_request_keyboard(*args, **kwargs):
     :param kwargs:
     :return:
     """
+    markup = [
+        [InlineKeyboardButton(f"I've already joined | {_check_mark_button}", callback_data="joined"),
+         InlineKeyboardButton(f"Ok I'll join | {_thumbs_up}", url="https://t.me/chromusic_fa")]
+        # [InlineKeyboardButton("Docs", url="https://docs.pyrogram.org")]
+    ]
