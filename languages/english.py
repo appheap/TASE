@@ -487,3 +487,24 @@ def inline_file_caption(*args, **kwargs):
     :param kwargs:
     :return:
     """
+    audio_track = args[0]
+    message_id = audio_track["_source"]["message_id"]
+
+    # temp_perf_res = audio_track["_source"]["performer"]
+    # temp_titl_res = audio_track["_source"]["title"]
+    # temp_filnm_res = audio_track["_source"]["file_name"]
+    # chromusic_users_files_id = 165802777
+    chromusic_users_files_id = -1001288746290
+    include_source = True
+    _heart = random.choice(heart_list)
+    _plant = random.choice(plants_list)
+    text = f""
+    if len(args) == 3 or audio_track["_source"]["chat_id"] == chromusic_users_files_id:
+        include_source = False
+
+        print("its_from_file_caption")
+        return f"If you are not in the bot's chat, please forward this message to the bot: \n" \
+               f"<a href ='https://t.me/chromusic_bot'><b>Chromusic bot:</b> Audio search engine</a>\n" \
+               f"{_round_pushpin} | Channel: @Chromusic_fa" \
+               f"\n\n{_headphone} | dl_{audio_track['_id']}\n" \
+               f"{_plant}"
