@@ -452,3 +452,22 @@ def file_caption(*args, **kwargs):
         include_source = False
         user_files_id = args[2]
         print("its_from_file_caption")
+    try:
+
+        _title = str(audio_track.audio.title).replace("@", "")
+        _title_line = "<b>Title:</b> " + str(_title) + "\n"
+        _performer = str(audio_track.audio.performer).replace("@", "")
+        _performer_line = "<b>Performer:</b> " + str(_performer) + "\n"
+        _filename = str(audio_track.audio.file_name).replace("@", "")
+        _filename_line = "<b>File name:</b> " + str(_filename) + "\n"
+        _source = f"<a href ='https://t.me/{audio_track.chat.username}/{message_id}'>{audio_track.chat.username}</a>"
+        text = f"{_title_line if not _title == 'None' else ''}" \
+               f"{_performer_line if not _performer == 'None' else ''}" \
+               f"{_filename_line if (_title == 'None' and not _filename == 'None') else ''}" \
+               f"{_round_pushpin}Source: {_source if include_source else 'Sent by Chromusic users'}\n" \
+               f"\n{_search_emoji} | <a href ='https://t.me/chromusic_bot'><b>Chromusic bot:</b> Audio search engine</a>\n" \
+               f"{_plant}"
+        # f"{_pushpin} | <a href ='https://t.me/chromusic'>Chromusic channel</a>\n" \
+        # f"{_pushpin} | <a href ='https://t.me/chromusic'>Persian Chromusic channel</a>\n" \
+    except Exception as e:
+        print(f"from file caption: {e}")
