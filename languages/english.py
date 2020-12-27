@@ -368,8 +368,8 @@ def languages_list(*args, **kwargs):
 
 def choose_language_text(*args, **kwargs):
     """
-
-    :param args:
+    A call-to-action message for choosing the preferred language; plus a mini-guide on how to change the language later
+    :param args: *[0] User's first name -> str
     :param kwargs:
     :return:
     """
