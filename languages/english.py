@@ -355,7 +355,7 @@ def languages_list(*args, **kwargs):
     Generates a text containing a list of available languages (both in english and native writing system)
     :param args:
     :param kwargs:
-    :return:
+    :return: The generated text
     """
     text = f"<b>Please choose your language:</b>\n\n" \
            f" {_en}<b> English </b> - /lang_en\n {34 * '-'} \n" \
@@ -386,3 +386,12 @@ def button_language_list(*args, **kwargs):
     :param kwargs:
     :return:
     """
+    markup = []
+    stringList = {f" {_en} English": f"en", f" {_hi} हिन्दी (Hindi)": f"hi",
+                  f" {_ru} русский (Russian)": f"ru", f"{_fa} فارسی (Persian)": f"fa",
+                  f"{_ar} العربية (Arabic)": f"ar"}
+    for key, value in stringList.items():
+        markup.append([InlineKeyboardButton(text=key,
+                                            callback_data=value)])
+        # InlineKeyboardButton(text=value,
+        #                      callback_data="['key', '" + key + "']")])
