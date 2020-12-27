@@ -286,3 +286,11 @@ def delete_playlist_validation_text(*args, **kwargs):
         [InlineKeyboardButton(f"Yes | {_thumbs_up}", callback_data=f"ydelete {return_args}"),
          InlineKeyboardButton(f"No | {_thumbs_down}", callback_data=f"ndelete {return_args}")]
     ]
+
+def playlist_deleted_text(*args, **kwargs):
+    """
+
+    :param args:
+    :param kwargs:
+    :return:
+    """
