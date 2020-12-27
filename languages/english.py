@@ -480,10 +480,15 @@ def file_caption(*args, **kwargs):
 
     return text
 
-def inline_file_caption(*args, **kwargs):
+def inline_file_caption(*args: list, **kwargs) -> str:
     """
-
-    :param args:
+    Generates caption for the retrieved audio files from inline searches. Each caption contains:
+        1. Title
+        2. Performer
+        3. File name (In case above fields were not available)
+        4. File source (source channel username + message_id)
+    :param args:    1. *[0] -> Audio track
+                    2. *[1] -> Message id
     :param kwargs:
     :return:
     """
@@ -508,3 +513,96 @@ def inline_file_caption(*args, **kwargs):
                f"{_round_pushpin} | Channel: @Chromusic_fa" \
                f"\n\n{_headphone} | dl_{audio_track['_id']}\n" \
                f"{_plant}"
+
+    try:
+
+        _title = audio_track["_source"]["title"]
+        _title_line = "<b>Title:</b> " + str(_title) + "\n"
+        _performer = audio_track["_source"]["performer"]
+        _performer_line = "<b>Performer:</b> " + str(_performer) + "\n"
+        _filename = audio_track["_source"]["file_name"]
+        _filename_line = "<b>File name:</b> " + str(_filename) + "\n"
+        _source = f"<a href ='https://t.me/{audio_track['_source']['chat_username']}/{message_id}'>{audio_track['_source']['chat_username']}</a>"
+        text = f"{_title_line if not _title == None else ''}" \
+               f"{_performer_line if not _performer == None else ''}" \
+               f"{_filename_line if (_title == None and not _filename == None) else ''}" \
+               f"{_round_pushpin}Source: {_source if include_source else 'Sent by Chromusic users'}\n" \
+               f"\n{_search_emoji} | <a href ='https://t.me/chromusic_bot'><b>Chromusic bot:</b> Audio search engine</a>\n" \
+               f"{_plant}"
+        # f"{_pushpin} | <a href ='https://t.me/chromusic'>Chromusic channel</a>\n" \
+        # f"{_pushpin} | <a href ='https://t.me/chromusic'>Persian Chromusic channel</a>\n" \
+    except Exception as e:
+        print(f"from file caption: {e}")
+
+    return text
+
+def inline_join_channel_description_text(*args, **kwargs) -> str:
+    """
+    Shows a call-to-action text to users who have not Joined the channel yet (Description)
+    :param args:
+    :param kwargs:
+    :return: Generated a text requiring users to start the bot first
+    """
+    hidden_character = "‏‏‎ ‎"
+    text = f"{_headphone}To Enable this feature please join Chromusic channel first{_thumbs_up}\n{_pushpin}@Chromusic_fa"
+    return text
+
+def inline_join_channel_title_text(*args, **kwargs) -> str:
+    """
+    Shows a call-to-action text to users who have not Joined the channel yet (Title)
+    :param args:
+    :param kwargs:
+    :return: Generated a text requiring users to start the bot first
+    """
+    text = f"{_green_circle} Please join Chromusic"
+    return text
+
+def inline_join_channel_content_text(*args, **kwargs):
+    """
+    Shows a call-to-action text to users who have not Joined the channel (When they click on the inline
+        call-to-join result)
+    :param args:
+    :param kwargs:
+    :return: Generated a text requiring users to start the bot first
+    """
+    plant = random.choice(plants_list)
+    text = f"{_round_pushpin}Please join @Chromusic_fa channel {_smiling_face_with_sunglasses}\nThank you for joining {plant}\n\n" \
+           f"{_headphone}<a href='https://t.me/chromusic_bot'><b>Chromusic audio search engine:</b></a> @chromusic_bot{_studio_microphone}"
+    return text
+
+def inline_start_bot_title_text(*args, **kwargs) -> str:
+    """
+    Shows a call-to-start text to users who have not started the bot yet (Title)
+    :param args:
+    :param kwargs:
+    :return: Generated a text requiring users to start the bot first
+    """
+    text = f"{_green_circle} Please start the Chromusic bot first"
+    return text
+
+def inline_start_bot_description_text(*args, **kwargs) -> str:
+    """
+    Shows a call-to-start text to users who have not started the bot yet (Description)
+    :param args:
+    :param kwargs:
+    :return: Generated a text requiring users to start the bot first
+    """
+    hidden_character = "‏‏‎ ‎"
+    text = f"{_headphone}To Enable this feature please hit the start button on Chromusic_bot{_thumbs_up}\n{_pushpin}@Chromusic_fa"
+    return text
+
+def inline_start_bot_content_text(*args, **kwargs) -> str:
+    """
+    Shows a call-to-start text to users who have not started the bot yet (When they click on the inline
+        call-to-start result)
+    :param args:
+    :param kwargs:
+    :return: Generated a text requiring users to start the bot first
+    """
+    plant = random.choice(plants_list)
+    text = f"{_round_pushpin}To enable the search engine work for you please hit the <b>start</b> button on " \
+           f"<b>@Chromusic_bot</b>{_smiling_face_with_sunglasses} page and <b>join</b> at least one of our channels:\n" \
+           f"{_pushpin}@Chromusic_fa" \
+           f"\nThank you for joining {plant}\n\n" \
+           f"{_headphone}<a href='https://t.me/chromusic_bot'><b>Chromusic audio search engine</b></a>{_studio_microphone}"
+    return text
