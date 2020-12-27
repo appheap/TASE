@@ -335,3 +335,11 @@ def edit_playlist_text(*args, **kwargs):
            f"<b>Title</b>: \"{playlist['_source']['title']}\"\n\n" \
            f"<b>Description</b>: {playlist['_source']['description']}"
     return text
+
+def single_playlist_text(*args, **kwargs):
+    """
+
+    :param args:
+    :param kwargs:
+    :return:
+    """
