@@ -424,7 +424,7 @@ def welcome(*args, **kwargs):
     Shows a welcome message to the user after hitting 'start'
     :param args: *[0] -> user's first name
     :param kwargs:
-    :return:
+    :return: Generated welcome message
     """
     name = args[0]
     text = f"{_headphone}<b>Take your audio searching to the speed</b>{_headphone}\n\n" \
