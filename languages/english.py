@@ -391,7 +391,7 @@ def button_language_list(*args, **kwargs):
         5. Arabic
     :param args:
     :param kwargs:
-    :return:
+    :return: A keyboard containing the mentioned buttons
     """
     markup = []
     stringList = {f" {_en} English": f"en", f" {_hi} हिन्दी (Hindi)": f"hi",
