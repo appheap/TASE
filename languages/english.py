@@ -338,7 +338,10 @@ def edit_playlist_text(*args, **kwargs):
 
 def single_playlist_text(*args, **kwargs):
     """
-
+    Creates a description about a specific playlist
+    :param args: *[0] -> Playlist object
+    :param kwargs:
+    :return:
     """
     playlist = args[0]
     text = f"<b>Playlist menu | {_headphone}</b>" \
