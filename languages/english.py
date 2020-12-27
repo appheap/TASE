@@ -289,8 +289,9 @@ def delete_playlist_validation_text(*args, **kwargs):
 
 def playlist_deleted_text(*args, **kwargs):
     """
-
+    Deletion success text
     :param args:
     :param kwargs:
     :return:
     """
+    text = f"{_check_mark_button} Playlist deleted successfully"
