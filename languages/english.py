@@ -620,3 +620,22 @@ def example_message(*args, **kwargs) -> str:
            f"with \"/ dl_\"</b>\n" \
            f"<b>Example:</b> /dl_7DzuE_Rg"
     return text
+
+def collaboration_request(*args, **kwargs) -> str:
+    """
+    Requires the user for collaboration
+    :param args:
+    :param kwargs:
+    :return: returns the inquiry text message
+    """
+    plant = random.choice(plants_list)
+    plant2 = random.choice(plants_list)
+    plant3 = random.choice(plants_list)
+    text = f"{_red_heart}{plant} <b>Please support us by introducing this service to your friends</b>\n\n" \
+           f"{plant2} Since our servers contain monthly charges, please <b>share</b> this service with your friends" \
+           f" to keep Chromusic running. Thanks {plant3}\n" \
+           f"@chromusic_bot"
+    return text
+
+
+
