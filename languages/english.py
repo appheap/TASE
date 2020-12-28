@@ -956,3 +956,11 @@ def help_inline_keyboard_list(*args, **kwargs):
         input_message_content=InputTextMessageContent(f"Read searching tutorial on this page: \n"
                                                       f"<a href='https://telegra.ph/%D9%86%D8%AD%D9%88%D9%87-%D8%A7%D8%B3%D8%AA%D9%81%D8%A7%D8%AF%D9%87-%D8%A7%D8%B2-%D8%A8%D8%A7%D8%AA-07-15'>"
                                                       f"<b>Optimal search</b></a>", parse_mode="HTML")))
+    results.append(InlineQueryResultArticle(
+        title="3. How to register my own audio track?",
+        description="You can simply send your audio file and have it indexed by Chromusic",
+        thumb_url="https://telegra.ph/file/36fc0478a793bd6db8c4e.jpg",
+        input_message_content=InputTextMessageContent(f"Here is a complete guide on "
+                                                      f"<a href='https://telegra.ph/%D8%AB%D8%A8%D8%AA-%DA%A9%D8%A7%D9%86%D8%A7%D9%84-%D8%AE%D9%88%D8%AF%D9%85-%D8%AF%D8%B1-%D8%B1%D8%A8%D8%A7%D8%AA-%DA%A9%D8%B1%D9%88%D9%85%E2%80%8C%D9%85%D9%88%D8%B2%DB%8C%DA%A9-07-15'>"
+                                                      f"<b>how to add my audio track</b></a> (music, podcast, etc.)"
+                                                      f" to be shown in the results", parse_mode="HTML")))
