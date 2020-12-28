@@ -888,7 +888,7 @@ def help_markup_keyboard(*args, **kwargs) -> list:
     ]
     return markup
 
-def help_keyboard_text(*args, **kwargs):
+def help_keyboard_text(*args, **kwargs) -> str:
     """
     Help message showing on top of the 'Help' keyboard
     :param args:
