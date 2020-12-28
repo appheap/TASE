@@ -840,3 +840,50 @@ def delete_audio_guide_text(*args, **kwargs) -> str:
     """
     text = f"{_green_circle} By clicking on each button you can remove that file from the current playlist | {_cross_mark}"
     return text
+
+def home_markup_keyboard(*args, **kwargs) -> list:
+    """
+    The main keyboard of the bot. It contains following buttons:
+        1. My Downloads: A list of last 50 downloads
+        2. My Playlists: A list of user's playlists
+        3. Language: Returns the language choosing keyboard
+        4. Advertisement: Redirects to the advertisement channel
+        5. How To: Shows an inline list of tutorials [website urls]
+    :param args:
+    :param kwargs:
+    :return: Final markup result
+    """
+    markup = [
+        [InlineKeyboardButton(f"My Downloads | {_mobile_phone_with_arrow}",
+                              switch_inline_query_current_chat=f"#history"),
+         InlineKeyboardButton(f"My Playlists | {_headphone}", switch_inline_query_current_chat=f"#myplaylists")],
+        [InlineKeyboardButton(f"Language | {_globe_showing_Americas}", callback_data="lang")],
+        [InlineKeyboardButton(f"Advertisement | {_chart_increasing}{_bar_chart}", url="https://t.me/chromusic_ads"),
+         # callback_data="ads"),
+         InlineKeyboardButton(f"How to | {_exclamation_question_mark}",
+                              switch_inline_query_current_chat=f"#help_catalog")]
+    ]
+    return markup
+
+def help_markup_keyboard(*args, **kwargs) -> list:
+    """
+    The help keyboard of the bot. It contains following buttons:
+        1. My Downloads: A list of last 50 downloads
+        2. My Playlists: A list of user's playlists
+        3. Back: Returns back to the 'Home' keyboard
+        4. Advertisement: Redirects to the advertisement channel
+        5. Help: Shows an inline list of tutorials [website urls]
+    :param args:
+    :param kwargs:
+    :return: Final markup result
+    """
+    markup = [
+        [InlineKeyboardButton(f"My Downloads | {_mobile_phone_with_arrow}",
+                              switch_inline_query_current_chat=f"#history"),
+         InlineKeyboardButton(f"My Playlists | {_headphone}", switch_inline_query_current_chat=f"#myplaylists")],
+        [InlineKeyboardButton(f"Back | {_BACK_arrow}", callback_data="home")],
+        [InlineKeyboardButton(f"Advertisement | {_chart_increasing}{_bar_chart}", url="https://t.me/chromusic_ads")
+            , InlineKeyboardButton(f"Help | {_exclamation_question_mark}",
+                                   switch_inline_query_current_chat=f"#help_catalog")]
+    ]
+    return markup
