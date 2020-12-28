@@ -926,10 +926,10 @@ def home_keyboard_text(*args, **kwargs) -> str:
 
 def file_deleted_from_playlist(*args, **kwargs):
     """
-
+    Audio-file deletion validation message
     :param args:
     :param kwargs:
-    :return:
+    :return: Generated validation message
     """
     text = f"{_check_mark_button} Audio file deleted from playlist"
     return text
