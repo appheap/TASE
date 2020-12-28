@@ -949,3 +949,10 @@ def help_inline_keyboard_list(*args, **kwargs):
         input_message_content=InputTextMessageContent(f"Everything you need to know before promoting your business: \n"
                                                       f"<a href='https://telegra.ph/%D8%AA%D8%A8%D9%84%DB%8C%D8%BA%D8%A7%D8%AA-07-14'>"
                                                       f"<b>Chromusic Advertising</b></a>", parse_mode="HTML")))
+    results.append(InlineQueryResultArticle(
+        title="2. How to search for and download an audio track",
+        description="You can easily send your audio file and get indexed by Chromusic bot",
+        thumb_url="https://telegra.ph/file/36fc0478a793bd6db8c4e.jpg",
+        input_message_content=InputTextMessageContent(f"Read searching tutorial on this page: \n"
+                                                      f"<a href='https://telegra.ph/%D9%86%D8%AD%D9%88%D9%87-%D8%A7%D8%B3%D8%AA%D9%81%D8%A7%D8%AF%D9%87-%D8%A7%D8%B2-%D8%A8%D8%A7%D8%AA-07-15'>"
+                                                      f"<b>Optimal search</b></a>", parse_mode="HTML")))
