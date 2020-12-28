@@ -831,7 +831,7 @@ def added_to_playlist_success_text(*args, **kwargs):
                f"You can access your playlists and your download history using <b>Home</b> button | {_green_circle}"
     return text
 
-def delete_audio_guide_text(*args, **kwargs):
+def delete_audio_guide_text(*args, **kwargs) -> str:
     """
     Guides users how to delete an audio-file from the current playlist.
     :param args:
