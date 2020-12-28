@@ -979,7 +979,7 @@ def help_inline_keyboard_list(*args, **kwargs):
         description="if you feel your channel has not been indexed",
         thumb_url="https://[Your file url].jpg",
         input_message_content=InputTextMessageContent(f"Here is a complete guide on "
-                                                      f"<a href='https://[Your blog url]'>"
+                                                      f"<a href='https://github.com/soran-ghadri/Chromusic_search_engine'>"
                                                       f"<b>how to add my channel</b></a>  to be shown by Chromusic",
                                                       parse_mode="HTML")))
     results.append(InlineQueryResultArticle(
