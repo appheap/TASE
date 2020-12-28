@@ -992,7 +992,7 @@ def help_inline_keyboard_list(*args, **kwargs):
     results.append(InlineQueryResultArticle(
         title="6. About us",
         description="If you like to find out more about us, click on this link",
-        thumb_url="https://telegra.ph/file/17ea2995a5146d4c32e7b.jpg",
+        thumb_url="https://[Your file url].jpg",
         input_message_content=InputTextMessageContent(
             f"<b>Read more about us on the following page:\n<a href='[Your blog url]'>About Chromusic</a></b>",
             parse_mode="HTML")
