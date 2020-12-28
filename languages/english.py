@@ -908,10 +908,10 @@ def help_keyboard_text(*args, **kwargs) -> str:
 
 def home_keyboard_text(*args, **kwargs):
     """
-
+    Home message showing on top of the 'Home' Menu
     :param args:
     :param kwargs:
-    :return:
+    :return: Generated results
     """
     _heart = random.choice(heart_list)
     _plant = random.choice(plants_list)
