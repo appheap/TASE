@@ -895,3 +895,12 @@ def help_keyboard_text(*args, **kwargs):
     :param kwargs:
     :return:
     """
+    _heart = random.choice(heart_list)
+    _plant = random.choice(plants_list)
+    text = f"<b>Help menu | {_exclamation_question_mark}</b>\n{34 * '-'}\n\n" \
+           f"Our channels:\n" \
+           f"Channel: <b>@chromusic_fa</b> | {_pushpin}\n{34 * '-'}\n\n" \
+           f"Our Instagram accounts:\n" \
+           f"<a href='https://www.instagram/chromusic.official'>Chromusic</a> | {_round_pushpin}\n" \
+           f"<a href='https://www.instagram/chromusic_fa'>Persian Chromusic</a> | {_round_pushpin}\n\n" \
+           f"&lrm;{_plant}{_heart}"
