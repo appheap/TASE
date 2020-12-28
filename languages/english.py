@@ -606,3 +606,17 @@ def inline_start_bot_content_text(*args, **kwargs) -> str:
            f"\nThank you for joining {plant}\n\n" \
            f"{_headphone}<a href='https://t.me/chromusic_bot'><b>Chromusic audio search engine</b></a>{_studio_microphone}"
     return text
+
+def example_message(*args, **kwargs) -> str:
+    """
+    Mini-tutorial for the first time the users starts the bot. This is a sample message on how to search
+        audio files in the bot.
+    :param args:
+    :param kwargs:
+    :return: Generated text
+    """
+    text = f"{_search_emoji}<b>1. Send the audio name or the performer:</b>\n" \
+           f"{_checkmark_emoji}<b>Example:</b> Blank Space - Taylor Swift\n\n<b>2.Click on the links starting " \
+           f"with \"/ dl_\"</b>\n" \
+           f"<b>Example:</b> /dl_7DzuE_Rg"
+    return text
