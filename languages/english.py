@@ -923,3 +923,11 @@ def home_keyboard_text(*args, **kwargs) -> str:
            f"<a href='https://www.instagram.com/chromusic_fa'><b>Persian Chromusic</b></a> | {_round_pushpin}\n\n" \
            f"&rlm;{_plant}{_heart}"
     return text
+
+def file_deleted_from_playlist(*args, **kwargs):
+    """
+
+    :param args:
+    :param kwargs:
+    :return:
+    """
