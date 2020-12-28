@@ -887,3 +887,11 @@ def help_markup_keyboard(*args, **kwargs) -> list:
                                    switch_inline_query_current_chat=f"#help_catalog")]
     ]
     return markup
+
+def help_keyboard_text(*args, **kwargs):
+    """
+
+    :param args:
+    :param kwargs:
+    :return:
+    """
