@@ -972,3 +972,10 @@ def help_inline_keyboard_list(*args, **kwargs):
                                                       f"<a href='https://telegra.ph/%D8%AB%D8%A8%D8%AA-%DA%A9%D8%A7%D9%86%D8%A7%D9%84-%D8%AE%D9%88%D8%AF%D9%85-%D8%AF%D8%B1-%D8%B1%D8%A8%D8%A7%D8%AA-%DA%A9%D8%B1%D9%88%D9%85%E2%80%8C%D9%85%D9%88%D8%B2%DB%8C%DA%A9-07-15'>"
                                                       f"<b>how to add my channel</b></a>  to be shown by Chromusic",
                                                       parse_mode="HTML")))
+    results.append(InlineQueryResultArticle(
+        title="5. Contact us",
+        description="If you need to contact Chromusic admins then hit this item",
+        thumb_url="https://telegra.ph/file/cd08f00005cb527e6bcdb.jpg",
+        input_message_content=InputTextMessageContent(f"you can be in touch with us through @pudax\n"
+                                                      f"For further information please read "
+                                                      f"<a href='https://telegra.ph/درباره-ما-07-12-3'>Chromusic contact</a>", parse_mode="HTML")))
