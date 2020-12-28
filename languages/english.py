@@ -987,3 +987,4 @@ def help_inline_keyboard_list(*args, **kwargs):
             f"<b>Read more about us on the following page:\n<a href='https://telegra.ph/درباره-ما-07-12-3'>About Chromusic</a></b>",
             parse_mode="HTML")
     ))
+    return results
