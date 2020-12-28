@@ -703,7 +703,7 @@ def not_joined(*args, **kwargs) -> str:
            f"{_green_heart} Join @chromusic_fa to access all features for #FREE {_green_heart}"
     return text
 
-def result_list_handler(*args, **kwargs):
+def result_list_handler(*args: list, **kwargs) -> str:
     """
     Handles the main search result for each query. It checks whether there are any result for this qeury or not.
         1. If there was results, then it sorts and decorates the them.
@@ -756,4 +756,19 @@ def result_list_handler(*args, **kwargs):
         text = f"{_traffic_light}  No results were found!" \
                f"\n<pre>{textwrap.shorten(query, width=200, placeholder='...')}</pre>"
 
+    return text
+
+def playlist_updated_text(*args: list, **kwargs) -> str:
+    """
+    Playlist update validation message on success
+    :param args: *[0] -> function
+    :param kwargs:
+    :return: Validation-on-success message
+    """
+    func = args[0]
+    text = ""
+    if func == "title_update":
+        text = f"{_check_mark_button} <b>Title updated successfully</b>"
+    elif func == "description_update":
+        text = f"{_check_mark_button} <b>Description updated successfully</b>"
     return text
