@@ -904,3 +904,4 @@ def help_keyboard_text(*args, **kwargs):
            f"<a href='https://www.instagram/chromusic.official'>Chromusic</a> | {_round_pushpin}\n" \
            f"<a href='https://www.instagram/chromusic_fa'>Persian Chromusic</a> | {_round_pushpin}\n\n" \
            f"&lrm;{_plant}{_heart}"
+    return text
