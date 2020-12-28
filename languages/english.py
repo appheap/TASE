@@ -679,3 +679,26 @@ def send_in_1_min(*args: list, **kwargs) -> str:
            f"full #speed, <b>please #join our channel: @chromusic_fa</b> {_headphone}\n\n " \
            f"However, you will still receive the file (in 1 minute). {_winking_face}"
     return text
+
+def has_joined(*args: list, **kwargs) -> str:
+    """
+    Validates the user's joining the channel after being required to join.
+    :param args: *[0] -> first name
+    :param kwargs:
+    :return: Generated validation message
+    """
+    first_name = args[0]
+    text = f"{_star_struck}{_smiling_face_with_heart} Ok <b>{first_name}</b>, Now you have full access{_party_popper}{_confetti_ball}\n\n" \
+           f"Love from @chromusic_fa {_red_heart}{_face_blowing_a_kiss}\n"
+    return text
+
+def not_joined(*args, **kwargs) -> str:
+    """
+    This will be shown when users claim to already have joined and they are lying
+    :param args:
+    :param kwargs:
+    :return: Generated message for rejecting user's claim
+    """
+    text = f"{_face_with_raised_eyebrow} I checked, you haven't joined our channel.\n\n " \
+           f"{_green_heart} Join @chromusic_fa to access all features for #FREE {_green_heart}"
+    return text
