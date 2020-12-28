@@ -800,7 +800,7 @@ def playlist_updated_text(*args: list, **kwargs) -> str:
         text = f"{_check_mark_button} <b>Description updated successfully</b>"
     return text
 
-def added_to_playlist_success_text(*args, **kwargs):
+def added_to_playlist_success_text(*args: list, **kwargs) -> str:
     """
     Shows a success message for audio-file addition to a playlist
     :param args:    1. *[0] -> function
