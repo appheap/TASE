@@ -913,3 +913,12 @@ def home_keyboard_text(*args, **kwargs):
     :param kwargs:
     :return:
     """
+    _heart = random.choice(heart_list)
+    _plant = random.choice(plants_list)
+    text = f"<b>Main menu | {_house}</b>\n{34 * '-'}\n\n" \
+           f"Our channels:\n" \
+           f"{_pushpin} | Channel: <b>@chromusic_fa</b> \n{34 * '-'}\n\n" \
+           f"Our Instagram accounts:\n" \
+           f"<a href='https://www.instagram.com/chromusic_official/'><b>Chromusic</b></a> | {_round_pushpin}\n" \
+           f"<a href='https://www.instagram.com/chromusic_fa'><b>Persian Chromusic</b></a> | {_round_pushpin}\n\n" \
+           f"&rlm;{_plant}{_heart}"
