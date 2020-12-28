@@ -986,9 +986,9 @@ def help_inline_keyboard_list(*args, **kwargs):
         title="5. Contact us",
         description="If you need to contact Chromusic admins then hit this item",
         thumb_url="https://telegra.ph/file/cd08f00005cb527e6bcdb.jpg",
-        input_message_content=InputTextMessageContent(f"you can be in touch with us through @pudax\n"
+        input_message_content=InputTextMessageContent(f"you can be in touch with us through @[Admin username]\n"
                                                       f"For further information please read "
-                                                      f"<a href='https://telegra.ph/درباره-ما-07-12-3'>Chromusic contact</a>", parse_mode="HTML")))
+                                                      f"<a href='[Your blog url]'>Chromusic contact</a>", parse_mode="HTML")))
     results.append(InlineQueryResultArticle(
         title="6. About us",
         description="If you like to find out more about us, click on this link",
