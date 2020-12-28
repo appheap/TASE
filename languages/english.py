@@ -933,3 +933,11 @@ def file_deleted_from_playlist(*args, **kwargs) -> str:
     """
     text = f"{_check_mark_button} Audio file deleted from playlist"
     return text
+
+def help_inline_keyboard_list(*args, **kwargs):
+    """
+
+    :param args:
+    :param kwargs:
+    :return:
+    """
