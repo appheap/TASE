@@ -932,3 +932,4 @@ def file_deleted_from_playlist(*args, **kwargs):
     :return:
     """
     text = f"{_check_mark_button} Audio file deleted from playlist"
+    return text
