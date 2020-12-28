@@ -977,7 +977,7 @@ def help_inline_keyboard_list(*args, **kwargs):
     results.append(InlineQueryResultArticle(
         title="4. How to add my channel to Chromusic",
         description="if you feel your channel has not been indexed",
-        thumb_url="https://[Your file url].jpg",
+        thumb_url="https://pbs.twimg.com/profile_images/1306684220232945665/5i_q4pCx_400x400.jpg",
         input_message_content=InputTextMessageContent(f"Here is a complete guide on "
                                                       f"<a href='https://github.com/soran-ghadri/Chromusic_search_engine'>"
                                                       f"<b>how to add my channel</b></a>  to be shown by Chromusic",
