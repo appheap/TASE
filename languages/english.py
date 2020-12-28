@@ -264,6 +264,7 @@ def delete_playlist_validation_keyboard(*args: list[object], **kwargs) -> list[o
     ]
     return markup
 
+
 def delete_playlist_validation_text(*args, **kwargs):
     """
     This message asks the user to verify the deletion. In case yes was chosen, it will return the ID of the feature,
@@ -287,6 +288,7 @@ def delete_playlist_validation_text(*args, **kwargs):
          InlineKeyboardButton(f"No | {_thumbs_down}", callback_data=f"ndelete {return_args}")]
     ]
 
+
 def playlist_deleted_text(*args, **kwargs):
     """
     Deletion success text
@@ -296,6 +298,7 @@ def playlist_deleted_text(*args, **kwargs):
     """
     text = f"{_check_mark_button} Playlist deleted successfully"
     return text
+
 
 def edit_playlist_keyboard(*args, **kwargs):
     """
@@ -323,6 +326,7 @@ def edit_playlist_keyboard(*args, **kwargs):
     ]
     return markup
 
+
 def edit_playlist_text(*args, **kwargs):
     """
     Generates a text about the current attributes of the chosen playlist in the edit window
@@ -335,6 +339,7 @@ def edit_playlist_text(*args, **kwargs):
            f"<b>Title</b>: \"{playlist['_source']['title']}\"\n\n" \
            f"<b>Description</b>: {playlist['_source']['description']}"
     return text
+
 
 def single_playlist_text(*args, **kwargs):
     """
@@ -349,6 +354,7 @@ def single_playlist_text(*args, **kwargs):
            f"<b>Title</b>: \"{playlist['title']}\"\n\n" \
            f"<b>Description</b>: {playlist['description']}"
     return text
+
 
 def languages_list(*args, **kwargs):
     """
@@ -366,6 +372,7 @@ def languages_list(*args, **kwargs):
            f"{25 * '='} \nYou can change this later by sending <b>/lang</b>"
     return text
 
+
 def choose_language_text(*args, **kwargs):
     """
     A call-to-action message for choosing the preferred language; plus a mini-guide on how to change the language later
@@ -378,6 +385,7 @@ def choose_language_text(*args, **kwargs):
            f"   1. Sending <b>/lang</b>\n" \
            f"   2. Go to <b>Home | {_house}</b>"
     return text
+
 
 def button_language_list(*args, **kwargs):
     """
@@ -405,6 +413,7 @@ def button_language_list(*args, **kwargs):
 
     return markup
 
+
 def button_joining_request_keyboard(*args, **kwargs):
     """
     A keyboard containing buttons to join or announce if they are already joined
@@ -418,6 +427,7 @@ def button_joining_request_keyboard(*args, **kwargs):
         # [InlineKeyboardButton("Docs", url="https://docs.pyrogram.org")]
     ]
     return markup
+
 
 def welcome(*args, **kwargs):
     """
@@ -433,6 +443,7 @@ def welcome(*args, **kwargs):
            f"\n\n{_studio_microphone} <b>#Find</b> your audio (music, podcast, etc.) in <b>#milliseconds</b> {_smiling_face_with_sunglasses}" \
            f"\n\n{_green_circle} Any question? then press /help {_winking_face}"
     return text
+
 
 def file_caption(*args, **kwargs):
     """
@@ -479,6 +490,7 @@ def file_caption(*args, **kwargs):
         print(f"from file caption: {e}")
 
     return text
+
 
 def inline_file_caption(*args: list, **kwargs) -> str:
     """
@@ -536,6 +548,7 @@ def inline_file_caption(*args: list, **kwargs) -> str:
 
     return text
 
+
 def inline_join_channel_description_text(*args, **kwargs) -> str:
     """
     Shows a call-to-action text to users who have not Joined the channel yet (Description)
@@ -547,6 +560,7 @@ def inline_join_channel_description_text(*args, **kwargs) -> str:
     text = f"{_headphone}To Enable this feature please join Chromusic channel first{_thumbs_up}\n{_pushpin}@Chromusic_fa"
     return text
 
+
 def inline_join_channel_title_text(*args, **kwargs) -> str:
     """
     Shows a call-to-action text to users who have not Joined the channel yet (Title)
@@ -556,6 +570,7 @@ def inline_join_channel_title_text(*args, **kwargs) -> str:
     """
     text = f"{_green_circle} Please join Chromusic"
     return text
+
 
 def inline_join_channel_content_text(*args, **kwargs):
     """
@@ -570,6 +585,7 @@ def inline_join_channel_content_text(*args, **kwargs):
            f"{_headphone}<a href='https://t.me/chromusic_bot'><b>Chromusic audio search engine:</b></a> @chromusic_bot{_studio_microphone}"
     return text
 
+
 def inline_start_bot_title_text(*args, **kwargs) -> str:
     """
     Shows a call-to-start text to users who have not started the bot yet (Title)
@@ -579,6 +595,7 @@ def inline_start_bot_title_text(*args, **kwargs) -> str:
     """
     text = f"{_green_circle} Please start the Chromusic bot first"
     return text
+
 
 def inline_start_bot_description_text(*args, **kwargs) -> str:
     """
@@ -590,6 +607,7 @@ def inline_start_bot_description_text(*args, **kwargs) -> str:
     hidden_character = "‏‏‎ ‎"
     text = f"{_headphone}To Enable this feature please hit the start button on Chromusic_bot{_thumbs_up}\n{_pushpin}@Chromusic_fa"
     return text
+
 
 def inline_start_bot_content_text(*args, **kwargs) -> str:
     """
@@ -607,6 +625,7 @@ def inline_start_bot_content_text(*args, **kwargs) -> str:
            f"{_headphone}<a href='https://t.me/chromusic_bot'><b>Chromusic audio search engine</b></a>{_studio_microphone}"
     return text
 
+
 def example_message(*args, **kwargs) -> str:
     """
     Mini-tutorial for the first time the users starts the bot. This is a sample message on how to search
@@ -620,6 +639,7 @@ def example_message(*args, **kwargs) -> str:
            f"with \"/ dl_\"</b>\n" \
            f"<b>Example:</b> /dl_7DzuE_Rg"
     return text
+
 
 def collaboration_request(*args, **kwargs) -> str:
     """
@@ -637,6 +657,7 @@ def collaboration_request(*args, **kwargs) -> str:
            f"@chromusic_bot"
     return text
 
+
 def thanks_new_channel(*args: list, **kwargs) -> str:
     """
     Thanks a user for his/her collaboration
@@ -652,6 +673,7 @@ def thanks_new_channel(*args: list, **kwargs) -> str:
     text = f"Thanks {message.from_user.first_name} for your contribution. {_heart}{_plant}"
     return text
 
+
 def lang_register_alert(*args: list, **kwargs) -> str:
     """
     An alert validating the user's preferred language has been saved
@@ -665,6 +687,7 @@ def lang_register_alert(*args: list, **kwargs) -> str:
            f"{_green_circle} 1. \"/lang\" command\n" \
            f"{_green_circle} 2. Bottom keyboard"
     return text
+
 
 def send_in_1_min(*args: list, **kwargs) -> str:
     """
@@ -680,6 +703,7 @@ def send_in_1_min(*args: list, **kwargs) -> str:
            f"However, you will still receive the file (in 1 minute). {_winking_face}"
     return text
 
+
 def has_joined(*args: list, **kwargs) -> str:
     """
     Validates the user's joining the channel after being required to join.
@@ -692,6 +716,7 @@ def has_joined(*args: list, **kwargs) -> str:
            f"Love from @chromusic_fa {_red_heart}{_face_blowing_a_kiss}\n"
     return text
 
+
 def not_joined(*args, **kwargs) -> str:
     """
     This will be shown when users claim to already have joined and they are lying
@@ -702,6 +727,7 @@ def not_joined(*args, **kwargs) -> str:
     text = f"{_face_with_raised_eyebrow} I checked, you haven't joined our channel.\n\n " \
            f"{_green_heart} Join @chromusic_fa to access all features for #FREE {_green_heart}"
     return text
+
 
 def result_list_handler(*args: list, **kwargs) -> str:
     """
@@ -757,6 +783,7 @@ def result_list_handler(*args: list, **kwargs) -> str:
                f"\n<pre>{textwrap.shorten(query, width=200, placeholder='...')}</pre>"
 
     return text
+
 
 def playlist_updated_text(*args: list, **kwargs) -> str:
     """
