@@ -905,3 +905,11 @@ def help_keyboard_text(*args, **kwargs) -> str:
            f"<a href='https://www.instagram/chromusic_fa'>Persian Chromusic</a> | {_round_pushpin}\n\n" \
            f"&lrm;{_plant}{_heart}"
     return text
+
+def home_keyboard_text(*args, **kwargs):
+    """
+
+    :param args:
+    :param kwargs:
+    :return:
+    """
