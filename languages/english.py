@@ -890,7 +890,7 @@ def help_markup_keyboard(*args, **kwargs) -> list:
 
 def help_keyboard_text(*args, **kwargs) -> str:
     """
-    Help message showing on top of the 'Help' keyboard
+    Help message showing on top of the 'Help' menu
     :param args:
     :param kwargs:
     :return: Generated results
