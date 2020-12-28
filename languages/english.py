@@ -799,3 +799,44 @@ def playlist_updated_text(*args: list, **kwargs) -> str:
     elif func == "description_update":
         text = f"{_check_mark_button} <b>Description updated successfully</b>"
     return text
+
+def added_to_playlist_success_text(*args, **kwargs):
+    """
+    Shows a success message for audio-file addition to a playlist
+    :param args:    1. *[0] -> function
+                    2. *[1] -> audio-file data
+    :param kwargs:
+    :return: A message on success containing the results and a mini-guide about how to change these
+        default information later
+    """
+    func = args[0]
+    data = args[1]
+    text = f""
+    if func == "addnewpl":
+        print("data from english:", data)
+        text = f"<b>1. A new playlist created successfully | {_check_mark_button}</b>\n" \
+               f"       Default name: {data['title']}\n" \
+               f"       Default description: {data['description']}\n" \
+               f"       You can change these information in edit section:\n" \
+               f"            my playlists -> edit -> ...\n" \
+               f"<b>2. Audio file added to the new playlist | {_check_mark_button}</b>\n{34 * '-'}\n\n" \
+               f"You can access your playlists and your download history using <b>Home</b> button"
+    elif func == "addtoexistpl":
+        playlist = args[2]
+        text = f"<b>1. Audio file added to the playlist | {_check_mark_button}</b>\n" \
+               f"       Audio file Name: {data['title']}\n" \
+               f"       Playlist name: {playlist['_source']['title']}\n" \
+               f"       You can change these information in edit section:\n" \
+               f"            my playlists -> edit -> ...\n{34 * '-'}\n\n" \
+               f"You can access your playlists and your download history using <b>Home</b> button | {_green_circle}"
+    return text
+
+def delete_audio_guide_text(*args, **kwargs):
+    """
+    Guides users how to delete an audio-file from the current playlist.
+    :param args:
+    :param kwargs:
+    :return: Deletion mini-guide message
+    """
+    text = f"{_green_circle} By clicking on each button you can remove that file from the current playlist | {_cross_mark}"
+    return text
