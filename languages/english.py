@@ -994,7 +994,7 @@ def help_inline_keyboard_list(*args, **kwargs):
         description="If you like to find out more about us, click on this link",
         thumb_url="https://telegra.ph/file/17ea2995a5146d4c32e7b.jpg",
         input_message_content=InputTextMessageContent(
-            f"<b>Read more about us on the following page:\n<a href='https://telegra.ph/درباره-ما-07-12-3'>About Chromusic</a></b>",
+            f"<b>Read more about us on the following page:\n<a href='[Your blog url]'>About Chromusic</a></b>",
             parse_mode="HTML")
     ))
     return results
