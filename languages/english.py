@@ -702,3 +702,58 @@ def not_joined(*args, **kwargs) -> str:
     text = f"{_face_with_raised_eyebrow} I checked, you haven't joined our channel.\n\n " \
            f"{_green_heart} Join @chromusic_fa to access all features for #FREE {_green_heart}"
     return text
+
+def result_list_handler(*args, **kwargs):
+    """
+    Handles the main search result for each query. It checks whether there are any result for this qeury or not.
+        1. If there was results, then it sorts and decorates the them.
+        2 Otherwise it shows a message containing there were no results for this query
+    :param args:    1. *[0] -> query
+                    2. *[1] -> a list of search results objects
+    :param kwargs:
+    :return: Final decorated search results
+    """
+    query = args[0]
+    search_res = args[1]
+    print(UD.bidirectional(u'\u0688'))
+    x = len([None for ch in query if UD.bidirectional(ch) in ('R', 'AL')]) / float(len(query))
+    # print('{t} => {c}'.format(t=query.encode('utf-8'), c='RTL' if x > 0.5 else 'LTR'))
+    # print(UD.bidirectional("dds".decode('utf-8')))
+
+    # direction = 'RTL' if x > 0.5 else 'LTR'
+    dir_str = "&rlm;" if x > 0.5 else '&lrm;'
+    fruit = random.choice(fruit_list)
+    print("search res from res list handler", search_res)
+    if int(search_res["hits"]["total"]["value"]) > 0:
+        text = f"<b>{_search_emoji} Search results for: {textwrap.shorten(query, width=100, placeholder='...')}</b>\n"
+        text += f"{_checkmark_emoji} Better results are at the bottom of the list\n\n\n"
+        _headphone_emoji = emoji.EMOJI_ALIAS_UNICODE[':headphone:']
+        for index, hit in reversed(list(enumerate(search_res['hits']['hits']))):
+            duration = timedelta(seconds=int(hit['_source']['duration']))
+            d = datetime(1, 1, 1) + duration
+            _performer = hit['_source']['performer']
+            _title = hit['_source']['title']
+            _file_name = hit['_source']['file_name']
+            if not (len(_title) < 2 or len(_performer) < 2):
+                name = f"{_performer} - {_title}"
+            elif not len(_performer) < 2:
+                name = f"{_performer} - {_file_name}"
+            else:
+                name = _file_name
+
+            # name = f"{_file_name if ((_performer == 'None' or _performer == '.mp3') and (_title == 'None' or _title == '.mp3')) else (_performer if (_title == 'None' or _title == '.mp3') else _title)}".replace(
+            #     ".mp3", "")
+            # if not _title == None:
+            #     name += f" - {_title}"
+
+            text += f"<b>{str(index + 1)}. {dir_str} {_headphone_emoji} {fruit if index == 0 else ''}</b>" \
+                    f"<b>{textwrap.shorten(name, width=35, placeholder='...')}</b>\n" \
+                    f"{dir_str}     {_floppy_emoji} | {round(int(hit['_source']['file_size']) / 1000_000, 1)} MB  " \
+                    f"{dir_str}{_clock_emoji} | {str(d.hour) + ':' if d.hour > 0 else ''}{d.minute}:{d.second}\n{dir_str}" \
+                    f"{dir_str}      Download: /dl_{hit['_id']}\n" \
+                    f"      {34 * '-' if not index == 0 else ''}{dir_str} \n\n"
+    else:
+        text = f"{_traffic_light}  No results were found!" \
+               f"\n<pre>{textwrap.shorten(query, width=200, placeholder='...')}</pre>"
+
+    return text
