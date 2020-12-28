@@ -941,3 +941,11 @@ def help_inline_keyboard_list(*args, **kwargs):
     :param kwargs:
     :return:
     """
+    results = []
+    results.append(InlineQueryResultArticle(
+        title="1. How to advertise?",
+        description="If you need advertising, click here",
+        thumb_url="https://telegra.ph/file/6e6831bdd89011688bddb.jpg",
+        input_message_content=InputTextMessageContent(f"Everything you need to know before promoting your business: \n"
+                                                      f"<a href='https://telegra.ph/%D8%AA%D8%A8%D9%84%DB%8C%D8%BA%D8%A7%D8%AA-07-14'>"
+                                                      f"<b>Chromusic Advertising</b></a>", parse_mode="HTML")))
