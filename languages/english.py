@@ -936,10 +936,20 @@ def file_deleted_from_playlist(*args, **kwargs) -> str:
 
 def help_inline_keyboard_list(*args, **kwargs):
     """
-
+    An inline list including necessary features. Will be shown after requesting "How To" or "Help" button in "Home" and
+        "Help" menus.
+    Current items:
+        1. How to advertise?
+        2. How to search for and download an audio track
+        3. How to register my own audio track?
+        4. How to add my channel to Chromusic
+        5. Contact us
+        6. About us
+    This feature acts like a blog for a website. To add blogs we recommend using telegra.ph website which is related to
+        Telegram itself
     :param args:
     :param kwargs:
-    :return:
+    :return: Generated inline list of blogs
     """
     results = []
     results.append(InlineQueryResultArticle(
@@ -980,7 +990,7 @@ def help_inline_keyboard_list(*args, **kwargs):
                                                       f"For further information please read "
                                                       f"<a href='https://telegra.ph/درباره-ما-07-12-3'>Chromusic contact</a>", parse_mode="HTML")))
     results.append(InlineQueryResultArticle(
-        title="5. About us",
+        title="6. About us",
         description="If you like to find out more about us, click on this link",
         thumb_url="https://telegra.ph/file/17ea2995a5146d4c32e7b.jpg",
         input_message_content=InputTextMessageContent(
