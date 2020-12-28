@@ -651,3 +651,17 @@ def thanks_new_channel(*args: list, **kwargs) -> str:
     _plant = random.choice(plants_list)
     text = f"Thanks {message.from_user.first_name} for your contribution. {_heart}{_plant}"
     return text
+
+def lang_register_alert(*args: list, **kwargs) -> str:
+    """
+    An alert validating the user's preferred language has been saved
+    :param args:
+    :param kwargs:
+    :return: Generated alert
+    """
+    first_name = args[0]
+    text = f"OK {first_name}, {_en} English language saved for you {_confetti_ball}{_party_popper}\n\n" \
+           f"You can always change your language using\n" \
+           f"{_green_circle} 1. \"/lang\" command\n" \
+           f"{_green_circle} 2. Bottom keyboard"
+    return text
