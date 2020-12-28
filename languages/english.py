@@ -977,7 +977,7 @@ def help_inline_keyboard_list(*args, **kwargs):
     results.append(InlineQueryResultArticle(
         title="4. How to add my channel to Chromusic",
         description="if you feel your channel has not been indexed",
-        thumb_url="https://telegra.ph/file/36fc0478a793bd6db8c4e.jpg",
+        thumb_url="https://[Your file url].jpg",
         input_message_content=InputTextMessageContent(f"Here is a complete guide on "
                                                       f"<a href='https://telegra.ph/%D8%AB%D8%A8%D8%AA-%DA%A9%D8%A7%D9%86%D8%A7%D9%84-%D8%AE%D9%88%D8%AF%D9%85-%D8%AF%D8%B1-%D8%B1%D8%A8%D8%A7%D8%AA-%DA%A9%D8%B1%D9%88%D9%85%E2%80%8C%D9%85%D9%88%D8%B2%DB%8C%DA%A9-07-15'>"
                                                       f"<b>how to add my channel</b></a>  to be shown by Chromusic",
