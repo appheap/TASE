@@ -665,3 +665,17 @@ def lang_register_alert(*args: list, **kwargs) -> str:
            f"{_green_circle} 1. \"/lang\" command\n" \
            f"{_green_circle} 2. Bottom keyboard"
     return text
+
+def send_in_1_min(*args: list, **kwargs) -> str:
+    """
+    A message notifying users when they are not joined the channel and have surpassed the maximum free download. It
+        alerts them about sending the audio file after one minumte
+    :param args: *[0] -> first name
+    :param kwargs:
+    :return: Generated message
+    """
+    first_name = args[0]
+    text = f"{_green_circle} I'm super excited you like our service, <b>{first_name}</b> {_smiling_face_with_heart}. If you want to access the " \
+           f"full #speed, <b>please #join our channel: @chromusic_fa</b> {_headphone}\n\n " \
+           f"However, you will still receive the file (in 1 minute). {_winking_face}"
+    return text
