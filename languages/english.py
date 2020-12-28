@@ -906,7 +906,7 @@ def help_keyboard_text(*args, **kwargs) -> str:
            f"&lrm;{_plant}{_heart}"
     return text
 
-def home_keyboard_text(*args, **kwargs):
+def home_keyboard_text(*args, **kwargs) -> str:
     """
     Home message showing on top of the 'Home' Menu
     :param args:
