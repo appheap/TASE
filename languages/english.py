@@ -890,10 +890,10 @@ def help_markup_keyboard(*args, **kwargs) -> list:
 
 def help_keyboard_text(*args, **kwargs):
     """
-
+    Help message showing on top of the 'Help' keyboard
     :param args:
     :param kwargs:
-    :return:
+    :return: Generated results
     """
     _heart = random.choice(heart_list)
     _plant = random.choice(plants_list)
