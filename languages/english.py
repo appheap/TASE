@@ -979,3 +979,11 @@ def help_inline_keyboard_list(*args, **kwargs):
         input_message_content=InputTextMessageContent(f"you can be in touch with us through @pudax\n"
                                                       f"For further information please read "
                                                       f"<a href='https://telegra.ph/درباره-ما-07-12-3'>Chromusic contact</a>", parse_mode="HTML")))
+    results.append(InlineQueryResultArticle(
+        title="5. About us",
+        description="If you like to find out more about us, click on this link",
+        thumb_url="https://telegra.ph/file/17ea2995a5146d4c32e7b.jpg",
+        input_message_content=InputTextMessageContent(
+            f"<b>Read more about us on the following page:\n<a href='https://telegra.ph/درباره-ما-07-12-3'>About Chromusic</a></b>",
+            parse_mode="HTML")
+    ))
