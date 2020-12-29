@@ -401,6 +401,16 @@ def languages_list(*args, **kwargs):
     :param kwargs:
     :return:
     """
+    text = f"<b>لطفا زبان مورد نظرت رو انتخاب کن:</b>\n\n" \
+           f" {_en}<b> English </b> - /lang_en\n {34 * '-'} \n" \
+           f" {_hi}<b> हिन्दी </b> (Hindi) - /lang_hi\n {34 * '-'} \n" \
+           f" {_ru}<b> русский </b> (Russian) - /lang_ru\n {34 * '-'} \n" \
+           f"&lrm; {_fa}<b> فارسی </b> (Persian) - /lang_fa\n {34 * '-'} \n" \
+           f"&lrm; {_ar}<b> العربية </b> (Arabic) - /lang_ar\n\n" \
+           f"{25 * '='} \n" \
+           f"هر موقع خواستی میتونی عبارت دستوری " \
+           f"<b>/lang</b>" \
+           f" رو بفرستی و زبان رو تغییر بدی"
 
 
 
