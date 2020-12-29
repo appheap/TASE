@@ -394,7 +394,7 @@ def single_playlist_text(*args: list, **kwargs) -> str:
 
     return text
 
-def languages_list(*args, **kwargs):
+def languages_list(*args, **kwargs) -> str:
     """
     Generates a text containing a list of available languages (both in english and native writing system). Contains:
         1. English
