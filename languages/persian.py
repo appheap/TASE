@@ -418,5 +418,23 @@ def languages_list(*args, **kwargs) -> str:
            f" رو بفرستی و زبان رو تغییر بدی"
     return text
 
-
+def choose_language_text(*args: list, **kwargs) -> str:
+    """
+    A call-to-action message for choosing the preferred language; plus a mini-guide on how to change the language later
+    :param args: *[0] User's first name -> str
+    :param kwargs:
+    :return: A text containing the information
+    """
+    first_name = args[0]
+    text = f"<b>" \
+           f"لطفا زبان مورد نظرت رو انتخاب کن {first_name}" \
+           f"</b> | {_globe_showing_Americas}\n\n" \
+           f"بعدا هم با روش های زیر میتونی زبان رو تغییر بدی\n" \
+           f"   ۱. فرستادن کد دستوری" \
+           f" <b>/lang</b>\n" \
+           f"   ۲. با مراجعه به " \
+           f"<b>" \
+           f"خانه | {_house}" \
+           f"</b>"
+    return text
 
