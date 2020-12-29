@@ -376,7 +376,7 @@ def edit_playlist_text(*args: list, **kwargs) -> str:
 def single_playlist_text(*args: list, **kwargs) -> str:
     """
     Creates a description about a specific playlist
-    :param args: *[0] -> Playlist object
+    :param args:    *[0] -> Playlist object
     :param kwargs:
     :return:
     """
