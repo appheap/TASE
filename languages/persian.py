@@ -438,3 +438,42 @@ def choose_language_text(*args: list, **kwargs) -> str:
            f"</b>"
     return text
 
+def button_language_list(*args, **kwargs) -> list:
+    """
+    A keyboard containing the available languages. You Add your language name here to be included in the menu.
+    Current languages:
+        1. English
+        2. Persian
+        # not implemented yet:
+        3. Hindi
+        4. Russian
+        5. Arabic
+    :param args:
+    :param kwargs:
+    :return: A keyboard containing the mentioned buttons
+    """
+    markup = []
+    stringList = {f" {_en} English": f"en", f" {_hi} हिन्दी (Hindi)": f"hi",
+                  f" {_ru} русский (Russian)": f"ru", f"{_fa} فارسی (Persian)": f"fa",
+                  f"{_ar} العربية (Arabic)": f"ar"}
+    for key, value in stringList.items():
+        markup.append([InlineKeyboardButton(text=key,
+                                            callback_data=value)])
+    return markup
+
+def button_joining_request_keyboard(*args, **kwargs) -> str:
+    """
+    A keyboard containing buttons to join or announce if they are already joined
+    :param args:
+    :param kwargs:
+    :return: Generated keyboard markup
+    """
+    markup = [
+        [InlineKeyboardButton("همین الان عضو هستم", callback_data="joined"),
+         InlineKeyboardButton("باشه الان عضو میشم", url="https://t.me/chromusic_fa")]  #
+        # [InlineKeyboardButton("Docs", url="https://docs.pyrogram.org")]
+    ]
+    return markup
+
+
+

@@ -394,7 +394,7 @@ def choose_language_text(*args: list, **kwargs) -> str:
 
 def button_language_list(*args, **kwargs) -> list:
     """
-    A keyboard containing the available languages:
+    A keyboard containing the available languages. You Add your language name here to be included in the menu.
     Current languages:
         1. English
         2. Persian
