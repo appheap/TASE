@@ -607,7 +607,7 @@ def inline_file_caption(*args: list, **kwargs) -> str:
         print(f"from file caption: {e}")
     return text
 
-def inline_join_channel_description_text(*args, **kwargs):
+def inline_join_channel_description_text(*args, **kwargs) -> str:
     """
     Shows a call-to-action text to users who have not Joined the channel yet (Description)
     :param args:
@@ -622,3 +622,36 @@ def inline_join_channel_description_text(*args, **kwargs):
            f"@Chromusic_fa"
     return text
 
+def inline_join_channel_title_text(*args, **kwargs) -> str:
+    """
+    Shows a call-to-action text to users who have not Joined the channel yet (Title)
+    :param args:
+    :param kwargs:
+    :return: Generated a text requiring users to start the bot first
+    """
+    text = f"{_green_circle} لطفا وارد کروموزیک شوید"
+    return text
+
+def inline_join_channel_content_text(*args, **kwargs) -> str:
+    """
+    Shows a call-to-action text to users who have not Joined the channel (When they click on the inline
+        call-to-join result)
+    :param args:
+    :param kwargs:
+    :return: Generated a text requiring users to start the bot first
+    """
+    plant = random.choice(plants_list)
+    text = f"{_round_pushpin} " \
+           f"به " \
+           f"&lrm;<b>@Chromusic_fa</b> " \
+           f"&rlm;" \
+           f"بپیوندید " \
+           f"{_smiling_face_with_sunglasses}\n" \
+           f"تشکر بابت همکاریت با کروموزیک" \
+           f" {plant}\n\n" \
+           f"ضمنا یه کانال انگلیسی هم داریم خوشحال میشم تشریف بیارید" \
+           f"\n" \
+           f"آدرس کانال: " \
+           f"&lrm;<b>@Chromusic\n" \
+           f"&rlm;{_headphone}<a href='https://t.me/chromusic_bot'><b>جستجوی فایل‌های صوتی در کروموزیک:</b></a> &lrm;@chromusic_bot{_studio_microphone}"
+    return text
