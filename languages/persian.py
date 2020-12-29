@@ -663,6 +663,18 @@ def send_in_1_min(*args, **kwargs):
     :param kwargs:
     :return:
     """
+    first_name = args[0]
+    text = f"&rlm;{_green_circle} بسیار خوشحالم که کار با این سرویس رو دوست داری, " \
+           f"<b>{first_name}</b> {_smiling_face_with_heart}. " \
+           f"اگه دوست داری #سرعت سرویس همچنان بالا باشه " \
+           f"<b>" \
+           f"لطفا توی کانال" \
+           f" &lrm;@chromusic_fa {_headphone}{_artist_palette}" \
+           f" عضو شو\n\n" \
+           f"</b>" \
+           f" کانال انگلیسی ما: &lrm;@chromusic {_headphone}{_artist_palette}\n\n " \
+           f"هرچند که فایل رو همچنان دریافت خواهی کرد (در ۱ دقیقه)" \
+           f"  {_winking_face}"
 
 
 
