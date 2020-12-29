@@ -1055,3 +1055,16 @@ def long_time_not_active(*args: list, **kwargs) -> str:
         text = f"Glad to see you again <b>{first_name}</b>.\n press <b>#help</b> button from the following keyboard if " \
                f"you think you need it"
     return text
+
+def checking_items_started(*args, **kwargs) -> str:
+    """
+    This will appear after sending channel names to be indexed
+    :param args:
+    :param kwargs:
+    :return: A text notifying users that the bot is already checking their sent channel usernames
+    """
+    _plant = random.choice(plants_list)
+    _heart = random.choice(heart_list)
+    text = f"Checking off items started ... {_clock_emoji}.\n" \
+           f"I will let you know after the process is complete. {_plant}{_heart}"
+    return text
