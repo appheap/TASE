@@ -548,4 +548,77 @@ def file_caption(*args: list, **kwargs) -> str:
         print(f"from file caption: {e}")
     return text
 
+def inline_file_caption(*args: list, **kwargs) -> str:
+    """
+    Generates caption for the retrieved audio files from inline searches. Each caption contains:
+        1. Title
+        2. Performer
+        3. File name (In case above fields were not available)
+        4. File source (source channel username + message_id)
+    :param args:    1. *[0] -> Audio track
+                    2. *[1] -> Message id
+    :param kwargs:
+    :return: A caption containing audio file information
+    """
+    audio_track = args[0]
+    message_id = audio_track["_source"]["message_id"]
+
+    # temp_perf_res = audio_track["_source"]["performer"]
+    # temp_titl_res = audio_track["_source"]["title"]
+    # temp_filnm_res = audio_track["_source"]["file_name"]
+    # chromusic_users_files_id = 165802777
+    chromusic_users_files_id = -1001288746290
+    include_source = True
+    _heart = random.choice(heart_list)
+    _plant = random.choice(plants_list)
+    text = f""
+    if len(args) == 3 or audio_track["_source"]["chat_id"] == chromusic_users_files_id:
+        include_source = False
+
+        print("its_from_file_caption")
+        return f"اگه در صفحه‌ی ربات نیستی, برای دریافت فایل این پیام رو برای ربات کروموزیک فوروارد کن" \
+               f"\n<a href ='https://t.me/chromusic_bot'><b>ربات کروموزیک:</b> جستجوی فایل‌های صوتی</a>\n" \
+               f"{_round_pushpin} | " \
+               f"کانال فارسی: " \
+               f"@Chromusic_fa\n" \
+               f"{_round_pushpin} | " \
+               f"کانال بین‌المللی: " \
+               f"@Chromusic_fa" \
+               f"\n\n{_headphone} | dl_{audio_track['_id']}\n" \
+               f"{_plant}"
+
+    try:
+        _title = audio_track["_source"]["title"]
+        _title_line = "<b>نام:</b> " + str(_title) + "\n"
+        _performer = audio_track["_source"]["performer"]
+        _performer_line = "<b>اجرا کننده:</b> " + str(_performer) + "\n"
+        _filename = audio_track["_source"]["file_name"]
+        _filename_line = "<b>نام فایل:</b> " + str(_filename) + "\n"
+        _source = f"<a href ='https://t.me/{audio_track['_source']['chat_username']}/{message_id}'>{audio_track['_source']['chat_username']}</a>"
+        text = f"{_title_line if not _title == None else ''}" \
+               f"{_performer_line if not _performer == None else ''}" \
+               f"{_filename_line if (_title == None and not _filename == None) else ''}" \
+               f"{_round_pushpin}منبع: {_source if include_source else 'فرستاده شده توسط کاربران کروموزیک'}\n" \
+               f"\n{_search_emoji} | <a href ='https://t.me/chromusic_bot'><b>کروموزیک:</b> جستجوی فایل‌های صوتی</a>\n" \
+               f"&rlm;{_plant}"
+        # f"{_pushpin} | <a href ='https://t.me/chromusic'>Chromusic channel</a>\n" \
+        # f"{_pushpin} | <a href ='https://t.me/chromusic'>Persian Chromusic channel</a>\n" \
+    except Exception as e:
+        print(f"from file caption: {e}")
+    return text
+
+def inline_join_channel_description_text(*args, **kwargs):
+    """
+    Shows a call-to-action text to users who have not Joined the channel yet (Description)
+    :param args:
+    :param kwargs:
+    :return: Generated a text requiring users to start the bot first
+    """
+    hidden_character = "‏‏‎ ‎"
+    text = f"{_headphone}" \
+           f"لطفا ابتدا توی کانال کروموزیک عضو شوید" \
+           f"{_thumbs_up}\n" \
+           f"{_pushpin}آدرس: " \
+           f"@Chromusic_fa"
+    return text
 
