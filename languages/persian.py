@@ -326,10 +326,71 @@ def playlist_deleted_text(*args, **kwargs) -> str:
            f"پلی‌لیست با موفقیت حذف شد"
     return text
 
+def edit_playlist_keyboard(*args: list, **kwargs) -> list:
+    """
+    Generates a keyboard for playlists editing. Buttons are:
+        1. Edit title
+        2. Edit decription
+        3. Delete playlist
+        4. Delete audio-file
+        5. Back
+    :param args: Contains the playlist ID
+    :param kwargs:
+    :return:
+    """
+    playlist_id = args[0]
+    # query_id = args[1]
+    markup = [
+        [InlineKeyboardButton(f"ویرایش نام | {_wrench}",
+                              switch_inline_query_current_chat=f"#edit_title {playlist_id} "),
+         InlineKeyboardButton(f"ویرایش توضیحات | {_wrench}",
+                              switch_inline_query_current_chat=f"#edit_description {playlist_id} ")],
+        [InlineKeyboardButton(f"حذف پلی‌لیست | {_cross_mark}{_headphone}", callback_data=f"delete {playlist_id}"),
+         InlineKeyboardButton(f"حذف فایل از پلی‌لیست | {_cross_mark}{_musical_note}",
+                              callback_data=f"adelete {playlist_id}")],
+        [InlineKeyboardButton(f"برگشت | {_BACK_arrow}", callback_data=f"showplaylist {playlist_id}")]
+    ]
+    return markup
 
+def edit_playlist_text(*args: list, **kwargs) -> str:
+    """
+    Generates a text about the current attributes of the chosen playlist in the edit window
+    :param args: Chosen playlist object
+    :param kwargs:
+    :return:
+    """
+    playlist = args[0]
+    text = f"<b>" \
+           f"ویرایش پلی‌لیست | {_headphone}" \
+           f"</b>" \
+           f"\n&rlm;{34 * '-'}\n\n" \
+           f"&rlm;<b>" \
+           f"نام:" \
+           f"</b> " \
+           f"\"{playlist['_source']['title']}\"\n\n" \
+           f"&rlm;<b>" \
+           f"توضیحات:" \
+           f"</b> {playlist['_source']['description']}"
+    return text
 
-
-
-
+def single_playlist_text(*args, **kwargs):
+    """
+    Creates a description about a specific playlist
+    :param args: *[0] -> Playlist object
+    :param kwargs:
+    :return:
+    """
+    playlist = args[0]
+    text = f"<b>" \
+           f"منوی پلی‌لیست‌ها | {_headphone}" \
+           f"</b>" \
+           f"\n&rlm;{34 * '-'}\n\n" \
+           f"&rlm;<b>" \
+           f"نام:" \
+           f"</b> \"{playlist['title']}\"\n\n" \
+           f"&rlm;<b>" \
+           f"توضیحات:" \
+           f"</b> {playlist['description']}"
+    return text
 
 
