@@ -373,7 +373,7 @@ def edit_playlist_text(*args: list, **kwargs) -> str:
            f"</b> {playlist['_source']['description']}"
     return text
 
-def single_playlist_text(*args, **kwargs):
+def single_playlist_text(*args: list, **kwargs) -> str:
     """
     Creates a description about a specific playlist
     :param args: *[0] -> Playlist object
