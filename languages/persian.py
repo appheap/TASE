@@ -391,6 +391,7 @@ def single_playlist_text(*args: list, **kwargs) -> str:
            f"&rlm;<b>" \
            f"توضیحات:" \
            f"</b> {playlist['description']}"
+
     return text
 
 
