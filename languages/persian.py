@@ -411,6 +411,7 @@ def languages_list(*args, **kwargs):
            f"هر موقع خواستی میتونی عبارت دستوری " \
            f"<b>/lang</b>" \
            f" رو بفرستی و زبان رو تغییر بدی"
+    return text
 
 
 
