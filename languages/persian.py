@@ -396,10 +396,15 @@ def single_playlist_text(*args: list, **kwargs) -> str:
 
 def languages_list(*args, **kwargs):
     """
-
+    Generates a text containing a list of available languages (both in english and native writing system). Contains:
+        1. English
+        2. Hindi
+        3. Russian
+        4. Persian
+        5. Arabic
     :param args:
     :param kwargs:
-    :return:
+    :return: The generated text
     """
     text = f"<b>لطفا زبان مورد نظرت رو انتخاب کن:</b>\n\n" \
            f" {_en}<b> English </b> - /lang_en\n {34 * '-'} \n" \
