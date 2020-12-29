@@ -19,6 +19,46 @@ plants_list = [_seedling, _evergreen_tree, _deciduous_tree, _palm_tree, _sheaf_o
                _four_leaf_clover, _maple_leaf, _fallen_leaf, _leaf_fluttering_in_wind]
 
 
+def inline_start_bot_title_text(*args, **kwargs) -> str:
+    """
+    Shows a call-to-start text to users who have not started the bot yet (Title)
+    :param args:
+    :param kwargs:
+    :return: Generated a text requiring users to start the bot first
+    """
+    text = f"{_green_circle} Please start the Chromusic bot first"
+    return text
+
+
+def inline_start_bot_description_text(*args, **kwargs) -> str:
+    """
+    Shows a call-to-start text to users who have not started the bot yet (Description)
+    :param args:
+    :param kwargs:
+    :return: Generated a text requiring users to start the bot first
+    """
+    hidden_character = "‏‏‎ ‎"
+    text = f"{_headphone}To Enable this feature please hit the start button on Chromusic_bot{_thumbs_up}\n{_pushpin}@Chromusic_fa"
+    return text
+
+
+def inline_start_bot_content_text(*args, **kwargs) -> str:
+    """
+    Shows a call-to-start text to users who have not started the bot yet (When they click on the inline
+        call-to-start result)
+    :param args:
+    :param kwargs:
+    :return: Generated a text requiring users to start the bot first
+    """
+    plant = random.choice(plants_list)
+    text = f"{_round_pushpin}To enable the search engine work for you please hit the <b>start</b> button on " \
+           f"<b>@Chromusic_bot</b>{_smiling_face_with_sunglasses} page and <b>join</b> at least one of our channels:\n" \
+           f"{_pushpin}@Chromusic_fa" \
+           f"\nThank you for joining {plant}\n\n" \
+           f"{_headphone}<a href='https://t.me/chromusic_bot'><b>Chromusic audio search engine</b></a>{_studio_microphone}"
+    return text
+
+
 def music_file_keyboard(*args: str, **kwargs: str) -> list[object]:
     """
     Generates a keyboard for the returned audio files
@@ -590,45 +630,6 @@ def inline_join_channel_content_text(*args, **kwargs) -> str:
            f"{_headphone}<a href='https://t.me/chromusic_bot'><b>Chromusic audio search engine:</b></a> @chromusic_bot{_studio_microphone}"
     return text
 
-
-def inline_start_bot_title_text(*args, **kwargs) -> str:
-    """
-    Shows a call-to-start text to users who have not started the bot yet (Title)
-    :param args:
-    :param kwargs:
-    :return: Generated a text requiring users to start the bot first
-    """
-    text = f"{_green_circle} Please start the Chromusic bot first"
-    return text
-
-
-def inline_start_bot_description_text(*args, **kwargs) -> str:
-    """
-    Shows a call-to-start text to users who have not started the bot yet (Description)
-    :param args:
-    :param kwargs:
-    :return: Generated a text requiring users to start the bot first
-    """
-    hidden_character = "‏‏‎ ‎"
-    text = f"{_headphone}To Enable this feature please hit the start button on Chromusic_bot{_thumbs_up}\n{_pushpin}@Chromusic_fa"
-    return text
-
-
-def inline_start_bot_content_text(*args, **kwargs) -> str:
-    """
-    Shows a call-to-start text to users who have not started the bot yet (When they click on the inline
-        call-to-start result)
-    :param args:
-    :param kwargs:
-    :return: Generated a text requiring users to start the bot first
-    """
-    plant = random.choice(plants_list)
-    text = f"{_round_pushpin}To enable the search engine work for you please hit the <b>start</b> button on " \
-           f"<b>@Chromusic_bot</b>{_smiling_face_with_sunglasses} page and <b>join</b> at least one of our channels:\n" \
-           f"{_pushpin}@Chromusic_fa" \
-           f"\nThank you for joining {plant}\n\n" \
-           f"{_headphone}<a href='https://t.me/chromusic_bot'><b>Chromusic audio search engine</b></a>{_studio_microphone}"
-    return text
 
 
 def example_message(*args, **kwargs) -> str:
