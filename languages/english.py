@@ -1036,3 +1036,22 @@ def contribution_thanks(*args: list, **kwargs) -> str:
         text = f"Special thanks for your contribution <b>{first_name}</b>. {_heart}{_plant}."
         # text = f"Thank you <b>{first_name};</b> However, this file/channel has already been registered. {_heart}{_plant}\n\n"
     return text
+
+def long_time_not_active(*args: list, **kwargs) -> str:
+    """
+    This message will be shown to users being inactive more than 5 days and 14 days (as the longer period)
+    :param args:    1. *[0] -> firstname
+                    2. *[1] -> number of days being inactive
+    :param kwargs:
+    :return: The welcome again message
+    """
+    first_name = args[0]
+    not_active_since = args[1]
+    text = f""
+    if not_active_since > 14:
+        text = f"Hey <b>{first_name}</b>, long time no see! \nQuestions about our services? " \
+               f"I'm happy to <b>#help</b>."
+    else:
+        text = f"Glad to see you again <b>{first_name}</b>.\n press <b>#help</b> button from the following keyboard if " \
+               f"you think you need it"
+    return text
