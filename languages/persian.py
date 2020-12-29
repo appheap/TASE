@@ -675,6 +675,7 @@ def send_in_1_min(*args, **kwargs):
            f" کانال انگلیسی ما: &lrm;@chromusic {_headphone}{_artist_palette}\n\n " \
            f"هرچند که فایل رو همچنان دریافت خواهی کرد (در ۱ دقیقه)" \
            f"  {_winking_face}"
+    return text
 
 
 
