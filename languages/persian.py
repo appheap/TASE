@@ -655,3 +655,16 @@ def inline_join_channel_content_text(*args, **kwargs) -> str:
            f"&lrm;<b>@Chromusic\n" \
            f"&rlm;{_headphone}<a href='https://t.me/chromusic_bot'><b>جستجوی فایل‌های صوتی در کروموزیک:</b></a> &lrm;@chromusic_bot{_studio_microphone}"
     return text
+
+def send_in_1_min(*args, **kwargs):
+    """
+
+    :param args:
+    :param kwargs:
+    :return:
+    """
+
+
+
+
+
