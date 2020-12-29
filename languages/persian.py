@@ -501,3 +501,51 @@ def welcome(*args: list, **kwargs) -> str:
            f" {_winking_face}"
     return text
 
+def file_caption(*args: list, **kwargs) -> str:
+    """
+    Generates caption for the retrieved audio files. Each caption contains:
+        1. Title
+        2. Performer
+        3. File name (In case above fields were not available)
+        4. File source (source channel username + message_id)
+
+    :param args:    1. *[0] -> Audio track
+                    2. *[1] -> Message id
+    :param kwargs:
+    :return: A caption containing audio file information
+    """
+    audio_track = args[0]
+    message_id = args[1]
+    chromusic_users_files_id = 165802777
+    include_source = True
+    _heart = random.choice(heart_list)
+    _plant = random.choice(plants_list)
+    if len(args) == 3 or audio_track.chat.id == chromusic_users_files_id:
+        include_source = False
+        user_files_id = args[2]
+        print("its_from_file_caption")
+
+    _title = str(audio_track.audio.title).replace("@", "")
+    _title_line = "<b>نام:</b> " + str(_title) + "\n"
+    _performer = str(audio_track.audio.performer).replace("@", "")
+    _performer_line = "<b>اجرا کننده:</b> " + str(_performer) + "\n"
+    _filename = str(audio_track.audio.file_name).replace("@", "")
+    _filename_line = "<b>نام فایل:</b> " + str(_filename) + "\n"
+    _source = f"<a href ='https://t.me/{audio_track.chat.username}/{message_id}'>{audio_track.chat.username}</a>"
+    text = ""
+    try:
+
+        text = f"{_title_line if not _title == 'None' else ''}" \
+               f"{_performer_line if not _performer == 'None' else ''}" \
+               f"{_filename_line if (_title == 'None' and not _filename == 'None') else ''}" \
+               f"{_round_pushpin}منبع: {_source if include_source else 'Sent by Chromusic users'}\n" \
+               f"\n{_search_emoji} | <a href ='https://t.me/chromusic_bot'><b>کروموزیک</b>: جستجوی فایل‌های صوتی</a>\n" \
+               f"&rlm;{_plant}"
+        # f"{_pushpin} | <a href ='https://t.me/chromusic_fa'>کانال کروموزیک</a>" \
+        # f"\n" \
+        # f"{_pushpin} | <a href ='https://t.me/chromusic'>کانال انگلیسی کروموزیک</a>\n" \
+    except Exception as e:
+        print(f"from file caption: {e}")
+    return text
+
+
