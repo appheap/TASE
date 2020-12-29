@@ -656,6 +656,60 @@ def inline_join_channel_content_text(*args, **kwargs) -> str:
            f"&rlm;{_headphone}<a href='https://t.me/chromusic_bot'><b>جستجوی فایل‌های صوتی در کروموزیک:</b></a> &lrm;@chromusic_bot{_studio_microphone}"
     return text
 
+def example_message(*args, **kwargs) -> str:
+    """
+    Mini-tutorial for the first time the users starts the bot. This is a sample message on how to search
+        audio files in the bot.
+    :param args:
+    :param kwargs:
+    :return: Generated text
+    """
+    text = f"{_search_emoji}&rlm;<b>۱. " \
+           f"نام آهنگ و یا اجراکننده رو بفرست:" \
+           f"</b>\n" \
+           f"{_checkmark_emoji}<b>" \
+           f"مثال:" \
+           f"</b> " \
+           f"معین - آواز جدایی" \
+           f"\n\n&rlm;<b>" \
+           f"۲. برای دریافت هر کدام از آهنگ‌ها روی لینک‌های مقابل آنها که با " \
+           f"\"/ dl_\"" \
+           f"شروع می‌شوند کلیک کنید" \
+           f"\n" \
+           f"مثال:" \
+           f"</b> " \
+           f"/dl_8AEVX0ux"
+    return text
+
+
+def collaboration_request(*args, **kwargs) -> str:
+    """
+    Requires the user for collaboration
+    :param args:
+    :param kwargs:
+    :return: returns the inquiry text message
+    """
+    plant = random.choice(plants_list)
+    plant2 = random.choice(plants_list)
+    plant3 = random.choice(plants_list)
+    text = f"&rlm;{_red_heart}{plant} " \
+           f"<b>" \
+           f"لطفا ما را با دوستان خود به اشتراک بگذارید" \
+           f"</b>\n\n" \
+           f"{plant2} " \
+           f"با توجه به اینکه هرماه هزینه‌ای برای سرورهای کروموزیک تخصیص داده‌ شده, لطفا برای حمایت از ما این سرویس جستجوی موزیک را با دوستانتان به" \
+           f" <b>" \
+           f"اشتراک" \
+           f"</b> " \
+           f"بگذارید تا همچنان این سرویس به صورت رایگان به فعالیت خود ادامه دهد. با تشکر" \
+           f" {plant3}\n" \
+           f"@chromusic_bot"
+    return text
+
+
+
+
+
 def send_in_1_min(*args, **kwargs):
     """
 
