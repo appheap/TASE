@@ -1005,3 +1005,34 @@ def help_inline_keyboard_list(*args, **kwargs) -> list:
             parse_mode="HTML")
     ))
     return results
+
+def contribution_thanks(*args: list, **kwargs) -> str:
+    """
+    Shows a thank you message to the contributing users
+    :param args:    1. *[0] -> first name
+                    2. *[1] -> is the file registered or not
+    :param kwargs:
+    :return: Thank you message
+    """
+    first_name = args[0]
+    registered = args[1]
+    if len(args) == 3:
+        if args[2] > 1:
+            count = args[2]
+            temp = f"{count} items registered"
+        else:
+            temp = ''
+    else:
+        temp = ''
+
+    if registered:
+        _plant = random.choice(plants_list)
+        _heart = random.choice(heart_list)
+        text = f"Special thanks for your contribution <b>{first_name}</b>. {_heart}{_plant}.\n\n" \
+               f"{temp}"
+    else:
+        _plant = random.choice(plants_list)
+        _heart = random.choice(heart_list)
+        text = f"Special thanks for your contribution <b>{first_name}</b>. {_heart}{_plant}."
+        # text = f"Thank you <b>{first_name};</b> However, this file/channel has already been registered. {_heart}{_plant}\n\n"
+    return text
