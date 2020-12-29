@@ -300,7 +300,7 @@ def playlist_deleted_text(*args, **kwargs) -> str:
     return text
 
 
-def edit_playlist_keyboard(*args: list, **kwargs) -> list(object):
+def edit_playlist_keyboard(*args: list, **kwargs) -> list:
     """
     Generates a keyboard for playlists editing. Buttons are:
         1. Edit title
