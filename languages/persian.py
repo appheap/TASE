@@ -314,3 +314,22 @@ def delete_playlist_validation_text(*args: list, **kwargs) -> str:
                f"آیا میخواهید این فایل از پلی‌لیست فعلی حذف شود؟" \
                f"</b> {_headphone}"
     return text
+
+def playlist_deleted_text(*args, **kwargs) -> str:
+    """
+    Deletion success text
+    :param args:
+    :param kwargs:
+    :return: Generated text
+    """
+    text = f"{_check_mark_button}" \
+           f"پلی‌لیست با موفقیت حذف شد"
+    return text
+
+
+
+
+
+
+
+
