@@ -289,7 +289,7 @@ def delete_playlist_validation_text(*args, **kwargs):
     ]
 
 
-def playlist_deleted_text(*args, **kwargs):
+def playlist_deleted_text(*args, **kwargs) -> str:
     """
     Deletion success text
     :param args:
@@ -300,7 +300,7 @@ def playlist_deleted_text(*args, **kwargs):
     return text
 
 
-def edit_playlist_keyboard(*args, **kwargs):
+def edit_playlist_keyboard(*args: list, **kwargs) -> list(object):
     """
     Generates a keyboard for playlists editing. Buttons are:
         1. Edit title
@@ -327,7 +327,7 @@ def edit_playlist_keyboard(*args, **kwargs):
     return markup
 
 
-def edit_playlist_text(*args, **kwargs):
+def edit_playlist_text(*args: list, **kwargs) -> str:
     """
     Generates a text about the current attributes of the chosen playlist in the edit window
     :param args: Chosen playlist object
@@ -341,7 +341,7 @@ def edit_playlist_text(*args, **kwargs):
     return text
 
 
-def single_playlist_text(*args, **kwargs):
+def single_playlist_text(*args: list, **kwargs) -> str:
     """
     Creates a description about a specific playlist
     :param args: *[0] -> Playlist object
@@ -356,7 +356,7 @@ def single_playlist_text(*args, **kwargs):
     return text
 
 
-def languages_list(*args, **kwargs):
+def languages_list(*args, **kwargs) -> str:
     """
     Generates a text containing a list of available languages (both in english and native writing system)
     :param args:
@@ -373,7 +373,7 @@ def languages_list(*args, **kwargs):
     return text
 
 
-def choose_language_text(*args, **kwargs):
+def choose_language_text(*args: list, **kwargs) -> str:
     """
     A call-to-action message for choosing the preferred language; plus a mini-guide on how to change the language later
     :param args: *[0] User's first name -> str
@@ -387,7 +387,7 @@ def choose_language_text(*args, **kwargs):
     return text
 
 
-def button_language_list(*args, **kwargs):
+def button_language_list(*args, **kwargs) -> list:
     """
     A keyboard containing the available languages:
     Current languages:
@@ -414,7 +414,7 @@ def button_language_list(*args, **kwargs):
     return markup
 
 
-def button_joining_request_keyboard(*args, **kwargs):
+def button_joining_request_keyboard(*args, **kwargs) -> str:
     """
     A keyboard containing buttons to join or announce if they are already joined
     :param args:
@@ -429,7 +429,7 @@ def button_joining_request_keyboard(*args, **kwargs):
     return markup
 
 
-def welcome(*args, **kwargs):
+def welcome(*args: list, **kwargs) -> str:
     """
     Shows a welcome message to the user after hitting 'start'
     :param args: *[0] -> user's first name
@@ -445,7 +445,7 @@ def welcome(*args, **kwargs):
     return text
 
 
-def file_caption(*args, **kwargs):
+def file_caption(*args: list, **kwargs) -> str:
     """
     Generates caption for the retrieved audio files. Each caption contains:
         1. Title
@@ -572,7 +572,7 @@ def inline_join_channel_title_text(*args, **kwargs) -> str:
     return text
 
 
-def inline_join_channel_content_text(*args, **kwargs):
+def inline_join_channel_content_text(*args, **kwargs) -> str:
     """
     Shows a call-to-action text to users who have not Joined the channel (When they click on the inline
         call-to-join result)
