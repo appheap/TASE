@@ -394,4 +394,13 @@ def single_playlist_text(*args: list, **kwargs) -> str:
 
     return text
 
+def languages_list(*args, **kwargs):
+    """
+
+    :param args:
+    :param kwargs:
+    :return:
+    """
+
+
 
