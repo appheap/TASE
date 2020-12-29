@@ -265,7 +265,7 @@ def delete_playlist_validation_keyboard(*args: list[object], **kwargs) -> list[o
     return markup
 
 
-def delete_playlist_validation_text(*args, **kwargs):
+def delete_playlist_validation_text(*args: list, **kwargs) -> list:
     """
     This message asks the user to verify the deletion. In case yes was chosen, it will return the ID of the feature,
     otherwise it will acts as back button.
