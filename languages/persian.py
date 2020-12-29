@@ -706,7 +706,23 @@ def collaboration_request(*args, **kwargs) -> str:
            f"@chromusic_bot"
     return text
 
-
+def thanks_new_channel(*args: list, **kwargs) -> str:
+    """
+    Thanks a user for his/her collaboration
+        1. Sending channel name
+        2. Sending Music file
+    :param args:
+    :param kwargs:
+    :return: Generated result
+    """
+    message = args[0]
+    _heart = random.choice(heart_list)
+    _plant = random.choice(plants_list)
+    text = f"متشکرم" \
+           f" {message.from_user.first_name} " \
+           f"برای همکاریت با کرومیوزیک" \
+           f" {_heart}{_plant}"
+    return text
 
 
 
