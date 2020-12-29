@@ -934,7 +934,7 @@ def file_deleted_from_playlist(*args, **kwargs) -> str:
     text = f"{_check_mark_button} Audio file deleted from playlist"
     return text
 
-def help_inline_keyboard_list(*args, **kwargs):
+def help_inline_keyboard_list(*args, **kwargs) -> list:
     """
     An inline list including necessary features. Will be shown after requesting "How To" or "Help" button in "Home" and
         "Help" menus.
@@ -953,25 +953,32 @@ def help_inline_keyboard_list(*args, **kwargs):
     """
     results = []
     results.append(InlineQueryResultArticle(
+        title="0. <b>Soran Ghadri</b>",
+        description="To see author's <b>github</b> and social media, click here",
+        thumb_url="https://telegra.ph/file/6e6831bdd89011688bddb.jpg",
+        input_message_content=InputTextMessageContent(f"Everything you need to know before promoting your business: \n"
+                                                      f"<a href='https://github.com/soran-ghadri/'>"
+                                                      f"<b>Chromusic Advertising</b></a>", parse_mode="HTML")))
+    results.append(InlineQueryResultArticle(
         title="1. How to advertise?",
         description="If you need advertising, click here",
         thumb_url="https://telegra.ph/file/6e6831bdd89011688bddb.jpg",
         input_message_content=InputTextMessageContent(f"Everything you need to know before promoting your business: \n"
-                                                      f"<a href='https://telegra.ph/%D8%AA%D8%A8%D9%84%DB%8C%D8%BA%D8%A7%D8%AA-07-14'>"
+                                                      f"<a href='https://github.com/soran-ghadri/Chromusic_search_engine'>"
                                                       f"<b>Chromusic Advertising</b></a>", parse_mode="HTML")))
     results.append(InlineQueryResultArticle(
         title="2. How to search for and download an audio track",
         description="You can easily send your audio file and get indexed by Chromusic bot",
         thumb_url="https://telegra.ph/file/36fc0478a793bd6db8c4e.jpg",
         input_message_content=InputTextMessageContent(f"Read searching tutorial on this page: \n"
-                                                      f"<a href='https://telegra.ph/%D9%86%D8%AD%D9%88%D9%87-%D8%A7%D8%B3%D8%AA%D9%81%D8%A7%D8%AF%D9%87-%D8%A7%D8%B2-%D8%A8%D8%A7%D8%AA-07-15'>"
+                                                      f"<a href='https://github.com/soran-ghadri/Chromusic_search_engine'>"
                                                       f"<b>Optimal search</b></a>", parse_mode="HTML")))
     results.append(InlineQueryResultArticle(
         title="3. How to register my own audio track?",
         description="You can simply send your audio file and have it indexed by Chromusic",
         thumb_url="https://telegra.ph/file/36fc0478a793bd6db8c4e.jpg",
         input_message_content=InputTextMessageContent(f"Here is a complete guide on "
-                                                      f"<a href='[Your blog url]'>"
+                                                      f"<a href='https://github.com/soran-ghadri/Chromusic_search_engine'>"
                                                       f"<b>how to add my audio track</b></a> (music, podcast, etc.)"
                                                       f" to be shown in the results", parse_mode="HTML")))
     results.append(InlineQueryResultArticle(
@@ -985,16 +992,16 @@ def help_inline_keyboard_list(*args, **kwargs):
     results.append(InlineQueryResultArticle(
         title="5. Contact us",
         description="If you need to contact Chromusic admins then hit this item",
-        thumb_url="https://[Your file url].jpg",
+        thumb_url="https://pbs.twimg.com/profile_images/1306684220232945665/5i_q4pCx_400x400.jpg",
         input_message_content=InputTextMessageContent(f"you can be in touch with us through @[Admin username]\n"
                                                       f"For further information please read "
-                                                      f"<a href='[Your blog url]'>Contact Chromusic</a>", parse_mode="HTML")))
+                                                      f"<a href='https://github.com/soran-ghadri/Chromusic_search_engine'>Contact Chromusic</a>", parse_mode="HTML")))
     results.append(InlineQueryResultArticle(
         title="6. About us",
         description="If you like to find out more about us, click on this link",
-        thumb_url="https://[Your file url].jpg",
+        thumb_url="https://pbs.twimg.com/profile_images/1306684220232945665/5i_q4pCx_400x400.jpg",
         input_message_content=InputTextMessageContent(
-            f"<b>Read more about us on the following page:\n<a href='[Your blog url]'>About Chromusic</a></b>",
+            f"<b>Read more about us on the following page:\n<a href='https://github.com/soran-ghadri/Chromusic_search_engine'>About Chromusic</a></b>",
             parse_mode="HTML")
     ))
     return results
