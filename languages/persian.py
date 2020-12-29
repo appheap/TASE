@@ -292,3 +292,25 @@ def delete_playlist_validation_keyboard(*args, **kwargs):
          InlineKeyboardButton(f"خیر | {_thumbs_down}", callback_data=f"ndelete {return_args}")]
     ]
     return markup
+
+def delete_playlist_validation_text(*args: list, **kwargs) -> str:
+    """
+    This message asks the user to verify the deletion. In case yes was chosen, it will return the ID of the feature,
+    otherwise it will acts as back button.
+    :param args:    type [str]: 1. playlist
+                                2. audio_file
+    :param kwargs:
+    :return: Returns a call-to-action message with button to verify the deletion. The result contains the IDs for
+    playlists and/or audio-files
+    """
+    func = args[0]
+    text = ""
+    if func == "playlist":
+        text = f"{_cross_mark} <b>" \
+               f"آیا میخواهید پلی‌لیست برای همیشه حذف شود؟" \
+               f"</b> {_studio_microphone}"
+    elif func == "audio_file":
+        text = f"{_cross_mark} <b>" \
+               f"آیا میخواهید این فایل از پلی‌لیست فعلی حذف شود؟" \
+               f"</b> {_headphone}"
+    return text
