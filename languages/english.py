@@ -18,7 +18,7 @@ from static.emoji import _traffic_light, _checkmark_emoji, _floppy_emoji, _clock
 plants_list = [_seedling, _evergreen_tree, _deciduous_tree, _palm_tree, _sheaf_of_rice, _herb, _shamrock,
                _four_leaf_clover, _maple_leaf, _fallen_leaf, _leaf_fluttering_in_wind]
 
-
+# ------Following three methods are specific to english.py module------
 def inline_start_bot_title_text(*args, **kwargs) -> str:
     """
     Shows a call-to-start text to users who have not started the bot yet (Title)
@@ -57,7 +57,7 @@ def inline_start_bot_content_text(*args, **kwargs) -> str:
            f"\nThank you for joining {plant}\n\n" \
            f"{_headphone}<a href='https://t.me/chromusic_bot'><b>Chromusic audio search engine</b></a>{_studio_microphone}"
     return text
-
+# ------End of english.py specific modules------
 
 def music_file_keyboard(*args: str, **kwargs: str) -> list[object]:
     """
