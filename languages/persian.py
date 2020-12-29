@@ -475,5 +475,29 @@ def button_joining_request_keyboard(*args, **kwargs) -> str:
     ]
     return markup
 
-
+def welcome(*args: list, **kwargs) -> str:
+    """
+    Shows a welcome message to the user after hitting 'start'
+    :param args: *[0] -> user's first name
+    :param kwargs:
+    :return: Generated welcome message
+    """
+    name = args[0]
+    text = f"{_headphone}" \
+           f"<b>جستجوی انواع فایل های صوتی با بالاترین سرعت ممکن در تلگرام</b>{_headphone}\n\n" \
+           f"به " \
+           f" <b>Chromusic</b> " \
+           f"خوش اومدی" \
+           f", <b>{name}</b>.&rlm;" \
+           f" خوشحالم که اینجایی.{_party_popper}" \
+           f" الان میتونی خیلی ساده و بدون محدودیت سرچ کنی.{_zap}\n\n\n" \
+           f"{_studio_microphone}" \
+           f"هر نوع فایل صوتی رو (آهنگ, پادکست و ...) زیر ۱ ثانیه پیدا کن" \
+           f" {_smiling_face_with_sunglasses}\n\n" \
+           f"&rlm;{_green_circle} " \
+           f"راهنمایی خواستی روی " \
+           f"&lrm;/help " \
+           f"کلیک کن" \
+           f" {_winking_face}"
+    return text
 
