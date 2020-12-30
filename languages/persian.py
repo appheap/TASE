@@ -843,3 +843,21 @@ def result_list_handler(*args: list, **kwargs) -> str:
                f"\n<pre>{textwrap.shorten(query, width=200, placeholder='...')}</pre>"
     return text
 
+def playlist_updated_text(*args: list, **kwargs) -> str:
+    """
+    Playlist update validation message on success
+    :param args: *[0] -> function
+    :param kwargs:
+    :return: Validation-on-success message
+    """
+    func = args[0]
+    text = ""
+    if func == "title_update":
+        text = f"<b> {_check_mark_button} " \
+               f"نام جدید پلی‌لیست با موفقیت ذخیره شد" \
+               f"</b>"
+    elif func == "description_update":
+        text = f"<b> {_check_mark_button} " \
+               f"توضیحات جدید پلی‌لیست با موفقیت ذخیره شد" \
+               f"</b>"
+    return text
