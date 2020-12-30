@@ -803,7 +803,6 @@ def result_list_handler(*args: list, **kwargs) -> str:
     x = len([None for ch in query if UD.bidirectional(ch) in ('R', 'AL')]) / float(len(query))
     # print('{t} => {c}'.format(t=query.encode('utf-8'), c='RTL' if x > 0.5 else 'LTR'))
     # print(UD.bidirectional("dds".decode('utf-8')))
-
     # direction = 'RTL' if x > 0.5 else 'LTR'
     dir_str = "&rlm;" if x > 0.5 else '&lrm;'
     fruit = random.choice(fruit_list)
@@ -818,9 +817,6 @@ def result_list_handler(*args: list, **kwargs) -> str:
             _performer = hit['_source']['performer']
             _title = hit['_source']['title']
             _file_name = hit['_source']['file_name']
-
-            # print(len("عبدالقهـار زاخولي ستران و موال حزين قديم..."))
-            # print('bd', ud.bidirectional(str(query).encode('utf-8')))
             if not (len(_title) < 2 or len(_performer) < 2):
                 name = f"{_performer} - {_title}"
             elif not len(_performer) < 2:
