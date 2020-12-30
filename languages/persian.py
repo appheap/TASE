@@ -962,3 +962,28 @@ def help_markup_keyboard(*args, **kwargs) -> list:
                                    switch_inline_query_current_chat=f"#help_catalog")]
     ]
     return markup
+
+def help_keyboard_text(*args, **kwargs) -> str:
+    """
+    Help message showing on top of the 'Help' menu
+    :param args:
+    :param kwargs:
+    :return: Generated results
+    """
+    _heart = random.choice(heart_list)
+    _plant = random.choice(plants_list)
+    text = f"&rlm;<b>راهنمایی‌ | {_exclamation_question_mark}</b>\n&rlm;{34 * '-'}\n\n" \
+           f"کانال‌های ما:\n" \
+           f"{_pushpin} | " \
+           f"کانال انگلیسی: " \
+           f"<b>@chromusic</b>\n" \
+           f"{_pushpin} | " \
+           f"کانال فارسی: " \
+           f"<b>@chromusic_fa</b> \n&rlm;{34 * '-'}\n\n" \
+           f"پیج‌های اینستاگرام کروموزیک:\n" \
+           f"<a href='https://www.instagram/chromusic.official'>کروموزیک</a> | {_round_pushpin}\n" \
+           f"<a href='https://www.instagram/chromusic_fa'>کروموزیک فارسی</a> | {_round_pushpin}\n\n" \
+           f"&rlm;{_plant}{_heart}"
+    return text
+
+
