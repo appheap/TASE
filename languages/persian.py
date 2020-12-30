@@ -1162,7 +1162,6 @@ def long_time_not_active(*args: list, **kwargs) -> str:
     not_active_since = args[1]
     _plant = random.choice(plants_list)
     _heart = random.choice(heart_list)
-    # text = f""
     if not_active_since > 14:
         text = f"سلام " \
                f"<b>{first_name}</b>" \
