@@ -63,7 +63,6 @@ def playlist_keyboard(*args, **kwargs):
         inp_message_content = f"/addnewpl {audio_file['_id']}"
     elif func == "playlists":
         add_new_pl_header = False
-        # inp_message_content = f"/showplaylist"
     elif func == "history":
         add_new_pl_header = False
     hidden_character = "‏‏‎ ‎"
@@ -81,12 +80,6 @@ def playlist_keyboard(*args, **kwargs):
             _performer_line = "<b>اجرا کننده:</b> " + str(_performer) + "\n"
             _filename = str(_audio_file["_source"]["file_name"]).replace("@", "")
             _filename_line = "<b>نام فایل:</b> " + str(_filename) + "\n"
-            # _title = str(_audio_file["_source"]["title"]).replace("@", "")
-            # _title_line = "<b>Title:</b> " + str(_title) + "\n"
-            # _performer = str(_audio_file["_source"]["performer"]).replace("@", "")
-            # _performer_line = "<b>Performer:</b> " + str(_performer) + "\n"
-            # _filename = str(_audio_file["_source"]["file_name"]).replace("@", "")
-            # _filename_line = "<b>File name:</b> " + str(_filename) + "\n"
             if not len(_title) < 2:
                 audio_title = _title
                 description = _filename
