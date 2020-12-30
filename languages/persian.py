@@ -243,15 +243,6 @@ def delete_audio_murkup_keyboard(*args, **kwargs):
     markup.append([InlineKeyboardButton(f"برگشت | {_BACK_arrow}",
                                         callback_data=f"editpl {playlist_id}")])
 
-    # markup = [
-    #     [InlineKeyboardButton(f"{_house} Edit title",
-    #                           switch_inline_query_current_chat=f"#edit_title {playlist_id} "),
-    #      InlineKeyboardButton(f"{_house} Edit description",
-    #                           switch_inline_query_current_chat=f"#edit_description {playlist_id} ")],
-    #     [InlineKeyboardButton(f"{_house} Delete playlist", callback_data=f"delete {playlist_id}"),
-    #      InlineKeyboardButton(f"{_house} Delete audio file", callback_data=f"adelete {playlist_id}")],
-    #     [InlineKeyboardButton(f"{_house} Back", callback_data=f"showplaylist {playlist_id}")]
-    # ]
     return markup
 
 
