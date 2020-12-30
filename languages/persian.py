@@ -904,3 +904,14 @@ def added_to_playlist_success_text(*args: list, **kwargs) -> str:
                f"<b>\"خانه | {_house}\"</b>" \
                f"می‌توانید پلی‌لیست‌ها و لیست دانلود‌های اخیرتان را ببینید"
     return text
+
+def delete_audio_guide_text(*args, **kwargs) -> str:
+    """
+    Guides users how to delete an audio-file from the current playlist.
+    :param args:
+    :param kwargs:
+    :return: Deletion mini-guide message
+    """
+    text = f"{_green_circle}" \
+           f"با کلیک روی هرکدام از دکمه‌های زیر می‌توانید فایل صوتی را از پلی‌لیست فعلی حذف کنید"
+    return text
