@@ -737,12 +737,13 @@ def lang_register_alert(*args: list, **kwargs) -> str:
            f"هرموقع خواستی میتونی با استفاده از\n کد دستوری \"lang/\" زبان رو دوباره انتخاب کنی"
     return text
 
-def send_in_1_min(*args, **kwargs):
+def send_in_1_min(*args: list, **kwargs) -> str:
     """
-
-    :param args:
+    A message notifying users when they are not joined the channel and have surpassed the maximum free download. It
+        alerts them about sending the audio file after one minumte
+    :param args: *[0] -> first name
     :param kwargs:
-    :return:
+    :return: Generated message
     """
     first_name = args[0]
     text = f"&rlm;{_green_circle} بسیار خوشحالم که کار با این سرویس رو دوست داری, " \
@@ -758,7 +759,30 @@ def send_in_1_min(*args, **kwargs):
            f"  {_winking_face}"
     return text
 
+def has_joined(*args: list, **kwargs) -> str:
+    """
+    Validates the user's joining the channel after being required to join.
+    :param args: *[0] -> first name
+    :param kwargs:
+    :return: Generated validation message
+    """
+    first_name = args[0]
+    text = f"{_star_struck}{_smiling_face_with_heart} بسیار خب " \
+           f"<b>{first_name}</b> " \
+           f", حالا تمام دسترسی ها رو داری{_party_popper}{_confetti_ball}\n\n" \
+           f"تبریک از طرف @chromusic_fa {_red_heart}\n" \
+           f"با خیال راحت هر فایل صوتی رو سرچ کن {_face_blowing_a_kiss}"
+    return text
 
-
-
+def not_joined(*args, **kwargs) -> str:
+    """
+    This will be shown when users claim to already have joined and they are lying
+    :param args:
+    :param kwargs:
+    :return: Generated message for rejecting user's claim
+    """
+    text = f"{_face_with_raised_eyebrow} الان نگاه کردم, هنوز عضو کانال فارسی نیستی.\n\n " \
+           f"{_green_heart} عضو @chromusic_fa شو" \
+           f" تا تمام قابلیت ها به صورت کاملا #رایگان برات فعال شه {_red_heart}"
+    return text
 
