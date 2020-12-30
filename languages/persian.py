@@ -1020,3 +1020,95 @@ def file_deleted_from_playlist(*args, **kwargs) -> str:
     text = f"{_check_mark_button} " \
            f"فایل با موفقیت حذف شد"
     return text
+
+def help_inline_keyboard_list(*args, **kwargs) -> list:
+    """
+    An inline list including necessary features. Will be shown after requesting "How To" or "Help" button in "Home" and
+        "Help" menus.
+    Current items:
+        1. How to advertise?
+        2. How to search for and download an audio track
+        3. How to register my own audio track?
+        4. How to add my channel to Chromusic
+        5. Contact us
+        6. About us
+    This feature acts like a blog for a website. To add blogs we recommend using telegra.ph website which is related to
+        Telegram itself
+    :param args:
+    :param kwargs:
+    :return: Generated inline list of blogs
+    """
+    results = []
+    results.append(InlineQueryResultArticle(
+        title="*. سوران قادری",
+        description="کدهای برنامه و پروفایل برنامه‌نویس",
+        thumb_url="https://telegra.ph/file/6e6831bdd89011688bddb.jpg",
+        input_message_content=InputTextMessageContent(f"&rlm;"
+                                                      f"برای دیدن کدها روی گیتهاب اینچا کلیک کنید:\n"
+                                                      f"<a href='https://github.com/soran-ghadri/'><b>"
+                                                      f"گیتهاب"
+                                                      f"</b></a>", parse_mode="HTML")))
+    results.append(InlineQueryResultArticle(
+        title="۱. نحوه تبلیغات در کروموزیک",
+        description="اگه میخوای تبلیغات کنی این گزینه رو بزن",
+        thumb_url="https://telegra.ph/file/6e6831bdd89011688bddb.jpg",
+        input_message_content=InputTextMessageContent(f"&rlm;"
+                                                      f"هرآنچه رو قبل از تبلیغات باید بدونی:\n"
+                                                      f"<a href='https://github.com/soran-ghadri/Chromusic_search_engine'><b>"
+                                                      f"تبلیغات کروموزیک"
+                                                      f"</b></a>", parse_mode="HTML")))
+    results.append(InlineQueryResultArticle(
+        title="۲. نحوه جستجو و دانلود موزیک و فایل‌های صوتی",
+        description="به آسانی میتونید فایل‌های دلخواهت رو در چند میلی‌ثانیه پیدا و دانلود کنی",
+        thumb_url="https://telegra.ph/file/36fc0478a793bd6db8c4e.jpg",
+        input_message_content=InputTextMessageContent(f"&rlm;"
+                                                      f"آموزش جستجوی موزیک رو در این متلب بخونید: \n"
+                                                      f"<a href='https://github.com/soran-ghadri/Chromusic_search_engine'><b>&rlm;"
+                                                      f"جستجوی بهینه"
+                                                      f"</b></a>", parse_mode="HTML")))
+    results.append(InlineQueryResultArticle(
+        title="۳. ثبت موزیک و فایل‌های صوتی خودم در کروموزیک",
+        description="برای آگاهی از نحوه ثبت موزیک و فایل‌های صوتی این گزینه رو انتخاب کنید",
+        thumb_url="https://telegra.ph/file/36fc0478a793bd6db8c4e.jpg",
+        input_message_content=InputTextMessageContent(f"&rlm;"
+                                                      f"در این مقاله راهنمای کامل "
+                                                      f"<a href='https://github.com/soran-ghadri/Chromusic_search_engine'>"
+                                                      f"<b>چگونه موزیک و فایل صوتی خودم رو در کروموزیک ثبت کنم</b></a> "
+                                                      f"(موزیک, پادکست, کتاب صوتی و ...),"
+                                                      f" بخوان", parse_mode="HTML")))
+    results.append(InlineQueryResultArticle(
+        title="۴. ثبت کانال خودم در کروموزیک",
+        description="اگه میخوای فایل‌های صوتی کانالت در کروموزیک ثبت شه این گزینه رو انتخاب کن",
+        thumb_url="https://telegra.ph/file/36fc0478a793bd6db8c4e.jpg",
+        input_message_content=InputTextMessageContent(f"&rlm;"
+                                                      f"انیجا میتونی یک راهنمایی کامل در باره‌ی"
+                                                      f"<a href='https://github.com/soran-ghadri/Chromusic_search_engine'>"
+                                                      f"<b>"
+                                                      f"ثبت کانال"
+                                                      f"</b></a>"
+                                                      f" خودم در کروموزیک بخوانی\n"
+                                                      f"<b>&rlm;{_check_mark_button} "
+                                                      f"توجه: نام کانال شما همراه فایل صوتی نمایش داده میشود "
+                                                      f"</b>\n", parse_mode="HTML")))
+    results.append(InlineQueryResultArticle(
+        title="۵. تماس با ما",
+        description="برای تماس با تیم ما اینجا کلین کنید",
+        thumb_url="https://telegra.ph/file/cd08f00005cb527e6bcdb.jpg",
+        input_message_content=InputTextMessageContent(f"می توانید با از طریق آی‌دی "
+                                                      f"@[your admin username]\n"
+                                                      f"در ارتباط با"
+                                                      f"\n"
+                                                      f"برای اطلاعات بیشتر روی لینک زیر کلیک کنید"
+                                                      f"<a href='https://github.com/soran-ghadri/Chromusic_search_engine'>"
+                                                      f"تماس با ما"
+                                                      f"</a>", parse_mode="HTML")))
+    results.append(InlineQueryResultArticle(
+        title="۶. درباره ما",
+        description="درباره تیم ما بیشتر بدانید",
+        thumb_url="https://telegra.ph/file/17ea2995a5146d4c32e7b.jpg",
+        input_message_content=InputTextMessageContent(f"<b>&rlm;"
+                                                      f"در اینجا لینک‌های ارتباطی با بخش پشتیبانی و همنیطور بیشتر درباره‌ی ما بخوانید"
+                                                      f"</b>\n&rlm;<a href='https://github.com/soran-ghadri/'>"
+                                                      f"درباره‌ی تیم ما"
+                                                      f"</a>", parse_mode="HTML")))
+    return results
