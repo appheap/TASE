@@ -601,8 +601,6 @@ def inline_file_caption(*args: list, **kwargs) -> str:
                f"{_round_pushpin}منبع: {_source if include_source else 'فرستاده شده توسط کاربران کروموزیک'}\n" \
                f"\n{_search_emoji} | <a href ='https://t.me/chromusic_bot'><b>کروموزیک:</b> جستجوی فایل‌های صوتی</a>\n" \
                f"&rlm;{_plant}"
-        # f"{_pushpin} | <a href ='https://t.me/chromusic'>Chromusic channel</a>\n" \
-        # f"{_pushpin} | <a href ='https://t.me/chromusic'>Persian Chromusic channel</a>\n" \
     except Exception as e:
         print(f"from file caption: {e}")
     return text
