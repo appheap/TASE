@@ -724,7 +724,18 @@ def thanks_new_channel(*args: list, **kwargs) -> str:
            f" {_heart}{_plant}"
     return text
 
-
+def lang_register_alert(*args: list, **kwargs) -> str:
+    """
+    An alert validating the user's preferred language has been saved
+    :param args:
+    :param kwargs:
+    :return: Generated alert
+    """
+    first_name = args[0]
+    dir = "&rlm;"
+    text = f"بسیار خب {first_name} زبان فارسی برات ثبت شد {_confetti_ball}{_party_popper}\n\n" \
+           f"هرموقع خواستی میتونی با استفاده از\n کد دستوری \"lang/\" زبان رو دوباره انتخاب کنی"
+    return text
 
 def send_in_1_min(*args, **kwargs):
     """
