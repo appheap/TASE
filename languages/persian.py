@@ -1179,3 +1179,18 @@ def long_time_not_active(*args: list, **kwargs) -> str:
                f"لازم داشتی میتونی از صفحه کلید زیر دکمه راهنمایی رو بزنی " \
                f"{_heart}{_plant}"
     return text
+
+def checking_items_started(*args, **kwargs) -> str:
+    """
+    This will appear after sending channel names to be indexed
+    :param args:
+    :param kwargs:
+    :return: A text notifying users that the bot is already checking their sent channel usernames
+    """
+    _plant = random.choice(plants_list)
+    _heart = random.choice(heart_list)
+    text = f"بررسی آیتم‌ها شروع شد ... {_clock_emoji}\n" \
+           f"تموم شد بهت خبر میدم. " \
+           f"{_plant}{_heart}"
+    return text
+
