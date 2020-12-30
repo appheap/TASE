@@ -1044,7 +1044,7 @@ def help_inline_keyboard_list(*args, **kwargs) -> list:
         description="کدهای برنامه و پروفایل برنامه‌نویس",
         thumb_url="https://telegra.ph/file/6e6831bdd89011688bddb.jpg",
         input_message_content=InputTextMessageContent(f"&rlm;"
-                                                      f"برای دیدن کدها روی گیتهاب اینچا کلیک کنید:\n"
+                                                      f"برای دیدن کدها روی گیتهاب, اینچا کلیک کنید:\n"
                                                       f"<a href='https://github.com/soran-ghadri/'><b>"
                                                       f"گیتهاب"
                                                       f"</b></a>", parse_mode="HTML")))
@@ -1112,3 +1112,42 @@ def help_inline_keyboard_list(*args, **kwargs) -> list:
                                                       f"درباره‌ی تیم ما"
                                                       f"</a>", parse_mode="HTML")))
     return results
+
+def contribution_thanks(*args: list, **kwargs) -> str:
+    """
+    Shows a thank you message to the contributing users
+    :param args:    1. *[0] -> first name
+                    2. *[1] -> is the file registered or not
+    :param kwargs:
+    :return: Thank you message
+    """
+    first_name = args[0]
+    registered = args[1]
+    if len(args) == 3:
+        if args[2] > 1:
+            count = args[2]
+            temp = f"&rlm;{count}" \
+                   f"آیتم ثبت شد"
+        else:
+            temp = ''
+    else:
+        temp = ''
+
+    if registered:
+        _plant = random.choice(plants_list)
+        _heart = random.choice(heart_list)
+        text = f"تشکر" \
+               f"<b>{first_name}</b>. " \
+               f"بابت همکاریت با کروموزیک" \
+               f"{_heart}{_plant}.\n\n" \
+               f"{temp}"
+    else:
+        _plant = random.choice(plants_list)
+        _heart = random.choice(heart_list)
+        text = f"تشکر " \
+               f"<b>{first_name}</b> " \
+               f"بابت همکاریت با کروموزیک. " \
+               f"{_heart}{_plant}\n\n"
+    return text
+
+
