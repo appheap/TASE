@@ -861,3 +861,46 @@ def playlist_updated_text(*args: list, **kwargs) -> str:
                f"توضیحات جدید پلی‌لیست با موفقیت ذخیره شد" \
                f"</b>"
     return text
+
+def added_to_playlist_success_text(*args: list, **kwargs) -> str:
+    """
+    Shows a success message for audio-file addition to a playlist
+    :param args:    1. *[0] -> function
+                    2. *[1] -> audio-file data
+    :param kwargs:
+    :return: A message on success containing the results and a mini-guide about how to change these
+        default information later
+    """
+    func = args[0]
+    data = args[1]
+    text = ""
+    if func == "addnewpl":
+        print("data from english:", data)
+        text = f"<b>۱. پلی‌لیست جدید با موفقیت ایجاد شد | {_check_mark_button}</b>\n" \
+               f"       نام پیشفرض: " \
+               f"{data['title']}\n" \
+               f"توضیحات پیشفرض: " \
+               f"{data['description']}\n" \
+               f"       با استفاده از دکمه ویرایش می‌توانید اطلاعات پیشفرض را تغییر دهید:" \
+               f"\n&rlm;" \
+               f"            my playlists -> edit -> ...\n" \
+               f"<b>۲. فایل صوتی به پلی‌لیست اضافه شد | {_check_mark_button}</b>\n&rlm;{34 * '-'}\n\n" \
+               f"&rlm;" \
+               f"{_green_circle} با استفاده از دکمه  " \
+               f"<b>\"خانه | {_house}\"</b>" \
+               f"می‌توانید پلی‌لیست‌ها و لیست دانلود‌های اخیرتان را ببینید"
+    elif func == "addtoexistpl":
+        playlist = args[2]
+        text = f"<b>۱. فایل صوتی به پلی‌لیست اضافه شد | {_check_mark_button}</b></b>\n" \
+               f"       نام فایل: " \
+               f"{data['title']}\n" \
+               f"       نام پلی‌لیست: " \
+               f"{playlist['_source']['title']}\n" \
+               f"       با استفاده از دکمه ویرایش می‌توانید اطلاعات پیشفرض را تغییر دهید:" \
+               f"\n&rlm;" \
+               f"            my playlists -> edit\n&rlm;{34 * '-'}\n\n" \
+               f"&rlm;" \
+               f"{_green_circle} با استفاده از دکمه  " \
+               f"<b>\"خانه | {_house}\"</b>" \
+               f"می‌توانید پلی‌لیست‌ها و لیست دانلود‌های اخیرتان را ببینید"
+    return text
