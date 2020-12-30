@@ -959,7 +959,7 @@ def help_inline_keyboard_list(*args, **kwargs) -> list:
     """
     results = []
     results.append(InlineQueryResultArticle(
-        title="0. <b>Soran Ghadri</b>",
+        title="*. <b>Soran Ghadri</b>",
         description="To see author's <b>github</b> and social media, click here",
         thumb_url="https://telegra.ph/file/6e6831bdd89011688bddb.jpg",
         input_message_content=InputTextMessageContent(f"Everything you need to know before promoting your business: \n"
