@@ -1150,4 +1150,32 @@ def contribution_thanks(*args: list, **kwargs) -> str:
                f"{_heart}{_plant}\n\n"
     return text
 
-
+def long_time_not_active(*args: list, **kwargs) -> str:
+    """
+    This message will be shown to users being inactive more than 5 days and 14 days (as the longer period)
+    :param args:    1. *[0] -> firstname
+                    2. *[1] -> number of days being inactive
+    :param kwargs:
+    :return: The welcome again message
+    """
+    first_name = args[0]
+    not_active_since = args[1]
+    _plant = random.choice(plants_list)
+    _heart = random.choice(heart_list)
+    # text = f""
+    if not_active_since > 14:
+        text = f"سلام " \
+               f"<b>{first_name}</b>" \
+               f"خیلی وقته نا پیدایی!" \
+               f"\nاگه هر سوالی در مورد سرویس‌های ما داری خوشحال میشم " \
+               f"<b>#راهنماییت</b>" \
+               f" کنم. " \
+               f"{_heart}{_plant}"
+    else:
+        text = f"سلام مجدد " \
+               f"<b>{first_name}</b>.\n " \
+               f"هرموقع " \
+               f"<b>#راهنمایی</b> " \
+               f"لازم داشتی میتونی از صفحه کلید زیر دکمه راهنمایی رو بزنی " \
+               f"{_heart}{_plant}"
+    return text
