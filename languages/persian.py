@@ -1010,3 +1010,13 @@ def home_keyboard_text(*args, **kwargs) -> str:
     return text
 
 
+def file_deleted_from_playlist(*args, **kwargs) -> str:
+    """
+    Audio-file deletion validation message
+    :param args:
+    :param kwargs:
+    :return: Generated validation message
+    """
+    text = f"{_check_mark_button} " \
+           f"فایل با موفقیت حذف شد"
+    return text
