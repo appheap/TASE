@@ -865,7 +865,6 @@ def home_markup_keyboard(*args, **kwargs) -> list:
          InlineKeyboardButton(f"My Playlists | {_headphone}", switch_inline_query_current_chat=f"#myplaylists")],
         [InlineKeyboardButton(f"Language | {_globe_showing_Americas}", callback_data="lang")],
         [InlineKeyboardButton(f"Advertisement | {_chart_increasing}{_bar_chart}", url="https://t.me/chromusic_ads"),
-         # callback_data="ads"),
          InlineKeyboardButton(f"How to | {_exclamation_question_mark}",
                               switch_inline_query_current_chat=f"#help_catalog")]
     ]
