@@ -471,7 +471,6 @@ def button_joining_request_keyboard(*args, **kwargs) -> str:
     markup = [
         [InlineKeyboardButton("همین الان عضو هستم", callback_data="joined"),
          InlineKeyboardButton("باشه الان عضو میشم", url="https://t.me/chromusic_fa")]  #
-        # [InlineKeyboardButton("Docs", url="https://docs.pyrogram.org")]
     ]
     return markup
 
