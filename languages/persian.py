@@ -986,4 +986,27 @@ def help_keyboard_text(*args, **kwargs) -> str:
            f"&rlm;{_plant}{_heart}"
     return text
 
+def home_keyboard_text(*args, **kwargs) -> str:
+    """
+    Home message showing on top of the 'Home' Menu
+    :param args:
+    :param kwargs:
+    :return: Generated results
+    """
+    _heart = random.choice(heart_list)
+    _plant = random.choice(plants_list)
+    text = f"&rlm;<b>خانه | {_house}</b>\n&rlm;{34 * '-'}\n\n" \
+           f"کانال‌های ما:\n" \
+           f"{_pushpin} | &rlm;" \
+           f"کانال انگلیسی: " \
+           f"<b>&lrm;@chromusic</b>\n" \
+           f"{_pushpin} | &rlm;" \
+           f"کانال فارسی: " \
+           f"<b>&lrm;@chromusic_fa</b>\n&rlm;{34 * '-'}\n\n" \
+           f"پیج‌های اینستاگرام کروموزیک:\n" \
+           f"<a href='https://www.instagram.com/chromusic_official/'><b>کروموزیک</b></a> | {_round_pushpin}\n" \
+           f"<a href='https://www.instagram.com/chromusic_fa'><b>کروموزیک فارسی</b></a> | {_round_pushpin}\n\n" \
+           f"&rlm;{_plant}{_heart}"
+    return text
+
 
