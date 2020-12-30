@@ -339,7 +339,6 @@ def edit_playlist_keyboard(*args: list, **kwargs) -> list:
     :return:
     """
     playlist_id = args[0]
-    # query_id = args[1]
     markup = [
         [InlineKeyboardButton(f"ویرایش نام | {_wrench}",
                               switch_inline_query_current_chat=f"#edit_title {playlist_id} "),
