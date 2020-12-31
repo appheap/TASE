@@ -98,7 +98,7 @@ def client_connect(
     client = Client(session_name, api_id, api_hash)
     client.start()
     # apl.append(app)
-    print(f"{session_name} session running ...")
+    print(f"Client {session_name} session running ...")
     return client
 
 def bot_connect(
@@ -132,5 +132,5 @@ def bot_connect(
     bot = Client(session_name, api_id, api_hash, bot_token=bot_token)
     bot.start()
     # apl.append(bot)
-    print('bot ready ...!')
+    print(f"Bot: {session_name} session running ...")
     return bot
