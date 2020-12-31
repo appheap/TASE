@@ -136,7 +136,6 @@ user_mapping = {
     }
 }
 
-
 """
 channel_mapping is the template for storing channel data in Elasticsearch database.
 Featured fields:
@@ -176,7 +175,40 @@ channel_mapping = {
     }
 }
 
+"""
+channel_mapping is the template for storing channels-that-are-going-to-be-indexed data in Elasticsearch database.
+"""
+to_index_mapping = {
+    "settings": {
+        "number_of_shards": 1,
+        "number_of_replicas": 1
+    },
+    "mappings": {
+        "properties": {
 
+        }
+    }
+}
 
-
-
+"""
+admin_log_control_mapping is the template for storing admin log data in Elasticsearch database.
+Contains:
+    1. Last offset date
+    2. Members' count
+"""
+admin_log_control_mapping = {
+    "settings": {
+        "number_of_shards": 1,
+        "number_of_replicas": 1
+    },
+    "mappings": {
+        "properties": {
+            "last_offset_date": {
+                "type": "integer"
+            },
+            "members_count": {
+                "type": "integer"
+            }
+        }
+    }
+}
