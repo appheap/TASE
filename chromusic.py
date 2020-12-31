@@ -141,5 +141,8 @@ def db_connect():
     Creates a global variable for elasticsearch object
     :return: -
     """
+    global es
+    es = Elasticsearch([{"host": "localhost", "port": 9200}])
+    print("database ready ...!")
 
 
