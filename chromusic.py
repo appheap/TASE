@@ -133,3 +133,4 @@ def bot_connect(
     bot.start()
     # apl.append(bot)
     print('bot ready ...!')
+    return bot
