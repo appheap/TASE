@@ -151,7 +151,11 @@ def exception_handler(func):
     :param func:
     :return:
     """
-
+    try:
+        func
+    except SlowmodeWait as e:
+        time.sleep(e.x)
+        return func
 
 
 
