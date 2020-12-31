@@ -259,3 +259,29 @@ def check_joining_status(channel_id):
             }, ignore=409)
     except Exception as e:
             print("from check joining status:", e)
+
+def language_handler(
+        func: object = None,
+        lang: str = "en",
+        *args: list,
+        **kwargs: dict):
+    """
+    Routes the functions to their respective languages.
+    :param func: Input function to be routed
+    :param lang: Language to return results in
+    :param args: [list] Other arguments
+    :param kwargs: [dict] Other key-value arguments
+    :return: The result of the queried function in 'lang' language
+    """
+    text = ""
+    if lang == "en":
+        text = getattr(english, func)(*args, **kwargs)
+    elif lang == "fa":
+        text = getattr(persian, func)(*args, **kwargs)
+    else:
+        text = getattr(english, func)(*args, **kwargs)
+
+    return text
+
+
+
