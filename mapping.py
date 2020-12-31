@@ -214,7 +214,8 @@ admin_log_control_mapping = {
 }
 
 """
-user_list_mapping is the template for storing admin log data in Elasticsearch database.
+user_list_mapping is the template for storing user's lists (recent downloads and existing playlists)
+ data in Elasticsearch database.
 Contains:
     1. Downloaded audio id list
     2. Playlists
@@ -235,7 +236,6 @@ user_list_mapping = {
         }
     }
 }
-
 
 """
 playlist_mapping is the template for storing playlist data in Elasticsearch database.
@@ -262,6 +262,27 @@ playlist_mapping = {
                 "type": "text"
             },
             "list": {
+                "type": "keyword"
+            }
+        }
+    }
+}
+
+
+"""
+future_channel_mapping is the template for storing future channels to be indexed
+ data in Elasticsearch database.
+Contains:
+    1. ID
+"""
+future_channel_mapping = {
+    "settings": {
+        "number_of_shards": 1,
+        "number_of_replicas": 1
+    },
+    "mappings": {
+        "properties": {
+            "id": {
                 "type": "keyword"
             }
         }
