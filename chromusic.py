@@ -78,10 +78,20 @@ def client_connect(
         api_hash: Union[int, str] = None):
     """
     Connect the client to Telegram servers. [Client API]
-    :param session_name: Your session name [optional] (defaults to 'chromusic'). For more than one instance you have to
-     change it to another value.
-    :param api_id: Client's API ID
-    :param api_hash: Client's API hash
+    :param session_name: [str] (defaults to 'chromusic')
+            Pass a string of your choice to give a name to the client session, e.g.: "*chromusic*". This name will be
+            used to save a file on disk that stores details needed to reconnect without asking again for credentials.
+            Alternatively, if you don't want a file to be saved on disk, pass the special name "**:memory:**" to start
+            an in-memory session that will be discarded as soon as you stop the Client. In order to reconnect again
+            using a memory storage without having to login again, you can use
+            :meth:`~pyrogram.Client.export_session_string` before stopping the client to get a session string you can
+            pass here as argument.
+    :param api_id: [int/str]
+            The *api_id* part of your Telegram API Key, as integer. E.g.: "12345".
+            This is an alternative way to pass it if you don't want to use the *config.ini* file.
+    :param api_hash:  [str]
+            The *api_hash* part of your Telegram API Key, as string. E.g.: "0123456789abcdef0123456789abcdef".
+            This is an alternative way to set it if you don't want to use the *config.ini* file.
     :return: Connected client
     :raises: ConnectionError: In case you try to connect an already connected client.
     """
@@ -98,11 +108,26 @@ def bot_connect(
         bot_token: str = None):
     """
     Connect the client to Telegram servers. [Bot API]
-    :param session_name:
-    :param api_id:
-    :param api_hash:
-    :param BOT_TOKEN:
-    :return:
+    :param session_name: [str] (defaults to 'chromusic_bot')
+            Pass a string of your choice to give a name to the client session, e.g.: "*chromusic*". This name will be
+            used to save a file on disk that stores details needed to reconnect without asking again for credentials.
+            Alternatively, if you don't want a file to be saved on disk, pass the special name "**:memory:**" to start
+            an in-memory session that will be discarded as soon as you stop the Client. In order to reconnect again
+            using a memory storage without having to login again, you can use
+            :meth:`~pyrogram.Client.export_session_string` before stopping the client to get a session string you can
+            pass here as argument.
+    :param api_id: [int/str]
+            The *api_id* part of your Telegram API Key, as integer. E.g.: "12345".
+            This is an alternative way to pass it if you don't want to use the *config.ini* file.
+    :param api_hash:  [str]
+            The *api_hash* part of your Telegram API Key, as string. E.g.: "0123456789abcdef0123456789abcdef".
+            This is an alternative way to set it if you don't want to use the *config.ini* file.
+    :param bot_token:  [str]
+            Pass your Bot API token to create a bot session, e.g.: "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"
+            Only applicable for new sessions.
+            This is an alternative way to set it if you don't want to use the *config.ini* file.
+    :return: Connected client object
+    :raises: ConnectionError - In case you try to connect an already connected client.
     """
     bot = Client(session_name, api_id, api_hash, bot_token=bot_token)
     bot.start()
