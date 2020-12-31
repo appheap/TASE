@@ -33,6 +33,14 @@ def telegramAPI_connect():
     This function makes multiple telegram app clients and their respective global variables to make them accessible
     through the entire module.
     You can customise this function and make app clients as much as you want.
+
+    Obtaining api_id and api_hash (Telegram guides):
+    In order to obtain an API id and develop your own application using the Telegram API you need to do the following:
+        1. Sign up for Telegram using any application.
+        2. Log in to your Telegram core: https://my.telegram.org.
+        3. Go to 'API development tools' and fill out the form.
+        4. You will get basic addresses as well as the api_id and api_hash parameters required for user authorization.
+        5. For the moment each number can only have one api_id connected to it.
     :return:
     """
     global executor, app, app2, bot, adbot, indexer_list
@@ -63,18 +71,31 @@ def telegramAPI_connect():
     bot = bot_connect("chromusic_bot", shelbycobra2016_api_id, shelbycobra2016_api_hash, BOT_TOKEN)
     indexer_list.append(chromusic_indexer_7693)
 
-def client_connect(api_id, api_hash, session_name="chromusic"):
+def client_connect(api_id: int, api_hash: str, session_name: str = "chromusic"):
     """
     Connects to the Client API (pyrogram)
     :param session_name: Your session name [optional] (defaults to 'chromusic'). For more than one instance you have to
-    change it to another value.
-
-    :param api_id: Your API ID
-    :param api_hash: Your API hash
-    :return:
+     change it to another value.
+    :param api_id: Client's API ID
+    :param api_hash: Client's API hash
+    :return: Connected client
     """
     client = Client(session_name, api_id, api_hash)
     client.start()
     # apl.append(app)
-    print("client ready ...!")
+    print(f"{session_name} session running ...")
     return client
+
+def bot_connect(api_id, api_hash, BOT_TOKEN, session_name="chromusic_bot"):
+    """
+
+    :param session_name:
+    :param api_id:
+    :param api_hash:
+    :param BOT_TOKEN:
+    :return:
+    """
+    bot = Client(session_name, api_id, api_hash, bot_token=BOT_TOKEN)
+    bot.start()
+    # apl.append(bot)
+    print('bot ready ...!')
