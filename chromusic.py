@@ -126,7 +126,7 @@ def bot_connect(
             Pass your Bot API token to create a bot session, e.g.: "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"
             Only applicable for new sessions.
             This is an alternative way to set it if you don't want to use the *config.ini* file.
-    :return: Connected client object
+    :return: Connected bot object
     :raises: ConnectionError - In case you try to connect an already connected client.
     """
     bot = Client(session_name, api_id, api_hash, bot_token=bot_token)
