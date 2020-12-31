@@ -1,6 +1,6 @@
 """
 audio_files_mapping mapper is the template for storing audio-file data in Elasticsearch database.
-It contains:
+Featured fields:
     1. Chat id
     2. Chat username
     3. Message_id
@@ -64,7 +64,6 @@ audio_files_mapping = {
         }
     }
 }
-
 
 """
 user_mapping mapper is the template for storing user data in Elasticsearch database.
@@ -136,3 +135,48 @@ user_mapping = {
         }
     }
 }
+
+
+"""
+channel_mapping is the template for storing channel data in Elasticsearch database.
+Featured fields:
+    1. Title
+    2. Username
+    3. Importance
+    4. Indexed from audio count
+    5. Last indexed offset date
+    6. Downloaded from count
+"""
+channel_mapping = {
+    "settings": {
+        "number_of_shards": 1,
+        "number_of_replicas": 1
+    },
+    "mappings": {
+        "properties": {
+            "title": {
+                "type": "keyword"
+            },
+            "username": {
+                "type": "keyword"
+            },
+            "importance": {
+                "type": "integer"
+            },
+            "indexed_from_audio_count": {
+                "type": "integer"
+            },
+            "last_indexed_offset_date": {
+                "type": "integer"
+            },
+            "downloaded_from_count": {
+                "type": "integer"
+            }
+        }
+    }
+}
+
+
+
+
+
