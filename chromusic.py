@@ -143,6 +143,9 @@ def db_connect():
     """
     global es
     es = Elasticsearch([{"host": "localhost", "port": 9200}])
-    print("database ready ...!")
+    print("Elasticsearch database running ...")
+
+
+
 
 
