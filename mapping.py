@@ -235,3 +235,35 @@ user_list_mapping = {
         }
     }
 }
+
+
+"""
+playlist_mapping is the template for storing playlist data in Elasticsearch database.
+Contains:
+    1. Author id
+    2. Title
+    3. Description
+    4. List
+"""
+playlist_mapping = {
+    "settings": {
+        "number_of_shards": 1,
+        "number_of_replicas": 1
+    },
+    "mappings": {
+        "properties": {
+            "author_id": {
+                "type": "keyword"
+            },
+            "title": {
+                "type": "text"
+            },
+            "description": {
+                "type": "text"
+            },
+            "list": {
+                "type": "keyword"
+            }
+        }
+    }
+}
