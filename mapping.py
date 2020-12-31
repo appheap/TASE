@@ -268,7 +268,6 @@ playlist_mapping = {
     }
 }
 
-
 """
 future_channel_mapping is the template for storing future channels to be indexed
  data in Elasticsearch database.
@@ -285,6 +284,23 @@ future_channel_mapping = {
             "id": {
                 "type": "keyword"
             }
+        }
+    }
+}
+
+"""
+channel_buffer_mapping is the template for storing buffered channels to be indexed
+ data in Elasticsearch database.
+Contains:
+"""
+channel_buffer_mapping = {
+    "settings": {
+        "number_of_shards": 1,
+        "number_of_replicas": 1
+    },
+    "mappings": {
+        "properties": {
+
         }
     }
 }
