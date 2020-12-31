@@ -9,7 +9,7 @@ import concurrent.futures
 import random
 import secrets
 import textwrap
-from typing import Union, List
+from typing import Union, List, Any
 from datetime import timedelta, datetime
 from uuid import uuid4
 
@@ -145,10 +145,10 @@ def db_connect():
     es = Elasticsearch([{"host": "localhost", "port": 9200}])
     print("Elasticsearch database running ...")
 
-def exception_handler(func):
+def exception_handler(func: Any) :
     """
-
-    :param func:
+    Wraps a function and handles non-handled exceptions
+    :param func: Input function
     :return:
     """
     try:
