@@ -137,8 +137,9 @@ def bot_connect(
 
 def db_connect():
     """
-
-    :return:
+    Connect to elasticsearch API
+    Creates a global variable for elasticsearch object
+    :return: -
     """
 
 
