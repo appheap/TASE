@@ -1,8 +1,15 @@
+#######################################################################
+# Copyright (C)                                                       #
+# 2020 Soran Ghadri(soran.gdr.cs@gmail.com)                           #
+# Permission given to modify the code as long as you keep this        #
+# declaration at the top                                              #
+#######################################################################
+
 import time
 import re
 
 
-# user this link to make the generators class-based:
+# use this link to make the generators class-based:
 # https://stackoverflow.com/questions/42983569/how-to-write-a-generator-class
 def user_data_generator(message):
     """
