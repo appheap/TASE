@@ -145,6 +145,13 @@ def db_connect():
     es = Elasticsearch([{"host": "localhost", "port": 9200}])
     print("Elasticsearch database running ...")
 
+def exception_handler(func):
+    """
+
+    :param func:
+    :return:
+    """
+
 
 
 
