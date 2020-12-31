@@ -212,3 +212,26 @@ admin_log_control_mapping = {
         }
     }
 }
+
+"""
+user_list_mapping is the template for storing admin log data in Elasticsearch database.
+Contains:
+    1. Downloaded audio id list
+    2. Playlists
+"""
+user_list_mapping = {
+    "settings": {
+        "number_of_shards": 1,
+        "number_of_replicas": 1
+    },
+    "mappings": {
+        "properties": {
+            "downloaded_audio_id_list": {
+                "type": "keyword"
+            },
+            "playlists": {
+                "type": "keyword"
+            }
+        }
+    }
+}
