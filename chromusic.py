@@ -145,7 +145,7 @@ def db_connect():
     es = Elasticsearch([{"host": "localhost", "port": 9200}])
     print("Elasticsearch database running ...")
 
-def exception_handler(func: Any) :
+def exception_handler(func: Any) -> object:
     """
     Wraps a function and handles non-handled exceptions
     :param func: Input function
