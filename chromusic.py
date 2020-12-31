@@ -9,6 +9,7 @@ import concurrent.futures
 import random
 import secrets
 import textwrap
+from typing import Union, List
 from datetime import timedelta, datetime
 from uuid import uuid4
 
@@ -71,14 +72,18 @@ def telegramAPI_connect():
     bot = bot_connect("chromusic_bot", shelbycobra2016_api_id, shelbycobra2016_api_hash, BOT_TOKEN)
     indexer_list.append(chromusic_indexer_7693)
 
-def client_connect(api_id: int, api_hash: str, session_name: str = "chromusic"):
+def client_connect(
+        session_name: str = "chromusic",
+        api_id: Union[int, str] = None,
+        api_hash: Union[int, str] = None):
     """
-    Connects to the Client API (pyrogram)
+    Connect the client to Telegram servers. [Client API]
     :param session_name: Your session name [optional] (defaults to 'chromusic'). For more than one instance you have to
      change it to another value.
     :param api_id: Client's API ID
     :param api_hash: Client's API hash
     :return: Connected client
+    :raises: ConnectionError: In case you try to connect an already connected client.
     """
     client = Client(session_name, api_id, api_hash)
     client.start()
@@ -86,16 +91,20 @@ def client_connect(api_id: int, api_hash: str, session_name: str = "chromusic"):
     print(f"{session_name} session running ...")
     return client
 
-def bot_connect(api_id, api_hash, BOT_TOKEN, session_name="chromusic_bot"):
+def bot_connect(
+        session_name: str = "chromusic_bot",
+        api_id: Union[int, str] = None,
+        api_hash: Union[int, str] = None,
+        bot_token: str = None):
     """
-
+    Connect the client to Telegram servers. [Bot API]
     :param session_name:
     :param api_id:
     :param api_hash:
     :param BOT_TOKEN:
     :return:
     """
-    bot = Client(session_name, api_id, api_hash, bot_token=BOT_TOKEN)
+    bot = Client(session_name, api_id, api_hash, bot_token=bot_token)
     bot.start()
     # apl.append(bot)
     print('bot ready ...!')
