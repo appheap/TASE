@@ -159,6 +159,9 @@ def exception_handler(func):
     except FloodWait as e:
         time.sleep(e.x)
         return func
+    except Exception as e:
+        time.sleep(10)
+        return func
 
 
 
