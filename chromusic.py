@@ -163,6 +163,99 @@ def exception_handler(func: Any) -> object:
         time.sleep(10)
         return func
 
+def check_new_member_join_count(channel_id: int):
+    """
+    Check if any changes has happened in the number of subscribers
+    :param channel_id: Channel ID in which this client is an admin
+    :return: -
+    """
+    try:
+        current_db_members_count = int(es.get("admin_log_control", id=channel_id)["_source"]["members_count"])
+        current_members_count = int(app.get_chat_members_count(channel_id))
+        # print("check_new_member: ", channel_id)
+        if not current_db_members_count == current_members_count:
+            check_joining_status(channel_id)
+            res = es.update(index="admin_log_control", id=channel_id, body={
+                "script":
+                    {
+                        "source": "ctx._source.members_count = params.count",
+                        "lang": "painless",
+                        "params": {
+                            "count": int(current_members_count)
+                        }
+                    }
+            }, ignore=409)
+            # print("check_new_member: ", res)
+    except FloodWait as e:
+        print("floodwait from check_new_member:", e)
+        print("sleeping for", e.x)
+        time.sleep(e.x)
+    except Exception as e:
+        print("exception from check_new_member:", e)
 
 
-
+def check_joining_status(channel_id):
+    """
+    Check if a user is a subscriber or not
+    :param channel_id: Channel ID in which this client is an admin
+    :return: -
+    """
+    try:
+        res = get_admin_log(channel_id)  # chromusic channel ID
+        # print("admin log: ", res)
+        current_last_date = es.get("admin_log_control", id=channel_id)["_source"]["last_offset_date"]
+        _last_event = None
+        # print("this action contains join")
+        for event in reversed(res["events"]):
+            # print("this is the event: ", event)
+            if event["date"] > current_last_date:
+                # print("event_single: ", current_last_date)
+                if es.exists("user", id=event["user_id"]):
+                    # print("user_exists")
+                    if str(event["action"]).__contains__("Leave"):
+                        # print("this action contains leave")
+                        # app.send_message(chat_id="me", text="leave")
+                        try:
+                            es.update("user", id=event["user_id"], body={
+                                "script":
+                                    {
+                                        "inline": "ctx._source.role = params.role; ctx._source.limited = params.limited;",
+                                        "lang": "painless",
+                                        "params": {
+                                            "role": "searcher",
+                                            "limited": True
+                                        }
+                                    }
+                            }, ignore=409)
+                        except Exception as e:
+                            print("exception from updating join/leave check joining status: ", e)
+                            # pass
+                    elif str(event["action"]).__contains__("Join"):
+                        # print("this action contains join")
+                        # app.send_message(chat_id="me", text="Join")
+                        es.update("user", id=event["user_id"], body={
+                            "script":
+                                {
+                                    "inline": "ctx._source.role = params.role; ctx._source.limited = params.limited;",
+                                    "lang": "painless",
+                                    "params": {
+                                        "role": "subscriber",
+                                        "limited": False
+                                    }
+                                }
+                        }, ignore=409)
+                _last_event = event
+        if _last_event:
+            # print("last date: ", _last_event["date"])
+            es.update(index="admin_log_control", id=channel_id, body={
+                "script":
+                    {
+                        "source": "ctx._source.last_offset_date = params.date_offset",
+                        "lang": "painless",
+                        "params": {
+                            "date_offset": int(_last_event["date"])
+                        }
+                    }
+            }, ignore=409)
+    except Exception as e:
+            print("from check joining status:", e)
