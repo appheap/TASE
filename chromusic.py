@@ -62,3 +62,19 @@ def telegramAPI_connect():
     # bot = bot_connect("soranpythonbot", BOT_TOKEN, shelbycobra2016_api_hash, shelbycobra2016_api_id)
     bot = bot_connect("chromusic_bot", shelbycobra2016_api_id, shelbycobra2016_api_hash, BOT_TOKEN)
     indexer_list.append(chromusic_indexer_7693)
+
+def client_connect(api_id, api_hash, session_name="chromusic"):
+    """
+    Connects to the Client API (pyrogram)
+    :param session_name: Your session name [optional] (defaults to 'chromusic'). For more than one instance you have to
+    change it to another value.
+
+    :param api_id: Your API ID
+    :param api_hash: Your API hash
+    :return:
+    """
+    client = Client(session_name, api_id, api_hash)
+    client.start()
+    # apl.append(app)
+    print("client ready ...!")
+    return client
