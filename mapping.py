@@ -1,3 +1,20 @@
+
+"""
+audio_files_mapping mapper is the template for storing audio-file data in Elasticsearch database.
+It contains:
+    1. Chat id
+    2. Chat username
+    3. Message_id
+    4. File_id
+    5. File_name
+    6. File_size
+    7. Duration
+    8. Performer
+    9. Title
+    10. Times_downloaded
+    11. Caption
+    12. Copyright
+"""
 audio_files_mapping = {
     "settings": {
         "number_of_shards": 1,
@@ -20,7 +37,8 @@ audio_files_mapping = {
             "file_name": {
                 "type": "text",
                 "analyzer": "standard"
-            }, "file_size": {
+            },
+            "file_size": {
                 "type": "integer"
             },
             "duration": {
