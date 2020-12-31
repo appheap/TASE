@@ -149,7 +149,7 @@ def exception_handler(func: Any) -> object:
     """
     Wraps a function and handles non-handled exceptions
     :param func: Input function
-    :return:
+    :return: Input function's output
     """
     try:
         func
