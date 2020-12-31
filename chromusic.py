@@ -156,6 +156,9 @@ def exception_handler(func):
     except SlowmodeWait as e:
         time.sleep(e.x)
         return func
+    except FloodWait as e:
+        time.sleep(e.x)
+        return func
 
 
 
