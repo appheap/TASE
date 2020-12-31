@@ -1,4 +1,3 @@
-
 """
 audio_files_mapping mapper is the template for storing audio-file data in Elasticsearch database.
 It contains:
@@ -61,6 +60,78 @@ audio_files_mapping = {
             },
             "copyright": {
                 "type": "boolean"
+            }
+        }
+    }
+}
+
+
+"""
+user_mapping mapper is the template for storing user data in Elasticsearch database.
+Featured fields:
+    1. First name
+    2. Username
+    3. Date joined
+    5. Downloaded audio id list
+    6. Downloaded audio count
+    7. Lang code (Language code)
+    8. Limited (is limited)
+    9. Role
+    10. Coins
+    11. Last active date
+    12. Is admin
+    13. Sex (gender)
+    14. Country
+    15. Other
+"""
+user_mapping = {
+    "settings": {
+        "number_of_shards": 1,
+        "number_of_replicas": 1
+    },
+    "mappings": {
+        "properties": {
+            "first_name": {
+                "type": "keyword"
+            },
+            "username": {
+                "type": "keyword"
+            },
+            "date_joined": {
+                "type": "integer"
+            },
+            "downloaded_audio_id_list": {
+                "type": "keyword"
+            },
+            "downloaded_audio_count": {
+                "type": "integer"
+            },
+            "lang_code": {
+                "type": "keyword"
+            },
+            "limited": {
+                "type": "boolean"
+            },
+            "role": {
+                "type": "keyword"
+            },
+            "coins": {
+                "type": "integer"
+            },
+            "last_active_date": {
+                "type": "integer"
+            },
+            "is_admin": {
+                "type": "boolean"
+            },
+            "sex": {
+                "type": "keyword"
+            },
+            "country": {
+                "type": "keyword"
+            },
+            "other": {
+                "type": "text"
             }
         }
     }
