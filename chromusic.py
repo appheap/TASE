@@ -134,3 +134,11 @@ def bot_connect(
     # apl.append(bot)
     print(f"Bot: {session_name} session running ...")
     return bot
+
+def db_connect():
+    """
+
+    :return:
+    """
+
+
