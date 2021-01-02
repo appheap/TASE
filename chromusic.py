@@ -313,3 +313,4 @@ def get_admin_log(peer):
             # edit=False
         )
     ))
+    return res
