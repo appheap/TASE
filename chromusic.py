@@ -290,3 +290,26 @@ def get_admin_log(peer):
     :param peer:
     :return:
     """
+    res = app.send(functions.channels.GetAdminLog(
+        channel=app.resolve_peer(peer),
+        q='',
+        max_id=0,
+        min_id=0,
+        limit=10000,
+        # events_filter=types.ChannelAdminLogEventsFilter()
+        events_filter=types.ChannelAdminLogEventsFilter(
+            join=True,
+            leave=True
+            # invite=False,
+            # ban=False,
+            # unban=False,
+            # kick=False,
+            # unkick=False,
+            # promote=False,
+            # demote=False,
+            # info=False,
+            # settings=False,
+            # pinned=False,
+            # edit=False
+        )
+    ))
