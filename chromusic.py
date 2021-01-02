@@ -284,4 +284,9 @@ def language_handler(
     return text
 
 
+def get_admin_log(peer):
+    """
 
+    :param peer:
+    :return:
+    """
