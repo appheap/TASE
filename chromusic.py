@@ -284,14 +284,14 @@ def language_handler(
     return text
 
 
-def get_admin_log(peer):
+def get_admin_log(peer: Union[int, str] = None) -> list[object]:
     """
     Get a list of logs from the admin-logs. This method gets 'Join' and 'Leave'  events by default, but you can
     uncomment the commented items and add them to your result list.
 
     :param peer: Union: [id, username]. Peer username or ID.
     ex. get_admin_log("chromusic")
-    :return: A list of recent join/leave activities
+    :return: list[object] - A list of recent join/leave activities
     """
     res = app.send(functions.channels.GetAdminLog(
         channel=app.resolve_peer(peer),
