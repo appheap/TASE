@@ -326,9 +326,6 @@ def download_guide(user: object):
     """
     try:
         user_data = es.get("user", id=user.id)["_source"]
-        # if user_data["role"] == "searcher":
-        #     print("he is a searcher")
-        #     if user_data["limited"] == False:
         if user_data["downloaded_audio_count"] == 0:
             lang_code = user_data["lang_code"]
             help_keyboard_text = language_handler("example_message", lang_code, user.first_name, 15)
