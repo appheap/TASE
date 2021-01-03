@@ -365,7 +365,11 @@ def search_handler(bot, message):
     if len(str(message.text)) > 1:
         user = message.from_user
         try:
-            ""
+            is_member(user)
+            query = message.text
+            processed_query = str(query).replace("_", " ")
+
+            # print(f" processed q: {processed_query}")
         except FloodWait as e:
             res = bot.set_slow_mode(user.id, 2)
             text = f"floodwait occured in the search handler! \n\n{e}\n\nresult: {res}"
