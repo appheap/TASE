@@ -371,7 +371,6 @@ def search_handler(bot: object, message: object):
             query = message.text
             processed_query = str(query).replace("_", " ")
 
-            # print(f" processed q: {processed_query}")
             res = es.search(index="audio_files", body={"query": {
                 "multi_match": {
                     "query": processed_query,
@@ -381,11 +380,10 @@ def search_handler(bot: object, message: object):
                     # "tie_breaker": 0.5,
                     "minimum_should_match": "60%"
                 }}})
+
             user_data = es.get("user", id=user.id)["_source"]
             lang_code = user_data["lang_code"]
-            # user_data = es.get("user", id=user.id)["_source"]
             last_active_date = int(time.time()) - int(user_data["last_active_date"])
-            # print("user data: ")
             if last_active_date > timedelta(days=7).total_seconds():
                 help_markup_keyboard = language_handler("help_markup_keyboard", user_data["lang_code"])
                 # help_keyboard_text = language_handler("help_keyboard_text", user_data["lang_code"])
