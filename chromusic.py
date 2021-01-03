@@ -320,8 +320,8 @@ def get_admin_log(peer: Union[int, str] = None) -> list[object]:
 
 def download_guide(user):
     """
-
-    :param user:
+    Send a 'How to search and download' example to new users.
+    :param user: User object
     :return:
     """
     try:
