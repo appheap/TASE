@@ -328,7 +328,8 @@ def get_admin_log(peer: Union[int, str] = None) -> list[object]:
 
 def download_guide(user: object):
     """
-    Send a 'How to search and download' example to new users.
+    Send a 'How to search and download' example to new users. Automatically picks the user's language and returns
+     the example with respect to their languages.
     :param user: User object
     :return:
     """
@@ -340,7 +341,7 @@ def download_guide(user: object):
             help_markup_keyboard = language_handler("example_message_keyboard", user_data["lang_code"])
             bot.send_message(chat_id=user.id, text=help_keyboard_text,
                              reply_markup=InlineKeyboardMarkup(help_markup_keyboard),
-                             parse_mode='HTML')
+                             # parse_mode='HTML')
     except FloodWait as e:
         res = bot.set_slow_mode(user.id, 2)
         text = f"floodwait occured in the download_guide! \n\n{e}\n\nresult: {res}"
