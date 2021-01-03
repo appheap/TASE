@@ -403,30 +403,31 @@ def search_handler(bot, message):
                 exception_handler(bot.send_message(chat_id=user.id, text=help_keyboard_text,
                                                    reply_markup=InlineKeyboardMarkup(help_markup_keyboard),
                                                    parse_mode='HTML'))
-                # print(res)
-                # resb = helpers.
-                # print(json.dumps(res, indent=4))
+            # print(res)
+            # resb = helpers.
+            # print(json.dumps(res, indent=4))
 
-                # text = " " += [f"نتایج جستجو برای {query}", "\n\n"])
+            # text = " " += [f"نتایج جستجو برای {query}", "\n\n"])
 
-                # text = result_list_handler(query, res, lang=lang_code)
-                # print("lang_code", lang_code)
-                _text = language_handler("result_list_handler", lang_code, query, res)
-                # print("text after handler:", _text, "finished")
-                search_list_keyboard = language_handler("search_list_keyboard", lang_code, processed_query)
-                exception_handler(
-                    bot.send_message(message.chat.id, _text, parse_mode='html', disable_web_page_preview=True,
-                                     reply_to_message_id=message.message_id,
-                                     reply_markup=InlineKeyboardMarkup(search_list_keyboard)))
-                es.update(index="user", id=user.id, body={
-                    "script": {
-                        "source": "ctx._source.last_active_date = params.last_active_date",
-                        "lang": "painless",
-                        "params": {
-                            "last_active_date": int(time.time())
-                        }
+            # text = result_list_handler(query, res, lang=lang_code)
+            # print("lang_code", lang_code)
+            _text = language_handler("result_list_handler", lang_code, query, res)
+            # print("text after handler:", _text, "finished")
+            search_list_keyboard = language_handler("search_list_keyboard", lang_code, processed_query)
+            exception_handler(
+                bot.send_message(message.chat.id, _text, parse_mode='html', disable_web_page_preview=True,
+                                 reply_to_message_id=message.message_id,
+                                 reply_markup=InlineKeyboardMarkup(search_list_keyboard)))
+            es.update(index="user", id=user.id, body={
+                "script": {
+                    "source": "ctx._source.last_active_date = params.last_active_date",
+                    "lang": "painless",
+                    "params": {
+                        "last_active_date": int(time.time())
                     }
-                }, ignore=409)
+                }
+            }, ignore=409)
+            return _text
 
 
         except FloodWait as e:
