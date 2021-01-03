@@ -324,14 +324,20 @@ def download_guide(user):
     :param user:
     :return:
     """
-    user_data = es.get("user", id=user.id)["_source"]
-    # if user_data["role"] == "searcher":
-    #     print("he is a searcher")
-    #     if user_data["limited"] == False:
-    if user_data["downloaded_audio_count"] == 0:
-        lang_code = user_data["lang_code"]
-        help_keyboard_text = language_handler("example_message", lang_code, user.first_name, 15)
-        help_markup_keyboard = language_handler("example_message_keyboard", user_data["lang_code"])
-        bot.send_message(chat_id=user.id, text=help_keyboard_text,
-                         reply_markup=InlineKeyboardMarkup(help_markup_keyboard),
-                         parse_mode='HTML')
+    try:
+        user_data = es.get("user", id=user.id)["_source"]
+        # if user_data["role"] == "searcher":
+        #     print("he is a searcher")
+        #     if user_data["limited"] == False:
+        if user_data["downloaded_audio_count"] == 0:
+            lang_code = user_data["lang_code"]
+            help_keyboard_text = language_handler("example_message", lang_code, user.first_name, 15)
+            help_markup_keyboard = language_handler("example_message_keyboard", user_data["lang_code"])
+            bot.send_message(chat_id=user.id, text=help_keyboard_text,
+                             reply_markup=InlineKeyboardMarkup(help_markup_keyboard),
+                             parse_mode='HTML')
+    except FloodWait as e:
+        res = bot.set_slow_mode(user.id, 2)
+        text = f"floodwait occured in the download_guide! \n\n{e}\n\nresult: {res}"
+        app.send_message(chromusic_log_id, text)
+        time.sleep(e.x)
