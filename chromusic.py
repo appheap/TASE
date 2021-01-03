@@ -379,6 +379,12 @@ def search_handler(bot, message):
                     # "tie_breaker": 0.5,
                     "minimum_should_match": "60%"
                 }}})
+            user_data = es.get("user", id=user.id)["_source"]
+            lang_code = user_data["lang_code"]
+            # user_data = es.get("user", id=user.id)["_source"]
+            last_active_date = int(time.time()) - int(user_data["last_active_date"])
+            # print("user data: ")
+
 
         except FloodWait as e:
             res = bot.set_slow_mode(user.id, 2)
