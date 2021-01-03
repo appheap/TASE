@@ -359,9 +359,10 @@ def search_handler(bot, message):
     """
     1. Search the query among the elasticsearch documents
     2. Handles the activity and membership status of users
-    :param bot:
-    :param message:
-    :return:
+    :param bot: Bot object - Connects to and deals with Telegram servers
+    :param message: Message object containing the query
+    :return: A message containing the results, in case there were any result in the database; otherwise a 'no result'
+     text
     """
     if len(str(message.text)) > 1:
         user = message.from_user
