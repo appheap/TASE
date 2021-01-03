@@ -362,3 +362,5 @@ def search_handler(bot, message):
     :param message:
     :return:
     """
+    if len(str(message.text)) > 1:
+        user = message.from_user
