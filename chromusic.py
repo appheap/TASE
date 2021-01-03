@@ -370,6 +370,16 @@ def search_handler(bot, message):
             processed_query = str(query).replace("_", " ")
 
             # print(f" processed q: {processed_query}")
+            res = es.search(index="audio_files", body={"query": {
+                "multi_match": {
+                    "query": processed_query,
+                    "type": "best_fields",
+                    "fields": ["title", "file_name", "performer"],  # , "caption"],
+                    # "fuzziness": "AUTO",
+                    # "tie_breaker": 0.5,
+                    "minimum_should_match": "60%"
+                }}})
+
         except FloodWait as e:
             res = bot.set_slow_mode(user.id, 2)
             text = f"floodwait occured in the search handler! \n\n{e}\n\nresult: {res}"
