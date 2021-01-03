@@ -318,7 +318,7 @@ def get_admin_log(peer: Union[int, str] = None) -> list[object]:
     ))
     return res
 
-def download_guide(user):
+def download_guide(user: object):
     """
     Send a 'How to search and download' example to new users.
     :param user: User object
