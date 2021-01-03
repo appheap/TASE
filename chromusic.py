@@ -376,7 +376,7 @@ def search_handler(bot: object, message: object):
                     "query": processed_query,
                     "type": "best_fields",
                     "fields": ["title", "file_name", "performer"],  # , "caption"],
-                    # "fuzziness": "AUTO",
+                    # "fuzziness": "AUTO", # play with search parameters to satisfy your desired results
                     # "tie_breaker": 0.5,
                     "minimum_should_match": "60%"
                 }}})
