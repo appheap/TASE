@@ -317,3 +317,10 @@ def get_admin_log(peer: Union[int, str] = None) -> list[object]:
         )
     ))
     return res
+
+def download_guide(user):
+    """
+
+    :param user:
+    :return:
+    """
