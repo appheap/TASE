@@ -440,3 +440,5 @@ def search_handler(bot, message):
             text = f"SlowmodeWait occured in the search handler! \n\n{e}\n\nresult: {res}"
             app.send_message(chromusic_log_id, text)
             time.sleep(e.x)
+        except Exception as e:
+            print(f"from search handler exception: {e}")
