@@ -341,3 +341,8 @@ def download_guide(user):
         text = f"floodwait occured in the download_guide! \n\n{e}\n\nresult: {res}"
         app.send_message(chromusic_log_id, text)
         time.sleep(e.x)
+    except SlowmodeWait as e:
+        res = bot.set_slow_mode(user.id, 2)
+        text = f"SlowmodeWait occured in the download_guide! \n\n{e}\n\nresult: {res}"
+        app.send_message(chromusic_log_id, text)
+        time.sleep(e.x)
