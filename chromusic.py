@@ -357,7 +357,8 @@ def download_guide(user: object):
 
 def search_handler(bot, message):
     """
-
+    1. Search the query among the elasticsearch documents
+    2. Handles the activity and membership status of users
     :param bot:
     :param message:
     :return:
