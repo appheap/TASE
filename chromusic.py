@@ -386,33 +386,16 @@ def search_handler(bot: object, message: object):
             last_active_date = int(time.time()) - int(user_data["last_active_date"])
             if last_active_date > timedelta(days=7).total_seconds():
                 help_markup_keyboard = language_handler("help_markup_keyboard", user_data["lang_code"])
-                # help_keyboard_text = language_handler("help_keyboard_text", user_data["lang_code"])
-                # exception_handler(bot.send_message(chat_id=user.id,
-                #                                     text=mylists_menu_text,
-                #                                    reply_markup=InlineKeyboardMarkup(markup_list),
-                #                                    parse_mode='HTML'))
 
                 if last_active_date > timedelta(days=14).total_seconds():
-
-                    # return_text = f"Hey {user.first_name}, long time no see!\nAny question about our services? I'll be happy to /help_keyboard."
                     help_keyboard_text = language_handler("long_time_not_active", lang_code, user.first_name, 15)
                 else:
-                    # return_text = f"Glad to see again {user.first_name}.\n press /help_keyboard in case you think you need it"
                     help_keyboard_text = language_handler("long_time_not_active", lang_code, user.first_name, 5)
 
                 exception_handler(bot.send_message(chat_id=user.id, text=help_keyboard_text,
                                                    reply_markup=InlineKeyboardMarkup(help_markup_keyboard),
                                                    parse_mode='HTML'))
-            # print(res)
-            # resb = helpers.
-            # print(json.dumps(res, indent=4))
-
-            # text = " " += [f"نتایج جستجو برای {query}", "\n\n"])
-
-            # text = result_list_handler(query, res, lang=lang_code)
-            # print("lang_code", lang_code)
             _text = language_handler("result_list_handler", lang_code, query, res)
-            # print("text after handler:", _text, "finished")
             search_list_keyboard = language_handler("search_list_keyboard", lang_code, processed_query)
             exception_handler(
                 bot.send_message(message.chat.id, _text, parse_mode='html', disable_web_page_preview=True,
