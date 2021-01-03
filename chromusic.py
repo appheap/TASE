@@ -435,3 +435,8 @@ def search_handler(bot, message):
             text = f"floodwait occured in the search handler! \n\n{e}\n\nresult: {res}"
             app.send_message(chromusic_log_id, text)
             time.sleep(e.x)
+        except SlowmodeWait as e:
+            res = bot.set_slow_mode(user.id, 2)
+            text = f"SlowmodeWait occured in the search handler! \n\n{e}\n\nresult: {res}"
+            app.send_message(chromusic_log_id, text)
+            time.sleep(e.x)
