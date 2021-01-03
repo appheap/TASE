@@ -346,3 +346,5 @@ def download_guide(user):
         text = f"SlowmodeWait occured in the download_guide! \n\n{e}\n\nresult: {res}"
         app.send_message(chromusic_log_id, text)
         time.sleep(e.x)
+    except Exception as e:
+        print(f"from download_guide exception: {e}")
