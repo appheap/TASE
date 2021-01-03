@@ -23,11 +23,12 @@ from pyrogram.api import functions, types
 from pyrogram.errors import FloodWait, SlowmodeWait
 
 from static.emoji import _floppy_emoji, _clock_emoji
-from index.analyzer import channel_analyzer # Change this
+from index.analyzer import channel_analyzer  # Change this
 from index.dataGenerator import *
 # from languages.persian import result_list_handler
 from languages import english, persian
 from mapping import *
+
 
 def telegramAPI_connect():
     """
@@ -72,6 +73,7 @@ def telegramAPI_connect():
     bot = bot_connect("chromusic_bot", shelbycobra2016_api_id, shelbycobra2016_api_hash, BOT_TOKEN)
     indexer_list.append(chromusic_indexer_7693)
 
+
 def client_connect(
         session_name: str = "chromusic",
         api_id: Union[int, str] = None,
@@ -100,6 +102,7 @@ def client_connect(
     # apl.append(app)
     print(f"Client {session_name} session running ...")
     return client
+
 
 def bot_connect(
         session_name: str = "chromusic_bot",
@@ -135,6 +138,7 @@ def bot_connect(
     print(f"Bot: {session_name} session running ...")
     return bot
 
+
 def db_connect():
     """
     Connect to elasticsearch API
@@ -144,6 +148,7 @@ def db_connect():
     global es
     es = Elasticsearch([{"host": "localhost", "port": 9200}])
     print("Elasticsearch database running ...")
+
 
 def exception_handler(func: Any) -> object:
     """
@@ -162,6 +167,7 @@ def exception_handler(func: Any) -> object:
     except Exception as e:
         time.sleep(10)
         return func
+
 
 def check_new_member_join_count(channel_id: int):
     """
@@ -258,7 +264,8 @@ def check_joining_status(channel_id):
                     }
             }, ignore=409)
     except Exception as e:
-            print("from check joining status:", e)
+        print("from check joining status:", e)
+
 
 def language_handler(
         func: object = None,
@@ -317,6 +324,7 @@ def get_admin_log(peer: Union[int, str] = None) -> list[object]:
         )
     ))
     return res
+
 
 def download_guide(user: object):
     """
