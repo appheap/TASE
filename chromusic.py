@@ -354,3 +354,11 @@ def download_guide(user: object):
         time.sleep(e.x)
     except Exception as e:
         print(f"from download_guide exception: {e}")
+
+def search_handler(bot, message):
+    """
+
+    :param bot:
+    :param message:
+    :return:
+    """
