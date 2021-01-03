@@ -418,6 +418,15 @@ def search_handler(bot, message):
                     bot.send_message(message.chat.id, _text, parse_mode='html', disable_web_page_preview=True,
                                      reply_to_message_id=message.message_id,
                                      reply_markup=InlineKeyboardMarkup(search_list_keyboard)))
+                es.update(index="user", id=user.id, body={
+                    "script": {
+                        "source": "ctx._source.last_active_date = params.last_active_date",
+                        "lang": "painless",
+                        "params": {
+                            "last_active_date": int(time.time())
+                        }
+                    }
+                }, ignore=409)
 
 
         except FloodWait as e:
