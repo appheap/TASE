@@ -355,7 +355,7 @@ def download_guide(user: object):
     except Exception as e:
         print(f"from download_guide exception: {e}")
 
-def search_handler(bot, message):
+def search_handler(bot: object, message: object):
     """
     1. Search the query among the elasticsearch documents
     2. Handles the activity and membership status of users
