@@ -470,5 +470,5 @@ def is_member(user):
                             }
                         }
                     }, ignore=409)
-    except:
-        ""
+    except FloodWait as e:
+        time.sleep(e.x + 5)
