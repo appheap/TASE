@@ -438,6 +438,7 @@ def result_list_handler(
     :param lang: Requested language to route to
     :return: Results from requested language functions
     """
+    # TODO: Remove this function after implementing the global language handler function
     if lang == "fa":
         text = persian.result_list_handler(query, search_res)
     elif lang == "en":
