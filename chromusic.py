@@ -472,3 +472,5 @@ def is_member(user):
                     }, ignore=409)
     except FloodWait as e:
         time.sleep(e.x + 5)
+    except Exception as e:
+        print(f"from is member: {e}")
