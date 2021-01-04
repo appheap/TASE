@@ -453,19 +453,22 @@ def is_member(user):
     :param user:
     :return:
     """
-    user_data = es.get("user", id=user.id)["_source"]
-    if user_data["role"] == "searcher":
-        print("he is a searcher")
-        if user_data["limited"] == False:
-            if user_data["downloaded_audio_count"] > 4:
-                es.update(index="user", id=user.id, body={
-                    "script": {
-                        "inline": "ctx._source.limited = params.limited;"
-                                  "ctx._source.role = params.role;",
-                        "lang": "painless",
-                        "params": {
-                            "limited": True,
-                            "role": "searcher"
+    try:
+        user_data = es.get("user", id=user.id)["_source"]
+        if user_data["role"] == "searcher":
+            print("he is a searcher")
+            if user_data["limited"] == False:
+                if user_data["downloaded_audio_count"] > 4:
+                    es.update(index="user", id=user.id, body={
+                        "script": {
+                            "inline": "ctx._source.limited = params.limited;"
+                                      "ctx._source.role = params.role;",
+                            "lang": "painless",
+                            "params": {
+                                "limited": True,
+                                "role": "searcher"
+                            }
                         }
-                    }
-                }, ignore=409)
+                    }, ignore=409)
+    except:
+        ""
