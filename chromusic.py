@@ -446,3 +446,10 @@ def result_list_handler(
         text = english.result_list_handler(query, search_res)
 
     return text
+
+def is_member(user):
+    """
+
+    :param user:
+    :return:
+    """
