@@ -437,3 +437,5 @@ def result_list_handler(query, search_res, lang='en'):
     print("from list hand..")
     if lang == "fa":
         text = persian.result_list_handler(query, search_res)
+    elif lang == "en":
+        text = english.result_list_handler(query, search_res)
