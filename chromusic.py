@@ -429,7 +429,7 @@ def search_handler(bot: object, message: object):
 def result_list_handler(
         query: str,
         search_res: str,
-        lang: str = 'en'):
+        lang: str = 'en') -> str:
     """
     Language hub function. This function routes each text and function request to its requested language file and
      returns the results from language files.
