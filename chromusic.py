@@ -428,11 +428,12 @@ def search_handler(bot: object, message: object):
 
 def result_list_handler(query, search_res, lang='en'):
     """
-
-    :param query:
-    :param search_res:
-    :param lang:
-    :return:
+    Language hub function. This function routes each text and function request to its requested language file and
+     returns the results from language files.
+    :param query: Search query
+    :param search_res: Search results including the links in case any result were returned
+    :param lang: Requested language to route to
+    :return: Results from requested language functions
     """
     if lang == "fa":
         text = persian.result_list_handler(query, search_res)
