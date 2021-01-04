@@ -440,3 +440,5 @@ def result_list_handler(query, search_res, lang='en'):
         text = english.result_list_handler(query, search_res)
     else:
         text = english.result_list_handler(query, search_res)
+
+    return text
