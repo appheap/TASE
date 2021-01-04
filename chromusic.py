@@ -434,7 +434,6 @@ def result_list_handler(query, search_res, lang='en'):
     :param lang:
     :return:
     """
-    print("from list hand..")
     if lang == "fa":
         text = persian.result_list_handler(query, search_res)
     elif lang == "en":
