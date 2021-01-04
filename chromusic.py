@@ -425,3 +425,12 @@ def search_handler(bot: object, message: object):
             time.sleep(e.x)
         except Exception as e:
             print(f"from search handler exception: {e}")
+
+def result_list_handler(query, search_res, lang='en'):
+    """
+
+    :param query:
+    :param search_res:
+    :param lang:
+    :return:
+    """
