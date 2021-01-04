@@ -451,7 +451,7 @@ def is_member(user):
     """
     Check if a user is already a member in the channel; in case was not member and exceeded five downloads, update
      their 'limited' status to 'True'
-    :param user:
+    :param user: User object
     :return:
     """
     try:
