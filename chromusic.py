@@ -447,7 +447,7 @@ def result_list_handler(
 
     return text
 
-def is_member(user):
+def is_member(user: object):
     """
     Check if a user is already a member in the channel; in case was not member and exceeded five downloads, update
      their 'limited' status to 'True'
