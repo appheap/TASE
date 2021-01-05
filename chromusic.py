@@ -476,3 +476,10 @@ def is_member(user: object):
         time.sleep(e.x + 5)
     except Exception as e:
         print(f"from is member: {e}")
+
+def file_retrieve_handler(message):
+    """
+
+    :param message:
+    :return:
+    """
