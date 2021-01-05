@@ -477,7 +477,7 @@ def is_member(user: object):
     except Exception as e:
         print(f"from is member: {e}")
 
-def file_retrieve_handler(message):
+def file_retrieve_handler(message: object) -> str:
     """
     Retrieve audio file from source channels after getting ID of the audio file chosen by the user from the
      result list.
