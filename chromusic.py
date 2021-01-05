@@ -483,3 +483,46 @@ def file_retrieve_handler(message):
     :param message:
     :return:
     """
+    # important: telegram won't work with id if the client hasn't already
+    # indexed that chat peer itself --> this should be retrieved from the
+    # channel index : retrieve the username and search by id --> in case the
+    # retrieve client changed to something else
+
+    # A Problem: if chat_id s get converted to chat_username --> it may loose those files from chat's
+    # that have changed their username
+
+    # one way: each time a file is retrieved -> check if exists in the channel index --> if it's already
+    # integer then it exists otherwise it's converted to username
+
+    query = str(message.text).split("dl_")[1]
+    if len(query) < 8:
+        query = str(message.text)[4:]
+
+    user = message.from_user
+    is_member(user)
+    # print("query: ", query)
+    s = int(time.time())
+    # resg = es.get(index="audio", id=query)
+    # print(f"time of get function: {int(time.time()) - s}")
+    s = int(time.time())
+
+    res = es.search(index="audio_files", body={
+        "query": {
+            "match": {
+                "_id": query
+            }
+        }
+    })
+    # res = es.get(index="audio_files", id=query)["_source"]
+    # print("search res: ", res)
+    # print(f"time of search function: {int(time.time()) - s}")
+    # res2 = es.search(index="audio", body={"query": {"prefix" : { "retrieve_id" : query }}})
+    # res3 = es.search(index="audio", body={"query": {"match" : { "retrieve_id" : query }}})
+    # print(res3['hits']['total'])
+    # print(res3['hits']['hits'][0])
+    chat_id = int(res['hits']['hits'][0]['_source']['chat_id'])
+    chat_username = res['hits']['hits'][0]['_source']['chat_username']
+    # print(f"{40 * '='}",chat_id, 'first &&  ', message.chat, chat_username)
+    message_id = int(res['hits']['hits'][0]['_source']['message_id'])
+    # print("message.id: ", message_id, chat_id)
+    print(f"{40 * '='}", chat_id, ' &&  ', message.chat)
