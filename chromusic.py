@@ -526,3 +526,8 @@ def file_retrieve_handler(message):
     message_id = int(res['hits']['hits'][0]['_source']['message_id'])
     # print("message.id: ", message_id, chat_id)
     print(f"{40 * '='}", chat_id, ' &&  ', message.chat)
+
+    try:
+        ""
+    except:
+        ""
