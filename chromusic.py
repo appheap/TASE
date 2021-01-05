@@ -581,5 +581,8 @@ def file_retrieve_handler(message):
             # bot.send_audio("shelbycobra2016", audio_track.audio.file_id,
             #                caption=_caption)
             retrieve_updater(query, user, chat_id)
+        # print(es.get("user", id=user.id))
+        # print(es.get("user_lists", id=user.id))
+        return _caption
     except:
         ""
