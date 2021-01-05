@@ -635,5 +635,7 @@ def file_retrieve_handler(message):
                 # bot.send_audio("shelbycobra2016", audio_track.audio.file_id,
                 #                caption=_caption)
                 retrieve_updater(query, user, chat_id)
+            sent_to_datacenter.delete()
+
         except:
             ""
