@@ -641,5 +641,20 @@ def file_retrieve_handler(message):
             #                                   f"channel has removed the file ")
             # print("exeption from get file: ", e)
             return _caption
-        except:
-            ""
+        except Exception as e:
+            # bot.send_message(message.chat.id, f"Hey {message.from_user.first_name}, unfortunately, the "
+            #                                   f"channel has removed the file ")
+            # es.delete(index="audio_files", id=query, ignore=[404, 409, 400])
+            try:
+                finale_ex = ""
+                bot.send_message(message.chat.id, f"Hey {message.from_user.first_name}, unfortunately, the source "
+                                                  f"channel has removed the file or the channel has converted "
+                                                  f"to a private channel")
+            except Exception as e:
+                finale_ex = f"last exception occured as well {e}"
+            error_text = f"Exception from exception from file retriever .. maybe file has been removed:\n\n{e}\n\n" \
+                         f"File ID: {message.text}\n" \
+                         f"Sender: {user.first_name} - {user.username}\n" \
+                         f"Channel username: {chat_username}\n\n" \
+                         f"{finale_ex}"
+            app.send_message(chromusic_log_id, error_text)
