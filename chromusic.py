@@ -528,6 +528,10 @@ def file_retrieve_handler(message):
     print(f"{40 * '='}", chat_id, ' &&  ', message.chat)
 
     try:
-        audio_track = bot.get_messages(chat_username, message_id)  # message_id)
+        try:
+            audio_track = bot.get_messages(chat_username, message_id)  # message_id)
+        except Exception as e:
+            audio_track = bot.get_messages(chat_id, message_id)  # message_id)
+
     except:
         ""
