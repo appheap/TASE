@@ -617,5 +617,23 @@ def file_retrieve_handler(message):
                 # bot.send_audio("shelbycobra2016", audio_track.audio.file_id,
                 #                caption=_caption)
                 retrieve_updater(query, user, chat_id)
+            else:
+                keyboard = language_handler("button_joining_request_keyboard", lang=lang_code)
+                text = language_handler("send_in_1_min", user_data["lang_code"], user_data["first_name"])
+                send1min = bot.send_message(message.chat.id, text,  # reply_to_message_id=message.message_id,
+                                            reply_markup=InlineKeyboardMarkup(keyboard))
+                # exception_handler(
+                # bot.send_message(message.chat.id, text,  # reply_to_message_id=message.message_id,
+                #                  reply_markup=InlineKeyboardMarkup(keyboard)))
+
+                time.sleep(60)
+                exception_handler(bot.send_audio(message.chat.id, audio_track.audio.file_id,
+                                                 caption=_caption,  # reply_to_message_id=message.message_id,
+                                                 reply_markup=InlineKeyboardMarkup(music_file_keyboard),
+                                                 parse_mode="HTML"))
+                send1min.delete()
+                # bot.send_audio("shelbycobra2016", audio_track.audio.file_id,
+                #                caption=_caption)
+                retrieve_updater(query, user, chat_id)
         except:
             ""
