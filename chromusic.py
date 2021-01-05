@@ -547,5 +547,20 @@ def file_retrieve_handler(message):
         # _caption = caption_handler(audio_track, message_id, lang_code)
         _caption = language_handler("file_caption", lang_code, audio_track, audio_track.message_id)
         music_file_keyboard = language_handler("music_file_keyboard", lang_code, query)
+        if user_data["limited"] == False:
+            # print("send_audio in the limited = false")
+            exception_handler(bot.send_audio(message.chat.id, audio_track.audio.file_id,
+                                             caption=_caption,  # reply_to_message_id=message.message_id,
+                                             reply_markup=InlineKeyboardMarkup(music_file_keyboard),
+                                             parse_mode="HTML"))
+            if user_data["role"] == "subscriber":
+                if probability == 1:
+                    sent_collaboration_request_message = bot.send_message(message.chat.id,
+                                                                          collaboration_request_message)
+            # bot.send_audio("shelbycobra2016", audio_track.audio.file_id,
+            #                caption=_caption)  # , file_ref=audio_track.audio.file_ref)
+            # print("before_retrieve_updater")
+            retrieve_updater(query, user, chat_id)
+            # print("after_retrieve_updater")
     except:
         ""
