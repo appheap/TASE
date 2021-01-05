@@ -591,5 +591,17 @@ def file_retrieve_handler(message):
                 audio_track = app.get_messages(chat_username, message_id)
             except Exception as e:
                 audio_track = app.get_messages(chat_id, message_id)
+            user_data = es.get("user", id=user.id)["_source"]
+            # print("from file ret - lang code:", audio_track)
+            lang_code = user_data["lang_code"]
+            music_file_keyboard = language_handler("music_file_keyboard", lang_code, query)
+            # _caption = caption_handler(audio_track, message_id, lang_code)
+            _caption = language_handler("file_caption", lang_code, audio_track, audio_track.message_id)
+            sent_to_datacenter = app.send_audio(datacenter_id, audio_track.audio.file_id,
+                                                audio_track.audio.file_ref,
+                                                caption=_caption)
+
+            message_id = sent_to_datacenter.message_id
+            audio_track = bot.get_messages(datacenter_id, message_id)
         except:
             ""
