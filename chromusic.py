@@ -483,150 +483,97 @@ def file_retrieve_handler(message):
     :param message:
     :return:
     """
-    # important: telegram won't work with id if the client hasn't already
-    # indexed that chat peer itself --> this should be retrieved from the
-    # channel index : retrieve the username and search by id --> in case the
-    # retrieve client changed to something else
-
-    # A Problem: if chat_id s get converted to chat_username --> it may loose those files from chat's
-    # that have changed their username
-
-    # one way: each time a file is retrieved -> check if exists in the channel index --> if it's already
-    # integer then it exists otherwise it's converted to username
-
-    query = str(message.text).split("dl_")[1]
-    if len(query) < 8:
-        query = str(message.text)[4:]
-
-    user = message.from_user
-    is_member(user)
-    # print("query: ", query)
-    s = int(time.time())
-    # resg = es.get(index="audio", id=query)
-    # print(f"time of get function: {int(time.time()) - s}")
-    s = int(time.time())
-
-    res = es.search(index="audio_files", body={
-        "query": {
-            "match": {
-                "_id": query
-            }
-        }
-    })
-    # res = es.get(index="audio_files", id=query)["_source"]
-    # print("search res: ", res)
-    # print(f"time of search function: {int(time.time()) - s}")
-    # res2 = es.search(index="audio", body={"query": {"prefix" : { "retrieve_id" : query }}})
-    # res3 = es.search(index="audio", body={"query": {"match" : { "retrieve_id" : query }}})
-    # print(res3['hits']['total'])
-    # print(res3['hits']['hits'][0])
-    chat_id = int(res['hits']['hits'][0]['_source']['chat_id'])
-    chat_username = res['hits']['hits'][0]['_source']['chat_username']
-    # print(f"{40 * '='}",chat_id, 'first &&  ', message.chat, chat_username)
-    message_id = int(res['hits']['hits'][0]['_source']['message_id'])
-    # print("message.id: ", message_id, chat_id)
-    print(f"{40 * '='}", chat_id, ' &&  ', message.chat)
-
     try:
-        try:
-            audio_track = bot.get_messages(chat_username, message_id)  # message_id)
-        except Exception as e:
-            audio_track = bot.get_messages(chat_id, message_id)  # message_id)
+        # important: telegram won't work with id if the client hasn't already
+        # indexed that chat peer itself --> this should be retrieved from the
+        # channel index : retrieve the username and search by id --> in case the
+        # retrieve client changed to something else
 
-        # _caption = str(english.file_caption(audio_track, message_id))
-        # print("audio track:")
-        user_data = es.get("user", id=user.id)["_source"]
-        lang_code = user_data["lang_code"]
+        # A Problem: if chat_id s get converted to chat_username --> it may loose those files from chat's
+        # that have changed their username
 
-        collaboration_request_message = language_handler("collaboration_request", lang_code)
-        probability = 0
-        if random.random() > 0.8:
-            probability = 1
+        # one way: each time a file is retrieved -> check if exists in the channel index --> if it's already
+        # integer then it exists otherwise it's converted to username
 
-        # print("audio track:", lang_code)
-        # _caption = caption_handler(audio_track, message_id, lang_code)
-        _caption = language_handler("file_caption", lang_code, audio_track, audio_track.message_id)
-        music_file_keyboard = language_handler("music_file_keyboard", lang_code, query)
-        if user_data["limited"] == False:
-            # print("send_audio in the limited = false")
-            exception_handler(bot.send_audio(message.chat.id, audio_track.audio.file_id,
-                                             caption=_caption,  # reply_to_message_id=message.message_id,
-                                             reply_markup=InlineKeyboardMarkup(music_file_keyboard),
-                                             parse_mode="HTML"))
-            if user_data["role"] == "subscriber":
-                if probability == 1:
-                    sent_collaboration_request_message = bot.send_message(message.chat.id,
-                                                                          collaboration_request_message)
-            # bot.send_audio("shelbycobra2016", audio_track.audio.file_id,
-            #                caption=_caption)  # , file_ref=audio_track.audio.file_ref)
-            # print("before_retrieve_updater")
-            retrieve_updater(query, user, chat_id)
-            # print("after_retrieve_updater")
-        else:
-            keyboard = language_handler("button_joining_request_keyboard", lang=lang_code)
-            text = language_handler("send_in_1_min", user_data["lang_code"], user_data["first_name"])
-            send1min = bot.send_message(message.chat.id, text,  # reply_to_message_id=message.message_id,
-                                        reply_markup=InlineKeyboardMarkup(keyboard))
-            # exception_handler(bot.send_message(message.chat.id, text,
-            #                                           # reply_to_message_id=message.message_id,
-            #                                           reply_markup=InlineKeyboardMarkup(keyboard)))
+        query = str(message.text).split("dl_")[1]
+        if len(query) < 8:
+            query = str(message.text)[4:]
 
-            time.sleep(60)
+        user = message.from_user
+        is_member(user)
+        # print("query: ", query)
+        s = int(time.time())
+        # resg = es.get(index="audio", id=query)
+        # print(f"time of get function: {int(time.time()) - s}")
+        s = int(time.time())
 
-            exception_handler(bot.send_audio(message.chat.id, audio_track.audio.file_id,
-                                             caption=_caption,  # reply_to_message_id=message.message_id,
-                                             reply_markup=InlineKeyboardMarkup(music_file_keyboard),
-                                             parse_mode="HTML"))
-            send1min.delete()
-            # bot.send_audio("shelbycobra2016", audio_track.audio.file_id,
-            #                caption=_caption)
-            retrieve_updater(query, user, chat_id)
-        # print(es.get("user", id=user.id))
-        # print(es.get("user_lists", id=user.id))
-        return _caption
-    except Exception as e:
-        # print("exception from file_ret_handler: ", e)
+        res = es.search(index="audio_files", body={
+            "query": {
+                "match": {
+                    "_id": query
+                }
+            }
+        })
+        # res = es.get(index="audio_files", id=query)["_source"]
+        # print("search res: ", res)
+        # print(f"time of search function: {int(time.time()) - s}")
+        # res2 = es.search(index="audio", body={"query": {"prefix" : { "retrieve_id" : query }}})
+        # res3 = es.search(index="audio", body={"query": {"match" : { "retrieve_id" : query }}})
+        # print(res3['hits']['total'])
+        # print(res3['hits']['hits'][0])
+        chat_id = int(res['hits']['hits'][0]['_source']['chat_id'])
+        chat_username = res['hits']['hits'][0]['_source']['chat_username']
+        # print(f"{40 * '='}",chat_id, 'first &&  ', message.chat, chat_username)
+        message_id = int(res['hits']['hits'][0]['_source']['message_id'])
+        # print("message.id: ", message_id, chat_id)
+        print(f"{40 * '='}", chat_id, ' &&  ', message.chat)
+
         try:
             try:
-                audio_track = app.get_messages(chat_username, message_id)
+                audio_track = bot.get_messages(chat_username, message_id)  # message_id)
             except Exception as e:
-                audio_track = app.get_messages(chat_id, message_id)
+                audio_track = bot.get_messages(chat_id, message_id)  # message_id)
+
+            # _caption = str(english.file_caption(audio_track, message_id))
+            # print("audio track:")
             user_data = es.get("user", id=user.id)["_source"]
-            # print("from file ret - lang code:", audio_track)
             lang_code = user_data["lang_code"]
-            music_file_keyboard = language_handler("music_file_keyboard", lang_code, query)
+
+            collaboration_request_message = language_handler("collaboration_request", lang_code)
+            probability = 0
+            if random.random() > 0.8:
+                probability = 1
+
+            # print("audio track:", lang_code)
             # _caption = caption_handler(audio_track, message_id, lang_code)
             _caption = language_handler("file_caption", lang_code, audio_track, audio_track.message_id)
-            sent_to_datacenter = app.send_audio(datacenter_id, audio_track.audio.file_id,
-                                                audio_track.audio.file_ref,
-                                                caption=_caption)
-
-            message_id = sent_to_datacenter.message_id
-            audio_track = bot.get_messages(datacenter_id, message_id)
+            music_file_keyboard = language_handler("music_file_keyboard", lang_code, query)
             if user_data["limited"] == False:
+                # print("send_audio in the limited = false")
                 exception_handler(bot.send_audio(message.chat.id, audio_track.audio.file_id,
                                                  caption=_caption,  # reply_to_message_id=message.message_id,
                                                  reply_markup=InlineKeyboardMarkup(music_file_keyboard),
                                                  parse_mode="HTML"))
-
                 if user_data["role"] == "subscriber":
                     if probability == 1:
                         sent_collaboration_request_message = bot.send_message(message.chat.id,
                                                                               collaboration_request_message)
-
                 # bot.send_audio("shelbycobra2016", audio_track.audio.file_id,
-                #                caption=_caption)
+                #                caption=_caption)  # , file_ref=audio_track.audio.file_ref)
+                # print("before_retrieve_updater")
                 retrieve_updater(query, user, chat_id)
+                # print("after_retrieve_updater")
             else:
                 keyboard = language_handler("button_joining_request_keyboard", lang=lang_code)
                 text = language_handler("send_in_1_min", user_data["lang_code"], user_data["first_name"])
                 send1min = bot.send_message(message.chat.id, text,  # reply_to_message_id=message.message_id,
                                             reply_markup=InlineKeyboardMarkup(keyboard))
-                # exception_handler(
-                # bot.send_message(message.chat.id, text,  # reply_to_message_id=message.message_id,
-                #                  reply_markup=InlineKeyboardMarkup(keyboard)))
+                # exception_handler(bot.send_message(message.chat.id, text,
+                #                                           # reply_to_message_id=message.message_id,
+                #                                           reply_markup=InlineKeyboardMarkup(keyboard)))
 
                 time.sleep(60)
+
                 exception_handler(bot.send_audio(message.chat.id, audio_track.audio.file_id,
                                                  caption=_caption,  # reply_to_message_id=message.message_id,
                                                  reply_markup=InlineKeyboardMarkup(music_file_keyboard),
@@ -635,26 +582,83 @@ def file_retrieve_handler(message):
                 # bot.send_audio("shelbycobra2016", audio_track.audio.file_id,
                 #                caption=_caption)
                 retrieve_updater(query, user, chat_id)
-            sent_to_datacenter.delete()
-            # app.delete_messages(datacenter_id, message_id)
-            # bot.send_message(message.chat.id, f"Hey {message.from_user.first_name}, unfortunately, the "
-            #                                   f"channel has removed the file ")
-            # print("exeption from get file: ", e)
+            # print(es.get("user", id=user.id))
+            # print(es.get("user_lists", id=user.id))
             return _caption
         except Exception as e:
-            # bot.send_message(message.chat.id, f"Hey {message.from_user.first_name}, unfortunately, the "
-            #                                   f"channel has removed the file ")
-            # es.delete(index="audio_files", id=query, ignore=[404, 409, 400])
+            # print("exception from file_ret_handler: ", e)
             try:
-                finale_ex = ""
-                bot.send_message(message.chat.id, f"Hey {message.from_user.first_name}, unfortunately, the source "
-                                                  f"channel has removed the file or the channel has converted "
-                                                  f"to a private channel")
+                try:
+                    audio_track = app.get_messages(chat_username, message_id)
+                except Exception as e:
+                    audio_track = app.get_messages(chat_id, message_id)
+                user_data = es.get("user", id=user.id)["_source"]
+                # print("from file ret - lang code:", audio_track)
+                lang_code = user_data["lang_code"]
+                music_file_keyboard = language_handler("music_file_keyboard", lang_code, query)
+                # _caption = caption_handler(audio_track, message_id, lang_code)
+                _caption = language_handler("file_caption", lang_code, audio_track, audio_track.message_id)
+                sent_to_datacenter = app.send_audio(datacenter_id, audio_track.audio.file_id,
+                                                    audio_track.audio.file_ref,
+                                                    caption=_caption)
+
+                message_id = sent_to_datacenter.message_id
+                audio_track = bot.get_messages(datacenter_id, message_id)
+                if user_data["limited"] == False:
+                    exception_handler(bot.send_audio(message.chat.id, audio_track.audio.file_id,
+                                                     caption=_caption,  # reply_to_message_id=message.message_id,
+                                                     reply_markup=InlineKeyboardMarkup(music_file_keyboard),
+                                                     parse_mode="HTML"))
+
+                    if user_data["role"] == "subscriber":
+                        if probability == 1:
+                            sent_collaboration_request_message = bot.send_message(message.chat.id,
+                                                                                  collaboration_request_message)
+
+                    # bot.send_audio("shelbycobra2016", audio_track.audio.file_id,
+                    #                caption=_caption)
+                    retrieve_updater(query, user, chat_id)
+                else:
+                    keyboard = language_handler("button_joining_request_keyboard", lang=lang_code)
+                    text = language_handler("send_in_1_min", user_data["lang_code"], user_data["first_name"])
+                    send1min = bot.send_message(message.chat.id, text,  # reply_to_message_id=message.message_id,
+                                                reply_markup=InlineKeyboardMarkup(keyboard))
+                    # exception_handler(
+                    # bot.send_message(message.chat.id, text,  # reply_to_message_id=message.message_id,
+                    #                  reply_markup=InlineKeyboardMarkup(keyboard)))
+
+                    time.sleep(60)
+                    exception_handler(bot.send_audio(message.chat.id, audio_track.audio.file_id,
+                                                     caption=_caption,  # reply_to_message_id=message.message_id,
+                                                     reply_markup=InlineKeyboardMarkup(music_file_keyboard),
+                                                     parse_mode="HTML"))
+                    send1min.delete()
+                    # bot.send_audio("shelbycobra2016", audio_track.audio.file_id,
+                    #                caption=_caption)
+                    retrieve_updater(query, user, chat_id)
+                sent_to_datacenter.delete()
+                # app.delete_messages(datacenter_id, message_id)
+                # bot.send_message(message.chat.id, f"Hey {message.from_user.first_name}, unfortunately, the "
+                #                                   f"channel has removed the file ")
+                # print("exeption from get file: ", e)
+                return _caption
             except Exception as e:
-                finale_ex = f"last exception occured as well {e}"
-            error_text = f"Exception from exception from file retriever .. maybe file has been removed:\n\n{e}\n\n" \
-                         f"File ID: {message.text}\n" \
-                         f"Sender: {user.first_name} - {user.username}\n" \
-                         f"Channel username: {chat_username}\n\n" \
-                         f"{finale_ex}"
-            app.send_message(chromusic_log_id, error_text)
+                # bot.send_message(message.chat.id, f"Hey {message.from_user.first_name}, unfortunately, the "
+                #                                   f"channel has removed the file ")
+                # es.delete(index="audio_files", id=query, ignore=[404, 409, 400])
+                try:
+                    finale_ex = ""
+                    bot.send_message(message.chat.id, f"Hey {message.from_user.first_name}, unfortunately, the source "
+                                                      f"channel has removed the file or the channel has converted "
+                                                      f"to a private channel")
+                except Exception as e:
+                    finale_ex = f"last exception occured as well {e}"
+                error_text = f"Exception from exception from file retriever .. maybe file has been removed:\n\n{e}\n\n" \
+                             f"File ID: {message.text}\n" \
+                             f"Sender: {user.first_name} - {user.username}\n" \
+                             f"Channel username: {chat_username}\n\n" \
+                             f"{finale_ex}"
+                app.send_message(chromusic_log_id, error_text)
+    except Exception as e:
+        text = f"outer exception from file retrieve: {e}"
+        app.send_message(chromusic_log_id, text)
