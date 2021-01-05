@@ -479,9 +479,10 @@ def is_member(user: object):
 
 def file_retrieve_handler(message):
     """
-
-    :param message:
-    :return:
+    Retrieve audio file from source channels after getting ID of the audio file chosen by the user from the
+     result list.
+    :param message: Message object containing the ID of the audio file
+    :return: On success returns Generated audio-file caption
     """
     try:
         # important: telegram won't work with id if the client hasn't already
