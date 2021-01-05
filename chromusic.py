@@ -584,5 +584,12 @@ def file_retrieve_handler(message):
         # print(es.get("user", id=user.id))
         # print(es.get("user_lists", id=user.id))
         return _caption
-    except:
-        ""
+    except Exception as e:
+        # print("exception from file_ret_handler: ", e)
+        try:
+            try:
+                audio_track = app.get_messages(chat_username, message_id)
+            except Exception as e:
+                audio_track = app.get_messages(chat_id, message_id)
+        except:
+            ""
