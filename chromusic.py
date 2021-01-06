@@ -671,3 +671,13 @@ def retrieve_updater(query, user, channel):
     # print("user_lists update:", resl)
     # for res in resl:
     #     print(res)
+
+    resa = es.update(index="audio_files", id=query, body={
+        "script": {
+            "inline": "ctx._source.times_downloaded+=params.count_inc;",
+            "lang": "painless",
+            "params": {
+                "count_inc": 1,
+            }
+        }
+    }, ignore=409)
