@@ -520,8 +520,6 @@ def file_retrieve_handler(message: object) -> str:
             except Exception as e:
                 audio_track = bot.get_messages(chat_id, message_id)  # message_id)
 
-            # _caption = str(english.file_caption(audio_track, message_id))
-            # print("audio track:")
             user_data = es.get("user", id=user.id)["_source"]
             lang_code = user_data["lang_code"]
 
@@ -530,12 +528,9 @@ def file_retrieve_handler(message: object) -> str:
             if random.random() > 0.8:
                 probability = 1
 
-            # print("audio track:", lang_code)
-            # _caption = caption_handler(audio_track, message_id, lang_code)
             _caption = language_handler("file_caption", lang_code, audio_track, audio_track.message_id)
             music_file_keyboard = language_handler("music_file_keyboard", lang_code, query)
             if user_data["limited"] == False:
-                # print("send_audio in the limited = false")
                 exception_handler(bot.send_audio(message.chat.id, audio_track.audio.file_id,
                                                  caption=_caption,  # reply_to_message_id=message.message_id,
                                                  reply_markup=InlineKeyboardMarkup(music_file_keyboard),
