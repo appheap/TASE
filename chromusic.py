@@ -618,10 +618,6 @@ def file_retrieve_handler(message: object) -> str:
                     #                caption=_caption)
                     retrieve_updater(query, user, chat_id)
                 sent_to_datacenter.delete()
-                # app.delete_messages(datacenter_id, message_id)
-                # bot.send_message(message.chat.id, f"Hey {message.from_user.first_name}, unfortunately, the "
-                #                                   f"channel has removed the file ")
-                # print("exeption from get file: ", e)
                 return _caption
             except Exception as e:
                 # bot.send_message(message.chat.id, f"Hey {message.from_user.first_name}, unfortunately, the "
