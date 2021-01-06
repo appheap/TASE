@@ -509,18 +509,9 @@ def file_retrieve_handler(message: object) -> str:
                 }
             }
         })
-        # res = es.get(index="audio_files", id=query)["_source"]
-        # print("search res: ", res)
-        # print(f"time of search function: {int(time.time()) - s}")
-        # res2 = es.search(index="audio", body={"query": {"prefix" : { "retrieve_id" : query }}})
-        # res3 = es.search(index="audio", body={"query": {"match" : { "retrieve_id" : query }}})
-        # print(res3['hits']['total'])
-        # print(res3['hits']['hits'][0])
         chat_id = int(res['hits']['hits'][0]['_source']['chat_id'])
         chat_username = res['hits']['hits'][0]['_source']['chat_username']
-        # print(f"{40 * '='}",chat_id, 'first &&  ', message.chat, chat_username)
         message_id = int(res['hits']['hits'][0]['_source']['message_id'])
-        # print("message.id: ", message_id, chat_id)
         print(f"{40 * '='}", chat_id, ' &&  ', message.chat)
 
         try:
