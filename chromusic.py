@@ -654,3 +654,17 @@ def retrieve_updater(query, user, channel):
             }
         }
     }, ignore=409)
+
+    resl = es.update(index="user_lists", id=user.id, body={
+        "script": {
+            "source": "if (ctx._source.downloaded_audio_id_list.contains(params.file_id)) {ctx.op = 'none'} else "
+                      "{if (ctx._source.downloaded_audio_id_list.size()>49) "
+                      "{ctx._source.downloaded_audio_id_list.remove(0);"
+                      "ctx._source.downloaded_audio_id_list.add(params.file_id);} "
+                      "else {ctx._source.downloaded_audio_id_list.add(params.file_id);}}",  # ctx.op = 'none'}",
+            "lang": "painless",
+            "params": {
+                "file_id": query
+            }
+        }
+    }, ignore=409)
