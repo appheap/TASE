@@ -620,9 +620,6 @@ def file_retrieve_handler(message: object) -> str:
                 sent_to_datacenter.delete()
                 return _caption
             except Exception as e:
-                # bot.send_message(message.chat.id, f"Hey {message.from_user.first_name}, unfortunately, the "
-                #                                   f"channel has removed the file ")
-                # es.delete(index="audio_files", id=query, ignore=[404, 409, 400])
                 try:
                     finale_ex = ""
                     bot.send_message(message.chat.id, f"Hey {message.from_user.first_name}, unfortunately, the source "
