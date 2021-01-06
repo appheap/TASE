@@ -668,3 +668,6 @@ def retrieve_updater(query, user, channel):
             }
         }
     }, ignore=409)
+    # print("user_lists update:", resl)
+    # for res in resl:
+    #     print(res)
