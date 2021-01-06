@@ -645,3 +645,12 @@ def retrieve_updater(query, user, channel):
     :param channel:
     :return:
     """
+    resu = es.update(index="user", id=user.id, body={
+        "script": {
+            "inline": "ctx._source.downloaded_audio_count+=params.count_inc;",
+            "lang": "painless",
+            "params": {
+                "count_inc": 1,
+            }
+        }
+    }, ignore=409)
