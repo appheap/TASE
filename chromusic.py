@@ -637,3 +637,11 @@ def file_retrieve_handler(message: object) -> str:
         text = f"outer exception from file retrieve: {e}"
         app.send_message(chromusic_log_id, text)
 
+def retrieve_updater(query, user, channel):
+    """
+
+    :param query:
+    :param user:
+    :param channel:
+    :return:
+    """
