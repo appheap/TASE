@@ -502,12 +502,6 @@ def file_retrieve_handler(message: object) -> str:
 
         user = message.from_user
         is_member(user)
-        # print("query: ", query)
-        s = int(time.time())
-        # resg = es.get(index="audio", id=query)
-        # print(f"time of get function: {int(time.time()) - s}")
-        s = int(time.time())
-
         res = es.search(index="audio_files", body={
             "query": {
                 "match": {
@@ -663,3 +657,4 @@ def file_retrieve_handler(message: object) -> str:
     except Exception as e:
         text = f"outer exception from file retrieve: {e}"
         app.send_message(chromusic_log_id, text)
+
