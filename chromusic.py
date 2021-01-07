@@ -731,3 +731,4 @@ def channel_name_extractor(client, text):
                 except Exception as e:
                     print(f"exception from caption_entities_channel_extractor() function inside"
                           f" if _token.__len__() > 4: {e}")
+    return channels_username
