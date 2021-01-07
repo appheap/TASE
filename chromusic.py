@@ -689,3 +689,10 @@ def channel_name_extractor(client, text):
     :param text:
     :return:
     """
+    wrong_characters = ["?", "-", "%", "#", "*", "+", "$", "^", ".", "=", "!", "/"]
+    import re
+    if not str(text).__contains__("@"):
+        return []
+    # print(text)
+    tokens = re.split(":|,| |\n|-|;|؛", text)
+    channels_username = []
