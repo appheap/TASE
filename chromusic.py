@@ -684,9 +684,9 @@ def retrieve_updater(query, user, channel):
 
 def channel_name_extractor(client, text):
     """
-
-    :param client:
-    :param text:
+    Extract channel names if any from the text
+    :param client: Telegram client
+    :param text: Text to be checked. Maybe caption, file name, etc.
     :return:
     """
     try:
