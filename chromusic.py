@@ -687,7 +687,7 @@ def channel_name_extractor(client, text):
     Extract channel names if any from the text
     :param client: Telegram client
     :param text: Text to be checked. Maybe caption, file name, etc.
-    :return:
+    :return: A list of extracted channel names or empty list if there were no channel name in the text.
     """
     try:
         wrong_characters = ["?", "-", "%", "#", "*", "+", "$", "^", ".", "=", "!", "/"]
