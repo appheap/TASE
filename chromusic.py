@@ -684,7 +684,10 @@ def retrieve_updater(query, user, channel):
 
 def channel_name_extractor(client: object, text: str) -> list:
     """
-    Extract channel names if any from the text
+    Extract channel names if any from the text.
+    Optimistic channel name extraction [first it will be added to the elasticsearch index,
+     later when it was its turn, it will be checked if it is a channel or not] -> Reduce get_chat requests, hence,
+     avoid getting banned by the Telegram.
     :param client: Telegram client
     :param text: Text to be checked. Maybe caption, file name, etc.
     :return: A list of extracted channel names or empty list if there were no channel name in the text.
