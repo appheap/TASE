@@ -341,7 +341,7 @@ def download_guide(user: object):
             help_markup_keyboard = language_handler("example_message_keyboard", user_data["lang_code"])
             bot.send_message(chat_id=user.id, text=help_keyboard_text,
                              reply_markup=InlineKeyboardMarkup(help_markup_keyboard),
-                             # parse_mode='HTML')
+            # parse_mode='HTML')
     except FloodWait as e:
         res = bot.set_slow_mode(user.id, 2)
         text = f"floodwait occured in the download_guide! \n\n{e}\n\nresult: {res}"
@@ -354,6 +354,7 @@ def download_guide(user: object):
         time.sleep(e.x)
     except Exception as e:
         print(f"from download_guide exception: {e}")
+
 
 def search_handler(bot: object, message: object):
     """
@@ -426,6 +427,7 @@ def search_handler(bot: object, message: object):
         except Exception as e:
             print(f"from search handler exception: {e}")
 
+
 def result_list_handler(
         query: str,
         search_res: str,
@@ -447,6 +449,7 @@ def result_list_handler(
         text = english.result_list_handler(query, search_res)
 
     return text
+
 
 def is_member(user: object):
     """
@@ -476,6 +479,7 @@ def is_member(user: object):
         time.sleep(e.x + 5)
     except Exception as e:
         print(f"from is member: {e}")
+
 
 def file_retrieve_handler(message: object) -> str:
     """
@@ -637,6 +641,7 @@ def file_retrieve_handler(message: object) -> str:
         text = f"outer exception from file retrieve: {e}"
         app.send_message(chromusic_log_id, text)
 
+
 def retrieve_updater(query, user, channel):
     """
 
@@ -681,6 +686,7 @@ def retrieve_updater(query, user, channel):
             }
         }
     }, ignore=409)
+
 
 def channel_name_extractor(client: object, text: str) -> list:
     """
