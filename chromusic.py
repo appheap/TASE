@@ -718,7 +718,6 @@ def channel_name_extractor(client: object, text: str) -> list:
                                                 ignore=[409, 400])
                                 print(f"from channel_name_extractor to channel_buffer: {res} ")
                                 # time.sleep(3)  # since get_chat() has been revoked above
-                                # time.sleep(3)  # since get_chat() has been revoked above
                                 channels_username.append(_token)
                                 # print("from channel extractor: ", res)
                     except Exception as e:
