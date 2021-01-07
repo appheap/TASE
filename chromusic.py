@@ -689,46 +689,50 @@ def channel_name_extractor(client, text):
     :param text:
     :return:
     """
-    wrong_characters = ["?", "-", "%", "#", "*", "+", "$", "^", ".", "=", "!", "/"]
-    import re
-    if not str(text).__contains__("@"):
-        return []
-    # print(text)
-    tokens = re.split(":|,| |\n|-|;|؛", text)
-    channels_username = []
+    try:
+        wrong_characters = ["?", "-", "%", "#", "*", "+", "$", "^", ".", "=", "!", "/"]
+        import re
+        if not str(text).__contains__("@"):
+            return []
+        # print(text)
+        tokens = re.split(":|,| |\n|-|;|؛", text)
+        channels_username = []
 
-    for token in tokens:
-        if "@" in token:
-            _token = token.replace("@", "")
-            if _token.__len__() > 4:
-                try:
-                    # if bot.get_chat(_token):
-                    # print(_token)
-                    if not any(x in _token for x in wrong_characters):
-                        if es.count(index="channel", body={
-                            "query": {
-                                "match": {
-                                    "username": _token
+        for token in tokens:
+            if "@" in token:
+                _token = token.replace("@", "")
+                if _token.__len__() > 4:
+                    try:
+                        # if bot.get_chat(_token):
+                        # print(_token)
+                        if not any(x in _token for x in wrong_characters):
+                            if es.count(index="channel", body={
+                                "query": {
+                                    "match": {
+                                        "username": _token
+                                    }
                                 }
-                            }
-                        })["count"] == 0:
-                            res = es.create(index="channel_buffer", id=_token,
-                                            body={},
-                                            ignore=[409, 400])
-                            print(f"from channel_name_extractor to channel_buffer: {res} ")
-                            # time.sleep(3)  # since get_chat() has been revoked above
-                            # temp_channel = client.get_chat(_token)
-                            # time.sleep(3)  # since get_chat() has been revoked above
-                            # if temp_channel.type == "channel":
-                            channels_username.append(_token)
-                            # if not es.exists(index="channel", id=temp_channel.id):
+                            })["count"] == 0:
+                                res = es.create(index="channel_buffer", id=_token,
+                                                body={},
+                                                ignore=[409, 400])
+                                print(f"from channel_name_extractor to channel_buffer: {res} ")
+                                # time.sleep(3)  # since get_chat() has been revoked above
+                                # temp_channel = client.get_chat(_token)
+                                # time.sleep(3)  # since get_chat() has been revoked above
+                                # if temp_channel.type == "channel":
+                                channels_username.append(_token)
+                                # if not es.exists(index="channel", id=temp_channel.id):
 
-                            # es.get(index="future_channel", id=temp_channel.username)
-                            # es.create(index="future_channel", id=temp_channel.username, body={"id":temp_channel.id}, ignore=409)
-                            # print("from channel extractor: ", res)
-                            # print("channel_future_channel_set: ", channel_to_index_set)
+                                # es.get(index="future_channel", id=temp_channel.username)
+                                # es.create(index="future_channel", id=temp_channel.username, body={"id":temp_channel.id}, ignore=409)
+                                # print("from channel extractor: ", res)
+                                # print("channel_future_channel_set: ", channel_to_index_set)
 
-                except Exception as e:
-                    print(f"exception from caption_entities_channel_extractor() function inside"
-                          f" if _token.__len__() > 4: {e}")
-    return channels_username
+                    except Exception as e:
+                        print(f"exception from caption_entities_channel_extractor() function inside"
+                              f" if _token.__len__() > 4: {e}")
+        return channels_username
+    except Exception as e:
+        print(f"exception from caption_entities_channel_extractor() function {e}")
+        return []
