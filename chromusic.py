@@ -682,7 +682,7 @@ def retrieve_updater(query, user, channel):
         }
     }, ignore=409)
 
-def channel_name_extractor(client, text):
+def channel_name_extractor(client: object, text: str) -> list:
     """
     Extract channel names if any from the text
     :param client: Telegram client
