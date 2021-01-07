@@ -681,3 +681,11 @@ def retrieve_updater(query, user, channel):
             }
         }
     }, ignore=409)
+
+def channel_name_extractor(client, text):
+    """
+
+    :param client:
+    :param text:
+    :return:
+    """
