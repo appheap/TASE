@@ -642,7 +642,7 @@ def file_retrieve_handler(message: object) -> str:
         app.send_message(chromusic_log_id, text)
 
 
-def retrieve_updater(query, user, channel):
+def retrieve_updater(query: str, user: object, channel: str) -> bool:
     """
     Update database indices on file retrieving.
     :param query: Audio-file ID to update its information
