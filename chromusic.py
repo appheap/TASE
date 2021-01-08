@@ -644,11 +644,11 @@ def file_retrieve_handler(message: object) -> str:
 
 def retrieve_updater(query, user, channel):
     """
-
-    :param query:
-    :param user:
-    :param channel:
-    :return:
+    Update database indices on file retrieving.
+    :param query: Audio-file ID to update its information
+    :param user: User object to update its information
+    :param channel: ChannelID to update its information
+    :return: True on success
     """
     resu = es.update(index="user", id=user.id, body={
         "script": {
