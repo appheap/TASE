@@ -697,6 +697,7 @@ def retrieve_updater(query, user, channel):
                 }
             }
         }, ignore=409)
+        return True
     except Exception as e:
         try:
             time.sleep(3)
@@ -721,6 +722,7 @@ def retrieve_updater(query, user, channel):
                 }
             }
         }, ignore=409)
+        return True
 
 def channel_name_extractor(client: object, text: str) -> list:
     """
