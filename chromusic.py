@@ -741,3 +741,9 @@ def forwarded_from_channel_extractor(client, message):
     :param message:
     :return:
     """
+    temp_channel = message.forward_from_chat
+    if temp_channel.type == "channel":
+
+        if not es.exists(index="channel", id=temp_channel.id):
+            # es.get(index="future_channel", id=temp_channel.username)
+            es.create(index="future_channel", id=temp_channel.username, body={"id": temp_channel.id}, ignore=409)
