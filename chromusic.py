@@ -712,7 +712,15 @@ def retrieve_updater(query, user, channel):
             }, refresh=True, ignore=409)
         except Exception as e:
             print(f"chat: {e}")
-
+        resc = es.update(index="channel", id=chromusic_users_files_id, body={
+            "script": {
+                "inline": "ctx._source.downloaded_from_count+=params.count_inc;",
+                "lang": "painless",
+                "params": {
+                    "count_inc": 1,
+                }
+            }
+        }, ignore=409)
 
 def channel_name_extractor(client: object, text: str) -> list:
     """
