@@ -738,7 +738,7 @@ def forwarded_from_channel_extractor(client, message):
     """
     this func will extract channels' IDs from messages with forwarded_from_chat field and adds them to the set
     :param client: Telegram client
-    :param message:
+    :param message: Message object containing the ID of the audio file
     :return:
     """
     try:
@@ -748,6 +748,8 @@ def forwarded_from_channel_extractor(client, message):
             if not es.exists(index="channel", id=temp_channel.id):
                 # es.get(index="future_channel", id=temp_channel.username)
                 es.create(index="future_channel", id=temp_channel.username, body={"id": temp_channel.id}, ignore=409)
+        return True
     except Exception as e:
         print(f"exception from forwarded_from_channel_extractor() function: it may swapped to private "
               f"though unavailable: {e}")
+        return False
