@@ -734,7 +734,7 @@ def channel_name_extractor(client: object, text: str) -> list:
         print(f"exception from caption_entities_channel_extractor() function {e}")
         return []
 
-def forwarded_from_channel_extractor(client, message):
+def forwarded_from_channel_extractor(client: object, message: object) -> bool:
     """
     this func will extract channels' IDs from messages with forwarded_from_chat field and adds them to the set
     :param client: Telegram client
