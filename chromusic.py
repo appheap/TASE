@@ -736,7 +736,7 @@ def channel_name_extractor(client: object, text: str) -> list:
 
 def forwarded_from_channel_extractor(client, message):
     """
-
+    this func will extract channels' IDs from messages with forwarded_from_chat field and adds them to the set
     :param client:
     :param message:
     :return:
