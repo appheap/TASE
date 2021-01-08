@@ -733,3 +733,11 @@ def channel_name_extractor(client: object, text: str) -> list:
     except Exception as e:
         print(f"exception from caption_entities_channel_extractor() function {e}")
         return []
+
+def forwarded_from_channel_extractor(client, message):
+    """
+
+    :param client:
+    :param message:
+    :return:
+    """
