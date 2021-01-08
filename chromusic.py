@@ -739,7 +739,7 @@ def forwarded_from_channel_extractor(client, message):
     this func will extract channels' IDs from messages with forwarded_from_chat field and adds them to the set
     :param client: Telegram client
     :param message: Message object containing the ID of the audio file
-    :return:
+    :return: True on success; otherwise False
     """
     try:
         temp_channel = message.forward_from_chat
