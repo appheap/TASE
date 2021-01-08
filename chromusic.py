@@ -698,17 +698,20 @@ def retrieve_updater(query, user, channel):
             }
         }, ignore=409)
     except Exception as e:
-        time.sleep(3)
-        chat = app.get_chat(channel)
-        time.sleep(3)
-        res = es.create("channel", id=chat.id, body={
-            "title": chat.title,
-            "username": chat.username,
-            "importance": 5,
-            "indexed_from_audio_count": 0,
-            "last_indexed_offset_date": 0,
-            "downloaded_from_count": 0,
-        }, refresh=True, ignore=409)
+        try:
+            time.sleep(3)
+            chat = app.get_chat(channel)
+            time.sleep(3)
+            res = es.create("channel", id=chat.id, body={
+                "title": chat.title,
+                "username": chat.username,
+                "importance": 5,
+                "indexed_from_audio_count": 0,
+                "last_indexed_offset_date": 0,
+                "downloaded_from_count": 0,
+            }, refresh=True, ignore=409)
+        except Exception as e:
+            print(f"chat: {e}")
 
 
 def channel_name_extractor(client: object, text: str) -> list:
