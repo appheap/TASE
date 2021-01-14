@@ -797,3 +797,9 @@ def caption_entities_channel_extractor(client, message):
     :param message:
     :return:
     """
+    channels_username = []
+    entities = message.caption_entities
+    wrong_characters = ["?", "-", "%", "#", "*", "+", "$", "^", ".", "=", "!", "/"]
+    # temp_channel = ""
+    if entities == None:
+        entities = message.entities
