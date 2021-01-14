@@ -854,3 +854,7 @@ def caption_entities_channel_extractor(client, message):
                             print(f"from caption_entities_channel_extractor to channel_buffer: {res} ")
                             # es.get(index="future_channel", id=temp_channel.username)
                     # print(temp_channel)
+            except Exception as e:
+                print(
+                    f"exception from caption_entities_channel_extractor() function entity.type == 'text_link': part: {e}")
+            # channel_to_index_set.append(temp.id)
