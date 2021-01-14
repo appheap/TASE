@@ -789,3 +789,11 @@ def forwarded_from_channel_extractor(client: object, message: object) -> bool:
         print(f"exception from forwarded_from_channel_extractor() function: it may swapped to private "
               f"though unavailable: {e}")
         return False
+
+def caption_entities_channel_extractor(client, message):
+    """
+
+    :param client:
+    :param message:
+    :return:
+    """
