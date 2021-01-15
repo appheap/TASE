@@ -858,3 +858,26 @@ def caption_entities_channel_extractor(client, message):
                 print(
                     f"exception from caption_entities_channel_extractor() function entity.type == 'text_link': part: {e}")
             # channel_to_index_set.append(temp.id)
+    if message.web_page:
+        try:
+
+            url = str(message.web_page.url).split("/")
+            if url.__len__() == 4:
+                # time.sleep(3)  # since get_chat() has been revoked above
+                # temp_channel = client.get_chat(url[-1])
+                # time.sleep(3)  # since get_chat() has been revoked above
+                if not any(x in url[-1] for x in wrong_characters):
+                    if es.count(index="channel", body={
+                        "query": {
+                            "match": {
+                                "username": url[-1]
+                            }
+                        }
+                    })["count"] == 0:
+                        # if not es.exists(index="channel", id=temp_channel.id):
+                        # es.create(index="future_channel", id=temp_channel.username, body={"id": temp_channel.id}, ignore=409)
+                        res = es.create(index="channel_buffer", id=url[-1],
+                                        body={},
+                                        ignore=[409, 400])
+                        channels_username.append(url[-1])
+                        print(f"from caption_entities_channel_extractor to channel_buffer: {res} ")
