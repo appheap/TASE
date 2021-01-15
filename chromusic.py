@@ -881,3 +881,23 @@ def caption_entities_channel_extractor(client, message):
                                         ignore=[409, 400])
                         channels_username.append(url[-1])
                         print(f"from caption_entities_channel_extractor to channel_buffer: {res} ")
+            elif url.__len__() == 5:
+                # time.sleep(3)  # since get_chat() has been revoked above
+                # temp_channel = client.get_chat(url[-2])
+                # time.sleep(3)  # since get_chat() has been revoked above
+                if not any(x in url[-1] for x in wrong_characters):
+                    if es.count(index="channel", body={
+                        "query": {
+                            "match": {
+                                "username": url[-2]
+                            }
+                        }
+                    })["count"] == 0:
+                        # if not es.exists(index="channel", id=temp_channel.id):
+                        # es.create(index="future_channel", id=temp_channel.username, body={"id": temp_channel.id}, ignore=409)
+                        res = es.create(index="channel_buffer", id=url[-2],
+                                        body={},
+                                        ignore=[409, 400])
+                        channels_username.append(url[-2])
+                        print(f"from caption_entities_channel_extractor to channel_buffer: {res} ")
+                # print(temp_channel)
