@@ -903,3 +903,4 @@ def caption_entities_channel_extractor(client, message):
                 # print(temp_channel)
         except Exception as e:
             print(f"exception from caption_entities_channel_extractor() function message.web_page part: {e}")
+    return channels_username
