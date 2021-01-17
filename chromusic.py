@@ -790,7 +790,7 @@ def forwarded_from_channel_extractor(client: object, message: object) -> bool:
               f"though unavailable: {e}")
         return False
 
-def caption_entities_channel_extractor(client, message):
+def caption_entities_channel_extractor(client: object, message: object) -> list:
     """
     Extract channels' IDs from messages with caption_entities field
     :param client: Telegram client
