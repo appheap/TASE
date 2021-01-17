@@ -792,7 +792,7 @@ def forwarded_from_channel_extractor(client: object, message: object) -> bool:
 
 def caption_entities_channel_extractor(client, message):
     """
-
+    Extract channels' IDs from messages with caption_entities field
     :param client:
     :param message:
     :return:
@@ -908,3 +908,4 @@ def caption_entities_channel_extractor(client, message):
     except Exception as e:
         print(f"exception from caption_entities_channel_extractor() function: {e}")
         return []
+    # print(channel_to_index_set)
