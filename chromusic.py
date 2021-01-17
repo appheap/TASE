@@ -793,9 +793,9 @@ def forwarded_from_channel_extractor(client: object, message: object) -> bool:
 def caption_entities_channel_extractor(client, message):
     """
     Extract channels' IDs from messages with caption_entities field
-    :param client:
-    :param message:
-    :return:
+    :param client: Telegram client
+    :param message: Message object containing the caption of the audio file
+    :return: A list of extracted channel usernames on success; otherwise an empty list
     """
     try:
         channels_username = []
