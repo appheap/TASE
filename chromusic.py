@@ -772,7 +772,7 @@ def channel_name_extractor(client: object, text: str) -> list:
 
 def forwarded_from_channel_extractor(client: object, message: object) -> bool:
     """
-    this func will extract channels' IDs from messages with forwarded_from_chat field and adds them to the set
+    Extract channels' IDs from messages with forwarded_from_chat field and adds them to the set
     :param client: Telegram client
     :param message: Message object containing the ID of the audio file
     :return: True on success; otherwise False
@@ -909,3 +909,4 @@ def caption_entities_channel_extractor(client: object, message: object) -> list:
         print(f"exception from caption_entities_channel_extractor() function: {e}")
         return []
     # print(channel_to_index_set)
+
