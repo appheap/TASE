@@ -915,3 +915,16 @@ def channel_re_analyzer():
 
     :return:
     """
+    res = None
+    for imp in range(1):
+        # es.indices.refresh("channel")
+        # res = helpers.scan(es, query={"query": {"match": {"importance": imp}}},
+        #                    index="channel")
+
+        res = helpers.scan(
+            client=es,
+            query={"query": {"match": {"importance": imp}}},
+            size=10000,
+            scroll='5m',
+            index="channel"
+        )
