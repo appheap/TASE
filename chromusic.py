@@ -913,7 +913,7 @@ def caption_entities_channel_extractor(client: object, message: object) -> list:
 def channel_re_analyzer():
     """
     Re-analyze channels and re-score their importance
-    :return:
+    :return: Re-analysed channels list (still not completed)
     """
     res = None
     for imp in range(1):
@@ -928,4 +928,8 @@ def channel_re_analyzer():
             scroll='5m',
             index="channel"
         )
+        for _channel in res:
+            # Do the re-scoring stuff here
+            _channel
+
     return res
