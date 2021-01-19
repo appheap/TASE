@@ -928,3 +928,4 @@ def channel_re_analyzer():
             scroll='5m',
             index="channel"
         )
+    return res
