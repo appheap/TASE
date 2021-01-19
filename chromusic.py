@@ -910,3 +910,8 @@ def caption_entities_channel_extractor(client: object, message: object) -> list:
         return []
     # print(channel_to_index_set)
 
+def channel_re_analyzer():
+    """
+
+    :return:
+    """
