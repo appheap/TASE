@@ -912,7 +912,7 @@ def caption_entities_channel_extractor(client: object, message: object) -> list:
 
 def channel_re_analyzer():
     """
-
+    Re-analyze channels and re-score their importance
     :return:
     """
     res = None
