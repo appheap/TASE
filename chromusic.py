@@ -936,7 +936,9 @@ def channel_re_analyzer() -> list:
 
 def daily_gathered_channels_controller(client):
     """
-
+    This function calls prepares the list and calls "new_channel_indexer" function 2 sets has been used in order to
+    keep one of them intact until the channel is indexed and then remove from both of them (second set acts like a
+    buffer).
     :param client:
     :return:
     """
@@ -954,6 +956,7 @@ def daily_gathered_channels_controller(client):
                     _channels_list_username.append(future_channel_instance["_id"])
                 # print("new indexing channels started ... !")
                 new_channel_indexer(client, _channels_list_username, "future_channel")
+                return True
             except Exception as e:
                 text = f"exception handled form daily_gathered_channels_controller() function: \n\n{e}"
                 client.send_message(chromusic_log_id, text)
@@ -964,3 +967,4 @@ def daily_gathered_channels_controller(client):
         text = f"exception handled from out of while in daily_gathered_channels_controller() function: \n\n{e}"
         client.send_message(chromusic_log_id, text)
         daily_gathered_channels_controller(client)
+        return False
