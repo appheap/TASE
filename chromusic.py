@@ -940,22 +940,27 @@ def daily_gathered_channels_controller(client):
     :param client:
     :return:
     """
-    while 1:
-        try:
-            _channels_list_username = []
-            print("existing channels now running  ...")
-            es.indices.refresh("future_channel")
-            res = helpers.scan(es,
-                               query={"query": {"match_all": {}}},
-                               index="future_channel")
+    try:
+        while 1:
+            try:
+                _channels_list_username = []
+                print("existing channels now running  ...")
+                es.indices.refresh("future_channel")
+                res = helpers.scan(es,
+                                   query={"query": {"match_all": {}}},
+                                   index="future_channel")
 
-            for future_channel_instance in res:
-                _channels_list_username.append(future_channel_instance["_id"])
-            # print("new indexing channels started ... !")
-            new_channel_indexer(client, _channels_list_username, "future_channel")
-        except Exception as e:
-            text = f"exception handled form daily_gathered_channels_controller() function: \n\n{e}"
-            client.send_message(chromusic_log_id, text)
-            # continue
-        finally:
-            time.sleep(30)
+                for future_channel_instance in res:
+                    _channels_list_username.append(future_channel_instance["_id"])
+                # print("new indexing channels started ... !")
+                new_channel_indexer(client, _channels_list_username, "future_channel")
+            except Exception as e:
+                text = f"exception handled form daily_gathered_channels_controller() function: \n\n{e}"
+                client.send_message(chromusic_log_id, text)
+                # continue
+            finally:
+                time.sleep(30)
+    except Exception as e:
+        text = f"exception handled from out of while in daily_gathered_channels_controller() function: \n\n{e}"
+        client.send_message(chromusic_log_id, text)
+        daily_gathered_channels_controller(client)
