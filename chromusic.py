@@ -933,3 +933,10 @@ def channel_re_analyzer() -> list:
             _channel
 
     return res
+
+def daily_gathered_channels_controller(client):
+    """
+
+    :param client:
+    :return:
+    """
