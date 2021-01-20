@@ -934,7 +934,7 @@ def channel_re_analyzer() -> list:
 
     return res
 
-def daily_gathered_channels_controller(client):
+def daily_gathered_channels_controller(client: object) -> bool:
     """
     This function calls prepares the list and calls "new_channel_indexer" function 2 sets has been used in order to
     keep one of them intact until the channel is indexed and then remove from both of them (second set acts like a
