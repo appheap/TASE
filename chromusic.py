@@ -940,3 +940,15 @@ def daily_gathered_channels_controller(client):
     :param client:
     :return:
     """
+    while 1:
+        _channels_list_username = []
+        print("existing channels now running  ...")
+        es.indices.refresh("future_channel")
+        res = helpers.scan(es,
+                           query={"query": {"match_all": {}}},
+                           index="future_channel")
+
+        for future_channel_instance in res:
+            _channels_list_username.append(future_channel_instance["_id"])
+        # print("new indexing channels started ... !")
+        new_channel_indexer(client, _channels_list_username, "future_channel")
