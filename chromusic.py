@@ -939,8 +939,8 @@ def daily_gathered_channels_controller(client):
     This function calls prepares the list and calls "new_channel_indexer" function 2 sets has been used in order to
     keep one of them intact until the channel is indexed and then remove from both of them (second set acts like a
     buffer).
-    :param client:
-    :return:
+    :param client: Telegram client
+    :return: True on success otherwise False
     """
     try:
         while 1:
