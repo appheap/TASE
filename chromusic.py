@@ -957,3 +957,5 @@ def daily_gathered_channels_controller(client):
             text = f"exception handled form daily_gathered_channels_controller() function: \n\n{e}"
             client.send_message(chromusic_log_id, text)
             # continue
+        finally:
+            time.sleep(30)
