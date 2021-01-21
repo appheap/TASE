@@ -968,3 +968,11 @@ def daily_gathered_channels_controller(client: object) -> bool:
         client.send_message(chromusic_log_id, text)
         daily_gathered_channels_controller(client)
         return False
+
+def existing_channels_handler_by_importance(client, importance):
+    """
+
+    :param client:
+    :param importance:
+    :return:
+    """
