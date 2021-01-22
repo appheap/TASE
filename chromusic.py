@@ -997,3 +997,12 @@ def existing_channels_handler_by_importance(client, importance):
             }
         })
         starting_time = int(time.time())
+        for _channel in res["hits"]["hits"]:
+            print(f"_channel: {_channel}")
+            # Every time only lets the crawler to work 3 hours at max
+            if int(time.time()) - starting_time > timedelta(hours=2).total_seconds():
+                if importance > 0:
+                    delay = timedelta(minutes=15).total_seconds()
+                    time.sleep(delay)
+                    starting_time = int(time.time())
+                    # break
