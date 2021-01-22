@@ -1006,3 +1006,27 @@ def existing_channels_handler_by_importance(client, importance):
                     time.sleep(delay)
                     starting_time = int(time.time())
                     # break
+
+            es.indices.refresh(index="global_control")
+            status_res = es.get(index="global_control", doc_type="indexing_flag", id=_channel["_id"])
+            is_being_indexed = status_res["_source"]["indexing"]
+            print("is being indexed: ", is_being_indexed)
+            if is_being_indexed == True:
+                continue
+            else:
+                flag_update_res = es.update(index="global_control", doc_type="indexing_flag",
+                                            id=_channel["_id"], body={
+                        "script": {
+                            "inline": "ctx._source.indexing = params.indexing;",
+                            "lang": "painless",
+                            "params": {
+                                "indexing": True,
+                            }
+                        }
+                    }, ignore=409)
+                es.index(index="global_control", doc_type="indexing_flag", id=_channel["_id"],
+                         body={
+                             "indexing": True,
+                             "name": _channel["_source"]["username"],
+                             "importance": _channel["_source"]["importance"]
+                         }, refresh=True)
