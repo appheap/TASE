@@ -1058,6 +1058,3 @@ def existing_channels_handler_by_importance(client, importance):
                 text = f"exception handled form existing_channels_handler_by_importance() function <b>for loop</b>: \n\n{e}"
                 client.send_message(chromusic_log_id, text)
                 time.sleep(15)
-                continue
-            finally:
-                pass
