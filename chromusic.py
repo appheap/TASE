@@ -1039,3 +1039,14 @@ def existing_channels_handler_by_importance(client, importance):
                 }, refresh=True, ignore=409)
 
             existing_channel_indexer(client, channel_id=int(_channel["_id"]))
+
+            flag_update_res = es.update(index="global_control", doc_type="indexing_flag",
+                                        id=_channel["_id"], body={
+                    "script": {
+                        "inline": "ctx._source.indexing = params.indexing;",
+                        "lang": "painless",
+                        "params": {
+                            "indexing": False,
+                        }
+                    }
+                }, ignore=409)
