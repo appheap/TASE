@@ -1037,3 +1037,5 @@ def existing_channels_handler_by_importance(client, importance):
                     "name": _channel["_source"]["username"],
                     "importance": _channel["_source"]["importance"]
                 }, refresh=True, ignore=409)
+
+            existing_channel_indexer(client, channel_id=int(_channel["_id"]))
