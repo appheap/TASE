@@ -977,84 +977,95 @@ def existing_channels_handler_by_importance(client, importance):
     :return:
     """
     while 1:
-        # res = helpers.scan(
-        #     client=es,
-        #     query={"query": {
-        #         "match": {
-        #             "importance": importance
-        #         }
-        #     }},
-        #     size=10000,
-        #     scroll='5m',
-        #     index="channel"
-        # )
-        res = es.search(index="channel", body={
-            "query": {
-                "match": {"importance": importance}
-            },
-            "sort": {
-                "last_indexed_offset_date": "asc"
-            }
-        })
-        starting_time = int(time.time())
-        for _channel in res["hits"]["hits"]:
-            print(f"_channel: {_channel}")
-            # Every time only lets the crawler to work 3 hours at max
-            try:
-                if int(time.time()) - starting_time > timedelta(hours=2).total_seconds():
-                    if importance > 0:
-                        delay = timedelta(minutes=15).total_seconds()
-                        time.sleep(delay)
-                        starting_time = int(time.time())
-                        # break
-                # ----------- new_changes -----------------
+        try:
+            # res = helpers.scan(
+            #     client=es,
+            #     query={"query": {
+            #         "match": {
+            #             "importance": importance
+            #         }
+            #     }},
+            #     size=10000,
+            #     scroll='5m',
+            #     index="channel"
+            # )
+            res = es.search(index="channel", body={
+                "query": {
+                    "match": {"importance": importance}
+                },
+                "sort": {
+                    "last_indexed_offset_date": "asc"
+                }
+            })
+            starting_time = int(time.time())
+            for _channel in res["hits"]["hits"]:
+                print(f"_channel: {_channel}")
+                # Every time only lets the crawler to work 3 hours at max
                 try:
-                    es.indices.refresh(index="global_control")
-                    status_res = es.get(index="global_control", doc_type="indexing_flag", id=_channel["_id"])
-                    is_being_indexed = status_res["_source"]["indexing"]
-                    print("is being indexed: ", is_being_indexed)
-                    if is_being_indexed == True:
-                        continue
-                    else:
-                        flag_update_res = es.update(index="global_control", doc_type="indexing_flag",
-                                                    id=_channel["_id"], body={
-                                "script": {
-                                    "inline": "ctx._source.indexing = params.indexing;",
-                                    "lang": "painless",
-                                    "params": {
-                                        "indexing": True,
+                    if int(time.time()) - starting_time > timedelta(hours=2).total_seconds():
+                        if importance > 0:
+                            delay = timedelta(minutes=15).total_seconds()
+                            time.sleep(delay)
+                            starting_time = int(time.time())
+                            # break
+                    # ----------- new_changes -----------------
+                    try:
+                        es.indices.refresh(index="global_control")
+                        status_res = es.get(index="global_control", doc_type="indexing_flag", id=_channel["_id"])
+                        is_being_indexed = status_res["_source"]["indexing"]
+                        print("is being indexed: ", is_being_indexed)
+                        if is_being_indexed == True:
+                            continue
+                        else:
+                            flag_update_res = es.update(index="global_control", doc_type="indexing_flag",
+                                                        id=_channel["_id"], body={
+                                    "script": {
+                                        "inline": "ctx._source.indexing = params.indexing;",
+                                        "lang": "painless",
+                                        "params": {
+                                            "indexing": True,
+                                        }
                                     }
+                                }, ignore=409)
+                            es.index(index="global_control", doc_type="indexing_flag", id=_channel["_id"],
+                                     body={
+                                         "indexing": True,
+                                         "name": _channel["_source"]["username"],
+                                         "importance": _channel["_source"]["importance"]
+                                     }, refresh=True)
+                    except Exception as e:
+                        es.create(index="global_control", doc_type="indexing_flag", id=_channel["_id"], body={
+                            "indexing": True,
+                            "name": _channel["_source"]["username"],
+                            "importance": _channel["_source"]["importance"]
+                        }, refresh=True, ignore=409)
+                    # ----------- new_changes -----------------
+                    existing_channel_indexer(client, channel_id=int(_channel["_id"]))
+                    # ----------- new_changes -----------------
+                    flag_update_res = es.update(index="global_control", doc_type="indexing_flag",
+                                                id=_channel["_id"], body={
+                            "script": {
+                                "inline": "ctx._source.indexing = params.indexing;",
+                                "lang": "painless",
+                                "params": {
+                                    "indexing": False,
                                 }
-                            }, ignore=409)
-                        es.index(index="global_control", doc_type="indexing_flag", id=_channel["_id"],
-                                 body={
-                                     "indexing": True,
-                                     "name": _channel["_source"]["username"],
-                                     "importance": _channel["_source"]["importance"]
-                                 }, refresh=True)
-                except Exception as e:
-                    es.create(index="global_control", doc_type="indexing_flag", id=_channel["_id"], body={
-                        "indexing": True,
-                        "name": _channel["_source"]["username"],
-                        "importance": _channel["_source"]["importance"]
-                    }, refresh=True, ignore=409)
-                # ----------- new_changes -----------------
-                existing_channel_indexer(client, channel_id=int(_channel["_id"]))
-                # ----------- new_changes -----------------
-                flag_update_res = es.update(index="global_control", doc_type="indexing_flag",
-                                            id=_channel["_id"], body={
-                        "script": {
-                            "inline": "ctx._source.indexing = params.indexing;",
-                            "lang": "painless",
-                            "params": {
-                                "indexing": False,
                             }
-                        }
-                    }, ignore=409)
+                        }, ignore=409)
 
-                # ----------- new_changes -----------------
-                time.sleep(10)
-            except Exception as e:
-                text = f"exception handled form existing_channels_handler_by_importance() function <b>for loop</b>: \n\n{e}"
-                client.send_message(chromusic_log_id, text)
-                time.sleep(15)
+                    # ----------- new_changes -----------------
+                    time.sleep(10)
+                except Exception as e:
+                    text = f"exception handled form existing_channels_handler_by_importance() function <b>for loop</b>: \n\n{e}"
+                    client.send_message(chromusic_log_id, text)
+                    time.sleep(15)
+
+        except Exception as e:
+            text = f"exception handled form existing_channels_handler_by_importance() function: \n\n{e}"
+            client.send_message(chromusic_log_id, text)
+            # continue
+        finally:
+            text = f"existing_channels_handler_by_importance finished and will start again soon\n\n" \
+                   f"importance: {importance}"
+            # client.send_message("", text)
+            time.sleep(30)
