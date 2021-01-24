@@ -978,17 +978,6 @@ def existing_channels_handler_by_importance(client, importance):
     """
     while 1:
         try:
-            # res = helpers.scan(
-            #     client=es,
-            #     query={"query": {
-            #         "match": {
-            #             "importance": importance
-            #         }
-            #     }},
-            #     size=10000,
-            #     scroll='5m',
-            #     index="channel"
-            # )
             res = es.search(index="channel", body={
                 "query": {
                     "match": {"importance": importance}
@@ -1007,8 +996,6 @@ def existing_channels_handler_by_importance(client, importance):
                             delay = timedelta(minutes=15).total_seconds()
                             time.sleep(delay)
                             starting_time = int(time.time())
-                            # break
-                    # ----------- new_changes -----------------
                     try:
                         es.indices.refresh(index="global_control")
                         status_res = es.get(index="global_control", doc_type="indexing_flag", id=_channel["_id"])
@@ -1039,9 +1026,7 @@ def existing_channels_handler_by_importance(client, importance):
                             "name": _channel["_source"]["username"],
                             "importance": _channel["_source"]["importance"]
                         }, refresh=True, ignore=409)
-                    # ----------- new_changes -----------------
                     existing_channel_indexer(client, channel_id=int(_channel["_id"]))
-                    # ----------- new_changes -----------------
                     flag_update_res = es.update(index="global_control", doc_type="indexing_flag",
                                                 id=_channel["_id"], body={
                             "script": {
@@ -1053,7 +1038,6 @@ def existing_channels_handler_by_importance(client, importance):
                             }
                         }, ignore=409)
 
-                    # ----------- new_changes -----------------
                     time.sleep(10)
                 except Exception as e:
                     text = f"exception handled form existing_channels_handler_by_importance() function <b>for loop</b>: \n\n{e}"
@@ -1063,9 +1047,8 @@ def existing_channels_handler_by_importance(client, importance):
         except Exception as e:
             text = f"exception handled form existing_channels_handler_by_importance() function: \n\n{e}"
             client.send_message(chromusic_log_id, text)
-            # continue
         finally:
             text = f"existing_channels_handler_by_importance finished and will start again soon\n\n" \
                    f"importance: {importance}"
-            # client.send_message("", text)
+            # client.send_message("me", text)
             time.sleep(30)
