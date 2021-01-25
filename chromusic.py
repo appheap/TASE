@@ -971,7 +971,7 @@ def daily_gathered_channels_controller(client: object) -> bool:
 
 def existing_channels_handler_by_importance(client, importance):
     """
-
+    This function retrieves channels from DB by importance and updates their indexing status
     :param client:
     :param importance:
     :return:
