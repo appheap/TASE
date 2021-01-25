@@ -969,7 +969,7 @@ def daily_gathered_channels_controller(client: object) -> bool:
         daily_gathered_channels_controller(client)
         return False
 
-def existing_channels_handler_by_importance(client, importance):
+def existing_channels_handler_by_importance(client: object, importance: int):
     """
     This function retrieves channels from DB by importance and updates their indexing status
     :param client: Telegram client
