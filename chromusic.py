@@ -1070,3 +1070,26 @@ def existing_channels_handler_by_importance_recent_messages(client, importance):
     :param importance:
     :return:
     """
+    while 1:
+        print("existing_channels_handler_by_importance_recent_messages started ...")
+        # res = helpers.scan(
+        #     client=es,
+        #     query={"query": {
+        #         "match": {
+        #             "importance": importance
+        #         }
+        #     }},
+        #     size=10000,
+        #     scroll='5m',
+        #     index="channel"
+        # )
+        res = es.search(index="channel", body={
+            "query": {
+                "match": {"importance": importance}
+            },
+            "sort": {
+                "last_indexed_offset_date": "asc"
+            }
+        })
+        starting_time = int(time.time())
+        args = "recently"
