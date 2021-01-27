@@ -1100,3 +1100,33 @@ def existing_channels_handler_by_importance_recent_messages(client, importance):
                     delay = timedelta(minutes=20).total_seconds()
                     time.sleep(delay)
                     # break
+
+            channel_db = es.get('channel', id=_channel['_id'], ignore=404)
+            print(f"after existing indexer with client {client}\n{channel_db}")
+            if int(channel_db["_source"]["importance"]) > 0:
+                # existing_channel_indexer(channel_id=int(_channel["_id"]))
+                # ----------- new_changes -----------------
+                es.indices.refresh(index="global_control")
+                status_res = es.get(index="global_control", doc_type="indexing_flag",
+                                    id=_channel["_id"])
+                is_being_indexed = status_res["_source"]["indexing"]
+                print("is being indexed: ", is_being_indexed)
+                if is_being_indexed == True:
+                    continue
+                else:
+                    flag_update_res = es.update(index="global_control", doc_type="indexing_flag",
+                                                id=_channel["_id"], body={
+                            "script": {
+                                "inline": "ctx._source.indexing = params.indexing;",
+                                "lang": "painless",
+                                "params": {
+                                    "indexing": True,
+                                }
+                            }
+                        }, ignore=409)
+                    es.index(index="global_control", doc_type="indexing_flag", id=_channel["_id"],
+                             body={
+                                 "indexing": True,
+                                 "name": _channel["_source"]["username"],
+                                 "importance": _channel["_source"]["importance"]
+                             }, refresh=True)
