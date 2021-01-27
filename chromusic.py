@@ -1093,3 +1093,10 @@ def existing_channels_handler_by_importance_recent_messages(client, importance):
         })
         starting_time = int(time.time())
         args = "recently"
+        for _channel in res["hits"]["hits"]:
+            # Every time only lets the crawler to work 3 hours at max
+            if int(time.time()) - starting_time > timedelta(hours=2).total_seconds():
+                if importance > 0:
+                    delay = timedelta(minutes=20).total_seconds()
+                    time.sleep(delay)
+                    # break
