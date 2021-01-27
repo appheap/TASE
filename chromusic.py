@@ -1072,17 +1072,7 @@ def existing_channels_handler_by_importance_recent_messages(client, importance):
     """
     while 1:
         print("existing_channels_handler_by_importance_recent_messages started ...")
-        # res = helpers.scan(
-        #     client=es,
-        #     query={"query": {
-        #         "match": {
-        #             "importance": importance
-        #         }
-        #     }},
-        #     size=10000,
-        #     scroll='5m',
-        #     index="channel"
-        # )
+
         res = es.search(index="channel", body={
             "query": {
                 "match": {"importance": importance}
@@ -1099,13 +1089,10 @@ def existing_channels_handler_by_importance_recent_messages(client, importance):
                 if importance > 0:
                     delay = timedelta(minutes=20).total_seconds()
                     time.sleep(delay)
-                    # break
 
             channel_db = es.get('channel', id=_channel['_id'], ignore=404)
             print(f"after existing indexer with client {client}\n{channel_db}")
             if int(channel_db["_source"]["importance"]) > 0:
-                # existing_channel_indexer(channel_id=int(_channel["_id"]))
-                # ----------- new_changes -----------------
                 es.indices.refresh(index="global_control")
                 status_res = es.get(index="global_control", doc_type="indexing_flag",
                                     id=_channel["_id"])
