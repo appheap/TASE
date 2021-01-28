@@ -1093,27 +1093,34 @@ def existing_channels_handler_by_importance_recent_messages(client, importance):
             channel_db = es.get('channel', id=_channel['_id'], ignore=404)
             print(f"after existing indexer with client {client}\n{channel_db}")
             if int(channel_db["_source"]["importance"]) > 0:
-                es.indices.refresh(index="global_control")
-                status_res = es.get(index="global_control", doc_type="indexing_flag",
-                                    id=_channel["_id"])
-                is_being_indexed = status_res["_source"]["indexing"]
-                print("is being indexed: ", is_being_indexed)
-                if is_being_indexed == True:
-                    continue
-                else:
-                    flag_update_res = es.update(index="global_control", doc_type="indexing_flag",
-                                                id=_channel["_id"], body={
-                            "script": {
-                                "inline": "ctx._source.indexing = params.indexing;",
-                                "lang": "painless",
-                                "params": {
-                                    "indexing": True,
+                try:
+                    es.indices.refresh(index="global_control")
+                    status_res = es.get(index="global_control", doc_type="indexing_flag",
+                                        id=_channel["_id"])
+                    is_being_indexed = status_res["_source"]["indexing"]
+                    print("is being indexed: ", is_being_indexed)
+                    if is_being_indexed == True:
+                        continue
+                    else:
+                        flag_update_res = es.update(index="global_control", doc_type="indexing_flag",
+                                                    id=_channel["_id"], body={
+                                "script": {
+                                    "inline": "ctx._source.indexing = params.indexing;",
+                                    "lang": "painless",
+                                    "params": {
+                                        "indexing": True,
+                                    }
                                 }
-                            }
-                        }, ignore=409)
-                    es.index(index="global_control", doc_type="indexing_flag", id=_channel["_id"],
-                             body={
-                                 "indexing": True,
-                                 "name": _channel["_source"]["username"],
-                                 "importance": _channel["_source"]["importance"]
-                             }, refresh=True)
+                            }, ignore=409)
+                        es.index(index="global_control", doc_type="indexing_flag", id=_channel["_id"],
+                                 body={
+                                     "indexing": True,
+                                     "name": _channel["_source"]["username"],
+                                     "importance": _channel["_source"]["importance"]
+                                 }, refresh=True)
+                except Exception as e:
+                    es.create(index="global_control", doc_type="indexing_flag", id=_channel["_id"], body={
+                        "indexing": True,
+                        "name": _channel["_source"]["username"],
+                        "importance": _channel["_source"]["importance"]
+                    }, refresh=True, ignore=409)
