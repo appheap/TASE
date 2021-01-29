@@ -1063,7 +1063,7 @@ def existing_channels_handler_by_importance(client: object, importance: int):
         time.sleep(15)
         existing_channels_handler_by_importance(client, importance)
 
-def existing_channels_handler_by_importance_recent_messages(client, importance):
+def existing_channels_handler_by_importance_recent_messages(client: object, importance: int):
     """
     This function retrieves channels from DB by importance and updates their indexing
     :param client: Telegram client
