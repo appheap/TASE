@@ -1065,7 +1065,7 @@ def existing_channels_handler_by_importance(client: object, importance: int):
 
 def existing_channels_handler_by_importance_recent_messages(client, importance):
     """
-
+    This function retrieves channels from DB by importance and updates their indexing
     :param client:
     :param importance:
     :return:
