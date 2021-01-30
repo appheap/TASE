@@ -1172,35 +1172,42 @@ def existing_channel_indexer(client, channel_id, *args):
     :param args:
     :return:
     """
-    print("existing channel indexer started ...")
-    _ch_from_es = es.get(index="channel", id=channel_id)
-    print(f"_ch_from_es: {_ch_from_es}")
-    current_channel_offset_date = int(_ch_from_es['_source']['last_indexed_offset_date'])
-    importance = int(_ch_from_es['_source']['importance'])
-    channel_username = _ch_from_es['_source']['username']
-    lenth_of_history = len(client.get_history(channel_username))
-    text = f"channel_id: {channel_id}\n\n" \
-           f"ch from es: {_ch_from_es}\n\n" \
-           f"importance: {importance}\n\n" \
-           f"channel_username: {channel_username}\n\n" \
-           f"len of history: {lenth_of_history}"
-    # print(f"text: after using client: {text}") # works until here!
-    time.sleep(3)
-    # client.send_message("me", text)
-    if importance > 0:
-        # print("current_channel_offset_date: ", current_channel_offset_date)
-        # print(f"indexing existing channel: {_ch_from_es['_source']['title']} started ...")
-        # print(f"indexing existing channel: {_ch_from_es['_source']['username']} started ...")
-        # print(f"works_until here {channel_username}")
-        if lenth_of_history < 100:
-            # print(f"works_until here less than 100 {channel_username}")
-            # print("channel_with_less_than_100_posts_deleted: ", es.get(index="channel", id=channel))
-            res = es.delete(index="channel", id=channel_id, ignore=[409, 400])
-            # print("deleted_with_less_than_100: ", res)
+    try:
+        print("existing channel indexer started ...")
+        _ch_from_es = es.get(index="channel", id=channel_id)
+        print(f"_ch_from_es: {_ch_from_es}")
+        current_channel_offset_date = int(_ch_from_es['_source']['last_indexed_offset_date'])
+        importance = int(_ch_from_es['_source']['importance'])
+        channel_username = _ch_from_es['_source']['username']
+        lenth_of_history = len(client.get_history(channel_username))
+        text = f"channel_id: {channel_id}\n\n" \
+               f"ch from es: {_ch_from_es}\n\n" \
+               f"importance: {importance}\n\n" \
+               f"channel_username: {channel_username}\n\n" \
+               f"len of history: {lenth_of_history}"
+        # print(f"text: after using client: {text}") # works until here!
+        time.sleep(3)
+        # client.send_message("shelbycobra2016", text)
+        if importance > 0:
+            # print("current_channel_offset_date: ", current_channel_offset_date)
+            # print(f"indexing existing channel: {_ch_from_es['_source']['title']} started ...")
+            # print(f"indexing existing channel: {_ch_from_es['_source']['username']} started ...")
+            # print(f"works_until here {channel_username}")
+            if lenth_of_history < 100:
+                # print(f"works_until here less than 100 {channel_username}")
+                # print("channel_with_less_than_100_posts_deleted: ", es.get(index="channel", id=channel))
+                res = es.delete(index="channel", id=channel_id, ignore=[409, 400])
+                # print("deleted_with_less_than_100: ", res)
 
-        else:
-            audio_file_indexer(client, channel_id, current_channel_offset_date, *args)
-            # print(f"works_until here after audio file indexer:{channel_username}")
-            # print(f"indexing existing channel: {_ch_from_es['_source']['title']} finished ...")
-    print("existing channel indexer finished ...")
-    time.sleep(3)
+            else:
+                audio_file_indexer(client, channel_id, current_channel_offset_date, *args)
+                # print(f"works_until here after audio file indexer:{channel_username}")
+                # print(f"indexing existing channel: {_ch_from_es['_source']['title']} finished ...")
+        print("existing channel indexer finished ...")
+        time.sleep(3)
+    except Exception as e:
+
+        text = f"exception handled form existing_channel_indexer() function: \n\n{e}"
+        if not (str(e).__contains__("NotFoundError(404,") or
+                str(e).__contains__("not supported")):
+            client.send_message(chromusic_log_id, text)
