@@ -1172,3 +1172,18 @@ def existing_channel_indexer(client, channel_id, *args):
     :param args:
     :return:
     """
+    print("existing channel indexer started ...")
+    _ch_from_es = es.get(index="channel", id=channel_id)
+    print(f"_ch_from_es: {_ch_from_es}")
+    current_channel_offset_date = int(_ch_from_es['_source']['last_indexed_offset_date'])
+    importance = int(_ch_from_es['_source']['importance'])
+    channel_username = _ch_from_es['_source']['username']
+    lenth_of_history = len(client.get_history(channel_username))
+    text = f"channel_id: {channel_id}\n\n" \
+           f"ch from es: {_ch_from_es}\n\n" \
+           f"importance: {importance}\n\n" \
+           f"channel_username: {channel_username}\n\n" \
+           f"len of history: {lenth_of_history}"
+    # print(f"text: after using client: {text}") # works until here!
+    time.sleep(3)
+    # client.send_message("me", text)
