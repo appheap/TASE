@@ -1166,11 +1166,11 @@ def existing_channels_handler_by_importance_recent_messages(client: object, impo
 
 def existing_channel_indexer(client, channel_id, *args):
     """
-
-    :param client:
-    :param channel_id:
-    :param args:
-    :return:
+    This function indexes channels that already exist in the database and updates their last indexing status
+    :param client: Telegram client
+    :param channel_id: ID of the previously stored target channel to continue its indexing
+    :param args: Other arguments to pass
+    :return: True on success otherwise, False
     """
     try:
         print("existing channel indexer started ...")
@@ -1205,9 +1205,11 @@ def existing_channel_indexer(client, channel_id, *args):
                 # print(f"indexing existing channel: {_ch_from_es['_source']['title']} finished ...")
         print("existing channel indexer finished ...")
         time.sleep(3)
+        return True
     except Exception as e:
 
         text = f"exception handled form existing_channel_indexer() function: \n\n{e}"
         if not (str(e).__contains__("NotFoundError(404,") or
                 str(e).__contains__("not supported")):
             client.send_message(chromusic_log_id, text)
+        return False
