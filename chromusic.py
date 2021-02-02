@@ -724,6 +724,7 @@ def retrieve_updater(query: str, user: object, channel: str) -> bool:
         }, ignore=409)
         return True
 
+
 def channel_name_extractor(client: object, text: str) -> list:
     """
     Extract channel names if any from the text.
@@ -770,6 +771,7 @@ def channel_name_extractor(client: object, text: str) -> list:
         print(f"exception from caption_entities_channel_extractor() function {e}")
         return []
 
+
 def forwarded_from_channel_extractor(client: object, message: object) -> bool:
     """
     Extract channels' IDs from messages with forwarded_from_chat field and adds them to the set
@@ -789,6 +791,7 @@ def forwarded_from_channel_extractor(client: object, message: object) -> bool:
         print(f"exception from forwarded_from_channel_extractor() function: it may swapped to private "
               f"though unavailable: {e}")
         return False
+
 
 def caption_entities_channel_extractor(client: object, message: object) -> list:
     """
@@ -910,6 +913,7 @@ def caption_entities_channel_extractor(client: object, message: object) -> list:
         return []
     # print(channel_to_index_set)
 
+
 def channel_re_analyzer() -> list:
     """
     Re-analyze channels and re-score their importance
@@ -933,6 +937,7 @@ def channel_re_analyzer() -> list:
             _channel
 
     return res
+
 
 def daily_gathered_channels_controller(client: object) -> bool:
     """
@@ -968,6 +973,7 @@ def daily_gathered_channels_controller(client: object) -> bool:
         client.send_message(chromusic_log_id, text)
         daily_gathered_channels_controller(client)
         return False
+
 
 def existing_channels_handler_by_importance(client: object, importance: int):
     """
@@ -1062,6 +1068,7 @@ def existing_channels_handler_by_importance(client: object, importance: int):
     finally:
         time.sleep(15)
         existing_channels_handler_by_importance(client, importance)
+
 
 def existing_channels_handler_by_importance_recent_messages(client: object, importance: int):
     """
@@ -1164,6 +1171,7 @@ def existing_channels_handler_by_importance_recent_messages(client: object, impo
         time.sleep(15)
         existing_channels_handler_by_importance_recent_messages(client, importance)
 
+
 def existing_channel_indexer(client: object, channel_id: int, *args: list) -> bool:
     """
     This function indexes channels that already exist in the database and updates their last indexing status
@@ -1207,7 +1215,6 @@ def existing_channel_indexer(client: object, channel_id: int, *args: list) -> bo
         time.sleep(3)
         return True
     except Exception as e:
-
         text = f"exception handled form existing_channel_indexer() function: \n\n{e}"
         if not (str(e).__contains__("NotFoundError(404,") or
                 str(e).__contains__("not supported")):
