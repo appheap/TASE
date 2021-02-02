@@ -1164,7 +1164,7 @@ def existing_channels_handler_by_importance_recent_messages(client: object, impo
         time.sleep(15)
         existing_channels_handler_by_importance_recent_messages(client, importance)
 
-def existing_channel_indexer(client, channel_id, *args):
+def existing_channel_indexer(client: object, channel_id: int, *args: list) -> bool:
     """
     This function indexes channels that already exist in the database and updates their last indexing status
     :param client: Telegram client
