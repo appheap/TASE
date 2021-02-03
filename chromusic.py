@@ -600,7 +600,7 @@ def file_retrieve_handler(message: object) -> str:
                             sent_collaboration_request_message = bot.send_message(message.chat.id,
                                                                                   collaboration_request_message)
 
-                    # bot.send_audio("shelbycobra2016", audio_track.audio.file_id,
+                    # bot.send_audio("me", audio_track.audio.file_id,
                     #                caption=_caption)
                     retrieve_updater(query, user, chat_id)
                 else:
@@ -618,7 +618,7 @@ def file_retrieve_handler(message: object) -> str:
                                                      reply_markup=InlineKeyboardMarkup(music_file_keyboard),
                                                      parse_mode="HTML"))
                     send1min.delete()
-                    # bot.send_audio("shelbycobra2016", audio_track.audio.file_id,
+                    # bot.send_audio("me", audio_track.audio.file_id,
                     #                caption=_caption)
                     retrieve_updater(query, user, chat_id)
                 sent_to_datacenter.delete()
