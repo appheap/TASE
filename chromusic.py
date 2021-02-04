@@ -1274,6 +1274,16 @@ def new_channel_indexer(client, channels_username, db_index):
                             print(f"couldn't find the username in {db_index} index")
                             # continue
 
+
+                    # app.send_message("me", f"time spent indexing {chat} " # up
+                    #                        f"channel is {starting_time - int(time.time())} seconds")
+                    print(f"indexing: {chat.username}")
+
+                    # analyze it
+                    # print("sleeping for 1 seconds after getting channel members ...")
+                    time.sleep(1)
+                    importance = channel_analyzer(client.get_history(channel_username), members_count)
+
             except Exception as e:
                 text = f"exception handled form new_channel_indexer() function <b>for loop</b>: \n\n{e}"
                 if not (str(e).__contains__("NotFoundError(404,") or
