@@ -1259,6 +1259,21 @@ def new_channel_indexer(client, channels_username, db_index):
                         print(f"couldn't find the username in {db_index} index")
                         continue
 
+                    try:
+                        time.sleep(5)
+                        chat = client.get_chat(channel_username)
+                        time.sleep(5)
+                    except Exception as e:
+
+                        print(f"handled exception from new_channel_indexer(): {e}")
+                        try:
+                            es.delete(db_index, id=channel_username, ignore=404)
+                            # continue
+                        except Exception as e:
+
+                            print(f"couldn't find the username in {db_index} index")
+                            # continue
+
             except Exception as e:
                 text = f"exception handled form new_channel_indexer() function <b>for loop</b>: \n\n{e}"
                 if not (str(e).__contains__("NotFoundError(404,") or
