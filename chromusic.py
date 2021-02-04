@@ -1220,3 +1220,13 @@ def existing_channel_indexer(client: object, channel_id: int, *args: list) -> bo
                 str(e).__contains__("not supported")):
             client.send_message(chromusic_log_id, text)
         return False
+
+
+def new_channel_indexer(client, channels_username, db_index):
+    """
+
+    :param client:
+    :param channels_username:
+    :param db_index:
+    :return:
+    """
