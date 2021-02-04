@@ -1243,7 +1243,12 @@ def new_channel_indexer(client, channels_username, db_index):
                     time.sleep(delay)
                     # break
                 # print("in the new indexer")
-
+                if int(es.count(index="channel", body={"query": {
+                    "match": {
+                        "username": channel_username
+                    }
+                }})['count']) == 0:
+                    ""
 
             except Exception as e:
                 text = f"exception handled form new_channel_indexer() function <b>for loop</b>: \n\n{e}"
