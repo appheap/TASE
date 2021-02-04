@@ -1248,7 +1248,16 @@ def new_channel_indexer(client, channels_username, db_index):
                         "username": channel_username
                     }
                 }})['count']) == 0:
-                    ""
+                    # print("sleeping for 5 seconds after getting channel info ...")
+                    time.sleep(4)
+                    try:
+                        members_count = client.get_chat_members_count(channel_username)
+
+                        # continue
+                    except Exception as e:
+                        es.delete(db_index, id=channel_username, ignore=404)
+                        print(f"couldn't find the username in {db_index} index")
+                        continue
 
             except Exception as e:
                 text = f"exception handled form new_channel_indexer() function <b>for loop</b>: \n\n{e}"
