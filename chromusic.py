@@ -1230,3 +1230,27 @@ def new_channel_indexer(client, channels_username, db_index):
     :param db_index:
     :return:
     """
+    if len(channels_username) > 0:
+        print(f"new channel indexer started ... {channels_username}")
+        starting_time = int(time.time())
+        for channel_username in channels_username:
+            print(f"channel_username: {channel_username}")
+            # Every time only lets the crawler to work 3 hours at max
+            try:
+                # channel_id = es.get(index=db_index, id=channel_username)["_source"]["id"]
+                if int(time.time()) - starting_time > timedelta(hours=4).total_seconds():
+                    delay = timedelta(minutes=13).total_seconds()
+                    time.sleep(delay)
+                    # break
+                # print("in the new indexer")
+
+
+            except Exception as e:
+                text = f"exception handled form new_channel_indexer() function <b>for loop</b>: \n\n{e}"
+                if not (str(e).__contains__("NotFoundError(404,") or
+                        str(e).__contains__("not supported")):
+                    client.send_message(chromusic_log_id, text)
+                # continue
+            finally:
+                time.sleep(5)
+
