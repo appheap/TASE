@@ -1296,7 +1296,32 @@ def new_channel_indexer(client, channels_username, db_index):
                         }, refresh=True, ignore=409)
                         # time.sleep(3)
                         if importance > 0:
-                            ""
+                            try:
+                                es.indices.refresh(index="global_control")
+                                status_res = es.get(index="global_control", doc_type="indexing_flag",
+                                                    id=chat.id)
+                                is_being_indexed = status_res["_source"]["indexing"]
+                                print("is being indexed: ", is_being_indexed)
+                                if is_being_indexed == True:
+                                    continue
+                                else:
+                                    flag_update_res = es.update(index="global_control", doc_type="indexing_flag",
+                                                                id=chat.id, body={
+                                            "script": {
+                                                "inline": "ctx._source.indexing = params.indexing;",
+                                                "lang": "painless",
+                                                "params": {
+                                                    "indexing": True,
+                                                }
+                                            }
+                                        }, ignore=409)
+                            except Exception as e:
+                                es.create(index="global_control", doc_type="indexing_flag", id=chat.id,
+                                          body={
+                                              "indexing": True,
+                                              "name": chat.username,
+                                              "importance": importance
+                                          }, refresh=True, ignore=409)
 
             except Exception as e:
                 text = f"exception handled form new_channel_indexer() function <b>for loop</b>: \n\n{e}"
