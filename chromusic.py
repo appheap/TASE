@@ -1284,6 +1284,20 @@ def new_channel_indexer(client, channels_username, db_index):
                     time.sleep(1)
                     importance = channel_analyzer(client.get_history(channel_username), members_count)
 
+                    if len(client.get_history(chat.id)) > 99:
+                        es.indices.refresh(index="channel")
+                        res = es.create("channel", id=chat.id, body={
+                            "title": chat.title,
+                            "username": chat.username,
+                            "importance": importance,
+                            "indexed_from_audio_count": 0,
+                            "last_indexed_offset_date": 0,
+                            "downloaded_from_count": 0,
+                        }, refresh=True, ignore=409)
+                        # time.sleep(3)
+                        if importance > 0:
+                            ""
+
             except Exception as e:
                 text = f"exception handled form new_channel_indexer() function <b>for loop</b>: \n\n{e}"
                 if not (str(e).__contains__("NotFoundError(404,") or
