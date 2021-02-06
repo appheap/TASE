@@ -1323,6 +1323,20 @@ def new_channel_indexer(client, channels_username, db_index):
                                               "importance": importance
                                           }, refresh=True, ignore=409)
 
+                            # ----------- new_changes -----------------
+                            audio_file_indexer(client, chat.id, offset_date=0)
+                            # ----------- new_changes -----------------
+                            flag_update_res = es.update(index="global_control", doc_type="indexing_flag",
+                                                        id=chat.id, body={
+                                    "script": {
+                                        "inline": "ctx._source.indexing = params.indexing;",
+                                        "lang": "painless",
+                                        "params": {
+                                            "indexing": False,
+                                        }
+                                    }
+                                }, ignore=409)
+
             except Exception as e:
                 text = f"exception handled form new_channel_indexer() function <b>for loop</b>: \n\n{e}"
                 if not (str(e).__contains__("NotFoundError(404,") or
