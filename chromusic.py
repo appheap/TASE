@@ -1336,25 +1336,36 @@ def new_channel_indexer(client, channels_username, db_index):
                                         }
                                     }
                                 }, ignore=409)
+                        else:
+                            try:
+                                es.delete(db_index, id=channel_username, ignore=404)
+                                # continue
+                            except Exception as e:
+                                text = f"it's not in the {db_index} two to the last except in the main if in the for loop \n\n{e}"
+                                client.send_message(chromusic_log_id, text)
+                                print("it's not in the future_channel/channel_buffer two to the last except"
+                                    " in the main if in the for loop")
                     else:
+                        # print("The number of the shared posts is less than 100")
                         try:
                             es.delete(db_index, id=channel_username, ignore=404)
                             # continue
                         except Exception as e:
-                            text = f"it's not in the {db_index} two to the last except in the main if in the for loop \n\n{e}"
+                            text = f"it's not in the future_channel/channel_buffer one to the last except in the main if in the for loop \n\n{e}"
                             client.send_message(chromusic_log_id, text)
-                            print("it's not in the future_channel/channel_buffer two to the last except"
-                                " in the main if in the for loop")
+                            print(
+                                f"it's not in the future_channel/channel_buffer one to the last except in the main if in the for loop")
                 else:
-                    # print("The number of the shared posts is less than 100")
+                    # print("this is an existing channel")
                     try:
                         es.delete(db_index, id=channel_username, ignore=404)
                         # continue
                     except Exception as e:
-                        text = f"it's not in the future_channel/channel_buffer one to the last except in the main if in the for loop \n\n{e}"
+                        text = f"it's not in the future_channel/channel_buffer last except in the main if in the for loop \n\n{e}"
                         client.send_message(chromusic_log_id, text)
-                        print(
-                            f"it's not in the future_channel/channel_buffer one to the last except in the main if in the for loop")
+                        # print(f"it's not in the future_channel/channel_buffer last except in the main if in the for loop")
+                        # continue
+                    # print("channel successfully deleted from future_channe/channel_bufferl")
 
             except Exception as e:
                 text = f"exception handled form new_channel_indexer() function <b>for loop</b>: \n\n{e}"
