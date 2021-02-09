@@ -1224,7 +1224,7 @@ def existing_channel_indexer(client: object, channel_id: int, *args: list) -> bo
 
 def new_channel_indexer(client, channels_username, db_index):
     """
-
+    Index brand new channels (not existing in the database)
     :param client:
     :param channels_username:
     :param db_index:
