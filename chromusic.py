@@ -1222,12 +1222,12 @@ def existing_channel_indexer(client: object, channel_id: int, *args: list) -> bo
         return False
 
 
-def new_channel_indexer(client, channels_username, db_index):
+def new_channel_indexer(client: object, channels_username: list, db_index: str):
     """
     Index brand new channels (not existing in the database)
     :param client: Telegram client
     :param channels_username: A list of channels' usernames to be indexed
-    :param db_index: Database index
+    :param db_index: Database index (Either from 'future_channel' or 'channel_buffer')
     :return: -
     """
     try:
