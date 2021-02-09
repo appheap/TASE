@@ -1230,149 +1230,161 @@ def new_channel_indexer(client, channels_username, db_index):
     :param db_index:
     :return:
     """
-    if len(channels_username) > 0:
-        print(f"new channel indexer started ... {channels_username}")
-        starting_time = int(time.time())
-        for channel_username in channels_username:
-            print(f"channel_username: {channel_username}")
-            # Every time only lets the crawler to work 3 hours at max
-            try:
-                # channel_id = es.get(index=db_index, id=channel_username)["_source"]["id"]
-                if int(time.time()) - starting_time > timedelta(hours=4).total_seconds():
-                    delay = timedelta(minutes=13).total_seconds()
-                    time.sleep(delay)
-                    # break
-                # print("in the new indexer")
-                if int(es.count(index="channel", body={"query": {
-                    "match": {
-                        "username": channel_username
-                    }
-                }})['count']) == 0:
-                    # print("sleeping for 5 seconds after getting channel info ...")
-                    time.sleep(4)
-                    try:
-                        members_count = client.get_chat_members_count(channel_username)
+    try:
+        if len(channels_username) > 0:
+            print(f"new channel indexer started ... {channels_username}")
+            starting_time = int(time.time())
+            for channel_username in channels_username:
+                print(f"channel_username: {channel_username}")
+                # Every time only lets the crawler to work 3 hours at max
+                try:
+                    # channel_id = es.get(index=db_index, id=channel_username)["_source"]["id"]
+                    if int(time.time()) - starting_time > timedelta(hours=4).total_seconds():
+                        delay = timedelta(minutes=13).total_seconds()
+                        time.sleep(delay)
+                        # break
+                    # print("in the new indexer")
 
-                        # continue
-                    except Exception as e:
-                        es.delete(db_index, id=channel_username, ignore=404)
-                        print(f"couldn't find the username in {db_index} index")
-                        continue
+                    if int(es.count(index="channel", body={"query": {
+                        "match": {
+                            "username": channel_username
+                        }
+                    }})['count']) == 0:
 
-                    try:
-                        time.sleep(5)
-                        chat = client.get_chat(channel_username)
-                        time.sleep(5)
-                    except Exception as e:
-
-                        print(f"handled exception from new_channel_indexer(): {e}")
+                        # print("sleeping for 5 seconds after getting channel info ...")
+                        time.sleep(4)
                         try:
-                            es.delete(db_index, id=channel_username, ignore=404)
+                            members_count = client.get_chat_members_count(channel_username)
+
                             # continue
                         except Exception as e:
-
+                            es.delete(db_index, id=channel_username, ignore=404)
                             print(f"couldn't find the username in {db_index} index")
-                            # continue
+                            continue
 
+                        try:
+                            time.sleep(5)
+                            chat = client.get_chat(channel_username)
+                            time.sleep(5)
+                        except Exception as e:
 
-                    # app.send_message("me", f"time spent indexing {chat} " # up
-                    #                        f"channel is {starting_time - int(time.time())} seconds")
-                    print(f"indexing: {chat.username}")
-
-                    # analyze it
-                    # print("sleeping for 1 seconds after getting channel members ...")
-                    time.sleep(1)
-                    importance = channel_analyzer(client.get_history(channel_username), members_count)
-
-                    if len(client.get_history(chat.id)) > 99:
-                        es.indices.refresh(index="channel")
-                        res = es.create("channel", id=chat.id, body={
-                            "title": chat.title,
-                            "username": chat.username,
-                            "importance": importance,
-                            "indexed_from_audio_count": 0,
-                            "last_indexed_offset_date": 0,
-                            "downloaded_from_count": 0,
-                        }, refresh=True, ignore=409)
-                        # time.sleep(3)
-                        if importance > 0:
-                            try:
-                                es.indices.refresh(index="global_control")
-                                status_res = es.get(index="global_control", doc_type="indexing_flag",
-                                                    id=chat.id)
-                                is_being_indexed = status_res["_source"]["indexing"]
-                                print("is being indexed: ", is_being_indexed)
-                                if is_being_indexed == True:
-                                    continue
-                                else:
-                                    flag_update_res = es.update(index="global_control", doc_type="indexing_flag",
-                                                                id=chat.id, body={
-                                            "script": {
-                                                "inline": "ctx._source.indexing = params.indexing;",
-                                                "lang": "painless",
-                                                "params": {
-                                                    "indexing": True,
-                                                }
-                                            }
-                                        }, ignore=409)
-                            except Exception as e:
-                                es.create(index="global_control", doc_type="indexing_flag", id=chat.id,
-                                          body={
-                                              "indexing": True,
-                                              "name": chat.username,
-                                              "importance": importance
-                                          }, refresh=True, ignore=409)
-
-                            # ----------- new_changes -----------------
-                            audio_file_indexer(client, chat.id, offset_date=0)
-                            # ----------- new_changes -----------------
-                            flag_update_res = es.update(index="global_control", doc_type="indexing_flag",
-                                                        id=chat.id, body={
-                                    "script": {
-                                        "inline": "ctx._source.indexing = params.indexing;",
-                                        "lang": "painless",
-                                        "params": {
-                                            "indexing": False,
-                                        }
-                                    }
-                                }, ignore=409)
-                        else:
+                            print(f"handled exception from new_channel_indexer(): {e}")
                             try:
                                 es.delete(db_index, id=channel_username, ignore=404)
                                 # continue
                             except Exception as e:
-                                text = f"it's not in the {db_index} two to the last except in the main if in the for loop \n\n{e}"
+
+                                print(f"couldn't find the username in {db_index} index")
+                                # continue
+
+                        # app.send_message("me", f"time spent indexing {chat} " # up
+                        #                        f"channel is {starting_time - int(time.time())} seconds")
+                        print(f"indexing: {chat.username}")
+
+                        # analyze it
+                        # print("sleeping for 1 seconds after getting channel members ...")
+                        time.sleep(1)
+                        importance = channel_analyzer(client.get_history(channel_username), members_count)
+                        if len(client.get_history(chat.id)) > 99:
+                            es.indices.refresh(index="channel")
+                            res = es.create("channel", id=chat.id, body={
+                                "title": chat.title,
+                                "username": chat.username,
+                                "importance": importance,
+                                "indexed_from_audio_count": 0,
+                                "last_indexed_offset_date": 0,
+                                "downloaded_from_count": 0,
+                            }, refresh=True, ignore=409)
+                            # time.sleep(3)
+                            if importance > 0:
+                                # ----------- new_changes -----------------
+                                try:
+                                    es.indices.refresh(index="global_control")
+                                    status_res = es.get(index="global_control", doc_type="indexing_flag",
+                                                        id=chat.id)
+                                    is_being_indexed = status_res["_source"]["indexing"]
+                                    print("is being indexed: ", is_being_indexed)
+                                    if is_being_indexed == True:
+                                        continue
+                                    else:
+                                        flag_update_res = es.update(index="global_control", doc_type="indexing_flag",
+                                                                    id=chat.id, body={
+                                                "script": {
+                                                    "inline": "ctx._source.indexing = params.indexing;",
+                                                    "lang": "painless",
+                                                    "params": {
+                                                        "indexing": True,
+                                                    }
+                                                }
+                                            }, ignore=409)
+                                except Exception as e:
+                                    es.create(index="global_control", doc_type="indexing_flag", id=chat.id,
+                                              body={
+                                                  "indexing": True,
+                                                  "name": chat.username,
+                                                  "importance": importance
+                                              }, refresh=True, ignore=409)
+                                # ----------- new_changes -----------------
+                                audio_file_indexer(client, chat.id, offset_date=0)
+                                # ----------- new_changes -----------------
+                                flag_update_res = es.update(index="global_control", doc_type="indexing_flag",
+                                                            id=chat.id, body={
+                                        "script": {
+                                            "inline": "ctx._source.indexing = params.indexing;",
+                                            "lang": "painless",
+                                            "params": {
+                                                "indexing": False,
+                                            }
+                                        }
+                                    }, ignore=409)
+                                # ----------- new_changes ----------------
+                            else:
+                                try:
+                                    es.delete(db_index, id=channel_username, ignore=404)
+                                    # continue
+                                except Exception as e:
+                                    text = f"it's not in the {db_index} two to the last except in the main if in the for loop \n\n{e}"
+                                    client.send_message(chromusic_log_id, text)
+                                    print(
+                                        "it's not in the future_channel/channel_buffer two to the fffflast except in the main if in the for loop")
+                                    # continue
+
+                        else:
+                            # print("The number of the shared posts is less than 100")
+                            try:
+                                es.delete(db_index, id=channel_username, ignore=404)
+                                # continue
+                            except Exception as e:
+                                text = f"it's not in the future_channel/channel_buffer one to the last except in the main if in the for loop \n\n{e}"
                                 client.send_message(chromusic_log_id, text)
-                                print("it's not in the future_channel/channel_buffer two to the last except"
-                                    " in the main if in the for loop")
+                                print(
+                                    f"it's not in the future_channel/channel_buffer one to the last except in the main if in the for loop")
+                                # continue
+                            # print("channel successfully deleted from future_channe/channel_bufferl")
                     else:
-                        # print("The number of the shared posts is less than 100")
+                        # print("this is an existing channel")
                         try:
                             es.delete(db_index, id=channel_username, ignore=404)
                             # continue
                         except Exception as e:
-                            text = f"it's not in the future_channel/channel_buffer one to the last except in the main if in the for loop \n\n{e}"
+                            text = f"it's not in the future_channel/channel_buffer last except in the main if in the for loop \n\n{e}"
                             client.send_message(chromusic_log_id, text)
-                            print(
-                                f"it's not in the future_channel/channel_buffer one to the last except in the main if in the for loop")
-                else:
-                    # print("this is an existing channel")
-                    try:
-                        es.delete(db_index, id=channel_username, ignore=404)
-                        # continue
-                    except Exception as e:
-                        text = f"it's not in the future_channel/channel_buffer last except in the main if in the for loop \n\n{e}"
+                            # print(f"it's not in the future_channel/channel_buffer last except in the main if in the for loop")
+                            # continue
+                        # print("channel successfully deleted from future_channe/channel_bufferl")
+                except Exception as e:
+                    text = f"exception handled form new_channel_indexer() function <b>for loop</b>: \n\n{e}"
+                    if not (str(e).__contains__("NotFoundError(404,") or
+                            str(e).__contains__("not supported")):
                         client.send_message(chromusic_log_id, text)
-                        # print(f"it's not in the future_channel/channel_buffer last except in the main if in the for loop")
-                        # continue
-                    # print("channel successfully deleted from future_channe/channel_bufferl")
+                    # continue
+                finally:
+                    time.sleep(5)
 
-            except Exception as e:
-                text = f"exception handled form new_channel_indexer() function <b>for loop</b>: \n\n{e}"
-                if not (str(e).__contains__("NotFoundError(404,") or
-                        str(e).__contains__("not supported")):
-                    client.send_message(chromusic_log_id, text)
-                # continue
-            finally:
-                time.sleep(5)
-
+    except Exception as e:
+        text = f"exception handled form new_channel_indexer() function: \n\n{e}"
+        app.send_message(chromusic_log_id, text)
+    finally:
+        text = f"new_channel_indexer() finished and will start again ..."
+        # client.send_message(chromusic_log_id, text)
+        time.sleep(30)
