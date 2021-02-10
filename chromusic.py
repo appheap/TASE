@@ -1387,3 +1387,13 @@ def new_channel_indexer(client: object, channels_username: list, db_index: str):
         text = f"new_channel_indexer() finished and will start again ..."
         # client.send_message(chromusic_log_id, text)
         time.sleep(30)
+
+def audio_file_indexer(client, channel_id, offset_date, *args):
+    """
+
+    :param client:
+    :param channel_id:
+    :param offset_date:
+    :param args:
+    :return:
+    """
