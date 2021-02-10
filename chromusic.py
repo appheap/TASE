@@ -1397,3 +1397,13 @@ def audio_file_indexer(client, channel_id, offset_date, *args):
     :param args:
     :return:
     """
+    _messages = []
+    s = int(time.time())
+    _last_message = None
+    _counter = 0
+    speed_limiter_counter = 0
+    limit = 0
+    reverse_index = True
+
+    _ch_from_es = es.get(index="channel", id=channel_id)
+    channel_username = _ch_from_es['_source']['username']
