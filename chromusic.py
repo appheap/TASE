@@ -1407,3 +1407,17 @@ def audio_file_indexer(client, channel_id, offset_date, *args):
 
     _ch_from_es = es.get(index="channel", id=channel_id)
     channel_username = _ch_from_es['_source']['username']
+
+    if len(args) > 0:
+        if args[0] == "recently":
+            # print("from_bottom_up_indexing", es.get(index="channel", id=channel))
+            limit = 20
+            offset_date = 0
+            reverse_index = False
+            # _ch_from_es = es.get(index="channel", id=channel_id)
+            # channel_username = _ch_from_es['_source']['username']
+            if len(client.get_history(channel_username)) < 100:
+                print("channel_with_less_than_100_posts_deleted: ", es.get(index="channel", id=channel_id))
+                res = es.delete("channel", id=channel_id, ignore=404)
+                # print("deleted_with_less_than_100", res)
+                return None
