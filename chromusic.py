@@ -1433,6 +1433,32 @@ def audio_file_indexer(client, channel_id, offset_date, *args):
                         speed_limiter_counter = 0
                         time.sleep(2)
 
+                    if _counter > 9:
+                        # client.send_message("shelbycobra2016", f"https://t.me/{_last_message.chat.username}/{_last_message.message_id}")
+                        # client.send_message("shelbycobra2016", f"{_last_message.message_id}")
+                        # print("in counter 34 ...")
+                        try:
+                            # print("before getting _date ...")
+                            if reverse_index and not _last_message == None:
+                                # _date = int(_last_message.date)
+                                # print("date: ", _date)
+                                response = es.update(index="channel", id=channel_id, body={
+                                    "script": {
+                                        "inline": "ctx._source.last_indexed_offset_date = params.last_indexed_offset_date;",
+                                        "lang": "painless",
+                                        "params": {
+                                            "last_indexed_offset_date": _date,
+                                        }
+                                    }
+                                }, ignore=409)
+                                # print("response: ", response)
+                            # print(es.get("channel", id=channel))
+                        except Exception as e:
+                            print(f"exception from counter: {e}")
+                        # print(f"from counter if: {response}")
+                        # this if is meant to slow down the indexing rate to 35 messages per sec. at max
+
+
                 except FloodWait as e:
                     text = f"FloodWait from audio_file_indexer: \n\n{e}"
                     client.send_message(chromusic_log_id, text)
