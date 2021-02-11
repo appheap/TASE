@@ -1421,3 +1421,39 @@ def audio_file_indexer(client, channel_id, offset_date, *args):
                 res = es.delete("channel", id=channel_id, ignore=404)
                 # print("deleted_with_less_than_100", res)
                 return None
+
+            indexed_from_counter = 0
+            # print("from audio, indexing: ", client.get_chat(channel_username))
+            for message in client.iter_history(channel_username, limit=limit, offset_date=offset_date,
+                                               reverse=reverse_index):
+                try:
+                    _date = int(message.date)
+                    # sleep 2 seconds every 35 iteration
+                    if speed_limiter_counter > 99:
+                        speed_limiter_counter = 0
+                        time.sleep(2)
+
+                except FloodWait as e:
+                    text = f"FloodWait from audio_file_indexer: \n\n{e}"
+                    client.send_message(chromusic_log_id, text)
+                    # print("from audio file indexer: Flood wait exception: ", e)
+                    time.sleep(e.x)
+                except SlowmodeWait as e:
+                    text = f"SlowmodeWait from audio_file_indexer: \n\n{e}"
+                    client.send_message(chromusic_log_id, text)
+                    # print("from audio file indexer: Slowmodewait exception: ", e)
+                    time.sleep(e.x)
+                except TimeoutError as e:
+                    text = f"TimeoutError from audio_file_indexer: \n\n{e}"
+                    client.send_message(chromusic_log_id, text)
+                    # print("Timeout error: sleeping for 20 seconds: ", e)
+                    time.sleep(20)
+                    # pass
+                except ConnectionError as e:
+                    text = f"ConnectionError from audio_file_indexer: \n\n{e}"
+                    client.send_message(chromusic_log_id, text)
+                    # print("Connection error - sleeping for 40 seconds: ", e)
+                except Exception as e:
+                    client.send_message(chromusic_log_id,
+                                        f"from audio_file_indexer: maybe encountered a service message in the for loop\n\n {e}")
+                    print("from audio file indexer: ", e)
