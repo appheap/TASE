@@ -1458,6 +1458,24 @@ def audio_file_indexer(client, channel_id, offset_date, *args):
                         # print(f"from counter if: {response}")
                         # this if is meant to slow down the indexing rate to 35 messages per sec. at max
 
+                        if len(_messages) > 0:
+                            # if not reverse_index:
+                            #     print("len(_messages) > 0: ", _messages)
+                            helpers.bulk(es, audio_data_generator(_messages))
+                            # print("after bulk", _messages[0])
+
+                            response = es.update(index="channel", id=channel_id, body={
+                                "script": {
+                                    "inline": "ctx._source.indexed_from_audio_count += params.indexed_from_audio_count",
+                                    "lang": "painless",
+                                    "params": {
+                                        "indexed_from_audio_count": len(_messages)
+                                    }
+                                }
+                            }, ignore=409)
+
+
+
 
                 except FloodWait as e:
                     text = f"FloodWait from audio_file_indexer: \n\n{e}"
