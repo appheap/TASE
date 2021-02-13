@@ -1488,6 +1488,9 @@ def audio_file_indexer(client, channel_id, offset_date, *args):
 
                             time.sleep(1)
 
+                        _messages = []
+                        _counter = 0
+                        # time.sleep(1)
 
                 except FloodWait as e:
                     text = f"FloodWait from audio_file_indexer: \n\n{e}"
