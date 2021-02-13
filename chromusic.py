@@ -1474,7 +1474,19 @@ def audio_file_indexer(client, channel_id, offset_date, *args):
                                 }
                             }, ignore=409)
 
+                            try:
+                                if es.exists("future_channel", id=channel_username):
+                                    es.delete("future_channel", id=channel_username, ignore=404)
+                                if es.exists("channel_buffer", id=channel_username):
+                                    es.delete("channel_buffer", id=channel_username, ignore=404)
+                                    # print(f"deleted {channel} from database successfully")
+                            except Exception as e:
+                                print(
+                                    "query didn't match any document id --> from future_channel - new channel indexer")
+                                print(f"exact exception: \n{e}")
+                            # print(es.get("channel", id=channel))
 
+                            time.sleep(1)
 
 
                 except FloodWait as e:
