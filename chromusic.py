@@ -1492,6 +1492,24 @@ def audio_file_indexer(client, channel_id, offset_date, *args):
                         _counter = 0
                         # time.sleep(1)
 
+                    if message.audio:
+                        # if limit == 20:
+                        # print("from_bottom_up_indexing message added", message.chat.username,
+                        #       es.count(index="audio", body={"query": {
+                        #           "match": {
+                        #               "file_id": message.audio.file_id
+                        #           }}}), message.audio.title)
+                        # --> following if is as an alternative
+                        # if not es.exists(index="audio", id=str(message.audio.file_id[8:30:3]).replace("-", "d"))
+                        if int(es.count(index="audio_files", body={"query": {
+                            "match": {
+                                "file_id": message.audio.file_id
+                            }
+                        }})['count']) == 0:
+                            _messages.append(message)
+                            # if limit == 20:
+                            # print("message appended", len(_messages))
+
                 except FloodWait as e:
                     text = f"FloodWait from audio_file_indexer: \n\n{e}"
                     client.send_message(chromusic_log_id, text)
