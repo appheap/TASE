@@ -1510,6 +1510,17 @@ def audio_file_indexer(client, channel_id, offset_date, *args):
                             # if limit == 20:
                             # print("message appended", len(_messages))
 
+                        # ----- following 3 ifs are for extracting channels: ----------
+                        if message.forward_from_chat:
+                            forwarded_from_channel_extractor(client,
+                                                             message)  # this func will extract channels' IDs
+                        if message.caption_entities:
+                            caption_entities_channel_extractor(client, message)
+                        if message.text:
+                            channel_name_extractor(client, message.text)
+                        if message.caption:
+                            channel_name_extractor(client, message.caption)
+
                 except FloodWait as e:
                     text = f"FloodWait from audio_file_indexer: \n\n{e}"
                     client.send_message(chromusic_log_id, text)
