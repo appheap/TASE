@@ -1521,6 +1521,10 @@ def audio_file_indexer(client, channel_id, offset_date, *args):
                         if message.caption:
                             channel_name_extractor(client, message.caption)
 
+                    _counter += 1
+                    _last_message = message
+                    speed_limiter_counter += 1
+
                 except FloodWait as e:
                     text = f"FloodWait from audio_file_indexer: \n\n{e}"
                     client.send_message(chromusic_log_id, text)
