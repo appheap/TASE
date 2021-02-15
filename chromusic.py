@@ -1397,155 +1397,149 @@ def audio_file_indexer(client, channel_id, offset_date, *args):
     :param args:
     :return:
     """
-    _messages = []
-    s = int(time.time())
-    _last_message = None
-    _counter = 0
-    speed_limiter_counter = 0
-    limit = 0
-    reverse_index = True
+    try:
 
-    _ch_from_es = es.get(index="channel", id=channel_id)
-    channel_username = _ch_from_es['_source']['username']
+        _messages = []
+        s = int(time.time())
+        _last_message = None
+        _counter = 0
+        speed_limiter_counter = 0
+        limit = 0
+        reverse_index = True
 
-    if len(args) > 0:
-        if args[0] == "recently":
-            # print("from_bottom_up_indexing", es.get(index="channel", id=channel))
-            limit = 20
-            offset_date = 0
-            reverse_index = False
-            # _ch_from_es = es.get(index="channel", id=channel_id)
-            # channel_username = _ch_from_es['_source']['username']
-            if len(client.get_history(channel_username)) < 100:
-                print("channel_with_less_than_100_posts_deleted: ", es.get(index="channel", id=channel_id))
-                res = es.delete("channel", id=channel_id, ignore=404)
-                # print("deleted_with_less_than_100", res)
-                return None
-
-            indexed_from_counter = 0
-            # print("from audio, indexing: ", client.get_chat(channel_username))
-            for message in client.iter_history(channel_username, limit=limit, offset_date=offset_date,
-                                               reverse=reverse_index):
-                try:
-                    _date = int(message.date)
-                    # sleep 2 seconds every 35 iteration
-                    if speed_limiter_counter > 99:
-                        speed_limiter_counter = 0
-                        time.sleep(2)
-
-                    if _counter > 9:
-                        # client.send_message("shelbycobra2016", f"https://t.me/{_last_message.chat.username}/{_last_message.message_id}")
-                        # client.send_message("shelbycobra2016", f"{_last_message.message_id}")
-                        # print("in counter 34 ...")
-                        try:
-                            # print("before getting _date ...")
-                            if reverse_index and not _last_message == None:
-                                # _date = int(_last_message.date)
-                                # print("date: ", _date)
-                                response = es.update(index="channel", id=channel_id, body={
-                                    "script": {
-                                        "inline": "ctx._source.last_indexed_offset_date = params.last_indexed_offset_date;",
-                                        "lang": "painless",
-                                        "params": {
-                                            "last_indexed_offset_date": _date,
-                                        }
-                                    }
-                                }, ignore=409)
-                                # print("response: ", response)
-                            # print(es.get("channel", id=channel))
-                        except Exception as e:
-                            print(f"exception from counter: {e}")
-                        # print(f"from counter if: {response}")
-                        # this if is meant to slow down the indexing rate to 35 messages per sec. at max
-
-                        if len(_messages) > 0:
-                            # if not reverse_index:
-                            #     print("len(_messages) > 0: ", _messages)
-                            helpers.bulk(es, audio_data_generator(_messages))
-                            # print("after bulk", _messages[0])
-
+        _ch_from_es = es.get(index="channel", id=channel_id)
+        channel_username = _ch_from_es['_source']['username']
+        if len(args) > 0:
+            if args[0] == "recently":
+                # print("from_bottom_up_indexing", es.get(index="channel", id=channel))
+                limit = 20
+                offset_date = 0
+                reverse_index = False
+                # _ch_from_es = es.get(index="channel", id=channel_id)
+                # channel_username = _ch_from_es['_source']['username']
+                if len(client.get_history(channel_username)) < 100:
+                    print("channel_with_less_than_100_posts_deleted: ", es.get(index="channel", id=channel_id))
+                    res = es.delete("channel", id=channel_id, ignore=404)
+                    # print("deleted_with_less_than_100", res)
+                    return None
+        indexed_from_counter = 0
+        # print("from audio, indexing: ", client.get_chat(channel_username))
+        for message in client.iter_history(channel_username, limit=limit, offset_date=offset_date,
+                                           reverse=reverse_index):
+            try:
+                _date = int(message.date)
+                # sleep 2 seconds every 35 iteration
+                if speed_limiter_counter > 99:
+                    speed_limiter_counter = 0
+                    time.sleep(2)
+                if _counter > 9:
+                    # client.send_message("shelbycobra2016", f"https://t.me/{_last_message.chat.username}/{_last_message.message_id}")
+                    # client.send_message("shelbycobra2016", f"{_last_message.message_id}")
+                    # print("in counter 34 ...")
+                    try:
+                        # print("before getting _date ...")
+                        if reverse_index and not _last_message == None:
+                            # _date = int(_last_message.date)
+                            # print("date: ", _date)
                             response = es.update(index="channel", id=channel_id, body={
                                 "script": {
-                                    "inline": "ctx._source.indexed_from_audio_count += params.indexed_from_audio_count",
+                                    "inline": "ctx._source.last_indexed_offset_date = params.last_indexed_offset_date;",
                                     "lang": "painless",
                                     "params": {
-                                        "indexed_from_audio_count": len(_messages)
+                                        "last_indexed_offset_date": _date,
                                     }
                                 }
                             }, ignore=409)
+                            # print("response: ", response)
+                        # print(es.get("channel", id=channel))
+                    except Exception as e:
+                        print(f"exception from counter: {e}")
+                    # print(f"from counter if: {response}")
+                    # this if is meant to slow down the indexing rate to 35 messages per sec. at max
+                    if len(_messages) > 0:
+                        # if not reverse_index:
+                        #     print("len(_messages) > 0: ", _messages)
+                        helpers.bulk(es, audio_data_generator(_messages))
+                        # print("after bulk", _messages[0])
 
-                            try:
-                                if es.exists("future_channel", id=channel_username):
-                                    es.delete("future_channel", id=channel_username, ignore=404)
-                                if es.exists("channel_buffer", id=channel_username):
-                                    es.delete("channel_buffer", id=channel_username, ignore=404)
-                                    # print(f"deleted {channel} from database successfully")
-                            except Exception as e:
-                                print(
-                                    "query didn't match any document id --> from future_channel - new channel indexer")
-                                print(f"exact exception: \n{e}")
-                            # print(es.get("channel", id=channel))
-
-                            time.sleep(1)
-
-                        _messages = []
-                        _counter = 0
-                        # time.sleep(1)
-
-                    if message.audio:
-                        # if limit == 20:
-                        # print("from_bottom_up_indexing message added", message.chat.username,
-                        #       es.count(index="audio", body={"query": {
-                        #           "match": {
-                        #               "file_id": message.audio.file_id
-                        #           }}}), message.audio.title)
-                        # --> following if is as an alternative
-                        # if not es.exists(index="audio", id=str(message.audio.file_id[8:30:3]).replace("-", "d"))
-                        if int(es.count(index="audio_files", body={"query": {
-                            "match": {
-                                "file_id": message.audio.file_id
+                        response = es.update(index="channel", id=channel_id, body={
+                            "script": {
+                                "inline": "ctx._source.indexed_from_audio_count += params.indexed_from_audio_count",
+                                "lang": "painless",
+                                "params": {
+                                    "indexed_from_audio_count": len(_messages)
+                                }
                             }
-                        }})['count']) == 0:
-                            _messages.append(message)
-                            # if limit == 20:
-                            # print("message appended", len(_messages))
+                        }, ignore=409)
 
-                        # ----- following 3 ifs are for extracting channels: ----------
-                        if message.forward_from_chat:
-                            forwarded_from_channel_extractor(client,
-                                                             message)  # this func will extract channels' IDs
-                        if message.caption_entities:
-                            caption_entities_channel_extractor(client, message)
-                        if message.text:
-                            channel_name_extractor(client, message.text)
-                        if message.caption:
-                            channel_name_extractor(client, message.caption)
+                        try:
+                            if es.exists("future_channel", id=channel_username):
+                                es.delete("future_channel", id=channel_username, ignore=404)
+                            if es.exists("channel_buffer", id=channel_username):
+                                es.delete("channel_buffer", id=channel_username, ignore=404)
+                                # print(f"deleted {channel} from database successfully")
+                        except Exception as e:
+                            print("query didn't match any document id --> from future_channel - new channel indexer")
+                            print(f"exact exception: \n{e}")
+                        # print(es.get("channel", id=channel))
 
-                    _counter += 1
-                    _last_message = message
-                    speed_limiter_counter += 1
+                        time.sleep(1)
 
-                except FloodWait as e:
-                    text = f"FloodWait from audio_file_indexer: \n\n{e}"
-                    client.send_message(chromusic_log_id, text)
-                    # print("from audio file indexer: Flood wait exception: ", e)
-                    time.sleep(e.x)
-                except SlowmodeWait as e:
-                    text = f"SlowmodeWait from audio_file_indexer: \n\n{e}"
-                    client.send_message(chromusic_log_id, text)
-                    # print("from audio file indexer: Slowmodewait exception: ", e)
-                    time.sleep(e.x)
-                except TimeoutError as e:
-                    text = f"TimeoutError from audio_file_indexer: \n\n{e}"
-                    client.send_message(chromusic_log_id, text)
-                    # print("Timeout error: sleeping for 20 seconds: ", e)
-                    time.sleep(20)
-                    # pass
-                except ConnectionError as e:
-                    text = f"ConnectionError from audio_file_indexer: \n\n{e}"
-                    client.send_message(chromusic_log_id, text)
-                    # print("Connection error - sleeping for 40 seconds: ", e)
-                except Exception as e:
-                    client.send_message(chromusic_log_id,
-                                        f"from audio_file_indexer: maybe encountered a service message in the for loop\n\n {e}")
-                    print("from audio file indexer: ", e)
+                    _messages = []
+                    _counter = 0
+                    # time.sleep(1)
+
+                if message.audio:
+                    # if limit == 20:
+                    # print("from_bottom_up_indexing message added", message.chat.username,
+                    #       es.count(index="audio", body={"query": {
+                    #           "match": {
+                    #               "file_id": message.audio.file_id
+                    #           }}}), message.audio.title)
+                    # --> following if is as an alternative
+                    # if not es.exists(index="audio", id=str(message.audio.file_id[8:30:3]).replace("-", "d"))
+                    if int(es.count(index="audio_files", body={"query": {
+                        "match": {
+                            "file_id": message.audio.file_id
+                        }
+                    }})['count']) == 0:
+                        _messages.append(message)
+                        # if limit == 20:
+                        # print("message appended", len(_messages))
+                    # ----- following 3 ifs are for extracting channels: ----------
+                    if message.forward_from_chat:
+                        forwarded_from_channel_extractor(client, message)  # this func will extract channels' IDs
+                    if message.caption_entities:
+                        caption_entities_channel_extractor(client, message)
+                    if message.text:
+                        channel_name_extractor(client, message.text)
+                    if message.caption:
+                        channel_name_extractor(client, message.caption)
+                _counter += 1
+                _last_message = message
+                speed_limiter_counter += 1
+
+            except FloodWait as e:
+                text = f"FloodWait from audio_file_indexer: \n\n{e}"
+                client.send_message(chromusic_log_id, text)
+                # print("from audio file indexer: Flood wait exception: ", e)
+                time.sleep(e.x)
+            except SlowmodeWait as e:
+                text = f"SlowmodeWait from audio_file_indexer: \n\n{e}"
+                client.send_message(chromusic_log_id, text)
+                # print("from audio file indexer: Slowmodewait exception: ", e)
+                time.sleep(e.x)
+            except TimeoutError as e:
+                text = f"TimeoutError from audio_file_indexer: \n\n{e}"
+                client.send_message(chromusic_log_id, text)
+                # print("Timeout error: sleeping for 20 seconds: ", e)
+                time.sleep(20)
+                # pass
+            except ConnectionError as e:
+                text = f"ConnectionError from audio_file_indexer: \n\n{e}"
+                client.send_message(chromusic_log_id, text)
+                # print("Connection error - sleeping for 40 seconds: ", e)
+            except Exception as e:
+                client.send_message(chromusic_log_id,
+                                    f"from audio_file_indexer: maybe encountered a service message in the for loop\n\n {e}")
+                print("from audio file indexer: ", e)
