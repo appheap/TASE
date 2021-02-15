@@ -1543,3 +1543,29 @@ def audio_file_indexer(client, channel_id, offset_date, *args):
                 client.send_message(chromusic_log_id,
                                     f"from audio_file_indexer: maybe encountered a service message in the for loop\n\n {e}")
                 print("from audio file indexer: ", e)
+            # finally:
+            #     pass
+    except FloodWait as e:
+        text = f"FloodWait from audio_file_indexer. outer try/except: \n\n{e}"
+        client.send_message(chromusic_log_id, text)
+        # print("from audio file indexer: Flood wait exception: ", e)
+        time.sleep(e.x)
+    except SlowmodeWait as e:
+        text = f"SlowmodeWait from audio_file_indexer. outer try/except: \n\n{e}"
+        client.send_message(chromusic_log_id, text)
+        # print("from audio file indexer: Slowmodewait exception: ", e)
+        time.sleep(e.x)
+    except TimeoutError as e:
+        text = f"TimeoutError from audio_file_indexer. outer try/except: \n\n{e}"
+        client.send_message(chromusic_log_id, text)
+        # print("Timeout error: sleeping for 20 seconds: ", e)
+        time.sleep(20)
+        # pass
+    except ConnectionError as e:
+        text = f"ConnectionError from audio_file_indexer. outer try/except: \n\n{e}"
+        client.send_message(chromusic_log_id, text)
+        # print("Connection error - sleeping for 40 seconds: ", e)
+    except Exception as e:
+        client.send_message(chromusic_log_id,
+                            f" outer try/except from audio_file_indexer: maybe encountered a service message\n\n {e}")
+        print("from audio file indexer: ", e)
