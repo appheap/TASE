@@ -1390,11 +1390,11 @@ def new_channel_indexer(client: object, channels_username: list, db_index: str):
 
 def audio_file_indexer(client, channel_id, offset_date, *args):
     """
-
-    :param client:
-    :param channel_id:
-    :param offset_date:
-    :param args:
+    Crawl and index audio files within channels
+    :param client: Telegram client
+    :param channel_id: ID of the current channel being indexed
+    :param offset_date: Offset date of the last indexed message from the current channel
+    :param args: Extra arguments: Possibly contains "recently": whether to index from recent messages(reversed) or not
     :return:
     """
     try:
