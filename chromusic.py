@@ -1395,7 +1395,7 @@ def audio_file_indexer(client, channel_id, offset_date, *args):
     :param channel_id: ID of the current channel being indexed
     :param offset_date: Offset date of the last indexed message from the current channel
     :param args: Extra arguments: Possibly contains "recently": whether to index from recent messages(reversed) or not
-    :return:
+    :return: True on success; otherwise False
     """
     try:
 
@@ -1543,29 +1543,33 @@ def audio_file_indexer(client, channel_id, offset_date, *args):
                 client.send_message(chromusic_log_id,
                                     f"from audio_file_indexer: maybe encountered a service message in the for loop\n\n {e}")
                 print("from audio file indexer: ", e)
-            # finally:
-            #     pass
+
+        return True
     except FloodWait as e:
         text = f"FloodWait from audio_file_indexer. outer try/except: \n\n{e}"
         client.send_message(chromusic_log_id, text)
         # print("from audio file indexer: Flood wait exception: ", e)
         time.sleep(e.x)
+        return False
     except SlowmodeWait as e:
         text = f"SlowmodeWait from audio_file_indexer. outer try/except: \n\n{e}"
         client.send_message(chromusic_log_id, text)
         # print("from audio file indexer: Slowmodewait exception: ", e)
         time.sleep(e.x)
+        return False
     except TimeoutError as e:
         text = f"TimeoutError from audio_file_indexer. outer try/except: \n\n{e}"
         client.send_message(chromusic_log_id, text)
         # print("Timeout error: sleeping for 20 seconds: ", e)
         time.sleep(20)
-        # pass
+        return False
     except ConnectionError as e:
         text = f"ConnectionError from audio_file_indexer. outer try/except: \n\n{e}"
         client.send_message(chromusic_log_id, text)
         # print("Connection error - sleeping for 40 seconds: ", e)
+        return False
     except Exception as e:
         client.send_message(chromusic_log_id,
                             f" outer try/except from audio_file_indexer: maybe encountered a service message\n\n {e}")
         print("from audio file indexer: ", e)
+        return False
