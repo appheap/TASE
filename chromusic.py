@@ -1388,7 +1388,7 @@ def new_channel_indexer(client: object, channels_username: list, db_index: str):
         # client.send_message(chromusic_log_id, text)
         time.sleep(30)
 
-def audio_file_indexer(client, channel_id, offset_date, *args):
+def audio_file_indexer(client: object, channel_id: int, offset_date: int, *args: str) -> bool:
     """
     Crawl and index audio files within channels
     :param client: Telegram client
