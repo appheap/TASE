@@ -1573,3 +1573,9 @@ def audio_file_indexer(client: object, channel_id: int, offset_date: int, *args:
                             f" outer try/except from audio_file_indexer: maybe encountered a service message\n\n {e}")
         print("from audio file indexer: ", e)
         return False
+
+def main_join_left_checker_controller():
+    """
+
+    :return:
+    """
