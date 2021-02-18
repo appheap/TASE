@@ -1580,8 +1580,12 @@ def main_join_left_checker_controller():
     :return:
     """
 
-    delay = random.randint(5, 7)
-    # check_new_member_join_count(chromusic_id)
-    time.sleep(1)
-    check_new_member_join_count(chromusic_fa_id)
-    time.sleep(delay)
+    try:
+        delay = random.randint(5, 7)
+        # check_new_member_join_count(chromusic_id)
+        time.sleep(1)
+        check_new_member_join_count(chromusic_fa_id)
+        time.sleep(delay)
+    except Exception as e:
+        text = f"exception handled form main_join_left_checker_controller() function <b>for loop</b>: \n\n{e}"
+        app.send_message(chromusic_log_id, text)
