@@ -1576,8 +1576,8 @@ def audio_file_indexer(client: object, channel_id: int, offset_date: int, *args:
 
 def main_join_left_checker_controller():
     """
-
-    :return:
+    Control members' joining actions and handle exceptions
+    :return: -
     """
 
     try:
@@ -1598,5 +1598,5 @@ def main_join_left_checker_controller():
         app.send_message(chromusic_log_id, text)
         main_join_left_checker_controller()
     finally:
-        text = f"join/left checker controller is stopped: \n\n"
+        text = f"join/left checker controller has stopped: \n\n"
         app.send_message("shelbycobra2016", text)
