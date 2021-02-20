@@ -1600,3 +1600,10 @@ def main_join_left_checker_controller():
     finally:
         text = f"join/left checker controller has stopped: \n\n"
         app.send_message("shelbycobra2016", text)
+
+def main_index_scheduler_controller():
+    """
+
+    :return:
+    """
+
