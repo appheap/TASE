@@ -1606,4 +1606,60 @@ def main_index_scheduler_controller():
 
     :return:
     """
+    print("index scheduler controller")
+    schedule.every(5).to(7).seconds.do(check_new_member_join_count, chromusic_id)
+    schedule.every(5).to(7).seconds.do(check_new_member_join_count, chromusic_fa_id)
+    schedule.every(1).seconds.do(check_new_member_join_count, chromusic_id)
+    schedule.every(1).seconds.do(check_new_member_join_count, chromusic_fa_id)
 
+    -------------------------- Daily new gathered channels ------------------------
+    schedule.every(1).day.at("00:00").do(daily_gathered_channels_controller)
+    schedule.every(1).day.at("03:30").do(daily_gathered_channels_controller)
+    schedule.every(1).day.at("07:00").do(daily_gathered_channels_controller)
+    schedule.every(1).day.at("10:30").do(daily_gathered_channels_controller)
+    schedule.every(1).day.at("14:00").do(daily_gathered_channels_controller)
+    schedule.every(1).day.at("17:30").do(daily_gathered_channels_controller)
+    schedule.every(1).day.at("21:00").do(daily_gathered_channels_controller)
+    schedule.every(1).day.at("01:30").do(existing_channels_handler_by_importance, 6)
+    importance 5 channels schedule: sat, sun, mon, tue, fri
+    schedule.every(1).minutes.do(daily_gathered_channels_controller)
+
+    schedule.every(30).minutes.do(daily_gathered_channels_controller)
+    schedule.every(3).hours.do(existing_channels_handler_by_importance_recent_messages, 5)
+    schedule.every(6).hours.do(existing_channels_handler_by_importance_recent_messages, 4)
+    schedule.every(10).hours.do(existing_channels_handler_by_importance_recent_messages, 3)
+    schedule.every(15).hours.do(existing_channels_handler_by_importance_recent_messages, 2)
+    schedule.every(24).hours.do(existing_channels_handler_by_importance_recent_messages, 1)
+    schedule.every(30).minutes.do(existing_channels_handler_by_importance, 5)
+    schedule.every(1).hours.do(existing_channels_handler_by_importance, 4)
+    schedule.every(3).hours.do(existing_channels_handler_by_importance, 3)
+    schedule.every(5).hours.do(existing_channels_handler_by_importance, 2)
+    schedule.every(10).hours.do(existing_channels_handler_by_importance, 1)
+
+    schedule.every().saturday.at("01:30").do(existing_channels_handler_by_importance, 5)
+    # schedule.every().saturday.at("01:30").do(existing_channels_handler_by_importance_recent_messages, 5)
+    schedule.every().saturday.at("04:30").do(existing_channels_handler_by_importance, 5)
+    # schedule.every().saturday.at("04:30").do(existing_channels_handler_by_importance_recent_messages, 5)
+    schedule.every().saturday.at("09:30").do(existing_channels_handler_by_importance, 5)
+    schedule.every().saturday.at("14:30").do(existing_channels_handler_by_importance, 5)
+
+    schedule.every().sunday.at("01:30").do(existing_channels_handler_by_importance, 5)
+    # schedule.every().sunday.at("01:30").do(existing_channels_handler_by_importance_recent_messages, 5)
+    schedule.every().sunday.at("04:30").do(existing_channels_handler_by_importance, 5)
+    schedule.every().sunday.at("09:30").do(existing_channels_handler_by_importance, 5)
+    schedule.every().sunday.at("09:30").do(existing_channels_handler_by_importance_recent_messages, 5)
+    schedule.every().sunday.at("14:30").do(existing_channels_handler_by_importance, 5)
+
+    schedule.every().monday.at("01:30").do(existing_channels_handler_by_importance, 5)
+    # schedule.every().monday.at("01:30").do(existing_channels_handler_by_importance_recent_messages, 5)
+    schedule.every().monday.at("04:30").do(existing_channels_handler_by_importance, 5)
+    schedule.every().monday.at("09:30").do(existing_channels_handler_by_importance, 5)
+    schedule.every().monday.at("14:30").do(existing_channels_handler_by_importance, 5)
+    # schedule.every().monday.at("14:30").do(existing_channels_handler_by_importance_recent_messages, 5)
+
+    schedule.every().tuesday.at("01:30").do(existing_channels_handler_by_importance, 5)
+    # schedule.every().tuesday.at("01:30").do(existing_channels_handler_by_importance_recent_messages, 5)
+    schedule.every().tuesday.at("04:30").do(existing_channels_handler_by_importance, 5)
+    schedule.every().tuesday.at("09:30").do(existing_channels_handler_by_importance, 5)
+    # schedule.every().tuesday.at("09:30").do(existing_channels_handler_by_importance_recent_messages, 5)
+    schedule.every().tuesday.at("14:30").do(existing_channels_handler_by_importance, 5)
