@@ -1603,8 +1603,8 @@ def main_join_left_checker_controller():
 
 def main_index_scheduler_controller():
     """
-
-    :return:
+    Manually schedule to index channels
+    :return: -
     """
     try:
         print("index scheduler controller")
@@ -1613,7 +1613,7 @@ def main_index_scheduler_controller():
         schedule.every(1).seconds.do(check_new_member_join_count, chromusic_id)
         schedule.every(1).seconds.do(check_new_member_join_count, chromusic_fa_id)
 
-        -------------------------- Daily new gathered channels ------------------------
+        # -------------------------- Daily new gathered channels ------------------------
         schedule.every(1).day.at("00:00").do(daily_gathered_channels_controller)
         schedule.every(1).day.at("03:30").do(daily_gathered_channels_controller)
         schedule.every(1).day.at("07:00").do(daily_gathered_channels_controller)
@@ -1622,7 +1622,7 @@ def main_index_scheduler_controller():
         schedule.every(1).day.at("17:30").do(daily_gathered_channels_controller)
         schedule.every(1).day.at("21:00").do(daily_gathered_channels_controller)
         schedule.every(1).day.at("01:30").do(existing_channels_handler_by_importance, 6)
-        importance 5 channels schedule: sat, sun, mon, tue, fri
+        # importance 5 channels schedule: sat, sun, mon, tue, fri
         schedule.every(1).minutes.do(daily_gathered_channels_controller)
 
         schedule.every(30).minutes.do(daily_gathered_channels_controller)
@@ -1739,11 +1739,11 @@ def main_index_scheduler_controller():
         schedule.every().wednesday.at("01:30").do(existing_channels_handler_by_importance, 1)
         schedule.every(20).hours.do(existing_channels_handler_by_importance_recent_messages, 1)
         schedule.every().wednesday.at("01:30").do(existing_channels_handler_by_importance_recent_messages, 1)
-        ---------------------end-----------------------------
+        # ---------------------end-----------------------------
 
-        importance 1 channels schedule: wed
+        # importance 1 channels schedule: wed
         schedule.every(15).days.at("14:30").do(existing_channels_handler_by_importance, 0)
-        ---------------------end-----------------------------
+        # ---------------------end-----------------------------
 
         while 1:
             schedule.run_pending()
