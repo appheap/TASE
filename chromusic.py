@@ -1751,3 +1751,9 @@ def main_index_scheduler_controller():
     except Exception as e:
         app.send_message(chromusic_log_id, f"exception from scheduler \n {e}")
         # main_index_scheduler_controller()
+
+def reset_last_index_offset_date():
+    """
+
+    :return:
+    """
