@@ -1754,8 +1754,8 @@ def main_index_scheduler_controller():
 
 def reset_last_index_offset_date():
     """
-
-    :return:
+    Reset the last index date and the number of indexed files for channels after finishing indexing
+    :return: -
     """
     res = helpers.scan(es,
                        query={"query": {"match_all": {}}},
@@ -1774,3 +1774,5 @@ def reset_last_index_offset_date():
                 }
             }
         }, ignore=409)
+
+    return True
