@@ -1757,3 +1757,20 @@ def reset_last_index_offset_date():
 
     :return:
     """
+    res = helpers.scan(es,
+                       query={"query": {"match_all": {}}},
+                       index="channel", size=10000,
+                       scroll='2m', )
+    for hit in res:
+        channel_id = hit["_id"]
+        response = es.update(index="channel", id=channel_id, body={
+            "script": {
+                "inline": "ctx._source.last_indexed_offset_date = params.last_indexed_offset_date;"
+                          "ctx._source.indexed_from_audio_count = params.indexed_from_audio_count;",
+                "lang": "painless",
+                "params": {
+                    "last_indexed_offset_date": 0,
+                    "indexed_from_audio_count": 0,
+                }
+            }
+        }, ignore=409)
