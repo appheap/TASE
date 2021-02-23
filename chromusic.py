@@ -1783,3 +1783,13 @@ def buffer_gathered_channels_controller(client):
     :param client:
     :return:
     """
+    _channels_list_username = []
+    print("existing channels now running  ...")
+    res = helpers.scan(es,
+                       query={"query": {"match_all": {}}},
+                       index="channel_buffer")
+
+    for buffered_candidate_channel in res:
+        _channel_username = _channels_list_username.append(buffered_candidate_channel["_id"])
+
+    new_channel_indexer(client, _channels_list_username, "channel_buffer")
