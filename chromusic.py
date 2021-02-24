@@ -1783,38 +1783,45 @@ def buffer_gathered_channels_controller(client):
     :param client:
     :return:
     """
-    _channels_list_username = []
-    print("existing channels now running  ...")
-    res = helpers.scan(es,
-                       query={"query": {"match_all": {}}},
-                       index="channel_buffer")
+    while 1:
+        try:
+            _channels_list_username = []
+            print("existing channels now running  ...")
+            res = helpers.scan(es,
+                               query={"query": {"match_all": {}}},
+                               index="channel_buffer")
 
-    for buffered_candidate_channel in res:
-        _channel_username = _channels_list_username.append(buffered_candidate_channel["_id"])
-
-    try:
-        new_channel_indexer(client, _channels_list_username, "channel_buffer")
-    except FloodWait as e:
-        text = f"FloodWait from buffer_gathered_channels_controller \n\n{e}"
-        client.send_message(chromusic_log_id, text)
-        # print("from audio file indexer: Flood wait exception: ", e)
-        time.sleep(e.x)
-    except SlowmodeWait as e:
-        text = f"SlowmodeWait from buffer_gathered_channels_controller \n\n{e}"
-        client.send_message(chromusic_log_id, text)
-        # print("from audio file indexer: Slowmodewait exception: ", e)
-        time.sleep(e.x)
-    except TimeoutError as e:
-        text = f"TimeoutError from buffer_gathered_channels_controller \n\n{e}"
-        client.send_message(chromusic_log_id, text)
-        # print("Timeout error: sleeping for 20 seconds: ", e)
-        time.sleep(20)
-        # pass
-    except ConnectionError as e:
-        text = f"ConnectionError from buffer_gathered_channels_controller\n\n{e}"
-        client.send_message(chromusic_log_id, text)
-        # print("Connection error - sleeping for 40 seconds: ", e)
-    except Exception as e:
-        print(f"got exception in buffer_gathered_channels_controller(): {_channel_username} \n\n{e}")
-        es.delete(index="channel_buffer", id=_channel_username, ignore=404)
-    time.sleep(30)
+            for buffered_candidate_channel in res:
+                _channel_username = _channels_list_username.append(buffered_candidate_channel["_id"])
+            try:
+                new_channel_indexer(client, _channels_list_username, "channel_buffer")
+            except FloodWait as e:
+                text = f"FloodWait from buffer_gathered_channels_controller \n\n{e}"
+                client.send_message(chromusic_log_id, text)
+                # print("from audio file indexer: Flood wait exception: ", e)
+                time.sleep(e.x)
+            except SlowmodeWait as e:
+                text = f"SlowmodeWait from buffer_gathered_channels_controller \n\n{e}"
+                client.send_message(chromusic_log_id, text)
+                # print("from audio file indexer: Slowmodewait exception: ", e)
+                time.sleep(e.x)
+            except TimeoutError as e:
+                text = f"TimeoutError from buffer_gathered_channels_controller \n\n{e}"
+                client.send_message(chromusic_log_id, text)
+                # print("Timeout error: sleeping for 20 seconds: ", e)
+                time.sleep(20)
+                # pass
+            except ConnectionError as e:
+                text = f"ConnectionError from buffer_gathered_channels_controller\n\n{e}"
+                client.send_message(chromusic_log_id, text)
+                # print("Connection error - sleeping for 40 seconds: ", e)
+            except Exception as e:
+                print(f"got exception in buffer_gathered_channels_controller(): {_channel_username} \n\n{e}")
+                es.delete(index="channel_buffer", id=_channel_username, ignore=404)
+            time.sleep(30)
+            # print("new indexing channels started ... !")
+        except Exception as e:
+            text = f"exception handled form buffer_gathered_channels_controller() function: \n\n{e}"
+            client.send_message(chromusic_log_id, text)
+        finally:
+            time.sleep(30)
