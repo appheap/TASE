@@ -1779,9 +1779,10 @@ def reset_last_index_offset_date():
 
 def buffer_gathered_channels_controller(client):
     """
-
-    :param client:
-    :return:
+    Check the gathered channel candidates in the buffer and indexes the valid ones.
+    notice: usernames are gathered optimistically (they may or may not be valid usernames)
+    :param client: Telegram client
+    :return: -
     """
     try:
         while 1:
