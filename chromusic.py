@@ -1836,8 +1836,8 @@ def buffer_gathered_channels_controller(client):
 def invalid_title_performer_remover(client):
     """
 
-    :param client:
-    :return:
+    :param client: Telegram client
+    :return: -
     """
     try:
         while 1:
