@@ -1832,3 +1832,10 @@ def buffer_gathered_channels_controller(client):
         text = f"Exception handled out of the while in the buffer_gathered_channels_controller() \n\n{e}"
         client.send_message(chromusic_log_id, text)
         buffer_gathered_channels_controller(client)
+
+def invalid_title_performer_remover(client):
+    """
+
+    :param client:
+    :return:
+    """
