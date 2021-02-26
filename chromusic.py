@@ -1839,46 +1839,52 @@ def invalid_title_performer_remover(client):
     :param client:
     :return:
     """
-    while 1:
-        try:
-            res = es.search(index="audio_files", body={
-                "query": {
-                    "match_all": {}
-                },
-                "sort": {
-                    "last_indexed_offset_date": "desc"
-                }
-            })
-            starting_time = int(time.time())
-            for audio_file in res["hits"]["hits"]:
-                audio = audio_file["_source"]
-                # print(f"_channel: {_channel}")
-                # Every time only lets the crawler to work 3 hours at max
-                try:
-                    if str(audio["chat_username"]).replace("_", " ") in audio["performer"]:
-                        es.update(index="audio_files", )
-                        es.update(index="audio_files", id=audio_file["_id"], body={
-                            "script": {
-                                "inline": "ctx._source.performer = params.performer;",
-                                "lang": "painless",
-                                "params": {
-                                    "performer": " "
+    try:
+        while 1:
+            try:
+                res = es.search(index="audio_files", body={
+                    "query": {
+                        "match_all": {}
+                    },
+                    "sort": {
+                        "last_indexed_offset_date": "desc"
+                    }
+                })
+                starting_time = int(time.time())
+                for audio_file in res["hits"]["hits"]:
+                    audio = audio_file["_source"]
+                    # print(f"_channel: {_channel}")
+                    # Every time only lets the crawler to work 3 hours at max
+                    try:
+                        if str(audio["chat_username"]).replace("_", " ") in audio["performer"]:
+                            es.update(index="audio_files", )
+                            es.update(index="audio_files", id=audio_file["_id"], body={
+                                "script": {
+                                    "inline": "ctx._source.performer = params.performer;",
+                                    "lang": "painless",
+                                    "params": {
+                                        "performer": " "
+                                    }
                                 }
-                            }
-                        })
-                    elif str(audio["chat_username"]).replace("_", " ") in audio["title"]:
-                        es.update(index="audio_files", id=audio_file["_id"], body={
-                            "script": {
-                                "inline": "ctx._source.title = params.title;",
-                                "lang": "painless",
-                                "params": {
-                                    "title": " "
+                            })
+                        elif str(audio["chat_username"]).replace("_", " ") in audio["title"]:
+                            es.update(index="audio_files", id=audio_file["_id"], body={
+                                "script": {
+                                    "inline": "ctx._source.title = params.title;",
+                                    "lang": "painless",
+                                    "params": {
+                                        "title": " "
+                                    }
                                 }
-                            }
-                        })
-                except Exception as e:
-                    text = f"Exception in the for loop from invalid_title_performer_remover() \n\n{e}"
-                    client.send_message(chromusic_log_id, text)
-        except Exception as e:
-            text = f"Exception in the while loop from invalid_title_performer_remover() \n\n{e}"
-            client.send_message(chromusic_log_id, text)
+                            })
+                    except Exception as e:
+                        text = f"Exception in the for loop from invalid_title_performer_remover() \n\n{e}"
+                        client.send_message(chromusic_log_id, text)
+            except Exception as e:
+                text = f"Exception in the while loop from invalid_title_performer_remover() \n\n{e}"
+                client.send_message(chromusic_log_id, text)
+
+    except Exception as e:
+        text = f"encountered exception out of the while loop in the invalid_title_performer_remover()\n\n{e}"
+        print(text)
+        client.send_message(chromusic_log_id, text)
