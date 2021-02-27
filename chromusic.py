@@ -1835,7 +1835,7 @@ def buffer_gathered_channels_controller(client):
 
 def invalid_title_performer_remover(client):
     """
-
+    Detect and remove fake audio-title and audio-performer information. (In case they were channel's username or title).
     :param client: Telegram client
     :return: -
     """
