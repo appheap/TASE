@@ -1888,3 +1888,10 @@ def invalid_title_performer_remover(client):
         text = f"encountered exception out of the while loop in the invalid_title_performer_remover()\n\n{e}"
         print(text)
         client.send_message(chromusic_log_id, text)
+
+def audio_file_forwarder(client):
+    """
+
+    :param client:
+    :return:
+    """
