@@ -1895,3 +1895,14 @@ def audio_file_forwarder(client):
     :param client:
     :return:
     """
+    i = 0
+    for file in client.iter_history(-1001381641403, reverse=True):
+        # if i == 0:
+        #     print(f"operation started ...")
+        if file.audio:
+            if i % 5000 == 0:
+                print(f"{i} audio files forwarded so far!")
+            if i % 65 == 0:
+                time.sleep(2)
+            client.forward_messages("Audiowarehouse", -1001381641403, file.message_id)
+            i += 1
