@@ -1897,12 +1897,35 @@ def audio_file_forwarder(client):
     """
     i = 0
     for file in client.iter_history(-1001381641403, reverse=True):
-        # if i == 0:
-        #     print(f"operation started ...")
-        if file.audio:
-            if i % 5000 == 0:
-                print(f"{i} audio files forwarded so far!")
-            if i % 65 == 0:
-                time.sleep(2)
-            client.forward_messages("Audiowarehouse", -1001381641403, file.message_id)
-            i += 1
+        try:
+            if file.audio:
+                if i % 5000 == 0:
+                    print(f"{i} audio files forwarded so far!")
+                if i % 65 == 0:
+                    time.sleep(2)
+                client.forward_messages("Audiowarehouse", -1001381641403, file.message_id)
+                i += 1
+        except FloodWait as e:
+            text = f"FloodWait from audio_file_forwarder: \n\n{e}"
+            client.send_message(chromusic_log_id, text)
+            # print("from audio file indexer: Flood wait exception: ", e)
+            time.sleep(e.x)
+        except SlowmodeWait as e:
+            text = f"SlowmodeWait from audio_file_forwarder: \n\n{e}"
+            client.send_message(chromusic_log_id, text)
+            # print("from audio file indexer: Slowmodewait exception: ", e)
+            time.sleep(e.x)
+        except TimeoutError as e:
+            text = f"TimeoutError from audio_file_forwarder: \n\n{e}"
+            client.send_message(chromusic_log_id, text)
+            # print("Timeout error: sleeping for 20 seconds: ", e)
+            time.sleep(20)
+            # pass
+        except ConnectionError as e:
+            text = f"ConnectionError from audio_file_forwarder: \n\n{e}"
+            client.send_message(chromusic_log_id, text)
+            # print("Connection error - sleeping for 40 seconds: ", e)
+        except Exception as e:
+            client.send_message(chromusic_log_id,
+                                f"from audio_file_forwarder: \n\n {e}")
+            print("from audio file indexer: ", e)
