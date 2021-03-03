@@ -1929,3 +1929,10 @@ def audio_file_forwarder(client):
             client.send_message(chromusic_log_id,
                                 f"from audio_file_forwarder: \n\n {e}")
             print("from audio file indexer: ", e)
+
+
+def main():
+    """
+
+    :return:
+    """
