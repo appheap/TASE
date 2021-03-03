@@ -1891,9 +1891,9 @@ def invalid_title_performer_remover(client):
 
 def audio_file_forwarder(client):
     """
-
-    :param client:
-    :return:
+    Forward audio files to a channel as backup (* optional to use)
+    :param client: Telegram client
+    :return: -
     """
     i = 0
     for file in client.iter_history(-1001381641403, reverse=True):
