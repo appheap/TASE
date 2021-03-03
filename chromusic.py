@@ -1936,3 +1936,108 @@ def main():
 
     :return:
     """
+    # executor.submit(daily_gathered_channels_controller)
+    # executor.submit(main_index_scheduler_controller)
+
+    # -1001007590017
+    starting_time = int(time.time())
+    # res = es.indices.delete(index="to_index")
+    # res = es.indices.delete(index="audio_files")
+    # res = es.indices.delete(index="channel")
+    # es.indices.delete("admin_log_control")
+
+    # res = es.count(index="channel_buffer", body={
+    #     "query": {
+    #         "match_all": {}
+    #     }
+    # })["count"]
+    # print(f"count of channel_buffer: {res}")
+    for i in es.indices.get("*"):
+        print("index name: ", i)
+    #     res = es.indices.delete(index=i)
+    to_index = es.indices.create(
+        index="to_index",
+        body=to_index_mapping,
+        ignore=400  # ignore 400 already exists code
+    )
+    future_channel = es.indices.create(
+        index="future_channel",
+        body=future_channel_mapping,
+        ignore=400  # ignore 400 already exists code
+    )
+    channel_buffer = es.indices.create(
+        index="channel_buffer",
+        body=channel_buffer_mapping,
+        ignore=400  # ignore 400 already exists code
+    )
+    # audio = es.indices.create(
+    #     index="audio",
+    #     body=audio_files_mapping,
+    #     ignore=400  # ignore 400 already exists code
+    # )
+    audio_files = es.indices.create(
+        index="audio_files",
+        body=audio_files_mapping,
+        ignore=400  # ignore 400 already exists code
+    )
+    channel = es.indices.create(
+        index="channel",
+        body=channel_mapping,
+        ignore=400  # ignore 400 already exists code
+    )
+    user = es.indices.create(
+        index="user",
+        body=channel_mapping,
+        ignore=400  # ignore 400 already exists code
+    )
+    admin_log = es.indices.create(
+        index="admin_log_control",
+        body=admin_log_control_mapping,
+        ignore=400
+    )
+    # es.indices.delete("user_lists")
+    # es.indices.delete("playlist")
+    user_lists = es.indices.create(
+        index="user_lists",
+        body=user_list_mapping,
+        ignore=400
+    )
+    playlists = es.indices.create(
+        index="playlist",
+        body=playlist_mapping,
+        ignore=400
+    )
+
+    res = es.create(index="admin_log_control", id=chromusic_id, body={  # Chromusic channel ID: -1001357823954
+        "last_offset_date": 0,
+        "members_count": 0
+    }, ignore=409)
+    # print(f"from main: ", res)
+    es.create(index="admin_log_control", id=chromusic_fa_id, body={  # Chromusic channel ID: -1001357823954
+        "last_offset_date": 0,
+        "members_count": 0
+    }, ignore=409)
+    # es.delete("user", id=165802777)
+    es.create(index="user", id=165802777, body={  # my ID: 165802777 --> username: shelbycobra2016
+        "first_name": "Soran",
+        "username": "shelbycobra2016",
+        "date_joined": int(time.time()),
+        "downloaded_audio_count": 0,
+        "lang_code": "en",
+        "limited": False,
+        "role": "owner",
+        "coins": 0,
+        "last_active_date": int(time.time()),
+        "is_admin": True,
+        "sex": "neutral",
+        "country": "CA"
+    }, ignore=409)
+    es.update(index="user", id=165802777, body={
+        "script": {
+            "inline": "ctx._source.role = params.role;",
+            "lang": "painless",
+            "params": {
+                "role": "owner"
+            }
+        }
+    }, ignore=409)
