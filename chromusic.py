@@ -2041,3 +2041,21 @@ def main():
             }
         }
     }, ignore=409)
+
+    res = helpers.scan(es,
+                       query={"query": {"match": {
+                           "indexing": True
+                       }}},
+                       index="global_control",
+                       )
+
+    for _channel in res:
+        flag_update_res = es.update(index="global_control", doc_type="indexing_flag", id=_channel["_id"], body={
+            "script": {
+                "inline": "ctx._source.indexing = params.indexing;",
+                "lang": "painless",
+                "params": {
+                    "indexing": False,
+                }
+            }
+        }, ignore=409)
