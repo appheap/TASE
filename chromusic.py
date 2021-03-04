@@ -2063,3 +2063,10 @@ def main():
     except Exception as e:
         print(e)
     print("before revoker() ...")
+
+
+def main_functions_revoker():
+    """
+
+    :return:
+    """
