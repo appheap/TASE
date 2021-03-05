@@ -2070,3 +2070,32 @@ def main_functions_revoker():
 
     :return:
     """
+
+    executor.submit(main_join_left_checker_controller)
+    executor.submit(daily_gathered_channels_controller, app)
+    executor.submit(daily_gathered_channels_controller, app2)
+    # executor.submit(buffer_gathered_channels_controller, app2)
+    for app_instance in indexer_list:
+        executor.submit(buffer_gathered_channels_controller, app_instance)
+        executor.submit(daily_gathered_channels_controller, app_instance)
+        # executor.submit(audio_file_forwarder, app_instance)
+
+    executor.submit(existing_channels_handler_by_importance, app, 5)
+    executor.submit(existing_channels_handler_by_importance, app2, 4)
+    executor.submit(existing_channels_handler_by_importance, app_instance, 4)
+    executor.submit(existing_channels_handler_by_importance, app, 3)
+    executor.submit(existing_channels_handler_by_importance, app2, 2)
+    # executor.submit(existing_channels_handler_by_importance, app_instance, 2)
+    executor.submit(existing_channels_handler_by_importance, app2, 1)
+    executor.submit(existing_channels_handler_by_importance_recent_messages, app, 5)
+    # executor.submit(existing_channels_handler_by_importance_recent_messages, app_instance, 5)
+    executor.submit(existing_channels_handler_by_importance_recent_messages, app2, 4)
+    executor.submit(existing_channels_handler_by_importance_recent_messages, app_instance, 4)
+    executor.submit(existing_channels_handler_by_importance_recent_messages, app, 3)
+    executor.submit(existing_channels_handler_by_importance_recent_messages, app2, 2)
+    # executor.submit(existing_channels_handler_by_importance_recent_messages, app_instance, 2)
+    executor.submit(existing_channels_handler_by_importance_recent_messages, app, 1)
+    # time.sleep(20)
+    # executor.submit(daily_gathered_channels_controller)
+    # time.sleep(20)
+    # executor.submit(daily_gathered_channels_controller)
