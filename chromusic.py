@@ -2103,3 +2103,10 @@ def main_functions_revoker():
     # executor.submit(daily_gathered_channels_controller)
     # time.sleep(20)
     # executor.submit(daily_gathered_channels_controller)
+
+
+def initialize():
+    """
+
+    :return:
+    """
