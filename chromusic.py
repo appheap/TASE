@@ -2067,8 +2067,9 @@ def main():
 
 def main_functions_revoker():
     """
-
-    :return:
+    Revoke indexers, joining-status handlers, etc. and associate respective clients (manually) (* needs to be
+    re-written dynamically.
+    :return: -
     """
 
     executor.submit(main_join_left_checker_controller)
