@@ -1933,8 +1933,9 @@ def audio_file_forwarder(client):
 
 def main():
     """
-
-    :return:
+    Main function of the search engine. Create and initiate indexes and create necessary docs and flags.
+    Revoke main_functions_revoker()
+    :return: -
     """
     # executor.submit(daily_gathered_channels_controller)
     # executor.submit(main_index_scheduler_controller)
@@ -2063,6 +2064,8 @@ def main():
     except Exception as e:
         print(e)
     print("before revoker() ...")
+
+    main_functions_revoker()
 
 
 def main_functions_revoker():
