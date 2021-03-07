@@ -2128,3 +2128,8 @@ def initialize():
     # chromusic_fa_id = -1001448824171 # --> now azar_music ! this is here for later needs
     chromusic_fa_id = -1001243615671
 
+    executor = concurrent.futures.ThreadPoolExecutor(max_workers=27)
+    telegramAPI_connect()
+    # print(app.get_me())
+    db_connect()
+
