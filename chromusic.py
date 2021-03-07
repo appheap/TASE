@@ -2119,5 +2119,12 @@ def initialize():
     global chromusic_users_files_id
     global speed_limiter
 
-
+    speed_limiter = 0
+    chromusic_log_id = -1001279436688
+    datacenter_id = -1001380565527
+    editing_flag = False
+    chromusic_users_files_id = -1001288746290
+    chromusic_id = -1001357823954
+    # chromusic_fa_id = -1001448824171 # --> now azar_music ! this is here for later needs
+    chromusic_fa_id = -1001243615671
 
