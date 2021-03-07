@@ -2133,3 +2133,10 @@ def initialize():
     # print(app.get_me())
     db_connect()
 
+    try:
+        executor.submit(main)
+    except Exception as e:
+        app.send_message(chromusic_log_id, str(e))
+
+    return True
+
