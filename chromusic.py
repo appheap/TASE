@@ -2110,3 +2110,12 @@ def initialize():
 
     :return:
     """
+    global editing_flag
+    global executor
+    global chromusic_id
+    global chromusic_fa_id
+    global datacenter_id
+    global chromusic_log_id
+    global chromusic_users_files_id
+    global speed_limiter
+
