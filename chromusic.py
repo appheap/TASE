@@ -2107,8 +2107,8 @@ def main_functions_revoker():
 
 def initialize():
     """
-
-    :return:
+    Define and initialize global variables and run the main function.
+    :return: True on success
     """
     global editing_flag
     global executor
@@ -2125,7 +2125,6 @@ def initialize():
     editing_flag = False
     chromusic_users_files_id = -1001288746290
     chromusic_id = -1001357823954
-    # chromusic_fa_id = -1001448824171 # --> now azar_music ! this is here for later needs
     chromusic_fa_id = -1001243615671
 
     executor = concurrent.futures.ThreadPoolExecutor(max_workers=27)
