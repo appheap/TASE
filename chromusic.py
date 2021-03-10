@@ -2157,3 +2157,10 @@ def choose_language(bot, message):
         lang_code = "en"
         print("exception from choose language", e)
         pass
+
+    markup_list = language_handler("button_language_list", lang_code)
+    text = language_handler("choose_language_text", lang_code, message.from_user.first_name)
+    exception_handler(bot.send_message(chat_id=message.from_user.id,
+                                       text=text,
+                                       reply_markup=InlineKeyboardMarkup(markup_list),
+                                       parse_mode='HTML'))
