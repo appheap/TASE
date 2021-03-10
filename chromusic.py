@@ -2141,3 +2141,12 @@ def initialize():
 
 if __name__ == '__main__':
     initialize()
+
+
+def choose_language(bot, message):
+    """
+
+    :param bot:
+    :param message:
+    :return:
+    """
