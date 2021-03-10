@@ -2150,3 +2150,10 @@ def choose_language(bot, message):
     :param message:
     :return:
     """
+    try:
+        user_data = es.get(index="user", id=message.from_user.id)["_source"]
+        lang_code = user_data["lang_code"]
+    except Exception as e:
+        lang_code = "en"
+        print("exception from choose language", e)
+        pass
