@@ -2145,10 +2145,10 @@ if __name__ == '__main__':
 
 def choose_language(bot, message):
     """
-
-    :param bot:
-    :param message:
-    :return:
+    Ask users to choose a language among a menu shows a list of available languages.
+    :param bot: Telegram bot client
+    :param message: Telegram message object
+    :return: True on success
     """
     try:
         user_data = es.get(index="user", id=message.from_user.id)["_source"]
@@ -2164,3 +2164,6 @@ def choose_language(bot, message):
                                        text=text,
                                        reply_markup=InlineKeyboardMarkup(markup_list),
                                        parse_mode='HTML'))
+
+    return True
+
