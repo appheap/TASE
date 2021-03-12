@@ -2182,19 +2182,43 @@ def inine_res(bot, query):
     # print(query)
     hidden_character = "‏‏‎ ‎"
 
-    lang_code = es.get("user", id=user.id)["_source"]["lang_code"]
-    if es.get("user", id=user.id)["_source"]["role"] == "searcher":
-        item_title = language_handler("inline_join_channel_title_text", lang_code)
-        item_description = language_handler("inline_join_channel_description_text", lang_code)
-        item_content = language_handler("inline_join_channel_content_text", lang_code)
-        results.append(InlineQueryResultArticle(
-            title=item_title,
-            # description=res["_source"]["performer"],
-            description=item_description,
-            thumb_url="https://telegra.ph/file/cd08f00005cb527e6bcdb.jpg",
-            # "https://www.howtogeek.com/wp-content/uploads/2017/09/img_59b89568ec308.jpg",
-            input_message_content=InputTextMessageContent(item_content, parse_mode="HTML")))
-        exception_handler(
-            bot.answer_inline_query(query.id, results=results,
-                                    cache_time=10, switch_pm_text="Chromusic",
-                                    switch_pm_parameter="back_to_the_bot"))
+    try:
+        lang_code = es.get("user", id=user.id)["_source"]["lang_code"]
+        if es.get("user", id=user.id)["_source"]["role"] == "searcher":
+            item_title = language_handler("inline_join_channel_title_text", lang_code)
+            item_description = language_handler("inline_join_channel_description_text", lang_code)
+            item_content = language_handler("inline_join_channel_content_text", lang_code)
+            results.append(InlineQueryResultArticle(
+                title=item_title,
+                # description=res["_source"]["performer"],
+                description=item_description,
+                thumb_url="https://telegra.ph/file/cd08f00005cb527e6bcdb.jpg",
+                # "https://www.howtogeek.com/wp-content/uploads/2017/09/img_59b89568ec308.jpg",
+                input_message_content=InputTextMessageContent(item_content, parse_mode="HTML")))
+            exception_handler(
+                bot.answer_inline_query(query.id, results=results,
+                                        cache_time=10, switch_pm_text="Chromusic",
+                                        switch_pm_parameter="back_to_the_bot"))
+    except Exception as e:
+        try:
+            item_title = language_handler("inline_start_bot_title_text", "en")
+            item_description = language_handler("inline_start_bot_description_text", "en")
+            item_content = language_handler("inline_start_bot_content_text", "en")
+            content = f"<a href ='https://t.me/chromusic_bot'><b>Chromusic bot:</b> audio file search engine</a>\n\n" \
+                      f"Channel: @Chromusic\n" \
+                      f"Persian channel: @Chromusic_fa"
+            results.append(InlineQueryResultArticle(
+                title=item_title,
+                # description=res["_source"]["performer"],
+                description=item_description,
+                thumb_url="https://telegra.ph/file/cd08f00005cb527e6bcdb.jpg",
+                # "https://www.howtogeek.com/wp-content/uploads/2017/09/img_59b89568ec308.jpg",
+                input_message_content=InputTextMessageContent(item_content, parse_mode="HTML")))
+            exception_handler(
+                bot.answer_inline_query(query.id, results=results,
+                                        cache_time=10, switch_pm_text="Start", switch_pm_parameter="back_to_the_bot"))
+        except Exception as e:
+            # exception_handler(
+            #     bot.answer_inline_query(query.id, results=results,
+            #                             cache_time=10))
+            print(f"exception from first inline result exception handler: {e}")
