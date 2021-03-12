@@ -2222,3 +2222,34 @@ def inine_res(bot, query):
             #     bot.answer_inline_query(query.id, results=results,
             #                             cache_time=10))
             print(f"exception from first inline result exception handler: {e}")
+
+    back_text = language_handler("back_to_the_bot", lang_code)
+
+    if str(query.query).__contains__("#more_results:"):
+        # results_list = es.search(index="audio_files", body={"query": {
+        #     "multi_match": {
+        #         "query": str(query.query).split("#more_results:")[-1].replace("_", ""),
+        #         "fields": ["title", "performer", "file_name"],
+        #         "fuzziness": "AUTO",
+        #         "tie_breaker": 0.5
+        #     }}}, from_=10, size=40)
+
+        # es.search(index="audio_files", body={"query": {
+        #     "multi_match": {
+        #         "query": processed_query,
+        #         "type": "best_fields",
+        #         "fields": ["title", "file_name", "performer"],  # , "caption"],
+        #         # "fuzziness": "AUTO",
+        #         # "tie_breaker": 0.5,
+        #         "minimum_should_match": "60%"
+        #     }}})
+        processed_query = str(str(query.query).split("#more_results:")[-1]).replace("_", " ")
+        results_list = es.search(index="audio_files", body={"query": {
+            "multi_match": {
+                "query": processed_query,
+                "type": "best_fields",
+                "fields": ["title", "file_name", "performer"],  # , "caption"],
+                # "fuzziness": "AUTO",
+                # "tie_breaker": 0.5,
+                "minimum_should_match": "60%"
+            }}}, from_=0, size=50)
