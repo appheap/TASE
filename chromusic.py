@@ -2167,7 +2167,7 @@ def choose_language(bot, message):
 
     return True
 
-
+@bot.on_inline_query()
 def inine_res(bot, query):
     """
 
@@ -2181,3 +2181,20 @@ def inine_res(bot, query):
     # if str(query.query).split(":")[1] == "playlists":
     # print(query)
     hidden_character = "‏‏‎ ‎"
+
+    lang_code = es.get("user", id=user.id)["_source"]["lang_code"]
+    if es.get("user", id=user.id)["_source"]["role"] == "searcher":
+        item_title = language_handler("inline_join_channel_title_text", lang_code)
+        item_description = language_handler("inline_join_channel_description_text", lang_code)
+        item_content = language_handler("inline_join_channel_content_text", lang_code)
+        results.append(InlineQueryResultArticle(
+            title=item_title,
+            # description=res["_source"]["performer"],
+            description=item_description,
+            thumb_url="https://telegra.ph/file/cd08f00005cb527e6bcdb.jpg",
+            # "https://www.howtogeek.com/wp-content/uploads/2017/09/img_59b89568ec308.jpg",
+            input_message_content=InputTextMessageContent(item_content, parse_mode="HTML")))
+        exception_handler(
+            bot.answer_inline_query(query.id, results=results,
+                                    cache_time=10, switch_pm_text="Chromusic",
+                                    switch_pm_parameter="back_to_the_bot"))
