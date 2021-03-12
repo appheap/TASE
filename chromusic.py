@@ -2175,3 +2175,9 @@ def inine_res(bot, query):
     :param query:
     :return:
     """
+    print("got inline")
+    results = []
+    user = query.from_user
+    # if str(query.query).split(":")[1] == "playlists":
+    # print(query)
+    hidden_character = "‏‏‎ ‎"
