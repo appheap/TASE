@@ -2167,3 +2167,11 @@ def choose_language(bot, message):
 
     return True
 
+
+def inine_res(bot, query):
+    """
+
+    :param bot:
+    :param query:
+    :return:
+    """
