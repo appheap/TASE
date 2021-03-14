@@ -2305,7 +2305,7 @@ def inine_res(bot, query):
                     # "tie_breaker": 0.5,
                     "minimum_should_match": "50%"
                 }}}, size=50 - res_len)
-            
+
             for index, hit in enumerate(results_list["hits"]["hits"]):
                 duration = timedelta(seconds=int(hit['_source']['duration']))
                 d = datetime(1, 1, 1) + duration
@@ -2325,5 +2325,12 @@ def inine_res(bot, query):
                                    f"{_clock_emoji} | {str(d.hour) + ':' if d.hour > 0 else ''}{d.minute}:{d.second}"  # 1000_000 MB
                 item_title = hidden_character + str(index + res_len + 1) + '. ' + _title
 
+                results.append(InlineQueryResultArticle(
+                    title=item_title,
+                    # description=res["_source"]["performer"],
+                    description=item_describtion,
+                    thumb_url="https://telegra.ph/file/cd08f00005cb527e6bcdb.jpg",
+                    # "https://www.howtogeek.com/wp-content/uploads/2017/09/img_59b89568ec308.jpg",
+                    input_message_content=InputTextMessageContent(_caption_content, parse_mode="HTML")))
 
 
