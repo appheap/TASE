@@ -2292,5 +2292,20 @@ def inine_res(bot, query):
                     # input_message_content=InputTextMessageContent(_caption_content, parse_mode="HTML")))
                     input_message_content=InputTextMessageContent(f"‎‎/dl_{hit['_id']}", parse_mode="HTML")))
 
+        if res_len < 40:
+            """
+            If the previous search results count was less than 40 then do a fuzzy search to suggrst more results
+            """
+            results_list = es.search(index="audio_files", body={"query": {
+                "multi_match": {
+                    "query": processed_query,
+                    "type": "best_fields",
+                    "fields": ["title", "file_name", "performer"],  # , "caption"],
+                    "fuzziness": "AUTO",
+                    # "tie_breaker": 0.5,
+                    "minimum_should_match": "50%"
+                }}}, size=50 - res_len)
+
+
 
 
