@@ -2333,4 +2333,8 @@ def inine_res(bot, query):
                     # "https://www.howtogeek.com/wp-content/uploads/2017/09/img_59b89568ec308.jpg",
                     input_message_content=InputTextMessageContent(_caption_content, parse_mode="HTML")))
 
+        exception_handler(
+            bot.answer_inline_query(query.id, results=results,
+                                    cache_time=10, switch_pm_text=back_text, switch_pm_parameter="back_to_the_bot"))
+
 
