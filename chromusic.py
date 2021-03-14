@@ -2305,7 +2305,25 @@ def inine_res(bot, query):
                     # "tie_breaker": 0.5,
                     "minimum_should_match": "50%"
                 }}}, size=50 - res_len)
+            
+            for index, hit in enumerate(results_list["hits"]["hits"]):
+                duration = timedelta(seconds=int(hit['_source']['duration']))
+                d = datetime(1, 1, 1) + duration
 
+                temp_perf_res = hit["_source"]["performer"]
+                temp_titl_res = hit["_source"]["title"]
+                temp_filnm_res = hit["_source"]["file_name"]
+                # _title = hit["_source"]["title"]
+                _performer = temp_perf_res if len(temp_perf_res) > 0 else temp_filnm_res
+                _performer = textwrap.shorten(_performer, width=34, placeholder='...')
+                _title = temp_titl_res if len(temp_titl_res) > 1 else temp_filnm_res
+                _title = textwrap.shorten(_title, width=34, placeholder='...')
+
+                _caption_content = language_handler("inline_file_caption", lang_code, hit)
+                item_describtion = f"{hidden_character}‎{_performer}\n" \
+                                   f"{hidden_character}{_floppy_emoji} | {round(int(hit['_source']['file_size']) / 1_048_576, 1)} MB  " \
+                                   f"{_clock_emoji} | {str(d.hour) + ':' if d.hour > 0 else ''}{d.minute}:{d.second}"  # 1000_000 MB
+                item_title = hidden_character + str(index + res_len + 1) + '. ' + _title
 
 
 
