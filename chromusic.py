@@ -2337,4 +2337,19 @@ def inine_res(bot, query):
             bot.answer_inline_query(query.id, results=results,
                                     cache_time=10, switch_pm_text=back_text, switch_pm_parameter="back_to_the_bot"))
 
+    elif str(query.query).__contains__("#addtopl:"):
+        # print(query)
+
+        file_id = str(query.query).split(" ")[1]
+        audio_file = es.get("audio_files", id=file_id)
+        print("audio file in on_inline:", audio_file)
+        number_of_playlists = es.count(index="playlist", body={
+            "query": {
+                "match": {
+                    "author_id": user.id
+                }
+            }
+        })["count"]
+        new_pl_header = True
+
 
