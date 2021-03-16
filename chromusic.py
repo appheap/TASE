@@ -2338,38 +2338,38 @@ def inine_res(bot, query):
                                     cache_time=10, switch_pm_text=back_text, switch_pm_parameter="back_to_the_bot"))
 
     elif str(query.query).__contains__("#addtopl:"):
-        # print(query)
-
-        file_id = str(query.query).split(" ")[1]
-        audio_file = es.get("audio_files", id=file_id)
-        print("audio file in on_inline:", audio_file)
-        number_of_playlists = es.count(index="playlist", body={
-            "query": {
-                "match": {
-                    "author_id": user.id
+        try:
+            file_id = str(query.query).split(" ")[1]
+            audio_file = es.get("audio_files", id=file_id)
+            print("audio file in on_inline:", audio_file)
+            number_of_playlists = es.count(index="playlist", body={
+                "query": {
+                    "match": {
+                        "author_id": user.id
+                    }
                 }
-            }
-        })["count"]
-        new_pl_header = True
-
-        if number_of_playlists > 4:
-            new_pl_header = False
-        # playlists = es.get("user_lists", id=user.id)["_source"]["playlists"]
-        playlists_result = es.search(index="playlist", body={
-            "query": {
-                "match": {
-                    "author_id": user.id
+            })["count"]
+            new_pl_header = True
+            if number_of_playlists > 4:
+                new_pl_header = False
+            # playlists = es.get("user_lists", id=user.id)["_source"]["playlists"]
+            playlists_result = es.search(index="playlist", body={
+                "query": {
+                    "match": {
+                        "author_id": user.id
+                    }
                 }
-            }
-        })["hits"]["hits"]
-        playlists = []
-        for pl in playlists_result:
-            playlists.append(pl)
-        print("\n\n\n\n\nplaylists", playlists)
-        func = "addpl"
-        playlist_inline_keyboard = language_handler("playlist_keyboard", lang_code, playlists, audio_file,
-                                                    new_pl_header, func)
-        bot.answer_inline_query(query.id, results=playlist_inline_keyboard,
-                                cache_time=1, switch_pm_text=back_text, switch_pm_parameter="back_to_the_bot")
-        print("playlists:", playlists)
+            })["hits"]["hits"]
+            playlists = []
+            for pl in playlists_result:
+                playlists.append(pl)
+            print("\n\n\n\n\nplaylists", playlists)
+            func = "addpl"
+            playlist_inline_keyboard = language_handler("playlist_keyboard", lang_code, playlists, audio_file,
+                                                        new_pl_header, func)
+            bot.answer_inline_query(query.id, results=playlist_inline_keyboard,
+                                    cache_time=1, switch_pm_text=back_text, switch_pm_parameter="back_to_the_bot")
+            print("playlists:", playlists)
+        except Exception as e:
+            print("from inline query- #addtopl: ", e)
 
