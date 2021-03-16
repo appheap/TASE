@@ -2366,4 +2366,10 @@ def inine_res(bot, query):
         for pl in playlists_result:
             playlists.append(pl)
         print("\n\n\n\n\nplaylists", playlists)
+        func = "addpl"
+        playlist_inline_keyboard = language_handler("playlist_keyboard", lang_code, playlists, audio_file,
+                                                    new_pl_header, func)
+        bot.answer_inline_query(query.id, results=playlist_inline_keyboard,
+                                cache_time=1, switch_pm_text=back_text, switch_pm_parameter="back_to_the_bot")
+        print("playlists:", playlists)
 
