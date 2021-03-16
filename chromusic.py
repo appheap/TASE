@@ -2352,4 +2352,18 @@ def inine_res(bot, query):
         })["count"]
         new_pl_header = True
 
+        if number_of_playlists > 4:
+            new_pl_header = False
+        # playlists = es.get("user_lists", id=user.id)["_source"]["playlists"]
+        playlists_result = es.search(index="playlist", body={
+            "query": {
+                "match": {
+                    "author_id": user.id
+                }
+            }
+        })["hits"]["hits"]
+        playlists = []
+        for pl in playlists_result:
+            playlists.append(pl)
+        print("\n\n\n\n\nplaylists", playlists)
 
