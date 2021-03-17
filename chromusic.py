@@ -2168,12 +2168,12 @@ def choose_language(bot, message):
     return True
 
 @bot.on_inline_query()
-def inine_res(bot, query):
+def inine_res(bot: object, query: object) -> object:
     """
 
-    :param bot:
-    :param query:
-    :return:
+    :param bot: Telegram bot client
+    :param query: Telegram query object
+    :return: Query answers on success, report the problem otherwise
     """
     print("got inline")
     results = []
