@@ -2391,3 +2391,12 @@ def inine_res(bot: object, query: object) -> object:
                                                     show_add_pl_header, func)
         bot.answer_inline_query(query.id, results=playlist_inline_keyboard,
                                 cache_time=1, switch_pm_text=back_text, switch_pm_parameter="back_to_the_bot")
+
+    elif str(query.query) == ("#myplaylists"):
+        playlists_result = es.search(index="playlist", body={
+            "query": {
+                "match": {
+                    "author_id": user.id
+                }
+            }
+        })["hits"]["hits"]
