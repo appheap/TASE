@@ -2377,8 +2377,10 @@ def inine_res(bot: object, query: object) -> object:
         download_history = []
         history_result = es.get(index="user_lists", id=user.id)["_source"]["downloaded_audio_id_list"]
         for index, pl in enumerate(history_result):
-
-            audio_file = es.get(index="audio_files", id=pl)
-            download_history.append(audio_file)
-            print(audio_file)
-
+            try:
+                audio_file = es.get(index="audio_files", id=pl)
+                download_history.append(audio_file)
+                print(audio_file)
+            except Exception as e:
+                print("exception from get_history ", e)
+                continue
