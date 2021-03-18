@@ -2373,3 +2373,7 @@ def inine_res(bot: object, query: object) -> object:
         except Exception as e:
             print("from inline query- #addtopl: ", e)
 
+    elif str(query.query) == ("#history"):
+        download_history = []
+        history_result = es.get(index="user_lists", id=user.id)["_source"]["downloaded_audio_id_list"]
+
