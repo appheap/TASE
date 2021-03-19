@@ -2403,3 +2403,10 @@ def inine_res(bot: object, query: object) -> object:
         playlists = []
         for pl in playlists_result:
             playlists.append(pl)
+
+        func = "playlists"
+        show_add_pl_header = False
+        playlist_inline_keyboard = language_handler("playlist_keyboard", lang_code, playlists, "audio_file",
+                                                    show_add_pl_header, func)
+        bot.answer_inline_query(query.id, results=playlist_inline_keyboard,
+                                cache_time=1, switch_pm_text=back_text, switch_pm_parameter="back_to_the_bot")
