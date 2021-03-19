@@ -2410,3 +2410,7 @@ def inine_res(bot: object, query: object) -> object:
                                                     show_add_pl_header, func)
         bot.answer_inline_query(query.id, results=playlist_inline_keyboard,
                                 cache_time=1, switch_pm_text=back_text, switch_pm_parameter="back_to_the_bot")
+
+    elif str(query.query).__contains__("#showfiles"):
+        playlist_id = str(query.query).split(" ")[1]
+        results_list = es.get(index="playlist", id=playlist_id)["_source"]
