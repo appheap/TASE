@@ -2400,3 +2400,6 @@ def inine_res(bot: object, query: object) -> object:
                 }
             }
         })["hits"]["hits"]
+        playlists = []
+        for pl in playlists_result:
+            playlists.append(pl)
