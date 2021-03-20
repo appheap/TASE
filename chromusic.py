@@ -2414,3 +2414,13 @@ def inine_res(bot: object, query: object) -> object:
     elif str(query.query).__contains__("#showfiles"):
         playlist_id = str(query.query).split(" ")[1]
         results_list = es.get(index="playlist", id=playlist_id)["_source"]
+        for index, file_id in enumerate(results_list["list"]):
+            res = es.get(index="audio_files", id=file_id)["_source"]
+            item_title = f"{str(index + 1)}. {res['title']}"
+            item_title = hidden_character + item_title
+            item_description = f"{hidden_character}{res['performer']}"
+            results.append(InlineQueryResultArticle(
+                title=item_title,
+                description=item_description,
+                thumb_url="https://telegra.ph/file/6e6831bdd89011688bddb.jpg",
+                input_message_content=InputTextMessageContent(f"/dl_{file_id}", parse_mode="HTML")))
