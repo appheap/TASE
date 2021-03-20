@@ -2424,3 +2424,6 @@ def inine_res(bot: object, query: object) -> object:
                 description=item_description,
                 thumb_url="https://telegra.ph/file/6e6831bdd89011688bddb.jpg",
                 input_message_content=InputTextMessageContent(f"/dl_{file_id}", parse_mode="HTML")))
+        exception_handler(
+            bot.answer_inline_query(query.id, results=results,
+                                    cache_time=10, switch_pm_text=back_text, switch_pm_parameter="back_to_the_bot"))
