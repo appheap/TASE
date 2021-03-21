@@ -2441,3 +2441,18 @@ def inine_res(bot: object, query: object) -> object:
         # query_id = str(query.query).split(" ")[1].split(":")[1]
         def unpack(s):
             return " ".join(map(str, s))
+
+        print("from edit title:", query)
+        if len(str(query.query).split(" ")) > 2:
+            args = str(query.query).split(' ')[2:]
+            new_title = f"{hidden_character}{unpack(args)}"
+            results.append(InlineQueryResultArticle(
+                title="Save",
+                description=new_title,
+                thumb_url="https://www.howtogeek.com/wp-content/uploads/2017/09/img_59b89568ec308.jpg",
+                input_message_content=InputTextMessageContent(f"/edit_pl_title {playlist_id} {new_title}",
+                                                              parse_mode="HTML")))
+            exception_handler(
+                bot.answer_inline_query(query.id, results=results,
+                                        cache_time=1, switch_pm_text=back_text,
+                                        switch_pm_parameter="back_to_the_bot"))
