@@ -2431,3 +2431,11 @@ def inine_res(bot: object, query: object) -> object:
                                         cache_time=10, switch_pm_text=back_text, switch_pm_parameter="back_to_the_bot"))
         except Exception as e:
             print("print from show files: ", e)
+
+    elif str(query.query).__contains__("#edit_title"):
+
+        result = []
+
+        playlist_id = str(query.query).split(" ")[1]
+
+        # query_id = str(query.query).split(" ")[1].split(":")[1]
