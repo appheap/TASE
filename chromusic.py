@@ -2439,3 +2439,5 @@ def inine_res(bot: object, query: object) -> object:
         playlist_id = str(query.query).split(" ")[1]
 
         # query_id = str(query.query).split(" ")[1].split(":")[1]
+        def unpack(s):
+            return " ".join(map(str, s))
