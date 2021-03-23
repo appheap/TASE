@@ -2434,39 +2434,104 @@ def inine_res(bot: object, query: object) -> object:
 
     elif str(query.query).__contains__("#edit_title"):
 
+        try:
+            result = []
+
+            playlist_id = str(query.query).split(" ")[1]
+
+            # query_id = str(query.query).split(" ")[1].split(":")[1]
+            def unpack(s):
+                return " ".join(map(str, s))
+
+            print("from edit title:", query)
+            if len(str(query.query).split(" ")) > 2:
+                args = str(query.query).split(' ')[2:]
+                new_title = f"{hidden_character}{unpack(args)}"
+                results.append(InlineQueryResultArticle(
+                    title="Save",
+                    description=new_title,
+                    thumb_url="https://www.howtogeek.com/wp-content/uploads/2017/09/img_59b89568ec308.jpg",
+                    input_message_content=InputTextMessageContent(f"/edit_pl_title {playlist_id} {new_title}",
+                                                                  parse_mode="HTML")))
+                exception_handler(
+                    bot.answer_inline_query(query.id, results=results,
+                                            cache_time=1, switch_pm_text=back_text,
+                                            switch_pm_parameter="back_to_the_bot"))
+
+            else:
+                title = language_handler("edit_playlist_information_guide", lang_code, "title")
+                description = language_handler("edit_playlist_information_guide", lang_code, "description")
+                results.append(InlineQueryResultArticle(
+                    title=title,
+                    description=description,
+                    thumb_url="https://www.howtogeek.com/wp-content/uploads/2017/09/img_59b89568ec308.jpg",
+                    input_message_content=InputTextMessageContent(f"/edit_pl_title {playlist_id} default title",
+                                                                  parse_mode="HTML")))
+                exception_handler(
+                    bot.answer_inline_query(query.id, results=results,
+                                            cache_time=1, switch_pm_text=back_text,
+                                            switch_pm_parameter="back_to_the_bot"))
+        except:
+            print("from #editfile inline: ", e)
+
+
+    elif str(query.query).__contains__("#edit_description"):
+
         result = []
 
-        playlist_id = str(query.query).split(" ")[1]
+        try:
+            print("query    ", query.query)
+            playlist_id = str(query.query).split(" ")[1]
 
-        # query_id = str(query.query).split(" ")[1].split(":")[1]
-        def unpack(s):
-            return " ".join(map(str, s))
+            # query_id = str(query.query).split(" ")[1].split(":")[1]
 
-        print("from edit title:", query)
-        if len(str(query.query).split(" ")) > 2:
-            args = str(query.query).split(' ')[2:]
-            new_title = f"{hidden_character}{unpack(args)}"
-            results.append(InlineQueryResultArticle(
-                title="Save",
-                description=new_title,
-                thumb_url="https://www.howtogeek.com/wp-content/uploads/2017/09/img_59b89568ec308.jpg",
-                input_message_content=InputTextMessageContent(f"/edit_pl_title {playlist_id} {new_title}",
-                                                              parse_mode="HTML")))
-            exception_handler(
-                bot.answer_inline_query(query.id, results=results,
-                                        cache_time=1, switch_pm_text=back_text,
-                                        switch_pm_parameter="back_to_the_bot"))
+            def unpack(s):
+                return " ".join(map(str, s))
 
-        else:
-            title = language_handler("edit_playlist_information_guide", lang_code, "title")
-            description = language_handler("edit_playlist_information_guide", lang_code, "description")
-            results.append(InlineQueryResultArticle(
-                title=title,
-                description=description,
-                thumb_url="https://www.howtogeek.com/wp-content/uploads/2017/09/img_59b89568ec308.jpg",
-                input_message_content=InputTextMessageContent(f"/edit_pl_title {playlist_id} default title",
-                                                              parse_mode="HTML")))
-            exception_handler(
-                bot.answer_inline_query(query.id, results=results,
-                                        cache_time=1, switch_pm_text=back_text,
-                                        switch_pm_parameter="back_to_the_bot"))
+            if len(str(query.query).split(" ")) > 2:
+                args = str(query.query).split(' ')[2:]
+                new_title = f"{hidden_character}{unpack(args)}"
+                results.append(InlineQueryResultArticle(
+                    title="Save",
+                    description=new_title,
+                    thumb_url="https://www.howtogeek.com/wp-content/uploads/2017/09/img_59b89568ec308.jpg",
+                    input_message_content=InputTextMessageContent(f"/edit_pl_description {playlist_id} {new_title}",
+                                                                  parse_mode="HTML")))
+                exception_handler(
+                    bot.answer_inline_query(query.id, results=results,
+                                            cache_time=1, switch_pm_text=back_text,
+                                            switch_pm_parameter="back_to_the_bot"))
+            else:
+                title = language_handler("edit_playlist_information_guide", lang_code, "title")
+                description = language_handler("edit_playlist_information_guide", lang_code, "description")
+                results.append(InlineQueryResultArticle(
+                    title=title,
+                    description=description,
+                    thumb_url="https://www.howtogeek.com/wp-content/uploads/2017/09/img_59b89568ec308.jpg",
+                    input_message_content=InputTextMessageContent(f"/edit_pl_title {playlist_id} default description",
+                                                                  parse_mode="HTML")))
+                exception_handler(
+                    bot.answer_inline_query(query.id, results=results,
+                                            cache_time=1, switch_pm_text=back_text,
+                                            switch_pm_parameter="back_to_the_bot"))
+        except Exception as e:
+            print("from #editfile inline: ", e)
+
+    else:
+        # results_list = es.search(index="audio_files", body={"query": {
+        #     "multi_match": {
+        #         "query": str(query.query).split("#more_results:")[-1],
+        #         "fields": ["file_name", "title", "performer"],
+        #         "fuzziness": "AUTO",
+        #         "tie_breaker": 0.5
+        #     }}}, from_=10, size=10)
+
+        results_list = es.search(index="audio_files", body={"query": {
+            "multi_match": {
+                "query": str(query.query).split("#more_results:")[-1],
+                "type": "best_fields",
+                "fields": ["title", "file_name", "performer"],  # , "caption"],
+                # "fuzziness": "AUTO",
+                # "tie_breaker": 0.5,
+                "minimum_should_match": "70%"
+            }}}, from_=1, size=50)
