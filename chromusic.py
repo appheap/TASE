@@ -2569,3 +2569,18 @@ def inine_res(bot: object, query: object) -> object:
             #     description=res["_source"]["performer"],
             #     thumb_url="https://www.howtogeek.com/wp-content/uploads/2017/09/img_59b89568ec308.jpg",
             #     input_message_content=InputTextMessageContent(f"/dl_{res['_id']}", parse_mode="HTML")))
+
+        res_len = int(results_list["hits"]["total"])
+        if res_len < 50:
+            """
+            If the previous search results count was less than 40 then do a fuzzy search to suggrst more results
+            """
+            results_list = es.search(index="audio_files", body={"query": {
+                "multi_match": {
+                    "query": str(query.query).split("#more_results:")[-1],
+                    "type": "best_fields",
+                    "fields": ["title", "file_name", "performer"],  # , "caption"],
+                    "fuzziness": "AUTO",
+                    # "tie_breaker": 0.5,
+                    "minimum_should_match": "50%"
+                }}}, size=50 - res_len)
