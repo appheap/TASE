@@ -2614,3 +2614,16 @@ def inine_res(bot: object, query: object) -> object:
         exception_handler(
             bot.answer_inline_query(query.id, results=results,
                                     cache_time=10, switch_pm_text=back_text, switch_pm_parameter="back_to_the_bot"))
+
+@bot.on_callback_query()
+def callback_query_handler(bot, query):
+    user = query.from_user
+    user_data = es.get(index="user", id=user.id)["_source"]
+    lang_code = user_data["lang_code"]
+    # bot.answer_callback_query(
+    #     query.id,
+    #     text=f"{query.data} language registered for you.\n\nYou can always change it using /lang command",
+    #     show_alert=True
+    # )
+    joined_status = ["joined"]
+    lang_list = ["en", "fa", "hi", "ru", "ar"]
