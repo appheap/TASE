@@ -2627,3 +2627,6 @@ def callback_query_handler(bot, query):
     # )
     joined_status = ["joined"]
     lang_list = ["en", "fa", "hi", "ru", "ar"]
+
+    if query.data == "lang":
+        choose_language(bot, query)
