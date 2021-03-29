@@ -2630,3 +2630,27 @@ def callback_query_handler(bot, query):
 
     if query.data == "lang":
         choose_language(bot, query)
+
+    if query.data in lang_list:
+        print("got query")
+        if query.data == "en":
+            lang_code = "en"
+        elif query.data == "fa":
+            lang_code = "fa"
+        elif query.data == "hi":
+            lang_code = "hi"
+        elif query.data == "ru":
+            lang_code = "ru"
+        elif query.data == "ar":
+            lang_code = "ar"
+
+        es.update("user", id=query.from_user.id, body={
+            "script":
+                {
+                    "inline": "ctx._source.lang_code = params.lang_code;",
+                    "lang": "painless",
+                    "params": {
+                        "lang_code": lang_code
+                    }
+                }
+        }, ignore=409)
