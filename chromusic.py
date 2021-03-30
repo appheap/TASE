@@ -2654,3 +2654,14 @@ def callback_query_handler(bot, query):
                     }
                 }
         }, ignore=409)
+
+        text = language_handler("lang_register_alert", lang_code, query.from_user.first_name)
+        # text = language_handler("send_in_1_min", lang_code, query.from_user.first_name)
+        exception_handler(bot.answer_callback_query(
+            query.id,
+            text=text,  # f"{query.data} language registered for you.\n\nYou can always change it using /lang command",
+            show_alert=True
+        ))
+
+        query.message.delete()
+
