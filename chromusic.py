@@ -2665,3 +2665,15 @@ def callback_query_handler(bot, query):
 
         query.message.delete()
 
+        prev_message = bot.get_messages(query.from_user.id, int(query.message.message_id) - 1)
+        if prev_message.text:
+            print("before contains:", prev_message.text)
+            if str(prev_message.text).__contains__("Take your audio searching to the speed"):
+                print("after contains:", prev_message.text)
+                text = language_handler("welcome", lang_code, query.from_user.first_name)
+                exception_handler(prev_message.edit_text(text))
+
+        # apl[1].edit_message_text(query.from_user.id, int(query.message.message_id)-1, "new text")
+        print(bot.get_messages(query.from_user.id, int(query.message.message_id) - 1))
+
+
