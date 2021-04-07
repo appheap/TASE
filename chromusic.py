@@ -2682,3 +2682,4 @@ def callback_query_handler(bot, query):
 
         print(query)
 
+    elif query.data in joined_status:
