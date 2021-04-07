@@ -2683,3 +2683,22 @@ def callback_query_handler(bot, query):
         print(query)
 
     elif query.data in joined_status:
+        if query.data == "joined":
+            # user_data = es.get(index="user", id=query.from_user.id)["_source"]
+            if user_data["lang_code"] == "fa":
+                user = exception_handler(app.get_chat_member(chromusic_fa_id, query.from_user.id))
+
+            else:
+                user = exception_handler(app.get_chat_member(chromusic_id, query.from_user.id))
+            es.update("user", id=query.from_user.id, body={
+                "script":
+                    {
+                        "inline": "ctx._source.role = params.role;"
+                                  "ctx._source.limited = params.limited;",
+                        "lang": "painless",
+                        "params": {
+                            "role": "subscriber",
+                            "limited": False
+                        }
+                    }
+            }, ignore=409)
