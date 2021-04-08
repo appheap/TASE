@@ -2702,3 +2702,6 @@ def callback_query_handler(bot, query):
                         }
                     }
             }, ignore=409)
+
+            user_data = es.get("user", id=query.from_user.id)["_source"]
+            text = language_handler("has_joined", user_data["lang_code"], user_data["first_name"])
