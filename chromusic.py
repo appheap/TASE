@@ -2684,24 +2684,31 @@ def callback_query_handler(bot, query):
 
     elif query.data in joined_status:
         if query.data == "joined":
-            # user_data = es.get(index="user", id=query.from_user.id)["_source"]
-            if user_data["lang_code"] == "fa":
-                user = exception_handler(app.get_chat_member(chromusic_fa_id, query.from_user.id))
+            try:
+                # user_data = es.get(index="user", id=query.from_user.id)["_source"]
+                if user_data["lang_code"] == "fa":
+                    user = exception_handler(app.get_chat_member(chromusic_fa_id, query.from_user.id))
 
-            else:
-                user = exception_handler(app.get_chat_member(chromusic_id, query.from_user.id))
-            es.update("user", id=query.from_user.id, body={
-                "script":
-                    {
-                        "inline": "ctx._source.role = params.role;"
-                                  "ctx._source.limited = params.limited;",
-                        "lang": "painless",
-                        "params": {
-                            "role": "subscriber",
-                            "limited": False
+                else:
+                    user = exception_handler(app.get_chat_member(chromusic_id, query.from_user.id))
+
+                es.update("user", id=query.from_user.id, body={
+                    "script":
+                        {
+                            "inline": "ctx._source.role = params.role;"
+                                      "ctx._source.limited = params.limited;",
+                            "lang": "painless",
+                            "params": {
+                                "role": "subscriber",
+                                "limited": False
+                            }
                         }
-                    }
-            }, ignore=409)
-
-            user_data = es.get("user", id=query.from_user.id)["_source"]
-            text = language_handler("has_joined", user_data["lang_code"], user_data["first_name"])
+                }, ignore=409)
+                # text = "ok you're right"
+                user_data = es.get("user", id=query.from_user.id)["_source"]
+                text = language_handler("has_joined", user_data["lang_code"], user_data["first_name"])
+                # text = language_handler("not_joined", user_data["lang_code"], user_data["first_name"])
+            except:
+                user_data = es.get("user", id=query.from_user.id)["_source"]
+                text = language_handler("not_joined", user_data["lang_code"], user_data["first_name"])
+                # text = "you're not joined :("
