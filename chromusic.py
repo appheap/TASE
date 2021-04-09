@@ -2712,3 +2712,10 @@ def callback_query_handler(bot, query):
                 user_data = es.get("user", id=query.from_user.id)["_source"]
                 text = language_handler("not_joined", user_data["lang_code"], user_data["first_name"])
                 # text = "you're not joined :("
+
+            exception_handler(bot.answer_callback_query(
+                query.id,
+                text=text,
+                # f"{query.data} language registered for you.\n\nYou can always change it using /lang command",
+                show_alert=True
+            ))
