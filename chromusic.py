@@ -2719,3 +2719,11 @@ def callback_query_handler(bot, query):
                 # f"{query.data} language registered for you.\n\nYou can always change it using /lang command",
                 show_alert=True
             ))
+
+        else:
+            exception_handler(bot.answer_callback_query(
+                query.id,
+                text=""
+                # f"{query.data} language registered for you.\n\nYou can always change it using /lang command",
+                # show_alert=True
+            ))
