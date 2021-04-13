@@ -2727,3 +2727,5 @@ def callback_query_handler(bot, query):
                 # f"{query.data} language registered for you.\n\nYou can always change it using /lang command",
                 # show_alert=True
             ))
+
+    elif str(query.data).__contains__("get_list"):
