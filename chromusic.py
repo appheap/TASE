@@ -2733,3 +2733,14 @@ def callback_query_handler(bot, query):
         results_list = es.get(index="playlist", id=playlist_id)["_source"]
         back_text = language_handler("back_to_the_bot", lang_code)
         results = []
+
+        for index, file_id in enumerate(results_list["list"]):
+            res = es.get(index="audio_files", id=file_id)
+            # file = app.get_chat(res["_source"]["chat_id"])["username"]
+            # print(file)
+            # audio_file = app.get_messages(res["_source"]["chat_id"], res["_source"]["message_id"])
+            # caption = file_retrieve_handler(audio_file)
+            # captions.append(caption)
+            results.append(res)
+            print("\n\nresults\n", res)
+
