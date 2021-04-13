@@ -2729,3 +2729,7 @@ def callback_query_handler(bot, query):
             ))
 
     elif str(query.data).__contains__("get_list"):
+        playlist_id = str(query.data).split(" ")[1]
+        results_list = es.get(index="playlist", id=playlist_id)["_source"]
+        back_text = language_handler("back_to_the_bot", lang_code)
+        results = []
