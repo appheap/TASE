@@ -2744,3 +2744,15 @@ def callback_query_handler(bot, query):
             results.append(res)
             print("\n\nresults\n", res)
 
+        text = language_handler("playlist_result_list_handler", lang_code, results, results_list["title"])
+        print("text", text)
+        exception_handler(bot.answer_callback_query(
+            query.id,
+            text=''
+            # f"{query.data} language registered for you.\n\nYou can always change it using /lang command",
+            # show_alert=True
+        ))
+        exception_handler(bot.send_message(query.from_user.id, text=text, parse_mode="HTML"))
+        # exception_handler(
+        #     bot.answer_inline_query(query.id, results=results,
+        #                             cache_time=10, switch_pm_text=back_text, switch_pm_parameter="back_to_the_bot"))
