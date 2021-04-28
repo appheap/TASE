@@ -2756,3 +2756,5 @@ def callback_query_handler(bot, query):
         # exception_handler(
         #     bot.answer_inline_query(query.id, results=results,
         #                             cache_time=10, switch_pm_text=back_text, switch_pm_parameter="back_to_the_bot"))
+
+    elif str(query.data).__contains__("delete"):
