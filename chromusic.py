@@ -2758,3 +2758,19 @@ def callback_query_handler(bot, query):
         #                             cache_time=10, switch_pm_text=back_text, switch_pm_parameter="back_to_the_bot"))
 
     elif str(query.data).__contains__("delete"):
+        print(query)
+        operation = str(query.data).split(" ")[0]
+        playlist_id = str(query.data).split(" ")[1]
+        if operation == "delete":
+            result = es.get(index="playlist", id=playlist_id)
+            func = "playlist"
+            text = language_handler("delete_playlist_validation_text", lang_code, func)
+            markup_list = language_handler("delete_playlist_validation_keyboard", lang_code, playlist_id, func)
+            # exception_handler(bot.send_message(chat_id=query.from_user.id,
+            #                                    text=f"<b>{text}</b>",
+            #                                    reply_markup=InlineKeyboardMarkup(markup_list),
+            #                                    parse_mode='HTML'))
+            exception_handler(query.edit_message_text(
+                text=f"<b>{text}</b>",
+                reply_markup=InlineKeyboardMarkup(markup_list),
+                parse_mode='HTML'))
