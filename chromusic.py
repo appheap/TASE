@@ -2774,3 +2774,26 @@ def callback_query_handler(bot, query):
                 text=f"<b>{text}</b>",
                 reply_markup=InlineKeyboardMarkup(markup_list),
                 parse_mode='HTML'))
+
+        elif operation == "ydelete":
+            # try:
+            playlist_id = str(query.data).split(" ")[1]
+            try:
+                file_retrieve_id = str(query.data).split(" ")[2]
+                # is_audio_file = True
+                res = es.update(index="playlist", id=playlist_id, body={
+                    "script": {
+                        "source": "if (ctx._source.list.contains(params.file_id)) "
+                                  "{ctx._source.list.remove(ctx._source.list.indexOf(params.file_id))} "
+                                  "else {ctx.op = 'none'}",
+                        "lang": "painless",
+                        "params": {
+                            "file_id": file_retrieve_id
+                        }
+                    }
+                }, ignore=409)
+                text = language_handler("file_deleted_from_playlist", user_data["lang_code"])
+                exception_handler(query.answer(
+                    text=text,
+                    show_alert=True))
+                bot.delete_messages(user.id, query.message.message_id)
