@@ -2797,3 +2797,12 @@ def callback_query_handler(bot, query):
                     text=text,
                     show_alert=True))
                 bot.delete_messages(user.id, query.message.message_id)
+
+            except:
+                is_audio_file = False
+                res = es.delete(index="playlist", id=playlist_id)
+                text = language_handler("playlist_deleted_text", lang_code)
+                exception_handler(query.answer(
+                    text=f"{text}",
+                    show_alert=True))
+                bot.delete_messages(user.id, query.message.message_id)
