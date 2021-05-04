@@ -2806,3 +2806,5 @@ def callback_query_handler(bot, query):
                     text=f"{text}",
                     show_alert=True))
                 bot.delete_messages(user.id, query.message.message_id)
+
+        elif operation == "ndelete":
