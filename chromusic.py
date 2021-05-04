@@ -2808,3 +2808,10 @@ def callback_query_handler(bot, query):
                 bot.delete_messages(user.id, query.message.message_id)
 
         elif operation == "ndelete":
+            playlist_files = es.get(index="playlist", id=playlist_id)["_source"]
+            single_playlist_markup_list = language_handler("single_playlist_markup_list", user_data["lang_code"],
+                                                           playlist_id)
+            single_playlist_text = language_handler("single_playlist_text", user_data["lang_code"], playlist_files)
+            exception_handler(query.edit_message_text(text=single_playlist_text,
+                                                      reply_markup=InlineKeyboardMarkup(single_playlist_markup_list),
+                                                      parse_mode='HTML'))
