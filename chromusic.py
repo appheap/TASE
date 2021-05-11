@@ -2815,3 +2815,10 @@ def callback_query_handler(bot, query):
             exception_handler(query.edit_message_text(text=single_playlist_text,
                                                       reply_markup=InlineKeyboardMarkup(single_playlist_markup_list),
                                                       parse_mode='HTML'))
+
+        elif operation == "adelete":
+            results_list = es.get(index="playlist", id=playlist_id)
+            back_text = language_handler("back_to_the_bot", lang_code)
+            results = []
+            for _audio_file_id in results_list["_source"]["list"]:
+                results.append(es.get(index="audio_files", id=_audio_file_id))
