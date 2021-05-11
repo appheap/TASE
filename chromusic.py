@@ -2822,3 +2822,19 @@ def callback_query_handler(bot, query):
             results = []
             for _audio_file_id in results_list["_source"]["list"]:
                 results.append(es.get(index="audio_files", id=_audio_file_id))
+
+            print("result list:", results_list)
+            print("results:", results)
+            text = language_handler("delete_audio_file_text", lang_code)  # , results,
+            delete_audio_guide_text = language_handler("delete_audio_guide_text", lang_code)
+            exception_handler(bot.answer_callback_query(
+                query.id,
+                text=delete_audio_guide_text,
+                # f"{query.data} language registered for you.\n\nYou can always change it using /lang command",
+                show_alert=True
+            ))
+            # results_list["_source"]["title"])
+            da_markup_keyborad = language_handler("delete_audio_murkup_keyboard", lang_code, playlist_id, results)
+            print("da_markup_keyborad", da_markup_keyborad)
+            exception_handler(query.edit_message_text(text=text, parse_mode="HTML",
+                                                      reply_markup=InlineKeyboardMarkup(da_markup_keyborad)))
