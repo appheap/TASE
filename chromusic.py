@@ -2838,3 +2838,10 @@ def callback_query_handler(bot, query):
             print("da_markup_keyborad", da_markup_keyborad)
             exception_handler(query.edit_message_text(text=text, parse_mode="HTML",
                                                       reply_markup=InlineKeyboardMarkup(da_markup_keyborad)))
+
+        elif operation == "afdelete":
+            playlist_id = str(query.data).split(" ")[1]
+            audio_file_id = str(query.data).split(" ")[2]
+            _message_id = query.message.message_id
+            print("got delete query: ", query)
+            func = "audio_file"
