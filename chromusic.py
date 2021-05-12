@@ -2845,3 +2845,15 @@ def callback_query_handler(bot, query):
             _message_id = query.message.message_id
             print("got delete query: ", query)
             func = "audio_file"
+
+            text = language_handler("delete_playlist_validation_text", lang_code, func)
+            markup_list = language_handler("delete_playlist_validation_keyboard", lang_code, playlist_id, func,
+                                           audio_file_id)
+            # exception_handler(bot.send_message(chat_id=query.from_user.id,
+            #                                    text=f"<b>{text}</b>",
+            #                                    reply_markup=InlineKeyboardMarkup(markup_list),
+            #                                    parse_mode='HTML'))
+            exception_handler(query.edit_message_text(
+                text=f"<b>{text}</b>",
+                reply_markup=InlineKeyboardMarkup(markup_list),
+                parse_mode='HTML'))
