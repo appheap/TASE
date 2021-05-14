@@ -2857,3 +2857,8 @@ def callback_query_handler(bot, query):
                 text=f"<b>{text}</b>",
                 reply_markup=InlineKeyboardMarkup(markup_list),
                 parse_mode='HTML'))
+
+
+        elif str(query.data).__contains__("edit"):
+            _query = str(query.data).split(" ")[0]
+            playlist_id = str(query.data).split(" ")[1]
