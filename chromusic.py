@@ -2862,3 +2862,21 @@ def callback_query_handler(bot, query):
         elif str(query.data).__contains__("edit"):
             _query = str(query.data).split(" ")[0]
             playlist_id = str(query.data).split(" ")[1]
+            if _query == "editpl":
+                try:
+                    print(query)
+                    playlist_id = str(query.data).split(" ")[1]
+                    playlist = es.get(index="playlist", id=playlist_id)
+                    print(playlist)
+                    text = language_handler("edit_playlist_text", lang_code, playlist)
+                    markup_list = language_handler("edit_playlist_keyboard", lang_code, playlist_id)
+                    # exception_handler(bot.send_message(chat_id=query.from_user.id,
+                    #                                    text=f"<b>{text}</b>",
+                    #                                    reply_markup=InlineKeyboardMarkup(markup_list),
+                    #                                    parse_mode='HTML'))
+                    exception_handler(query.edit_message_text(
+                        text=f"{text}",
+                        reply_markup=InlineKeyboardMarkup(markup_list),
+                        parse_mode='HTML'))
+                except Exception as e:
+                    print("exception from edit playlist: ", e)
