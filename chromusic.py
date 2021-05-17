@@ -2884,3 +2884,9 @@ def callback_query_handler(bot, query):
 
         elif str(query.data).__contains__("showplaylist"):
             show_playlist(query, user_data)
+
+
+        elif str(query.data).__contains__("showmyplaylists"):
+            # try:
+            playlist_id = str(query.data).split(" ")[1]
+            playlist_files = es.get(index="playlist", id=playlist_id)["_source"]
