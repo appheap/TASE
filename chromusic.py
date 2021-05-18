@@ -2890,3 +2890,14 @@ def callback_query_handler(bot, query):
             # try:
             playlist_id = str(query.data).split(" ")[1]
             playlist_files = es.get(index="playlist", id=playlist_id)["_source"]
+
+            markup_list = language_handler("playlists_buttons", user_data["lang_code"])
+            mylists_menu_text = language_handler("mylists_menu_text", user_data["lang_code"])
+            print(playlist_files)
+            # exception_handler(bot.send_message(chat_id=user.id,
+            #                                     text=mylists_menu_text,
+            #                                    reply_markup=InlineKeyboardMarkup(markup_list),
+            #                                    parse_mode='HTML'))
+            exception_handler(query.edit_message_text(text=mylists_menu_text,
+                                                      reply_markup=InlineKeyboardMarkup(markup_list),
+                                                      parse_mode='HTML'))
