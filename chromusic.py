@@ -2897,3 +2897,11 @@ def callback_query_handler(bot, query):
             exception_handler(query.edit_message_text(text=mylists_menu_text,
                                                       reply_markup=InlineKeyboardMarkup(markup_list),
                                                       parse_mode='HTML'))
+
+        elif str(query.data) == "home":
+            home_markup_keyboard = language_handler("home_markup_keyboard", user_data["lang_code"])
+            home_keyboard_text = language_handler("home_keyboard_text", user_data["lang_code"])
+
+            exception_handler(query.edit_message_text(text=home_keyboard_text,
+                                                      reply_markup=InlineKeyboardMarkup(home_markup_keyboard),
+                                                      parse_mode='HTML'))
