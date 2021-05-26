@@ -2913,3 +2913,10 @@ def callback_query_handler(bot, query):
             exception_handler(query.edit_message_text(text=help_keyboard_text,
                                                       reply_markup=InlineKeyboardMarkup(help_markup_keyboard),
                                                       parse_mode='HTML'))
+def show_playlist(query, user_data):
+    """
+
+    :param query:
+    :param user_data:
+    :return:
+    """
