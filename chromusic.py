@@ -2915,10 +2915,16 @@ def callback_query_handler(bot, query):
                                                       parse_mode='HTML'))
 def show_playlist(query, user_data):
     """
-
-    :param query:
-    :param user_data:
-    :return:
+    Generates a keyboard for each playlist; buttons:
+        1. Audio files list (as an inline list)
+        2. Get list (as a text message)
+        3. Edit
+        4. Delete
+        5. Home
+        6. Back
+    :param query: Query containing the "show playlist" data
+    :param user_data: User data within database
+    :return: True on success; False otherwise
     """
 
     try:
@@ -2933,6 +2939,7 @@ def show_playlist(query, user_data):
                                                   reply_markup=InlineKeyboardMarkup(single_playlist_markup_list),
                                                   parse_mode='HTML'))
 
-
+        return True
     except Exception as e:
         print("from showplaylist:", e)
+        return False
