@@ -2943,3 +2943,13 @@ def show_playlist(query, user_data):
     except Exception as e:
         print("from showplaylist:", e)
         return False
+
+
+@bot.on_message(Filters.command(["lang", "help", "home"]))
+def commands_handler(bot, message):
+    """
+
+    :param bot:
+    :param message:
+    :return:
+    """
