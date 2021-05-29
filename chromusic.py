@@ -2958,3 +2958,16 @@ def commands_handler(bot, message):
         # english.languages_list()
         message.delete()
         choose_language(bot, message)
+
+    elif message.command[0] == "help":
+        try:
+            user_data = es.get(index="user", id=message.chat.id)["_source"]
+            help_markup_keyboard = language_handler("help_markup_keyboard", user_data["lang_code"])
+            help_keyboard_text = language_handler("help_keyboard_text", user_data["lang_code"])
+
+            message.delete()
+            exception_handler(bot.send_message(message.chat.id, text=help_keyboard_text,
+                                               reply_markup=InlineKeyboardMarkup(help_markup_keyboard),
+                                               parse_mode='HTML'))
+        except Exception as e:
+            print("from search on_message: ", e)
