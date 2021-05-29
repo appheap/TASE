@@ -2953,3 +2953,8 @@ def commands_handler(bot, message):
     :param message:
     :return:
     """
+
+    if message.command[0] == "lang":
+        # english.languages_list()
+        message.delete()
+        choose_language(bot, message)
