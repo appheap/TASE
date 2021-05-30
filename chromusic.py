@@ -2948,10 +2948,13 @@ def show_playlist(query, user_data):
 @bot.on_message(Filters.command(["lang", "help", "home"]))
 def commands_handler(bot, message):
     """
-
-    :param bot:
-    :param message:
-    :return:
+    Show following keyboards on request:
+        1. Lang
+        2. Help
+        3. Home
+    :param bot: Bot object
+    :param message: Message object
+    :return: True on success; False otherwise
     """
 
     if message.command[0] == "lang":
@@ -2971,6 +2974,7 @@ def commands_handler(bot, message):
                                                parse_mode='HTML'))
         except Exception as e:
             print("from search on_message: ", e)
+            return False
 
     elif message.command[0] == "home":
         try:
@@ -2985,3 +2989,6 @@ def commands_handler(bot, message):
                                                parse_mode='HTML'))
         except Exception as e:
             print("from on_message: ", e)
+            return False
+
+    return True
