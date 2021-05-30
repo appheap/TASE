@@ -2971,3 +2971,17 @@ def commands_handler(bot, message):
                                                parse_mode='HTML'))
         except Exception as e:
             print("from search on_message: ", e)
+
+    elif message.command[0] == "home":
+        try:
+            user_data = es.get(index="user", id=message.chat.id)["_source"]
+            home_markup_keyboard = language_handler("home_markup_keyboard", user_data["lang_code"])
+            home_keyboard_text = language_handler("home_keyboard_text", user_data["lang_code"])
+
+            message.delete()
+
+            exception_handler(bot.send_message(message.chat.id, text=home_keyboard_text,
+                                               reply_markup=InlineKeyboardMarkup(home_markup_keyboard),
+                                               parse_mode='HTML'))
+        except Exception as e:
+            print("from on_message: ", e)
