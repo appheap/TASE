@@ -2992,3 +2992,14 @@ def commands_handler(bot, message):
             return False
 
     return True
+
+
+@bot.on_message(Filters.command(["addnewpl", "addtoexistpl", "myplaylists",
+                                 "showplaylist", "edit_pl_title", "edit_pl_description"]))
+def playlist_commands_handler(bot, message):
+    """
+
+    :param bot:
+    :param message:
+    :return:
+    """
