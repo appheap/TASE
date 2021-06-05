@@ -3003,3 +3003,24 @@ def playlist_commands_handler(bot, message):
     :param message:
     :return:
     """
+
+    user = message.from_user
+    user_data = es.get(index="user", id=user.id)["_source"]
+    lang_code = user_data["lang_code"]
+    if message.command[0] == "addnewpl":
+        file_ret_id = str(message.text).split(" ")[1]
+        playlist_id = str(uuid4())[:6].replace("-", "d")
+        print("playlist id: ", playlist_id)
+        audio_file_db_data = es.get("audio_files", id=file_ret_id)["_source"]
+        data = {"id": playlist_id,
+                "title": audio_file_db_data["title"],
+                "description": "New Playlist",
+                "list": []}
+        func = "addnewpl"
+        added_success_text = language_handler("added_to_playlist_success_text", lang_code, func, data)
+        markup_keyboard = language_handler("playlists_buttons", lang_code)
+        message.reply_text(text=added_success_text, quote=False, parse_mode="HTML",
+                           reply_markup=InlineKeyboardMarkup(markup_keyboard))
+        playlist_title = audio_file_db_data["title"] if not audio_file_db_data["title"] == None else \
+            audio_file_db_data["performer"] if not audio_file_db_data["performer"] == None \
+                else audio_file_db_data["file_name"]
