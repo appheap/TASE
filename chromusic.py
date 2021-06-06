@@ -3024,3 +3024,14 @@ def playlist_commands_handler(bot, message):
         playlist_title = audio_file_db_data["title"] if not audio_file_db_data["title"] == None else \
             audio_file_db_data["performer"] if not audio_file_db_data["performer"] == None \
                 else audio_file_db_data["file_name"]
+
+        base64urlsafe_playlist_id = secrets.token_urlsafe(6)
+        print("generated id", base64urlsafe_playlist_id)
+        # res = es.create(index="playlist", )
+        number_of_user_playlists = es.count(index="playlist", body={
+            "query": {
+                "match": {
+                    "author_id": user.id
+                }
+            }
+        })
