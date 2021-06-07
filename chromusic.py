@@ -3035,3 +3035,22 @@ def playlist_commands_handler(bot, message):
                 }
             }
         })
+
+        if int(number_of_user_playlists["count"]) < 5:
+            create_new_playlist_res = es.create(index="playlist", id=base64urlsafe_playlist_id, body={
+                "author_id": user.id,
+                "title": playlist_title,
+                "description": "New playlist",
+                "list": [file_ret_id]
+            })
+            print("create_new_playlist_res", create_new_playlist_res)
+            res = es.update(index="user_lists", id=user.id, body={
+                "script": {
+                    "inline": "ctx._source.playlists.add(params.playlist_id);",
+                    "lang": "painless",
+                    "params": {
+                        "playlist_id": base64urlsafe_playlist_id
+                    }
+                }
+            }, ignore=409)
+        message.delete()
