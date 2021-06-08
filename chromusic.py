@@ -3008,49 +3008,64 @@ def playlist_commands_handler(bot, message):
     user_data = es.get(index="user", id=user.id)["_source"]
     lang_code = user_data["lang_code"]
     if message.command[0] == "addnewpl":
-        file_ret_id = str(message.text).split(" ")[1]
-        playlist_id = str(uuid4())[:6].replace("-", "d")
-        print("playlist id: ", playlist_id)
-        audio_file_db_data = es.get("audio_files", id=file_ret_id)["_source"]
-        data = {"id": playlist_id,
-                "title": audio_file_db_data["title"],
-                "description": "New Playlist",
-                "list": []}
-        func = "addnewpl"
-        added_success_text = language_handler("added_to_playlist_success_text", lang_code, func, data)
-        markup_keyboard = language_handler("playlists_buttons", lang_code)
-        message.reply_text(text=added_success_text, quote=False, parse_mode="HTML",
-                           reply_markup=InlineKeyboardMarkup(markup_keyboard))
-        playlist_title = audio_file_db_data["title"] if not audio_file_db_data["title"] == None else \
-            audio_file_db_data["performer"] if not audio_file_db_data["performer"] == None \
-                else audio_file_db_data["file_name"]
-
-        base64urlsafe_playlist_id = secrets.token_urlsafe(6)
-        print("generated id", base64urlsafe_playlist_id)
-        # res = es.create(index="playlist", )
-        number_of_user_playlists = es.count(index="playlist", body={
-            "query": {
-                "match": {
-                    "author_id": user.id
-                }
-            }
-        })
-
-        if int(number_of_user_playlists["count"]) < 5:
-            create_new_playlist_res = es.create(index="playlist", id=base64urlsafe_playlist_id, body={
-                "author_id": user.id,
-                "title": playlist_title,
-                "description": "New playlist",
-                "list": [file_ret_id]
-            })
-            print("create_new_playlist_res", create_new_playlist_res)
-            res = es.update(index="user_lists", id=user.id, body={
-                "script": {
-                    "inline": "ctx._source.playlists.add(params.playlist_id);",
-                    "lang": "painless",
-                    "params": {
-                        "playlist_id": base64urlsafe_playlist_id
+        try:
+            file_ret_id = str(message.text).split(" ")[1]
+            playlist_id = str(uuid4())[:6].replace("-", "d")
+            print("playlist id: ", playlist_id)
+            audio_file_db_data = es.get("audio_files", id=file_ret_id)["_source"]
+            data = {"id": playlist_id,
+                    "title": audio_file_db_data["title"],
+                    "description": "New Playlist",
+                    "list": []}
+            func = "addnewpl"
+            added_success_text = language_handler("added_to_playlist_success_text", lang_code, func, data)
+            markup_keyboard = language_handler("playlists_buttons", lang_code)
+            message.reply_text(text=added_success_text, quote=False, parse_mode="HTML",
+                               reply_markup=InlineKeyboardMarkup(markup_keyboard))
+            playlist_title = audio_file_db_data["title"] if not audio_file_db_data["title"] == None else \
+                audio_file_db_data["performer"] if not audio_file_db_data["performer"] == None \
+                    else audio_file_db_data["file_name"]
+            # resl = es.update(index="user_lists", id=user.id, body={
+            #     "script": {
+            #         "source": "if (ctx._source.playlists.contains(params.file_id)) {ctx.op = 'none'} else "
+            #                   "{if (ctx._source.downloaded_audio_id_list.size()>49) "  #
+            #                   "{ctx._source.downloaded_audio_id_list.remove(0);"
+            #                   "ctx._source.downloaded_audio_id_list.add(params.file_id);} "
+            #                   "else {ctx._source.downloaded_audio_id_list.add(params.file_id);}}",  # ctx.op = 'none'}",
+            #         "lang": "painless",
+            #         "params": {
+            #             "file_id": file_ret_id
+            #         }
+            #     }
+            # })
+            base64urlsafe_playlist_id = secrets.token_urlsafe(6)
+            print("generated id", base64urlsafe_playlist_id)
+            # res = es.create(index="playlist", )
+            number_of_user_playlists = es.count(index="playlist", body={
+                "query": {
+                    "match": {
+                        "author_id": user.id
                     }
                 }
-            }, ignore=409)
-        message.delete()
+            })
+            print("number_of_user_playlists", number_of_user_playlists)
+            if int(number_of_user_playlists["count"]) < 5:
+                create_new_playlist_res = es.create(index="playlist", id=base64urlsafe_playlist_id, body={
+                    "author_id": user.id,
+                    "title": playlist_title,
+                    "description": "New playlist",
+                    "list": [file_ret_id]
+                })
+                print("create_new_playlist_res", create_new_playlist_res)
+                res = es.update(index="user_lists", id=user.id, body={
+                    "script": {
+                        "inline": "ctx._source.playlists.add(params.playlist_id);",
+                        "lang": "painless",
+                        "params": {
+                            "playlist_id": base64urlsafe_playlist_id
+                        }
+                    }
+                }, ignore=409)
+            message.delete()
+        except Exception as e:
+            print("from playlists handling: ", e)
