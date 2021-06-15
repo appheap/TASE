@@ -3069,3 +3069,15 @@ def playlist_commands_handler(bot, message):
             message.delete()
         except Exception as e:
             print("from playlists handling: ", e)
+
+    elif message.command[0] == "addtoexistpl":
+        playlist_id = message.command[1]
+        file_retrieve_id = message.command[2]
+        # print("playlist id: ", playlist_id)
+        audio_file_db_data = es.get("audio_files", id=file_retrieve_id)["_source"]
+        data = {"id": playlist_id,
+                "title": audio_file_db_data["title"],
+                "description": "New Playlist",
+                "list": []}
+        playlist = es.get(index="playlist", id=playlist_id)
+        print(playlist)
