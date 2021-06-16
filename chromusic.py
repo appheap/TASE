@@ -3081,3 +3081,22 @@ def playlist_commands_handler(bot, message):
                 "list": []}
         playlist = es.get(index="playlist", id=playlist_id)
         print(playlist)
+
+        res = es.update(index="playlist", id=playlist_id, body={
+            "script": {
+                "source": "if (ctx._source.list.contains(params.file_id)) {ctx.op = 'none'} else "
+                          "{if (ctx._source.list.size()>14) "
+                          "{ctx.op = 'none'}"
+                          "else {ctx._source.list.add(params.file_id);}}",
+
+                # "if (ctx._source.list.size()<20){"
+                #         "if (ctx._source.list.contains(params.file_id))"
+                #             "{ctx.op = 'none';} "
+                #         "else {ctx._source.list.add(params.file_id);}}"
+                #       "else{ctx.op = 'none'}",
+                "lang": "painless",
+                "params": {
+                    "file_id": file_retrieve_id
+                }
+            }
+        }, ignore=409)
