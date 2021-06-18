@@ -3071,32 +3071,41 @@ def playlist_commands_handler(bot, message):
             print("from playlists handling: ", e)
 
     elif message.command[0] == "addtoexistpl":
-        playlist_id = message.command[1]
-        file_retrieve_id = message.command[2]
-        # print("playlist id: ", playlist_id)
-        audio_file_db_data = es.get("audio_files", id=file_retrieve_id)["_source"]
-        data = {"id": playlist_id,
-                "title": audio_file_db_data["title"],
-                "description": "New Playlist",
-                "list": []}
-        playlist = es.get(index="playlist", id=playlist_id)
-        print(playlist)
+        try:
+            playlist_id = message.command[1]
+            file_retrieve_id = message.command[2]
+            # print("playlist id: ", playlist_id)
+            audio_file_db_data = es.get("audio_files", id=file_retrieve_id)["_source"]
+            data = {"id": playlist_id,
+                    "title": audio_file_db_data["title"],
+                    "description": "New Playlist",
+                    "list": []}
+            playlist = es.get(index="playlist", id=playlist_id)
+            print(playlist)
+            res = es.update(index="playlist", id=playlist_id, body={
+                "script": {
+                    "source": "if (ctx._source.list.contains(params.file_id)) {ctx.op = 'none'} else "
+                              "{if (ctx._source.list.size()>14) "
+                              "{ctx.op = 'none'}"
+                              "else {ctx._source.list.add(params.file_id);}}",
 
-        res = es.update(index="playlist", id=playlist_id, body={
-            "script": {
-                "source": "if (ctx._source.list.contains(params.file_id)) {ctx.op = 'none'} else "
-                          "{if (ctx._source.list.size()>14) "
-                          "{ctx.op = 'none'}"
-                          "else {ctx._source.list.add(params.file_id);}}",
-
-                # "if (ctx._source.list.size()<20){"
-                #         "if (ctx._source.list.contains(params.file_id))"
-                #             "{ctx.op = 'none';} "
-                #         "else {ctx._source.list.add(params.file_id);}}"
-                #       "else{ctx.op = 'none'}",
-                "lang": "painless",
-                "params": {
-                    "file_id": file_retrieve_id
+                    # "if (ctx._source.list.size()<20){"
+                    #         "if (ctx._source.list.contains(params.file_id))"
+                    #             "{ctx.op = 'none';} "
+                    #         "else {ctx._source.list.add(params.file_id);}}"
+                    #       "else{ctx.op = 'none'}",
+                    "lang": "painless",
+                    "params": {
+                        "file_id": file_retrieve_id
+                    }
                 }
-            }
-        }, ignore=409)
+            }, ignore=409)
+            func = "addtoexistpl"
+            added_success_text = language_handler("added_to_playlist_success_text", lang_code, func, data, playlist)
+            markup_keyboard = language_handler("playlists_buttons", lang_code)
+            message.reply_text(text=added_success_text, quote=False, parse_mode="HTML",
+                               reply_markup=InlineKeyboardMarkup(markup_keyboard))
+            # bot.send_message(user.id, str(playlist))
+            message.delete()
+        except Exception as e:
+            print("from playlists - adding to existing playlist: ", e)
