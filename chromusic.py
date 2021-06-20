@@ -3067,8 +3067,11 @@ def playlist_commands_handler(bot, message):
                     }
                 }, ignore=409)
             message.delete()
+            return True
+
         except Exception as e:
             print("from playlists handling: ", e)
+            return False
 
     elif message.command[0] == "addtoexistpl":
         try:
@@ -3107,5 +3110,27 @@ def playlist_commands_handler(bot, message):
                                reply_markup=InlineKeyboardMarkup(markup_keyboard))
             # bot.send_message(user.id, str(playlist))
             message.delete()
+            return True
+
         except Exception as e:
             print("from playlists - adding to existing playlist: ", e)
+            return False
+
+    elif message.command[0] == "myplaylists":
+        print(message)
+        user = message.from_user
+        pl_results = es.search(index="playlist", body={
+            "query": {
+                "match": {
+                    "author_id": user.id
+                }
+            }
+        })
+        # print(pl_results)
+        for pl in pl_results["hits"]["hits"]:
+            print(pl)
+        markup_list = language_handler("playlists_buttons", user_data["lang_code"])
+        playlist_text = language_handler("mylists_menu_text", user_data["lang_code"])
+        exception_handler(message.reply_text(text=playlist_text, reply_markup=InlineKeyboardMarkup(markup_list),
+                                             parse_mode='HTML'))
+        message.delete()
