@@ -2998,10 +2998,16 @@ def commands_handler(bot, message):
                                  "showplaylist", "edit_pl_title", "edit_pl_description"]))
 def playlist_commands_handler(bot, message):
     """
-
-    :param bot:
-    :param message:
-    :return:
+    Handle following commands:
+        1. "addnewpl": Create a new playlist and add the audio file to it
+        2. "addtoexistpl": Add the audio file to an existing playlist
+        3. "myplaylists": Show all playlists for the current user
+        4. "showplaylist": Show all audio files within the chosen playlist
+        5. "edit_pl_title": Edit the chosen playlist's title
+        6. "edit_pl_description": Edit the chosen playlist's description
+    :param bot: Telegram bot object
+    :param message: Telegram message object
+    :return: True on success; False on exception
     """
 
     user = message.from_user
@@ -3206,3 +3212,5 @@ def playlist_commands_handler(bot, message):
         exception_handler(bot.send_message(user.id, text))
         # bot.answer_callback_query(callback_query_id=prev_query_id, text=text, show_alert=True)
         message.delete()
+        return True
+
