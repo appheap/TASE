@@ -3134,3 +3134,33 @@ def playlist_commands_handler(bot, message):
         exception_handler(message.reply_text(text=playlist_text, reply_markup=InlineKeyboardMarkup(markup_list),
                                              parse_mode='HTML'))
         message.delete()
+        return True
+
+    elif message.command[0] == "showplaylist":
+        try:
+            playlist_id = message.command[1]
+            playlist_files = es.get(index="playlist", id=playlist_id)["_source"]
+            single_playlist_markup_list = language_handler("single_playlist_markup_list", user_data["lang_code"],
+                                                           playlist_id, message.message_id)
+            single_playlist_text = language_handler("single_playlist_text", user_data["lang_code"], playlist_files)
+            print(playlist_files)
+            exception_handler(message.reply_text(text=single_playlist_text,
+                                                 reply_markup=InlineKeyboardMarkup(single_playlist_markup_list),
+                                                 parse_mode='HTML'))
+
+            message.delete()
+            return True
+        except Exception as e:
+            print("from showplaylist:", e)
+            return False
+
+    elif message.command[0] == "edit_pl_title":
+        playlist_id = str(message.command[1])
+        # prev_query_id = str(message.command[1]).split(":")[1]
+        new_title = message.command[2:]
+        print(message.command)
+
+        def unpack(s):
+            return " ".join(map(str, s))
+
+        new_title = unpack(new_title)
