@@ -3179,3 +3179,15 @@ def playlist_commands_handler(bot, message):
         exception_handler(bot.send_message(user.id, text))
         # bot.answer_callback_query(callback_query_id=prev_query_id, text=text, show_alert=True)
         message.delete()
+        return True
+
+    elif message.command[0] == "edit_pl_description":
+        playlist_id = str(message.command[1])
+        # prev_query_id = str(message.command[1]).split(":")[1]
+        new_description = message.command[2:]
+        print("commands", message.command)
+
+        def unpack(s):
+            return " ".join(map(str, s))
+
+        new_description = unpack(new_description)
