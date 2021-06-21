@@ -3191,3 +3191,18 @@ def playlist_commands_handler(bot, message):
             return " ".join(map(str, s))
 
         new_description = unpack(new_description)
+
+        res = es.update(index="playlist", id=playlist_id, body={
+            "script": {
+                "source": "ctx._source.description = params.new_description",
+                "lang": "painless",
+                "params": {
+                    "new_description": new_description
+                }
+            }
+        }, ignore=409)
+        func = "description_update"
+        text = language_handler("playlist_updated_text", user_data["lang_code"], func)
+        exception_handler(bot.send_message(user.id, text))
+        # bot.answer_callback_query(callback_query_id=prev_query_id, text=text, show_alert=True)
+        message.delete()
