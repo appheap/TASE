@@ -3214,3 +3214,13 @@ def playlist_commands_handler(bot, message):
         message.delete()
         return True
 
+@bot.on_message(Filters.private & Filters.regex("dl_"))
+def download_handler(bot, message):
+    """
+
+    :param bot:
+    :param message:
+    :return:
+    """
+    executor.submit(file_retrieve_handler, message)
+    print('from handler')
