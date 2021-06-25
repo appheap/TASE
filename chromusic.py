@@ -3271,3 +3271,5 @@ def get_channel(bot, message):
                 exception_handler(bot.send_message(user.id, result_text, parse_mode="html"))
         if message.text:
             channels_usernames = channel_name_extractor(app, message.text)
+        elif message.caption:
+            channels_usernames = channel_name_extractor(app, message.caption)
