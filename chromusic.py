@@ -3217,10 +3217,11 @@ def playlist_commands_handler(bot, message):
 @bot.on_message(Filters.private & Filters.regex("dl_"))
 def download_handler(bot, message):
     """
-
-    :param bot:
-    :param message:
-    :return:
+    Check if the message is coming from a Telegram client and contains "dl_" regex, and then submit a thread to
+    retrieve the searched audio file
+    :param bot: Telegram bot object
+    :param message: Telegram message object
+    :return: True on success
     """
     executor.submit(file_retrieve_handler, message)
-    print('from handler')
+    return True
