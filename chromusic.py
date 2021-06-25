@@ -3225,3 +3225,17 @@ def download_handler(bot, message):
     """
     executor.submit(file_retrieve_handler, message)
     return True
+
+@bot.on_message(~Filters.via_bot & ~Filters.bot &
+                Filters.private & (Filters.forwarded | Filters.regex("@") | Filters.web_page | Filters.regex("https")))
+def get_channel(bot, message):
+    """
+
+    :param bot:
+    :param message:
+    :return:
+    """
+    channels_username = []
+    user_data = es.get(index="user", id=message.chat.id)
+    user = message.from_user
+    # print(message.text)
