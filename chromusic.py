@@ -2170,6 +2170,17 @@ def choose_language(bot, message):
 @bot.on_inline_query()
 def inine_res(bot: object, query: object) -> object:
     """
+    Handle the coming inline messages.
+    options:
+        1. more_results: Return more results (up to 40 items)
+        2. addtopl: Add audio file to a playlist (using "more" button in the bottom of
+         each search result
+        3. history: Show the last 50 searched audio files (using "history" button in "home" and "help" menu)
+        4. myplaylists: Show a list of user's playlists (using "my playlists" button in "home" and "help" menu)
+        5. showfiles: Show audio files within a playlist (using "show files" button in "playlist" menu)
+        6. edit_title: Edit the title of a playlist (using "Edit title" button in "playlist" menu)
+        7. edit_description: Edit the description of a playlist (using "Edit description" button in "playlist" menu)
+        8. Search audio files: Search audio files (requested by users without any prefix)
 
     :param bot: Telegram bot client
     :param query: Telegram query object
@@ -2473,7 +2484,6 @@ def inine_res(bot: object, query: object) -> object:
                                             switch_pm_parameter="back_to_the_bot"))
         except:
             print("from #editfile inline: ", e)
-
 
     elif str(query.query).__contains__("#edit_description"):
 
