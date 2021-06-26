@@ -3304,3 +3304,17 @@ def get_channel(bot, message):
 
         if message.forward_from_chat:
             forwarded_from_channel_extractor(app, message)
+
+    else:
+        check_message = bot.send_message(message.chat.id,
+                                         language_handler("checking_items_started", user_data["_source"]["lang_code"]))
+        if message.text:
+            channels_username = channel_name_extractor(app, message.text)
+        elif message.caption:
+            channels_username = channel_name_extractor(app, message.caption)
+        if message.forward_from_chat:
+            forwarded_from_channel_extractor(app, message)
+        t = caption_extractor(message)
+        print("caption: ", t)
+        count = 0
+        # bot.send_message(message.chat.id, len(channels))
