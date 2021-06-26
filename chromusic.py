@@ -2180,7 +2180,8 @@ def inine_res(bot: object, query: object) -> object:
         5. showfiles: Show audio files within a playlist (using "show files" button in "playlist" menu)
         6. edit_title: Edit the title of a playlist (using "Edit title" button in "playlist" menu)
         7. edit_description: Edit the description of a playlist (using "Edit description" button in "playlist" menu)
-        8. Search audio files: Search audio files (requested by users without any prefix)
+        8. help_catalog: Return a list of URLs which tutorial contents can be placed
+        9. Search audio files: Search audio files (requested by users without any prefix)
 
     :param bot: Telegram bot client
     :param query: Telegram query object
@@ -2526,6 +2527,15 @@ def inine_res(bot: object, query: object) -> object:
                                             switch_pm_parameter="back_to_the_bot"))
         except Exception as e:
             print("from #editfile inline: ", e)
+
+    elif str(query.query) == "#help_catalog":
+        print("got help_catalog")
+        try:
+            help_inline_keyboard = language_handler("help_inline_keyboard_list", lang_code)
+            bot.answer_inline_query(query.id, results=help_inline_keyboard,
+                                    cache_time=1, switch_pm_text=back_text, switch_pm_parameter="back_to_the_bot")
+        except Exception as e:
+            print("exception from help_catalog: ", e)
 
     else:
         # results_list = es.search(index="audio_files", body={"query": {
