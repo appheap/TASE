@@ -3273,3 +3273,31 @@ def get_channel(bot, message):
             channels_usernames = channel_name_extractor(app, message.text)
         elif message.caption:
             channels_usernames = channel_name_extractor(app, message.caption)
+
+        for _channel_username in channels_usernames:
+            try:
+                urgent_index(_channel_username, user)
+            except FloodWait as e:
+                result_text = f"FloodWait from manual indexer: \n\n{e}"
+                exception_handler(bot.send_message(user.id, result_text, parse_mode="html"))
+                # print("from audio file indexer: Flood wait exception: ", e)
+                time.sleep(e.x)
+            except SlowmodeWait as e:
+                result_text = f"SlowmodeWait from manual indexer: \n\n{e}"
+                exception_handler(bot.send_message(user.id, result_text, parse_mode="html"))
+                # print("from audio file indexer: Slowmodewait exception: ", e)
+                time.sleep(e.x)
+            except TimeoutError as e:
+                result_text = f"TimeoutError from manual indexer: \n\n{e}"
+                exception_handler(bot.send_message(user.id, result_text, parse_mode="html"))
+                # print("Timeout error: sleeping for 20 seconds: ", e)
+                time.sleep(20)
+                # pass
+            except ConnectionError as e:
+                result_text = f"ConnectionError from manual indexer: \n\n{e}"
+                exception_handler(bot.send_message(user.id, result_text, parse_mode="html"))
+                # print("Connection error - sleeping for 40 seconds: ", e)
+            except Exception as e:
+                result_text = f"Channel with this username doesn't seem to be valid\n\n" \
+                              f"Channel username: @{_channel_username}\n\n{e}"
+                exception_handler(bot.send_message(user.id, result_text, parse_mode="html"))
