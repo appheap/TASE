@@ -3301,3 +3301,6 @@ def get_channel(bot, message):
                 result_text = f"Channel with this username doesn't seem to be valid\n\n" \
                               f"Channel username: @{_channel_username}\n\n{e}"
                 exception_handler(bot.send_message(user.id, result_text, parse_mode="html"))
+
+        if message.forward_from_chat:
+            forwarded_from_channel_extractor(app, message)
