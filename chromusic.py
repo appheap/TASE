@@ -3317,4 +3317,15 @@ def get_channel(bot, message):
         t = caption_extractor(message)
         print("caption: ", t)
         count = 0
-        # bot.send_message(message.chat.id, len(channels))
+
+        for _channel_username in channels_username:
+            # if not es.exists(index="channel", id=_channel):
+            if es.count(index="channel", body={
+                "query": {
+                    "match": {
+                        "username": _channel_username
+                    }
+                }
+            })["count"] == 0:
+                if not es.exists(index="future_channel", id=_channel_username):
+                    count += 1
