@@ -3329,3 +3329,13 @@ def get_channel(bot, message):
             })["count"] == 0:
                 if not es.exists(index="future_channel", id=_channel_username):
                     count += 1
+
+        if count > 0:
+            registered = True
+            check_message.edit_text(
+                language_handler("contribution_thanks", user_data["_source"]["lang_code"], message.chat.first_name,
+                                 registered, count))
+        else:
+            registered = False
+            check_message.edit_text(language_handler("contribution_thanks", user_data["_source"]["lang_code"],
+                                                     message.chat.first_name, registered))
