@@ -2987,6 +2987,17 @@ def callback_query_handler(bot, query):
                                                   reply_markup=InlineKeyboardMarkup(home_markup_keyboard),
                                                   parse_mode='HTML'))
 
+    elif str(query.data) == "help":
+        help_markup_keyboard = language_handler("help_markup_keyboard", user_data["lang_code"])
+        help_keyboard_text = language_handler("help_keyboard_text", user_data["lang_code"])
+        # exception_handler(bot.send_message(chat_id=user.id,
+        #                                     text=mylists_menu_text,
+        #                                    reply_markup=InlineKeyboardMarkup(markup_list),
+        #                                    parse_mode='HTML'))
+        exception_handler(query.edit_message_text(text=help_keyboard_text,
+                                                  reply_markup=InlineKeyboardMarkup(help_markup_keyboard),
+                                                  parse_mode='HTML'))
+
 def show_playlist(query, user_data):
     """
     Generates a keyboard for each playlist; buttons:
