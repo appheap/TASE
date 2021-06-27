@@ -2637,6 +2637,20 @@ def inine_res(bot: object, query: object) -> object:
 
 @bot.on_callback_query()
 def callback_query_handler(bot, query):
+    """
+    Handle callback queries.
+    options:
+        1. get_list
+        2. delete
+        3. edit
+        4. showplaylist
+        5. showmyplaylists
+        6. home
+        7. help
+    :param bot: Telegram bot object
+    :param query: Telegram query object
+    :return: True on success
+    """
     user = query.from_user
     user_data = es.get(index="user", id=user.id)["_source"]
     lang_code = user_data["lang_code"]
@@ -2997,6 +3011,8 @@ def callback_query_handler(bot, query):
         exception_handler(query.edit_message_text(text=help_keyboard_text,
                                                   reply_markup=InlineKeyboardMarkup(help_markup_keyboard),
                                                   parse_mode='HTML'))
+
+    return True
 
 def show_playlist(query, user_data):
     """
