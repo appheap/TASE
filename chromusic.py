@@ -2956,6 +2956,9 @@ def callback_query_handler(bot, query):
             except Exception as e:
                 print("exception from edit playlist: ", e)
 
+    elif str(query.data).__contains__("showplaylist"):
+        show_playlist(query, user_data)
+
 def show_playlist(query, user_data):
     """
     Generates a keyboard for each playlist; buttons:
