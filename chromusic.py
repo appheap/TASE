@@ -2640,13 +2640,17 @@ def callback_query_handler(bot, query):
     """
     Handle callback queries.
     options:
-        1. get_list
-        2. delete
-        3. edit
-        4. showplaylist
-        5. showmyplaylists
-        6. home
-        7. help
+        1. "lang": Show a list of available languages
+        2. [language code]: Choose language
+        3. [Check joining status]: Check if the user has already joined your Telegram channel
+        4. get_list: Get a list of audio files within the current playlist (first part splitted by space)
+        5. delete: Remove an audio file from the current playlist after 2-step verification
+        6. edit: Edit playlist meta-data
+        7. showplaylist: Show a options for single playlist using a keyboard
+        8. showmyplaylists: Show a list of playlists created by the user
+        9. home: Show "Home" menu
+        10. help: Show "Help" menu
+
     :param bot: Telegram bot object
     :param query: Telegram query object
     :return: True on success
