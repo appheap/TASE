@@ -3053,9 +3053,10 @@ def show_playlist(query, user_data):
 @bot.on_message(Filters.command(["users", "promote", "reset_channel", "index"]))
 def users_log(bot, message):
     """
-
-    :param bot:
-    :param message:
+    Generates a summary log of the database status only for the admin/owner of the bot. This is a static function
+     and not a formal part of the bot (meant just for simplification; otherwise you can use Kibana).
+    :param bot: Telegram bot object
+    :param message: Telegram message object
     :return:
     """
     user = message.from_user
@@ -3230,6 +3231,46 @@ def users_log(bot, message):
             # es.indices.delete("audio")
             # es.indices.delete("to_index")
             exception_handler(bot.send_message(user.id, counts_text, parse_mode="html"))
+
+        elif message.command[0] == "promote":
+            try:
+                channel_username = message.command[1]
+                new_importance = message.command[2]
+                _channel_instance_db = es.search(index="channel", body={
+                    "query": {
+                        "match": {
+                            "username": channel_username
+                        }
+                    }
+                })
+
+                if len(_channel_instance_db["hits"]["hits"]) > 0:
+                    res_text = f"search results: \n\n{_channel_instance_db}"
+                    exception_handler(bot.send_message(user.id, res_text, parse_mode="html"))
+                    _channel_id = _channel_instance_db["hits"]["hits"][0]["_id"]
+
+                    res = es.update(index="channel", id=_channel_id, body={
+                        "script": {
+                            "inline": "ctx._source.importance = params.importance;",
+                            "lang": "painless",
+                            "params": {
+                                "importance": new_importance
+                            }
+                        }
+                    }, ignore=409)
+                    result_text = f"the result of promoting @{channel_username} to importance {new_importance}:\n\n" \
+                                  f"{res['result']}"
+                    exception_handler(bot.send_message(user.id, result_text, parse_mode="html"))
+                else:
+                    result_text = f"Channel with this username doesn't exist in the database\n\n" \
+                                  f"Channel username: @{channel_username}\n" \
+                                  f"New importance: {new_importance}"
+                    exception_handler(bot.send_message(user.id, result_text, parse_mode="html"))
+
+            except Exception as e:
+                text = f"exception occurred while trying to promote channels: \n\n{e}"
+                exception_handler(bot.send_message(user.id, text, parse_mode="html"))
+
 
 @bot.on_message(Filters.command(["lang", "help", "home"]))
 def commands_handler(bot, message):
