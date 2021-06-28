@@ -3271,6 +3271,44 @@ def users_log(bot, message):
                 text = f"exception occurred while trying to promote channels: \n\n{e}"
                 exception_handler(bot.send_message(user.id, text, parse_mode="html"))
 
+        elif message.command[0] == "reset_channel":
+            try:
+                channel_username = message.command[1]
+                # new_importance = message.command[2]
+                _channel_instance_db = es.search(index="channel", body={
+                    "query": {
+                        "match": {
+                            "username": channel_username
+                        }
+                    }
+                })
+
+                if len(_channel_instance_db["hits"]["hits"]) > 0:
+                    res_text = f"search results: \n\n{_channel_instance_db}"
+                    exception_handler(bot.send_message(user.id, res_text, parse_mode="html"))
+                    _channel_id = _channel_instance_db["hits"]["hits"][0]["_id"]
+
+                    res = es.update(index="channel", id=_channel_id, body={
+                        "script": {
+                            "inline": "ctx._source.last_indexed_offset_date = params.last_indexed_offset_date;",
+                            "lang": "painless",
+                            "params": {
+                                "last_indexed_offset_date": 0
+                            }
+                        }
+                    }, ignore=409)
+                    result_text = f"the result of resetting @{channel_username}:\n\n" \
+                                  f"{res['result']}"
+                    exception_handler(bot.send_message(user.id, result_text, parse_mode="html"))
+                else:
+                    result_text = f"Channel with this username doesn't exist in the database\n\n" \
+                                  f"Channel username: @{channel_username}"
+                    exception_handler(bot.send_message(user.id, result_text, parse_mode="html"))
+
+            except Exception as e:
+                text = f"exception occurred while trying to promote channels: \n\n{e}"
+                exception_handler(bot.send_message(user.id, text, parse_mode="html"))
+
 
 @bot.on_message(Filters.command(["lang", "help", "home"]))
 def commands_handler(bot, message):
