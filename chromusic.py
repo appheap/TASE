@@ -3050,6 +3050,187 @@ def show_playlist(query, user_data):
         return False
 
 
+@bot.on_message(Filters.command(["users", "promote", "reset_channel", "index"]))
+def users_log(bot, message):
+    """
+
+    :param bot:
+    :param message:
+    :return:
+    """
+    user = message.from_user
+    user_data = es.get(index="user", id=user.id)["_source"]
+    if user_data["role"] == "owner":
+
+        if message.command[0] == "users":
+            res = es.count(index="audio", body={
+                "query": {
+                    "match_all": {}
+                }
+            })
+            audio_files = es.count(index="audio_files", body={
+                "query": {
+                    "match_all": {}
+                }
+            })
+            users_count = es.count(index="user", body={
+                "query": {
+                    "match_all": {}
+                }
+            })
+            uen = es.count(index="user", body={
+                "query": {
+                    "match": {
+                        "lang_code": "en"
+                    }
+                }
+            })
+            uhi = es.count(index="user", body={
+                "query": {
+                    "match": {
+                        "lang_code": "hi"
+                    }
+                }
+            })
+            uru = es.count(index="user", body={
+                "query": {
+                    "match": {
+                        "lang_code": "ru"
+                    }
+                }
+            })
+            ufa = es.count(index="user", body={
+                "query": {
+                    "match": {
+                        "lang_code": "fa"
+                    }
+                }
+            })
+            uar = es.count(index="user", body={
+                "query": {
+                    "match": {
+                        "lang_code": "ar"
+                    }
+                }
+            })
+            channels = es.count(index="channel", body={
+                "query": {
+                    "match_all": {}
+                }
+            })
+            imp0 = es.count(index="channel", body={
+                "query": {
+                    "match": {
+                        "importance": 0
+                    }
+                }
+            })
+            imp1 = es.count(index="channel", body={
+                "query": {
+                    "match": {
+                        "importance": 1
+                    }
+                }
+            })
+            imp2 = es.count(index="channel", body={
+                "query": {
+                    "match": {
+                        "importance": 2
+                    }
+                }
+            })
+            imp3 = es.count(index="channel", body={
+                "query": {
+                    "match": {
+                        "importance": 3
+                    }
+                }
+            })
+            imp4 = es.count(index="channel", body={
+                "query": {
+                    "match": {
+                        "importance": 4
+                    }
+                }
+            })
+            imp5 = es.count(index="channel", body={
+                "query": {
+                    "match": {
+                        "importance": 5
+                    }
+                }
+            })
+            to_index = es.count(index="to_index", body={
+                "query": {
+                    "match_all": {}
+                }
+            })
+            future_channel = es.count(index="future_channel", body={
+                "query": {
+                    "match_all": {}
+                }
+            })
+            channel_buffer = es.count(index="channel_buffer", body={
+                "query": {
+                    "match_all": {}
+                }
+            })
+            user_lists = helpers.scan(
+                client=es,
+                query={"query": {"match_all": {}}},
+                size=10000,
+                scroll='2m',
+                index="user_lists"
+            )
+            # print("audio files:", res)
+            audio_count = res["count"]
+            audio_files_count = audio_files["count"]
+            users_count = users_count["count"]
+            # print("channels:", channels)
+            channel_count = channels["count"]
+            imp0_count = imp0["count"]
+            imp1_count = imp1["count"]
+            imp2_count = imp2["count"]
+            imp3_count = imp3["count"]
+            imp4_count = imp4["count"]
+            imp5_count = imp5["count"]
+            uen_count = uen["count"]
+            uhi_count = uhi["count"]
+            uru_count = uru["count"]
+            ufa_count = ufa["count"]
+            uar_count = uar["count"]
+            # print("to_index:", to_index)
+            to_index_count = to_index["count"]
+            future_channel_count = future_channel["count"]
+            channel_buffer_count = channel_buffer["count"]
+            # print("user_lists:", user_lists)
+            counts_text = f"<b>Number of indexed docs in each index</b>\n\n" \
+                          f"<b>1. Audio:</b> {audio_count}\n" \
+                          f"<b>   Audio_files:</b> {audio_files_count}\n\n" \
+                          f"<b>2. Users:</b> {users_count}\n" \
+                          f"    users by language:\n" \
+                          f"            en: {uen_count}\n" \
+                          f"            hi: {uhi_count}\n" \
+                          f"            ru: {uru_count}\n" \
+                          f"            fa: {ufa_count}\n" \
+                          f"            ar: {uar_count}\n\n" \
+                          f"<b>3. To_index:</b> {to_index_count}\n\n" \
+                          f"<b>3. future_channel:</b> {future_channel_count}\n\n" \
+                          f"<b>3. channel_buffer:</b> {channel_buffer_count}\n\n" \
+                          f"<b>4. Channels:</b> {channel_count}\n" \
+                          f"    channel by importance:\n" \
+                          f"            0: {imp0_count}\n" \
+                          f"            1: {imp1_count}\n" \
+                          f"            2: {imp2_count}\n" \
+                          f"            3: {imp3_count}\n" \
+                          f"            4: {imp4_count}\n" \
+                          f"            5: {imp5_count}\n\n"
+
+            # es.indices.delete("channel")
+            # es.indices.delete("audio")
+            # es.indices.delete("to_index")
+            exception_handler(bot.send_message(user.id, counts_text, parse_mode="html"))
+
 @bot.on_message(Filters.command(["lang", "help", "home"]))
 def commands_handler(bot, message):
     """
