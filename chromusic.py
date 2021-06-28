@@ -3309,6 +3309,13 @@ def users_log(bot, message):
                 text = f"exception occurred while trying to promote channels: \n\n{e}"
                 exception_handler(bot.send_message(user.id, text, parse_mode="html"))
 
+        elif message.command[0] == "index":
+            try:
+                channel_username = message.command[1]
+                urgent_index(channel_username, user)
+            except Exception as e:
+                text = f"exception occurred while trying to indexing channels: \n\n{e}"
+                exception_handler(bot.send_message(user.id, text, parse_mode="html"))
 
 @bot.on_message(Filters.command(["lang", "help", "home"]))
 def commands_handler(bot, message):
