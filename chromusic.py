@@ -3340,6 +3340,21 @@ def urgent_index(channel_username, user):
         }
     })
 
+    if len(_channel_instance_db["hits"]["hits"]) > 0:
+        res_text = f"This channel has already been indexed\n\nSearch results: \n\n{_channel_instance_db}"
+        exception_handler(bot.send_message(user.id, res_text, parse_mode="html"))
+        # db_importance = _channel_instance_db["hits"]["hits"][0]["_source"]["importance"]
+        db_downloaded_from_count = _channel_instance_db["hits"]["hits"][0]["_source"]["indexed_from_audio_count"]
+        if db_downloaded_from_count == 0:
+            _channel_id = _channel_instance_db["hits"]["hits"][0]["_id"]
+            starting_text = f"Indexing @{channel_username} started ...\n\nIt might take several minutes."
+            exception_handler(bot.send_message(user.id, starting_text, parse_mode="html"))
+            #
+            audio_file_indexer(app, _channel_id, 0)
+            #
+            finishing_text = f"Indexing @{channel_username} finished successfully"
+            exception_handler(bot.send_message(user.id, finishing_text, parse_mode="html"))
+
 
 @bot.on_message(Filters.command(["lang", "help", "home"]))
 def commands_handler(bot, message):
