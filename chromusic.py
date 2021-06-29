@@ -3355,6 +3355,51 @@ def urgent_index(channel_username, user):
             finishing_text = f"Indexing @{channel_username} finished successfully"
             exception_handler(bot.send_message(user.id, finishing_text, parse_mode="html"))
 
+    else:
+        result_text = f"Channel with this username doesn't exist in the database.\n" \
+                      f"Checking it on telegram...\n\n" \
+                      f"Channel username: @{channel_username}"
+        exception_handler(bot.send_message(user.id, result_text, parse_mode="html"))
+        try:
+            # time.sleep(10)
+            # current_chat = app2.get_chat(channel_username)
+            # time.sleep(3)
+            # if current_chat.type == "channel":
+            starting_text = f"Indexing @{channel_username} started ...\n\nIt might take several minutes."
+            exception_handler(bot.send_message(user.id, starting_text, parse_mode="html"))
+
+            # audio_file_indexer(app2, current_chat.id, 0)
+            # random_indexer = random.choice([app, app2, indexer_list[0]])
+            new_channel_indexer(app, [channel_username], "future_channel")
+
+            finishing_text = f"Indexing @{channel_username} finished successfully"
+            exception_handler(bot.send_message(user.id, finishing_text, parse_mode="html"))
+        except FloodWait as e:
+            result_text = f"FloodWait from manual indexer: \n\n{e}"
+            exception_handler(bot.send_message(user.id, result_text, parse_mode="html"))
+            # print("from audio file indexer: Flood wait exception: ", e)
+            time.sleep(e.x)
+        except SlowmodeWait as e:
+            result_text = f"SlowmodeWait from manual indexer: \n\n{e}"
+            exception_handler(bot.send_message(user.id, result_text, parse_mode="html"))
+            # print("from audio file indexer: Slowmodewait exception: ", e)
+            time.sleep(e.x)
+        except TimeoutError as e:
+            result_text = f"TimeoutError from manual indexer: \n\n{e}"
+            exception_handler(bot.send_message(user.id, result_text, parse_mode="html"))
+            # print("Timeout error: sleeping for 20 seconds: ", e)
+            time.sleep(20)
+            # pass
+        except ConnectionError as e:
+            result_text = f"ConnectionError from manual indexer: \n\n{e}"
+            exception_handler(bot.send_message(user.id, result_text, parse_mode="html"))
+            # print("Connection error - sleeping for 40 seconds: ", e)
+        except Exception as e:
+            result_text = f"Channel with this username doesn't seem to be valid\n\n" \
+                          f"Channel username: @{channel_username}\n\n{e}"
+            exception_handler(bot.send_message(user.id, result_text, parse_mode="html"))
+    time.sleep(5)
+
 
 @bot.on_message(Filters.command(["lang", "help", "home"]))
 def commands_handler(bot, message):
