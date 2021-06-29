@@ -3054,12 +3054,12 @@ def show_playlist(query, user_data):
 def users_log(bot, message):
     """
     Some useful functionalities and options for the owner/admin of the bot:
-
-        1. "users": Generates a summary log of the database status only for the admin/owner of the bot. This is a static function
-         and not a formal part of the bot (meant just for simplification; otherwise you can use Kibana).
+        1. "users": Generates a summary log of the database status only for the admin/owner of the bot. This is a
+         static function and not a formal part of the bot (meant just for simplification; otherwise you can use Kibana).
         2. "promote": promotes the rank of a channel in the indexer waiting list
         3. "reset_channel": Reset the indexing information of a channel in the database
-        4. "index": Index a channel immedietly without waiting in the indexer queue
+        4. "index": Index a channel immediately without waiting in the indexer queue
+
     :param bot: Telegram bot object
     :param message: Telegram message object
     :return: True on success
@@ -3323,6 +3323,15 @@ def users_log(bot, message):
                 exception_handler(bot.send_message(user.id, text, parse_mode="html"))
 
     return True
+
+def urgent_index(channel_username, user):
+    """
+
+    :param channel_username:
+    :param user:
+    :return:
+    """
+
 
 @bot.on_message(Filters.command(["lang", "help", "home"]))
 def commands_handler(bot, message):
