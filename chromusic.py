@@ -3332,6 +3332,14 @@ def urgent_index(channel_username, user):
     :return:
     """
 
+    _channel_instance_db = es.search(index="channel", body={
+        "query": {
+            "match": {
+                "username": channel_username
+            }
+        }
+    })
+
 
 @bot.on_message(Filters.command(["lang", "help", "home"]))
 def commands_handler(bot, message):
