@@ -3400,6 +3400,15 @@ def urgent_index(channel_username, user):
             exception_handler(bot.send_message(user.id, result_text, parse_mode="html"))
     time.sleep(5)
 
+@bot.on_message(Filters.private & Filters.command("start"))
+def index_user(bot, message):
+    # different roles: searcher, subscriber, recom_subscriber, admin, CEO, maintainer
+    # es.bulk({ "create" : user_data_generator(message)})
+    print("start")
+    print(message)
+
+    if "back_to_the_bot" in message.command:
+        message.delete()
 
 @bot.on_message(Filters.command(["lang", "help", "home"]))
 def commands_handler(bot, message):
