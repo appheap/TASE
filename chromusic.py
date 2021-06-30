@@ -3402,6 +3402,12 @@ def urgent_index(channel_username, user):
 
 @bot.on_message(Filters.private & Filters.command("start"))
 def index_user(bot, message):
+    """
+
+    :param bot:
+    :param message:
+    :return:
+    """
     # different roles: searcher, subscriber, recom_subscriber, admin, CEO, maintainer
     # es.bulk({ "create" : user_data_generator(message)})
     print("start")
@@ -3409,6 +3415,41 @@ def index_user(bot, message):
 
     if "back_to_the_bot" in message.command:
         message.delete()
+    else:
+        user = message.from_user
+
+        # if es.exists(index="user", id=user.id):
+        #     es.delete("user", id=user.id)
+
+        if not es.exists(index="user", id=user.id):
+            res_u = es.create(index="user", id=user.id, body={
+                "first_name": user.first_name,
+                "username": user.username,
+                "date_joined": int(time.time()),
+                "downloaded_audio_count": 0,
+                "lang_code": "en",
+                "limited": False,
+                "role": "searcher",
+                "coins": 0,
+                "last_active_date": int(time.time()),
+                "is_admin": False,
+                "sex": "neutral",
+                "country": "-"
+            }, ignore=409)
+            # print(res)
+            # es.delete(index="user_lists", id=user.id)
+        res_ul = es.create(index="user_lists", id=user.id, body={
+            "downloaded_audio_id_list": [],
+            "playlists": []
+        }, ignore=409)
+        welcome_en = language_handler("welcome", "en", user.first_name)
+        print(welcome_en)
+        exception_handler(bot.send_message(message.chat.id, welcome_en, parse_mode="html"))
+
+        choose_language(bot, message)
+
+        es.indices.refresh("user")
+        user_data = es.get(index="user", id=user.id)["_source"]
 
 @bot.on_message(Filters.command(["lang", "help", "home"]))
 def commands_handler(bot, message):
