@@ -3403,10 +3403,11 @@ def urgent_index(channel_username, user):
 @bot.on_message(Filters.private & Filters.command("start"))
 def index_user(bot, message):
     """
-
-    :param bot:
-    :param message:
-    :return:
+    Add new users after sending "start" if did not exist; check if they have joined the channel and update their status
+    respectively
+    :param bot: Telegram bot object
+    :param message: Telegram message object
+    :return: -
     """
     # different roles: searcher, subscriber, recom_subscriber, admin, CEO, maintainer
     # es.bulk({ "create" : user_data_generator(message)})
