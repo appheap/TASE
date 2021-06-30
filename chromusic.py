@@ -3324,12 +3324,13 @@ def users_log(bot, message):
 
     return True
 
-def urgent_index(channel_username, user):
+def urgent_index(channel_username: str, user: object):
     """
-
-    :param channel_username:
-    :param user:
-    :return:
+    Index requested channel by the owner/admin immediately. Start from the first message if the channel was
+     new, update otherwise.
+    :param channel_username: Channel username [*str]
+    :param user: Telegram user object
+    :return: True on success
     """
 
     _channel_instance_db = es.search(index="channel", body={
@@ -3399,6 +3400,7 @@ def urgent_index(channel_username, user):
                           f"Channel username: @{channel_username}\n\n{e}"
             exception_handler(bot.send_message(user.id, result_text, parse_mode="html"))
     time.sleep(5)
+    return True
 
 @bot.on_message(Filters.private & Filters.command("start"))
 def index_user(bot, message):
