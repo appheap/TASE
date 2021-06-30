@@ -3889,3 +3889,20 @@ def get_channel(bot, message):
             check_message.edit_text(language_handler("contribution_thanks", user_data["_source"]["lang_code"],
                                                      message.chat.first_name, registered))
     return True
+
+
+@bot.on_message(Filters.private & Filters.audio & ~Filters.bot)
+def save_audio(bot, message):
+    """
+
+    :param bot:
+    :param message:
+    :return:
+    """
+    audio = message.audio
+    print(message, caption_extractor(message))
+    user_data = es.get("user", id=message.chat.id)["_source"]
+    print("from file ret - lang code:")
+    lang_code = user_data["lang_code"]
+    if message.caption:
+        channels_username = channel_name_extractor(app, message.caption)
