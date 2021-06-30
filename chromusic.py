@@ -3778,10 +3778,11 @@ def download_handler(bot, message):
                 Filters.private & (Filters.forwarded | Filters.regex("@") | Filters.web_page | Filters.regex("https")))
 def get_channel(bot, message):
     """
-
-    :param bot:
-    :param message:
-    :return:
+    Index requested channel by the owner/admin immediately. Start from the first message if the channel was
+     new, update otherwise.
+    :param bot: Telegram bot API
+    :param message: Telegram message object
+    :return: True on success
     """
     channels_username = []
     user_data = es.get(index="user", id=message.chat.id)
@@ -3887,3 +3888,4 @@ def get_channel(bot, message):
             registered = False
             check_message.edit_text(language_handler("contribution_thanks", user_data["_source"]["lang_code"],
                                                      message.chat.first_name, registered))
+    return True
