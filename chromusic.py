@@ -3416,40 +3416,79 @@ def index_user(bot, message):
     if "back_to_the_bot" in message.command:
         message.delete()
     else:
-        user = message.from_user
+        try:
+            user = message.from_user
 
-        # if es.exists(index="user", id=user.id):
-        #     es.delete("user", id=user.id)
+            # if es.exists(index="user", id=user.id):
+            #     es.delete("user", id=user.id)
 
-        if not es.exists(index="user", id=user.id):
-            res_u = es.create(index="user", id=user.id, body={
-                "first_name": user.first_name,
-                "username": user.username,
-                "date_joined": int(time.time()),
-                "downloaded_audio_count": 0,
-                "lang_code": "en",
-                "limited": False,
-                "role": "searcher",
-                "coins": 0,
-                "last_active_date": int(time.time()),
-                "is_admin": False,
-                "sex": "neutral",
-                "country": "-"
+            if not es.exists(index="user", id=user.id):
+                res_u = es.create(index="user", id=user.id, body={
+                    "first_name": user.first_name,
+                    "username": user.username,
+                    "date_joined": int(time.time()),
+                    "downloaded_audio_count": 0,
+                    "lang_code": "en",
+                    "limited": False,
+                    "role": "searcher",
+                    "coins": 0,
+                    "last_active_date": int(time.time()),
+                    "is_admin": False,
+                    "sex": "neutral",
+                    "country": "-"
+                }, ignore=409)
+                # print(res)
+                # es.delete(index="user_lists", id=user.id)
+            res_ul = es.create(index="user_lists", id=user.id, body={
+                "downloaded_audio_id_list": [],
+                "playlists": []
             }, ignore=409)
-            # print(res)
-            # es.delete(index="user_lists", id=user.id)
-        res_ul = es.create(index="user_lists", id=user.id, body={
-            "downloaded_audio_id_list": [],
-            "playlists": []
-        }, ignore=409)
-        welcome_en = language_handler("welcome", "en", user.first_name)
-        print(welcome_en)
-        exception_handler(bot.send_message(message.chat.id, welcome_en, parse_mode="html"))
+            welcome_en = language_handler("welcome", "en", user.first_name)
+            print(welcome_en)
+            exception_handler(bot.send_message(message.chat.id, welcome_en, parse_mode="html"))
 
-        choose_language(bot, message)
+            choose_language(bot, message)
 
-        es.indices.refresh("user")
-        user_data = es.get(index="user", id=user.id)["_source"]
+            es.indices.refresh("user")
+            user_data = es.get(index="user", id=user.id)["_source"]
+            try:
+                # apt = apl[0]
+                lang_code = user_data["lang_code"]
+                if lang_code == "fa":
+                    user_status = app.get_chat_member(chromusic_fa_id, user.id)
+                else:
+                    user_status = app.get_chat_member(chromusic_id, user.id)
+
+                if user_data["role"] == "searcher":
+                    es.update(index="user", id=user.id, body={
+                        "script": {
+                            "inline": "ctx._source.limited = params.limited;"
+                                      "ctx._source.role = params.role;",
+                            "lang": "painless",
+                            "params": {
+                                "limited": False,
+                                "role": "subscriber"
+                            }
+                        }
+                    }, ignore=409)
+
+
+
+            except Exception as e:
+                print(e)
+
+            time.sleep(15)
+            es.indices.refresh("user")
+            user_data = es.get(index="user", id=user.id)["_source"]
+            lang_code = user_data["lang_code"]
+            example_message = language_handler("example_message", lang_code, user.first_name)
+            exception_handler(bot.send_message(message.chat.id, example_message, parse_mode="html"))
+
+        except Exception as e:
+            print(f"Exception from index_user: {e}")
+        finally:
+            check_joining_status(chromusic_id)
+            check_joining_status(chromusic_fa_id)
 
 @bot.on_message(Filters.command(["lang", "help", "home"]))
 def commands_handler(bot, message):
