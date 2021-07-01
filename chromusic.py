@@ -3906,3 +3906,50 @@ def save_audio(bot, message):
     lang_code = user_data["lang_code"]
     if message.caption:
         channels_username = channel_name_extractor(app, message.caption)
+
+    if not es.exists(index="audio_files", id=str(audio.file_id[8:30:3]).replace("-", "d")):
+        print(es.exists(index="audio_files", id=str(audio.file_id[8:30:3]).replace("-", "d")))
+        # try:
+        # print("before")
+        # _caption = language_handler("file_caption", lang_code, audio_track, audio_track.message_id, chromusic_users_files_id)
+        # app.send_message(chat_id=chromusic_users_files_id, text=" test chrome")
+        sent_to_user_sent_channel = bot.forward_messages(chromusic_users_files_id, message.chat.id, message.message_id)
+        sender_info = f"Sender: \n{message.chat.first_name} \n@{message.chat.username}"
+        bot.send_message(chromusic_users_files_id, sender_info,
+                         reply_to_message_id=sent_to_user_sent_channel.message_id)
+        # bot.forward_messages(chromusic_users_files_id, audio_track.chat.id, audio_track.message_id)
+        print("sent file: ", sent_to_user_sent_channel)
+
+        res = es.create(index="audio_files", id=str(audio.file_id[8:30:3]).replace("-", "d"), body={
+            "chat_id": sent_to_user_sent_channel.chat.id,
+            "chat_username": sent_to_user_sent_channel.chat.username,
+            "message_id": int(sent_to_user_sent_channel.message_id),
+            "file_id": audio.file_id,
+            "file_name": str(audio.file_name).replace("_", " ").replace("@", " "),
+            "file_size": audio.file_size,
+            "duration": audio.duration,
+            "performer": str(audio.performer).replace("_", " ").replace("@", " "),
+            "title": str(audio.title).replace("_", " ").replace("@", " "),
+            "times_downloaded": 0,
+            "caption": str(caption_extractor(message)),
+            "copyright": False
+        }, ignore=409)
+        es.indices.refresh("audio_files")
+
+        # res = helpers.bulk(es, audio_data_generator([sent_to_user_sent_channel]))
+        print("registered: ", res, sent_to_user_sent_channel)
+        print(es.get(index="audio_files", id=str(audio.file_id[8:30:3]).replace("-", "d")))
+        registered = True
+        user_data = es.get(index="user", id=message.chat.id)
+        bot.send_message(message.chat.id, language_handler("contribution_thanks", user_data["_source"]["lang_code"],
+                                                           message.chat.first_name, registered))
+        # message_id = sent_to_user_sent_channel.message_id
+        # audio_track = bot.get_messages(datacenter_id, message_id)
+        # except Exception as e:
+        #     print("from save audio: ", e)
+    else:
+        # es.delete(index="audio", id=str(audio.file_id[8:30:3]).replace("-", "d"))
+        registered = False
+        user_data = es.get(index="user", id=message.chat.id)
+        bot.send_message(message.chat.id, language_handler("contribution_thanks", user_data["_source"]["lang_code"],
+                                                           message.chat.first_name, registered))
