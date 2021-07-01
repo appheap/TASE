@@ -13,7 +13,6 @@ from typing import Union, List, Any
 from datetime import timedelta, datetime
 from uuid import uuid4
 
-# import emoji
 import schedule
 from elasticsearch import Elasticsearch, helpers
 from pyrogram import Client, Filters, InlineKeyboardMarkup, \
@@ -21,9 +20,8 @@ from pyrogram import Client, Filters, InlineKeyboardMarkup, \
 # from search_module.search_handling import file_retrieve_handler
 from pyrogram.api import functions, types
 from pyrogram.errors import FloodWait, SlowmodeWait
-
 from static.emoji import _floppy_emoji, _clock_emoji
-from index.analyzer import channel_analyzer  # Change this
+from index.analyzer import Analyzer
 from index.dataGenerator import *
 # from languages.persian import result_list_handler
 from languages import english, persian
@@ -268,7 +266,7 @@ def check_joining_status(channel_id):
 
 
 def language_handler(
-        func: object = None,
+        func: str = None,
         lang: str = "en",
         *args: list,
         **kwargs: dict):
@@ -291,7 +289,7 @@ def language_handler(
     return text
 
 
-def get_admin_log(peer: Union[int, str] = None) -> list[object]:
+def get_admin_log(peer: Union[int, str] = None) -> list:
     """
     Get a list of logs from the admin-logs. This method gets 'Join' and 'Leave'  events by default, but you can
     uncomment the commented items and add them to your result list.
@@ -341,7 +339,7 @@ def download_guide(user: object):
             help_markup_keyboard = language_handler("example_message_keyboard", user_data["lang_code"])
             bot.send_message(chat_id=user.id, text=help_keyboard_text,
                              reply_markup=InlineKeyboardMarkup(help_markup_keyboard),
-            # parse_mode='HTML')
+                             parse_mode='HTML')
     except FloodWait as e:
         res = bot.set_slow_mode(user.id, 2)
         text = f"floodwait occured in the download_guide! \n\n{e}\n\nresult: {res}"
@@ -1284,7 +1282,8 @@ def new_channel_indexer(client: object, channels_username: list, db_index: str):
                         # analyze it
                         # print("sleeping for 1 seconds after getting channel members ...")
                         time.sleep(1)
-                        importance = channel_analyzer(client.get_history(channel_username), members_count)
+                        channel_analyse = Analyzer(client.get_history(channel_username), members_count)
+                        importance = channel_analyse.channel_analyzer()
                         if len(client.get_history(chat.id)) > 99:
                             es.indices.refresh(index="channel")
                             res = es.create("channel", id=chat.id, body={
@@ -3999,8 +3998,6 @@ def client_handler(app, message):
     :param message: Telegram message object
     :return: -
     """
-    _headphone_emoji = emoji.EMOJI_ALIAS_UNICODE[':headphone:']
-    _round_pushpin = emoji.EMOJI_ALIAS_UNICODE[':round_pushpin:']
     pool_id = 'poolmachinelearning_x123'  # ID to get command from: Here is the pool channel admins
     commands = ["/f", "/sf", "/d", "/v", "/clean", "/i", "/s"]
     supported_message_types = ["text", "photo", "video", "document", "audio", "animation",
