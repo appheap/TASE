@@ -3894,10 +3894,11 @@ def get_channel(bot, message):
 @bot.on_message(Filters.private & Filters.audio & ~Filters.bot)
 def save_audio(bot, message):
     """
-
-    :param bot:
-    :param message:
-    :return:
+    Store audio files sent by users if it did not already exist in the database, ignore otherwise and reply to the
+     user respectively
+    :param bot: Telegram bot API
+    :param message: Telegram message object
+    :return: True on success
     """
     audio = message.audio
     print(message, caption_extractor(message))
@@ -3953,3 +3954,5 @@ def save_audio(bot, message):
         user_data = es.get(index="user", id=message.chat.id)
         bot.send_message(message.chat.id, language_handler("contribution_thanks", user_data["_source"]["lang_code"],
                                                            message.chat.first_name, registered))
+
+    return True
