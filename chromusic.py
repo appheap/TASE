@@ -324,7 +324,7 @@ def get_admin_log(peer: Union[int, str] = None) -> list:
     return res
 
 
-def download_guide(user: object):
+def download_guide(user):
     """
     Send a 'How to search and download' example to new users. Automatically picks the user's language and returns
      the example with respect to their languages.
@@ -335,7 +335,7 @@ def download_guide(user: object):
         user_data = es.get("user", id=user.id)["_source"]
         if user_data["downloaded_audio_count"] == 0:
             lang_code = user_data["lang_code"]
-            help_keyboard_text = language_handler("example_message", lang_code, user.first_name, 15)
+            help_keyboard_text = language_handler("example_message", lang_code)
             help_markup_keyboard = language_handler("example_message_keyboard", user_data["lang_code"])
             bot.send_message(chat_id=user.id, text=help_keyboard_text,
                              reply_markup=InlineKeyboardMarkup(help_markup_keyboard),
@@ -424,29 +424,6 @@ def search_handler(bot: object, message: object):
             time.sleep(e.x)
         except Exception as e:
             print(f"from search handler exception: {e}")
-
-
-def result_list_handler(
-        query: str,
-        search_res: str,
-        lang: str = 'en') -> str:
-    """
-    Language hub function. This function routes each text and function request to its requested language file and
-     returns the results from language files.
-    :param query: Search query
-    :param search_res: Search results including the links in case any result were returned
-    :param lang: Requested language to route to
-    :return: Results from requested language functions
-    """
-    # TODO: Remove this function after implementing the global language handler function
-    if lang == "fa":
-        text = persian.result_list_handler(query, search_res)
-    elif lang == "en":
-        text = english.result_list_handler(query, search_res)
-    else:
-        text = english.result_list_handler(query, search_res)
-
-    return text
 
 
 def is_member(user: object):
