@@ -3961,10 +3961,11 @@ def save_audio(bot, message):
 @bot.on_message(Filters.private & Filters.text & ~Filters.edited & ~Filters.bot & ~Filters.via_bot)
 def message_handler(bot, message):
     """
-
-    :param bot:
-    :param message:
-    :return:
+    Handle received messages from the user. If it was a valid text submit it to the search handler otherwise send
+     "Help" menu.
+    :param bot: Telegram bot API
+    :param message: Telegram message object
+    :return: True on success
     """
     # print('got ur search query')
     # speed_limiter +=1
@@ -3986,3 +3987,5 @@ def message_handler(bot, message):
                                                       parse_mode='HTML'))
         except Exception as e:
             print("from search on_message: ", e)
+
+    return True
