@@ -3989,3 +3989,147 @@ def message_handler(bot, message):
             print("from search on_message: ", e)
 
     return True
+
+# @app.on_message()
+def client_handler(app, message):
+    """
+
+    :param app:
+    :param message:
+    :return:
+    """
+    _headphone_emoji = emoji.EMOJI_ALIAS_UNICODE[':headphone:']
+    _round_pushpin = emoji.EMOJI_ALIAS_UNICODE[':round_pushpin:']
+    pool_id = 'poolmachinelearning_x123'  # ID to get command from: Here is the pool channel admins
+    commands = ["/f", "/sf", "/d", "/v", "/clean", "/i", "/s"]
+    supported_message_types = ["text", "photo", "video", "document", "audio", "animation",
+                               "voice", "poll", "sticker", "web_page"]
+    valid_usernames = ["shelbycobra2016", "cmusic_self"]  # , pool_id]  # , "Pudax"]
+    destinations = {"ce": "cedeeplearning", "pool": pool_id, "me": "shelbycobra2016"}
+
+    # if message.chat.id == "61709467":
+    #     message_handler(app, message)
+    try:
+        if message.chat.username in valid_usernames:
+            # print(apl[0].get_users(34497745))
+
+            # print(message)
+            app.send_message("cmusic_self", str(message))
+            # h = app.get_history("shanbemag", limit=1)
+            # print(h[0])
+            # for i in app.iter_history('BBC_6_Minute', limit=10):
+            #     if i.audio:
+            #         print(i)
+
+            if str(message.text).split(' ')[0] == 'ch':
+                # print(es.search(index="channel", body={
+                #     "query": {
+                #         "match_all": {}
+                #     }
+                # }))
+                # es.bulk({ "create" : audio_data_generator() })
+                # res = es.get(index="channel", id=app.get_chat('cedeeplearning').id)
+                # print(res)
+                res = es.search(index="channel", body={
+                    "query": {
+                        "match": {"importance": 5}
+                    },
+                    "sort": {
+                        "last_indexed_offset_date": "asc"
+                    }
+                })
+                print("started...")
+                # print("his mes ", [ i for i in app.iter_history("me", limit=1)])#, datetime(app.get_history("me", limit=1)[-1].date).timestamp())
+
+                # app.send_message("me", "indexing started ...")
+                # app.terminate()
+                # bot.restart()
+                # es.get(index="future_channel", id=app.get_chat("kurdi4").id)
+                # es.get(index="future_channel", id=app.get_chat("ahangify").id)
+                # channel_to_index_set_consume = channel_to_index_set
+                # [channel_to_index_set_consume.add(ch) for ch in list(channel_to_index_set)]
+                # _channels_list = list(channel_to_index_set_consume)
+                # print("cunsume set before: ", channel_to_index_set_consume)
+                # new_channel_indexer(_channels_list)
+                # app.send_message("me", res["hits"]["hits"])
+                for item in res["hits"]["hits"]:
+                    print(item)
+                # res = helpers.scan(
+                #     client=es,
+                #     query={"query": {"match_all": {}}},
+                #     size=10000,
+                #     scroll='2m',
+                #     index="channel"
+                # )
+                # for i in res:
+                #     print(f"indexing: {i}")
+                #     existing_channel_indexer(channel=int(i['_id']))
+                #
+                # app.send_message("me", "existing channels indexed successfully ")
+                # caption_entities_channel_extractor(message)
+
+            elif str(message.text).split(' ')[0] == 'delete':
+                try:
+                    es.indices.delete('audio')
+                    es.indices.delete('channel')
+                    # app.send_message("shelbycobra2016", text=f"deleted 2 indexes:\n1. audio\n2. channel")
+                    # audio = es.indices.create(
+                    #     index="audio",
+                    #     body=audio_mapping,
+                    #     ignore=400  # ignore 400 already exists code
+                    # )
+                    channel = es.indices.create(
+                        index="channel",
+                        body=channel_mapping,
+                        ignore=400  # ignore 400 already exists code
+                    )
+
+                    app.send_message('shelbycobra2016', 'created again')
+                except:
+                    app.send_message('shelbycobra2016', "There's no audio index!")
+                    # for index in es.indices.get('*'):
+                    #     print(index)
+                    print(es.search(index="datacenter", body={
+                        "query": {"match_all": {}}
+                    }))
+
+                # elif str(message.text).split(' ')[0] == 'create':
+                #     audio = es.indices.create(
+                #         index="audio",
+                #         body=audio_mapping,
+                #         ignore=400  # ignore 400 already exists code
+                #     )
+                #     user = es.indices.create(
+                #         index="user",
+                #         body=audio_mapping,
+                #         ignore=400  # ignore 400 already exists code
+                #     )
+                #     channel = es.indices.create(
+                #         index="channel",
+                #         body=audio_mapping,
+                #         ignore=400  # ignore 400 already exists code
+                #     )
+                response = es.update(index="user", id=165802777, body={
+                    "script": {
+                        "source": "ctx._source.role = params.role_p",
+                        "lang": "painless",
+                        "params": {
+                            "role_p": "owner"
+                        }
+                    }
+                }, refresh=True, ignore=409)
+                # app.send_message("shelbycobra2016",
+                #                  text=f"created 3 indexes:\n\n1. audio: {audio}\n2. user: {user}\n\n3. channel: {channel}\n\n4. update responce: {response}")
+                print(es.get(index="user_role", id=165802777))
+
+            elif str(message.text).split(' ')[0] == 'index':
+                time.sleep(3)
+                current_chat = app.get_chat(str(message.text).split(' ')[1])
+                time.sleep(3)
+                if current_chat.type == "channel":
+                    audio_file_indexer(app, current_chat, 0)
+
+            elif str(message.text).split(' ')[0] == 'count':
+                print(es.count(index='audio_files'))
+    except Exception as e:
+        print(f"from client handler: {e}")
