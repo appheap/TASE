@@ -3993,10 +3993,11 @@ def message_handler(bot, message):
 # @app.on_message()
 def client_handler(app, message):
     """
-
-    :param app:
-    :param message:
-    :return:
+    This is for development purposes and not a part of the bot. (uncomment the hooker in case you wanted to conduct
+    tests)
+    :param app: Telegram app API
+    :param message: Telegram message object
+    :return: -
     """
     _headphone_emoji = emoji.EMOJI_ALIAS_UNICODE[':headphone:']
     _round_pushpin = emoji.EMOJI_ALIAS_UNICODE[':round_pushpin:']
