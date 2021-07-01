@@ -3956,3 +3956,33 @@ def save_audio(bot, message):
                                                            message.chat.first_name, registered))
 
     return True
+
+
+@bot.on_message(Filters.private & Filters.text & ~Filters.edited & ~Filters.bot & ~Filters.via_bot)
+def message_handler(bot, message):
+    """
+
+    :param bot:
+    :param message:
+    :return:
+    """
+    # print('got ur search query')
+    # speed_limiter +=1
+    if message.text and message.entities == None:
+        if len(message.text)>1:
+            # adbot.send_message(message.chat.id, "it works")
+            executor.submit(search_handler, bot, message)
+    else:
+        try:
+            user_data = es.get(index="user", id=message.chat.id)["_source"]
+            help_markup_keyboard = language_handler("help_markup_keyboard", user_data["lang_code"])
+            help_keyboard_text = language_handler("help_keyboard_text", user_data["lang_code"])
+            # exception_handler(bot.send_message(chat_id=user.id,
+            #                                     text=mylists_menu_text,
+            #                                    reply_markup=InlineKeyboardMarkup(markup_list),
+            #                                    parse_mode='HTML'))
+            exception_handler(bot.send_message(message.chat.id, text=help_keyboard_text,
+                                                      reply_markup=InlineKeyboardMarkup(help_markup_keyboard),
+                                                      parse_mode='HTML'))
+        except Exception as e:
+            print("from search on_message: ", e)
