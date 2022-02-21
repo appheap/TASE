@@ -1,4 +1,4 @@
-<h1>Telegram audio search engine</h1>
+<h1>Telegram audio search engine (TASE)</h1>
 <p>A lightening-fast audio search engine on top of the Telegram messenger platform.</p>
 
 <p>This search engine allows users to quickly and easily find information that is of 
