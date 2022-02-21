@@ -1,6 +1,6 @@
 """####################################################################
 # Copyright (C)                                                       #
-# 2020 Soran Ghadri(soran.gdr.cs@gmail.com)                           #
+# 2021 Soran Ghadri(soran.gdr.cs@gmail.com)                           #
 # Permission given to modify the code as long as you keep this        #
 # declaration at the top                                              #
 ####################################################################"""
@@ -2622,7 +2622,7 @@ def callback_query_handler(bot, query):
         4. get_list: Get a list of audio files within the current playlist (first part splitted by space)
         5. delete: Remove an audio file from the current playlist after 2-step verification
         6. edit: Edit playlist meta-data
-        7. showplaylist: Show a options for single playlist using a keyboard
+        7. showplaylist: Show an options for single playlist using a keyboard
         8. showmyplaylists: Show a list of playlists created by the user
         9. home: Show "Home" menu
         10. help: Show "Help" menu
