@@ -7,7 +7,7 @@ irrelevant Telegram channels. It provides users with search
 results that lead to relevant information on high-quality websites.</p>
 
 
-<h2>Features</h2>
+<h2>Features :bulb:</h2>
 <ol>
 <li><h4>Search engine</h4></li>
 <ul>
@@ -28,14 +28,43 @@ results that lead to relevant information on high-quality websites.</p>
 <p></p><br>
 <img src="images/audio.PNG">
 <caption align="center">Result audio example screenshot</caption>
-<p></p><br>
-<h4>User limiting/controlling features</h4>
+<br>
+
+<li><h4>Indexing features</h4></li>
+<ul>
+    <li>Automatically finds new channels in an optimistic way
+        (first assumes it is a valid channel and validates it later 
+        before starting to index) 
+        <ol>
+        <li>Extract from texts and captions</li>
+        <li>Extract from "forwarded mention"</li>
+        <li>Extract from links</li>
+        </ol>
+    </li>
+    <li>Automatically indexes new channels</li>
+    <li>Iterates through previous channels and resumes indexing from the previous checkpoint</li>
+    <li>Analyzes channels and calculates a score (0-5) based on their 
+        <ol>
+            <li>Density of audio files</li>
+            <li>Activity of the channel</li>
+            <li>Number of members</li>
+        </ol>
+    </li>
+    <li>Avoids getting banned by the Telegram servers</li>
+    <li>Multiple Telegram accounts can be added for indexing purposes</li>
+    <li>Hashes the file IDs in a specific way that avoids conflicts to a high degree and still keeps them as short as eight characters</li>    
+    <li>Users and channel owners can send request to index a specific channel useing "/index channel_name"</li>    
+    <li>Fast indexing</li>
+    
+</ul>
+<br>
+<li><h4>User limiting/controlling features</h4></li>
 <ul>
     <li>Handle user membership in your channel(s) in near real-time</li>
     <li>Set limitations for users based on their membership status</li>
     <li>Limits not-a-member users to search 5 audio files freely, and then they should wait for one minute until they receive their searched audio files</li>
     <li>Not members have limitations with direct in-chat searches</li>
-</ul>
+</ul><br>
 <li><h4>User interface</h4></li>
 <ul>
     <li>User guide</li>
@@ -55,36 +84,8 @@ results that lead to relevant information on high-quality websites.</p>
 </li></ul>
 <img src="images/main_menu.PNG">
 <caption align="center">Main menu screenshot</caption>
-<br><br>
+<br>
 
-<li><h4>Indexing features</h4></li>
-<ul>
-    <li>Automatically finds new channels in an optimistic way
-        (first assumes it is a valid channel and validates it later 
-        before starting to index) 
-        <ol>
-        <li>Extract from texts and captions</li>
-        <li>Extract from "forwarded mention"</li>
-        <li>Extract from links</li>
-        <li></li>
-        </ol>
-    </li>
-    <li>Automatically indexes new channels</li>
-    <li>Iterates through previous channels and resumes indexing from the previous checkpoint</li>
-    <li>Analyzes channels and calculates a score (0-5) based on their 
-        <ol>
-            <li>Density of audio files</li>
-            <li>Activity of the channel</li>
-            <li>Number of members</li>
-        </ol>
-    </li>
-    <li>Avoids getting banned by the Telegram servers</li>
-    <li>Multiple Telegram accounts can be added for indexing purposes</li>
-    <li>Hashes the file IDs in a specific way that avoids conflicts to a high degree and still keeps them as short as eight characters</li>    
-    <li>Users and channel owners can send request to index a specific channel useing "/index channel_name"</li>    
-    <li>Fast indexing</li>
-    
-</ul>
 <li><h4>Admin features</h4></li>
 <ul>
     <li>Admin-specific commands:
@@ -111,7 +112,7 @@ results that lead to relevant information on high-quality websites.</p>
     <li>Sends runtime exceptions to the admin or to a specific channel or group (based or your provided address)</li>
 </ul>
 <img src="images/admin_command.PNG" alt="Admin commands screenshot">
-<caption align="center">Admin commands scerenshot</caption><br><br>
+<caption align="center">Admin commands scerenshot</caption><br>
 <li><h4>Developer features</h4></li>
 <ul>
     <li>New languages can be easily added in the language directory</li>
@@ -164,6 +165,6 @@ results that lead to relevant information on high-quality websites.</p>
 <p>Released under the MIT License</p>
 <div class="footer"><pre>Copyright &copy; 2020-2022
 Soran Ghaderi (soran.gdr.cs@gmail.com)
-Website: https://soran-ghaderi.github.io/
-Linkedin: https://www.linkedin.com/in/soran-ghaderi/
-Twitter: itter.com/soranghadri</div>
+Personal website: <a href="https://soran-ghaderi.github.io/">soran-ghaderi.github.io</a>
+Linkedin: <a href="https://www.linkedin.com/in/soran-ghaderi/">Soran-Ghaderi</a>
+Twitter: <a href="https://twitter.com/soranghadri">SoranGhadri</a></div> 
