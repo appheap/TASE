@@ -50,29 +50,33 @@ def telegramAPI_connect():
     global executor, app, app2, bot, adbot, indexer_list
     indexer_list = []
 
-    bot_name_indexer_7693_api_id = "api_id_1"
-    bot_name_indexer_7693_api_hash = "api_hash_1"
 
-    admin_api_id = "api_id_2"
-    admin_api_hash = "api_hash_2"
+    indexer_bot_id = "api_id_0"
+    indexer_bot_hash = "api_hash_0"
 
-    api_id_0762 = "api_id_3"
-    api_hash_0762 = "api_hash_3"
+    # Create as many clients as you want (requires phone numbers and api hash and ID)
+    # To get API hash and ID go to Telegram website
+    # TODO: these clients must be used within a list and should be dynamic
 
-    api_id_0765 = "api_id_4"
-    api_hash_0765 = "api_hash_4"
+    api_id_1 = "api_id_1"
+    api_hash_1 = "api_hash_1"
 
+    api_id_2 = "api_id_2"
+    api_hash_2 = "api_hash_2"
+
+    api_id_3 = "api_id_3"
+    api_hash_3 = "api_hash_3"
+    
     BOT_TOKEN = "Your bot toke here"  # bot_name_bot bot token
 
-    # app_me = client_connect("admin", admin_api_id, admin_api_hash)
-    app = client_connect("bot_name_1", api_id_0762, api_hash_0762)
-    app2 = client_connect("bot_name_2", api_id_0765, api_hash_0765)
-    bot_name_indexer_7693 = client_connect("bot_name_indexer_7693", bot_name_indexer_7693_api_id,
-                                            bot_name_indexer_7693_api_hash)
+    # app_me = client_connect("admin", indexer_bot_id, indexer_bot_hash)
+    app = client_connect("bot_name_1", api_id_1, api_hash_1)
+    app2 = client_connect("bot_name_2", api_id_2, api_hash_2)
+    client_1 = client_connect("client_1", api_id_3, api_hash_3)
 
     # adbot = adbot_connect(BOT_TOKEN, api_hash, api_id)
-    bot = bot_connect("bot_name_bot", admin_api_id, admin_api_hash, BOT_TOKEN)
-    indexer_list.append(bot_name_indexer_7693)
+    bot = bot_connect("bot_name_bot", indexer_bot_id, indexer_bot_hash, BOT_TOKEN)
+    indexer_list.append(client_1)
 
 
 def client_connect(
