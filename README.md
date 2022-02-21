@@ -8,8 +8,8 @@ results that lead to relevant information on high-quality websites.</p>
 
 
 <h2>Features</h2>
-
-<h4>Search engine</h4>
+<ol>
+<li><h4>Search engine</h4></li>
 <ul>
     <li>Search audio files through the direct bot search</li>
     <li>Search audio files from groups and private chats using @bot_name mention
@@ -21,8 +21,14 @@ results that lead to relevant information on high-quality websites.</p>
     <li>High accuracy and relevance</li>
     <li>Search in a wide variety of languages</li>
     <li>Show the source-channel name and the link to the file</li>
+    <li>Sort results in reverse mode (to make more relevant results in the bottom)</li>
 </ul>
-
+<img src="images/search.PNG" alt="Search example screenshot">
+<caption align="center">Search example screenshot</caption>
+<p></p><br>
+<img src="images/audio.PNG">
+<caption align="center">Result audio example screenshot</caption>
+<p></p><br>
 <h4>User limiting/controlling features</h4>
 <ul>
     <li>Handle user membership in your channel(s) in near real-time</li>
@@ -30,7 +36,7 @@ results that lead to relevant information on high-quality websites.</p>
     <li>Limits not-a-member users to search 5 audio files freely, and then they should wait for one minute until they receive their searched audio files</li>
     <li>Not members have limitations with direct in-chat searches</li>
 </ul>
-<h4>User interface</h4>
+<li><h4>User interface</h4></li>
 <ul>
     <li>User guide</li>
     <li>Home button</li>
@@ -47,8 +53,11 @@ results that lead to relevant information on high-quality websites.</p>
     <li>Users can edit saved audio files</li>
 </ol>
 </li></ul>
+<img src="images/main_menu.PNG">
+<caption align="center">Main menu screenshot</caption>
+<br><br>
 
-<h4>Indexing features</h4>
+<li><h4>Indexing features</h4></li>
 <ul>
     <li>Automatically finds new channels in an optimistic way
         (first assumes it is a valid channel and validates it later 
@@ -76,7 +85,7 @@ results that lead to relevant information on high-quality websites.</p>
     <li>Fast indexing</li>
     
 </ul>
-<h4>Admin features</h4>
+<li><h4>Admin features</h4></li>
 <ul>
     <li>Admin-specific commands:
     <ol>
@@ -100,13 +109,14 @@ results that lead to relevant information on high-quality websites.</p>
     <li>Indexes channels urgently on admin request</li>
     <li>Reset channels' latest index offset on admin request </li>
     <li>Sends runtime exceptions to the admin or to a specific channel or group (based or your provided address)</li>
-    
 </ul>
-<h4>Developer features</h4>
+<img src="images/admin_command.PNG" alt="Admin commands screenshot">
+<caption align="center">Admin commands scerenshot</caption><br><br>
+<li><h4>Developer features</h4></li>
 <ul>
     <li>New languages can be easily added in the language directory</li>
 </ul>
-<h4>Other</h4>
+<li><h4>Other</h4></li>
 <ul>
     <li>Extremely fast</li>
     <li>Documentation is provided in the codes (docstring)</li>
@@ -118,4 +128,5 @@ results that lead to relevant information on high-quality websites.</p>
 
 
 <ul>   
-    </ul>
+</ul>
+</ol>
