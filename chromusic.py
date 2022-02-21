@@ -1,6 +1,10 @@
 """####################################################################
 # Copyright (C)                                                       #
-# 2021 Soran Ghadri(soran.gdr.cs@gmail.com)                           #
+# 2021 Soran Ghaderi(soran.gdr.cs@gmail.com)                          #
+# Website: soran-ghaderi.github.io                                    #
+# Follow me on social media                                           #
+# Twitter: twitter.com/soranghadri                                    #
+# Linkedin: https://www.linkedin.com/in/soran-ghaderi/                #
 # Permission given to modify the code as long as you keep this        #
 # declaration at the top                                              #
 ####################################################################"""
@@ -46,11 +50,11 @@ def telegramAPI_connect():
     global executor, app, app2, bot, adbot, indexer_list
     indexer_list = []
 
-    chromusic_indexer_7693_api_id = "api_id_1"
-    chromusic_indexer_7693_api_hash = "api_hash_1"
+    bot_name_indexer_7693_api_id = "api_id_1"
+    bot_name_indexer_7693_api_hash = "api_hash_1"
 
-    shelbycobra2016_api_id = "api_id_2"
-    shelbycobra2016_api_hash = "api_hash_2"
+    admin_api_id = "api_id_2"
+    admin_api_hash = "api_hash_2"
 
     api_id_0762 = "api_id_3"
     api_hash_0762 = "api_hash_3"
@@ -58,28 +62,27 @@ def telegramAPI_connect():
     api_id_0765 = "api_id_4"
     api_hash_0765 = "api_hash_4"
 
-    BOT_TOKEN = "Your bot toke here"  # chromusic_bot bot token
+    BOT_TOKEN = "Your bot toke here"  # bot_name_bot bot token
 
-    # app_me = client_connect("shelbycobra2016", shelbycobra2016_api_id, shelbycobra2016_api_hash)
-    app = client_connect("Chromusic_1", api_id_0762, api_hash_0762)
-    app2 = client_connect("Chromusic_2", api_id_0765, api_hash_0765)
-    chromusic_indexer_7693 = client_connect("Chromusic_indexer_7693", chromusic_indexer_7693_api_id,
-                                            chromusic_indexer_7693_api_hash)
+    # app_me = client_connect("admin", admin_api_id, admin_api_hash)
+    app = client_connect("bot_name_1", api_id_0762, api_hash_0762)
+    app2 = client_connect("bot_name_2", api_id_0765, api_hash_0765)
+    bot_name_indexer_7693 = client_connect("bot_name_indexer_7693", bot_name_indexer_7693_api_id,
+                                            bot_name_indexer_7693_api_hash)
 
     # adbot = adbot_connect(BOT_TOKEN, api_hash, api_id)
-    # bot = bot_connect("soranpythonbot", BOT_TOKEN, shelbycobra2016_api_hash, shelbycobra2016_api_id)
-    bot = bot_connect("chromusic_bot", shelbycobra2016_api_id, shelbycobra2016_api_hash, BOT_TOKEN)
-    indexer_list.append(chromusic_indexer_7693)
+    bot = bot_connect("bot_name_bot", admin_api_id, admin_api_hash, BOT_TOKEN)
+    indexer_list.append(bot_name_indexer_7693)
 
 
 def client_connect(
-        session_name: str = "chromusic",
+        session_name: str = "bot_name",
         api_id: Union[int, str] = None,
         api_hash: Union[int, str] = None):
     """
     Connect the client to Telegram servers. [Client API]
-    :param session_name: [str] (defaults to 'chromusic')
-            Pass a string of your choice to give a name to the client session, e.g.: "*chromusic*". This name will be
+    :param session_name: [str] (defaults to 'bot_name')
+            Pass a string of your choice to give a name to the client session, e.g.: "*bot_name*". This name will be
             used to save a file on disk that stores details needed to reconnect without asking again for credentials.
             Alternatively, if you don't want a file to be saved on disk, pass the special name "**:memory:**" to start
             an in-memory session that will be discarded as soon as you stop the Client. In order to reconnect again
@@ -103,14 +106,14 @@ def client_connect(
 
 
 def bot_connect(
-        session_name: str = "chromusic_bot",
+        session_name: str = "bot_name_bot",
         api_id: Union[int, str] = None,
         api_hash: Union[int, str] = None,
         bot_token: str = None):
     """
     Connect the client to Telegram servers. [Bot API]
-    :param session_name: [str] (defaults to 'chromusic_bot')
-            Pass a string of your choice to give a name to the client session, e.g.: "*chromusic*". This name will be
+    :param session_name: [str] (defaults to 'bot_name_bot')
+            Pass a string of your choice to give a name to the client session, e.g.: "*bot_name*". This name will be
             used to save a file on disk that stores details needed to reconnect without asking again for credentials.
             Alternatively, if you don't want a file to be saved on disk, pass the special name "**:memory:**" to start
             an in-memory session that will be discarded as soon as you stop the Client. In order to reconnect again
@@ -205,7 +208,7 @@ def check_joining_status(channel_id):
     :return: -
     """
     try:
-        res = get_admin_log(channel_id)  # chromusic channel ID
+        res = get_admin_log(channel_id)  # bot_name channel ID
         # print("admin log: ", res)
         current_last_date = es.get("admin_log_control", id=channel_id)["_source"]["last_offset_date"]
         _last_event = None
@@ -295,7 +298,7 @@ def get_admin_log(peer: Union[int, str] = None) -> list:
     uncomment the commented items and add them to your result list.
 
     :param peer: Union: [id, username]. Peer username or ID.
-    ex. get_admin_log("chromusic")
+    ex. get_admin_log("bot_name")
     :return: list[object] - A list of recent join/leave activities
     """
     res = app.send(functions.channels.GetAdminLog(
@@ -343,12 +346,12 @@ def download_guide(user):
     except FloodWait as e:
         res = bot.set_slow_mode(user.id, 2)
         text = f"floodwait occured in the download_guide! \n\n{e}\n\nresult: {res}"
-        app.send_message(chromusic_log_id, text)
+        app.send_message(bot_name_log_id, text)
         time.sleep(e.x)
     except SlowmodeWait as e:
         res = bot.set_slow_mode(user.id, 2)
         text = f"SlowmodeWait occured in the download_guide! \n\n{e}\n\nresult: {res}"
-        app.send_message(chromusic_log_id, text)
+        app.send_message(bot_name_log_id, text)
         time.sleep(e.x)
     except Exception as e:
         print(f"from download_guide exception: {e}")
@@ -415,12 +418,12 @@ def search_handler(bot: object, message: object):
         except FloodWait as e:
             res = bot.set_slow_mode(user.id, 2)
             text = f"floodwait occured in the search handler! \n\n{e}\n\nresult: {res}"
-            app.send_message(chromusic_log_id, text)
+            app.send_message(bot_name_log_id, text)
             time.sleep(e.x)
         except SlowmodeWait as e:
             res = bot.set_slow_mode(user.id, 2)
             text = f"SlowmodeWait occured in the search handler! \n\n{e}\n\nresult: {res}"
-            app.send_message(chromusic_log_id, text)
+            app.send_message(bot_name_log_id, text)
             time.sleep(e.x)
         except Exception as e:
             print(f"from search handler exception: {e}")
@@ -518,7 +521,7 @@ def file_retrieve_handler(message: object) -> str:
                     if probability == 1:
                         sent_collaboration_request_message = bot.send_message(message.chat.id,
                                                                               collaboration_request_message)
-                # bot.send_audio("shelbycobra2016", audio_track.audio.file_id,
+                # bot.send_audio("admin", audio_track.audio.file_id,
                 #                caption=_caption)  # , file_ref=audio_track.audio.file_ref)
                 # print("before_retrieve_updater")
                 retrieve_updater(query, user, chat_id)
@@ -539,7 +542,7 @@ def file_retrieve_handler(message: object) -> str:
                                                  reply_markup=InlineKeyboardMarkup(music_file_keyboard),
                                                  parse_mode="HTML"))
                 send1min.delete()
-                # bot.send_audio("shelbycobra2016", audio_track.audio.file_id,
+                # bot.send_audio("admin", audio_track.audio.file_id,
                 #                caption=_caption)
                 retrieve_updater(query, user, chat_id)
             # print(es.get("user", id=user.id))
@@ -611,10 +614,10 @@ def file_retrieve_handler(message: object) -> str:
                              f"Sender: {user.first_name} - {user.username}\n" \
                              f"Channel username: {chat_username}\n\n" \
                              f"{finale_ex}"
-                app.send_message(chromusic_log_id, error_text)
+                app.send_message(bot_name_log_id, error_text)
     except Exception as e:
         text = f"outer exception from file retrieve: {e}"
-        app.send_message(chromusic_log_id, text)
+        app.send_message(bot_name_log_id, text)
 
 
 def retrieve_updater(query: str, user: object, channel: str) -> bool:
@@ -688,7 +691,7 @@ def retrieve_updater(query: str, user: object, channel: str) -> bool:
             }, refresh=True, ignore=409)
         except Exception as e:
             print(f"chat: {e}")
-        resc = es.update(index="channel", id=chromusic_users_files_id, body={
+        resc = es.update(index="channel", id=bot_name_users_files_id, body={
             "script": {
                 "inline": "ctx._source.downloaded_from_count+=params.count_inc;",
                 "lang": "painless",
@@ -939,13 +942,13 @@ def daily_gathered_channels_controller(client: object) -> bool:
                 return True
             except Exception as e:
                 text = f"exception handled form daily_gathered_channels_controller() function: \n\n{e}"
-                client.send_message(chromusic_log_id, text)
+                client.send_message(bot_name_log_id, text)
                 # continue
             finally:
                 time.sleep(30)
     except Exception as e:
         text = f"exception handled from out of while in daily_gathered_channels_controller() function: \n\n{e}"
-        client.send_message(chromusic_log_id, text)
+        client.send_message(bot_name_log_id, text)
         daily_gathered_channels_controller(client)
         return False
 
@@ -1023,12 +1026,12 @@ def existing_channels_handler_by_importance(client: object, importance: int):
                         time.sleep(10)
                     except Exception as e:
                         text = f"exception handled form existing_channels_handler_by_importance() function <b>for loop</b>: \n\n{e}"
-                        client.send_message(chromusic_log_id, text)
+                        client.send_message(bot_name_log_id, text)
                         time.sleep(15)
 
             except Exception as e:
                 text = f"exception handled form existing_channels_handler_by_importance() function: \n\n{e}"
-                client.send_message(chromusic_log_id, text)
+                client.send_message(bot_name_log_id, text)
             finally:
                 text = f"existing_channels_handler_by_importance finished and will start again soon\n\n" \
                        f"importance: {importance}"
@@ -1039,7 +1042,7 @@ def existing_channels_handler_by_importance(client: object, importance: int):
                f"importance: {importance}\n\n" \
                f"exception details:\n" \
                f"{e}"
-        client.send_message(chromusic_log_id, text)
+        client.send_message(bot_name_log_id, text)
     finally:
         time.sleep(15)
         existing_channels_handler_by_importance(client, importance)
@@ -1124,13 +1127,13 @@ def existing_channels_handler_by_importance_recent_messages(client: object, impo
                         time.sleep(20)
                     except Exception as e:
                         text = f"exception handled form existing_channels_handler_by_importance_recent_messages() function <b>for loop</b>: \n\n{e}"
-                        client.send_message(chromusic_log_id, text)
+                        client.send_message(bot_name_log_id, text)
                     finally:
                         time.sleep(15)
 
             except Exception as e:
                 text = f"exception handled form existing_channels_handler_by_importance_recent_messages() function: \n\n{e}"
-                client.send_message(chromusic_log_id, text)
+                client.send_message(bot_name_log_id, text)
             finally:
                 text = f"existing_channels_handler_by_importance_recent_messages finished and will start again soon\n\n" \
                        f"importance: {importance}"
@@ -1141,7 +1144,7 @@ def existing_channels_handler_by_importance_recent_messages(client: object, impo
                f"importance: {importance}\n\n" \
                f"exception details:\n" \
                f"{e}"
-        client.send_message(chromusic_log_id, text)
+        client.send_message(bot_name_log_id, text)
     finally:
         time.sleep(15)
         existing_channels_handler_by_importance_recent_messages(client, importance)
@@ -1170,7 +1173,7 @@ def existing_channel_indexer(client: object, channel_id: int, *args: list) -> bo
                f"len of history: {lenth_of_history}"
         # print(f"text: after using client: {text}") # works until here!
         time.sleep(3)
-        # client.send_message("shelbycobra2016", text)
+        # client.send_message("admin", text)
         if importance > 0:
             # print("current_channel_offset_date: ", current_channel_offset_date)
             # print(f"indexing existing channel: {_ch_from_es['_source']['title']} started ...")
@@ -1193,7 +1196,7 @@ def existing_channel_indexer(client: object, channel_id: int, *args: list) -> bo
         text = f"exception handled form existing_channel_indexer() function: \n\n{e}"
         if not (str(e).__contains__("NotFoundError(404,") or
                 str(e).__contains__("not supported")):
-            client.send_message(chromusic_log_id, text)
+            client.send_message(bot_name_log_id, text)
         return False
 
 
@@ -1320,7 +1323,7 @@ def new_channel_indexer(client: object, channels_username: list, db_index: str):
                                     # continue
                                 except Exception as e:
                                     text = f"it's not in the {db_index} two to the last except in the main if in the for loop \n\n{e}"
-                                    client.send_message(chromusic_log_id, text)
+                                    client.send_message(bot_name_log_id, text)
                                     print(
                                         "it's not in the future_channel/channel_buffer two to the fffflast except in the main if in the for loop")
                                     # continue
@@ -1332,7 +1335,7 @@ def new_channel_indexer(client: object, channels_username: list, db_index: str):
                                 # continue
                             except Exception as e:
                                 text = f"it's not in the future_channel/channel_buffer one to the last except in the main if in the for loop \n\n{e}"
-                                client.send_message(chromusic_log_id, text)
+                                client.send_message(bot_name_log_id, text)
                                 print(
                                     f"it's not in the future_channel/channel_buffer one to the last except in the main if in the for loop")
                                 # continue
@@ -1344,7 +1347,7 @@ def new_channel_indexer(client: object, channels_username: list, db_index: str):
                             # continue
                         except Exception as e:
                             text = f"it's not in the future_channel/channel_buffer last except in the main if in the for loop \n\n{e}"
-                            client.send_message(chromusic_log_id, text)
+                            client.send_message(bot_name_log_id, text)
                             # print(f"it's not in the future_channel/channel_buffer last except in the main if in the for loop")
                             # continue
                         # print("channel successfully deleted from future_channe/channel_bufferl")
@@ -1352,16 +1355,16 @@ def new_channel_indexer(client: object, channels_username: list, db_index: str):
                     text = f"exception handled form new_channel_indexer() function <b>for loop</b>: \n\n{e}"
                     if not (str(e).__contains__("NotFoundError(404,") or
                             str(e).__contains__("not supported")):
-                        client.send_message(chromusic_log_id, text)
+                        client.send_message(bot_name_log_id, text)
                     # continue
                 finally:
                     time.sleep(5)
     except Exception as e:
         text = f"exception handled form new_channel_indexer() function: \n\n{e}"
-        app.send_message(chromusic_log_id, text)
+        app.send_message(bot_name_log_id, text)
     finally:
         text = f"new_channel_indexer() finished and will start again ..."
-        # client.send_message(chromusic_log_id, text)
+        # client.send_message(bot_name_log_id, text)
         time.sleep(30)
 
 def audio_file_indexer(client: object, channel_id: int, offset_date: int, *args: str) -> bool:
@@ -1409,8 +1412,8 @@ def audio_file_indexer(client: object, channel_id: int, offset_date: int, *args:
                     speed_limiter_counter = 0
                     time.sleep(2)
                 if _counter > 9:
-                    # client.send_message("shelbycobra2016", f"https://t.me/{_last_message.chat.username}/{_last_message.message_id}")
-                    # client.send_message("shelbycobra2016", f"{_last_message.message_id}")
+                    # client.send_message("admin", f"https://t.me/{_last_message.chat.username}/{_last_message.message_id}")
+                    # client.send_message("admin", f"{_last_message.message_id}")
                     # print("in counter 34 ...")
                     try:
                         # print("before getting _date ...")
@@ -1497,55 +1500,55 @@ def audio_file_indexer(client: object, channel_id: int, offset_date: int, *args:
 
             except FloodWait as e:
                 text = f"FloodWait from audio_file_indexer: \n\n{e}"
-                client.send_message(chromusic_log_id, text)
+                client.send_message(bot_name_log_id, text)
                 # print("from audio file indexer: Flood wait exception: ", e)
                 time.sleep(e.x)
             except SlowmodeWait as e:
                 text = f"SlowmodeWait from audio_file_indexer: \n\n{e}"
-                client.send_message(chromusic_log_id, text)
+                client.send_message(bot_name_log_id, text)
                 # print("from audio file indexer: Slowmodewait exception: ", e)
                 time.sleep(e.x)
             except TimeoutError as e:
                 text = f"TimeoutError from audio_file_indexer: \n\n{e}"
-                client.send_message(chromusic_log_id, text)
+                client.send_message(bot_name_log_id, text)
                 # print("Timeout error: sleeping for 20 seconds: ", e)
                 time.sleep(20)
                 # pass
             except ConnectionError as e:
                 text = f"ConnectionError from audio_file_indexer: \n\n{e}"
-                client.send_message(chromusic_log_id, text)
+                client.send_message(bot_name_log_id, text)
                 # print("Connection error - sleeping for 40 seconds: ", e)
             except Exception as e:
-                client.send_message(chromusic_log_id,
+                client.send_message(bot_name_log_id,
                                     f"from audio_file_indexer: maybe encountered a service message in the for loop\n\n {e}")
                 print("from audio file indexer: ", e)
 
         return True
     except FloodWait as e:
         text = f"FloodWait from audio_file_indexer. outer try/except: \n\n{e}"
-        client.send_message(chromusic_log_id, text)
+        client.send_message(bot_name_log_id, text)
         # print("from audio file indexer: Flood wait exception: ", e)
         time.sleep(e.x)
         return False
     except SlowmodeWait as e:
         text = f"SlowmodeWait from audio_file_indexer. outer try/except: \n\n{e}"
-        client.send_message(chromusic_log_id, text)
+        client.send_message(bot_name_log_id, text)
         # print("from audio file indexer: Slowmodewait exception: ", e)
         time.sleep(e.x)
         return False
     except TimeoutError as e:
         text = f"TimeoutError from audio_file_indexer. outer try/except: \n\n{e}"
-        client.send_message(chromusic_log_id, text)
+        client.send_message(bot_name_log_id, text)
         # print("Timeout error: sleeping for 20 seconds: ", e)
         time.sleep(20)
         return False
     except ConnectionError as e:
         text = f"ConnectionError from audio_file_indexer. outer try/except: \n\n{e}"
-        client.send_message(chromusic_log_id, text)
+        client.send_message(bot_name_log_id, text)
         # print("Connection error - sleeping for 40 seconds: ", e)
         return False
     except Exception as e:
-        client.send_message(chromusic_log_id,
+        client.send_message(bot_name_log_id,
                             f" outer try/except from audio_file_indexer: maybe encountered a service message\n\n {e}")
         print("from audio file indexer: ", e)
         return False
@@ -1560,22 +1563,22 @@ def main_join_left_checker_controller():
         while 1:
             try:
                 delay = random.randint(5, 7)
-                # check_new_member_join_count(chromusic_id)
+                # check_new_member_join_count(bot_name_id)
                 time.sleep(1)
-                check_new_member_join_count(chromusic_fa_id)
+                check_new_member_join_count(bot_name_fa_id)
                 time.sleep(delay)
             except Exception as e:
                 text = f"exception handled form main_join_left_checker_controller() function <b>for loop</b>: \n\n{e}"
-                app.send_message(chromusic_log_id, text)
+                app.send_message(bot_name_log_id, text)
 
 
     except Exception as e:
         text = f"exception handled form main_join_left_checker_controller() function <b>for loop</b>: \n\n{e}"
-        app.send_message(chromusic_log_id, text)
+        app.send_message(bot_name_log_id, text)
         main_join_left_checker_controller()
     finally:
         text = f"join/left checker controller has stopped: \n\n"
-        app.send_message("shelbycobra2016", text)
+        app.send_message("admin", text)
 
 def main_index_scheduler_controller():
     """
@@ -1584,10 +1587,10 @@ def main_index_scheduler_controller():
     """
     try:
         print("index scheduler controller")
-        # schedule.every(5).to(7).seconds.do(check_new_member_join_count, chromusic_id)
-        schedule.every(5).to(7).seconds.do(check_new_member_join_count, chromusic_fa_id)
-        schedule.every(1).seconds.do(check_new_member_join_count, chromusic_id)
-        schedule.every(1).seconds.do(check_new_member_join_count, chromusic_fa_id)
+        # schedule.every(5).to(7).seconds.do(check_new_member_join_count, bot_name_id)
+        schedule.every(5).to(7).seconds.do(check_new_member_join_count, bot_name_fa_id)
+        schedule.every(1).seconds.do(check_new_member_join_count, bot_name_id)
+        schedule.every(1).seconds.do(check_new_member_join_count, bot_name_fa_id)
 
         # -------------------------- Daily new gathered channels ------------------------
         schedule.every(1).day.at("00:00").do(daily_gathered_channels_controller)
@@ -1725,7 +1728,7 @@ def main_index_scheduler_controller():
             schedule.run_pending()
             time.sleep(1)
     except Exception as e:
-        app.send_message(chromusic_log_id, f"exception from scheduler \n {e}")
+        app.send_message(bot_name_log_id, f"exception from scheduler \n {e}")
         # main_index_scheduler_controller()
 
 def reset_last_index_offset_date():
@@ -1775,23 +1778,23 @@ def buffer_gathered_channels_controller(client):
                     new_channel_indexer(client, _channels_list_username, "channel_buffer")
                 except FloodWait as e:
                     text = f"FloodWait from buffer_gathered_channels_controller \n\n{e}"
-                    client.send_message(chromusic_log_id, text)
+                    client.send_message(bot_name_log_id, text)
                     # print("from audio file indexer: Flood wait exception: ", e)
                     time.sleep(e.x)
                 except SlowmodeWait as e:
                     text = f"SlowmodeWait from buffer_gathered_channels_controller \n\n{e}"
-                    client.send_message(chromusic_log_id, text)
+                    client.send_message(bot_name_log_id, text)
                     # print("from audio file indexer: Slowmodewait exception: ", e)
                     time.sleep(e.x)
                 except TimeoutError as e:
                     text = f"TimeoutError from buffer_gathered_channels_controller \n\n{e}"
-                    client.send_message(chromusic_log_id, text)
+                    client.send_message(bot_name_log_id, text)
                     # print("Timeout error: sleeping for 20 seconds: ", e)
                     time.sleep(20)
                     # pass
                 except ConnectionError as e:
                     text = f"ConnectionError from buffer_gathered_channels_controller\n\n{e}"
-                    client.send_message(chromusic_log_id, text)
+                    client.send_message(bot_name_log_id, text)
                     # print("Connection error - sleeping for 40 seconds: ", e)
                 except Exception as e:
                     print(f"got exception in buffer_gathered_channels_controller(): {_channel_username} \n\n{e}")
@@ -1800,13 +1803,13 @@ def buffer_gathered_channels_controller(client):
                 # print("new indexing channels started ... !")
             except Exception as e:
                 text = f"exception handled form buffer_gathered_channels_controller() function: \n\n{e}"
-                client.send_message(chromusic_log_id, text)
+                client.send_message(bot_name_log_id, text)
                 # continue
             finally:
                 time.sleep(30)
     except Exception as e:
         text = f"Exception handled out of the while in the buffer_gathered_channels_controller() \n\n{e}"
-        client.send_message(chromusic_log_id, text)
+        client.send_message(bot_name_log_id, text)
         buffer_gathered_channels_controller(client)
 
 def invalid_title_performer_remover(client):
@@ -1855,15 +1858,15 @@ def invalid_title_performer_remover(client):
                             })
                     except Exception as e:
                         text = f"Exception in the for loop from invalid_title_performer_remover() \n\n{e}"
-                        client.send_message(chromusic_log_id, text)
+                        client.send_message(bot_name_log_id, text)
             except Exception as e:
                 text = f"Exception in the while loop from invalid_title_performer_remover() \n\n{e}"
-                client.send_message(chromusic_log_id, text)
+                client.send_message(bot_name_log_id, text)
 
     except Exception as e:
         text = f"encountered exception out of the while loop in the invalid_title_performer_remover()\n\n{e}"
         print(text)
-        client.send_message(chromusic_log_id, text)
+        client.send_message(bot_name_log_id, text)
 
 def audio_file_forwarder(client):
     """
@@ -1883,26 +1886,26 @@ def audio_file_forwarder(client):
                 i += 1
         except FloodWait as e:
             text = f"FloodWait from audio_file_forwarder: \n\n{e}"
-            client.send_message(chromusic_log_id, text)
+            client.send_message(bot_name_log_id, text)
             # print("from audio file indexer: Flood wait exception: ", e)
             time.sleep(e.x)
         except SlowmodeWait as e:
             text = f"SlowmodeWait from audio_file_forwarder: \n\n{e}"
-            client.send_message(chromusic_log_id, text)
+            client.send_message(bot_name_log_id, text)
             # print("from audio file indexer: Slowmodewait exception: ", e)
             time.sleep(e.x)
         except TimeoutError as e:
             text = f"TimeoutError from audio_file_forwarder: \n\n{e}"
-            client.send_message(chromusic_log_id, text)
+            client.send_message(bot_name_log_id, text)
             # print("Timeout error: sleeping for 20 seconds: ", e)
             time.sleep(20)
             # pass
         except ConnectionError as e:
             text = f"ConnectionError from audio_file_forwarder: \n\n{e}"
-            client.send_message(chromusic_log_id, text)
+            client.send_message(bot_name_log_id, text)
             # print("Connection error - sleeping for 40 seconds: ", e)
         except Exception as e:
-            client.send_message(chromusic_log_id,
+            client.send_message(bot_name_log_id,
                                 f"from audio_file_forwarder: \n\n {e}")
             print("from audio file indexer: ", e)
 
@@ -1985,19 +1988,19 @@ def main():
         ignore=400
     )
 
-    res = es.create(index="admin_log_control", id=chromusic_id, body={  # Chromusic channel ID: -1001357823954
+    res = es.create(index="admin_log_control", id=bot_name_id, body={  # bot_name channel ID: -1001357823954
         "last_offset_date": 0,
         "members_count": 0
     }, ignore=409)
     # print(f"from main: ", res)
-    es.create(index="admin_log_control", id=chromusic_fa_id, body={  # Chromusic channel ID: -1001357823954
+    es.create(index="admin_log_control", id=bot_name_fa_id, body={  # bot_name channel ID: -1001357823954
         "last_offset_date": 0,
         "members_count": 0
     }, ignore=409)
     # es.delete("user", id=165802777)
-    es.create(index="user", id=165802777, body={  # my ID: 165802777 --> username: shelbycobra2016
+    es.create(index="user", id=165802777, body={  # my ID: 165802777 --> username: admin
         "first_name": "Soran",
-        "username": "shelbycobra2016",
+        "username": "admin",
         "date_joined": int(time.time()),
         "downloaded_audio_count": 0,
         "lang_code": "en",
@@ -2007,7 +2010,7 @@ def main():
         "last_active_date": int(time.time()),
         "is_admin": True,
         "sex": "neutral",
-        "country": "CA"
+        "country": "US"
     }, ignore=409)
     es.update(index="user", id=165802777, body={
         "script": {
@@ -2088,20 +2091,20 @@ def initialize():
     """
     global editing_flag
     global executor
-    global chromusic_id
-    global chromusic_fa_id
+    global bot_name_id
+    global bot_name_fa_id
     global datacenter_id
-    global chromusic_log_id
-    global chromusic_users_files_id
+    global bot_name_log_id
+    global bot_name_users_files_id
     global speed_limiter
 
     speed_limiter = 0
-    chromusic_log_id = -1001279436688
+    bot_name_log_id = -1001279436688
     datacenter_id = -1001380565527
     editing_flag = False
-    chromusic_users_files_id = -1001288746290
-    chromusic_id = -1001357823954
-    chromusic_fa_id = -1001243615671
+    bot_name_users_files_id = -1001288746290
+    bot_name_id = -1001357823954
+    bot_name_fa_id = -1001243615671
 
     executor = concurrent.futures.ThreadPoolExecutor(max_workers=27)
     telegramAPI_connect()
@@ -2111,7 +2114,7 @@ def initialize():
     try:
         executor.submit(main)
     except Exception as e:
-        app.send_message(chromusic_log_id, str(e))
+        app.send_message(bot_name_log_id, str(e))
 
     return True
 
@@ -2185,16 +2188,16 @@ def inine_res(bot: object, query: object) -> object:
                 input_message_content=InputTextMessageContent(item_content, parse_mode="HTML")))
             exception_handler(
                 bot.answer_inline_query(query.id, results=results,
-                                        cache_time=10, switch_pm_text="Chromusic",
+                                        cache_time=10, switch_pm_text="bot_name",
                                         switch_pm_parameter="back_to_the_bot"))
     except Exception as e:
         try:
             item_title = language_handler("inline_start_bot_title_text", "en")
             item_description = language_handler("inline_start_bot_description_text", "en")
             item_content = language_handler("inline_start_bot_content_text", "en")
-            content = f"<a href ='https://t.me/chromusic_bot'><b>Chromusic bot:</b> audio file search engine</a>\n\n" \
-                      f"Channel: @Chromusic\n" \
-                      f"Persian channel: @Chromusic_fa"
+            content = f"<a href ='https://t.me/bot_name_bot'><b>bot_name bot:</b> audio file search engine</a>\n\n" \
+                      f"Channel: @bot_name\n" \
+                      f"Persian channel: @bot_name_fa"
             results.append(InlineQueryResultArticle(
                 title=item_title,
                 # description=res["_source"]["performer"],
@@ -2701,10 +2704,10 @@ def callback_query_handler(bot, query):
             try:
                 # user_data = es.get(index="user", id=query.from_user.id)["_source"]
                 if user_data["lang_code"] == "fa":
-                    user = exception_handler(app.get_chat_member(chromusic_fa_id, query.from_user.id))
+                    user = exception_handler(app.get_chat_member(bot_name_fa_id, query.from_user.id))
 
                 else:
-                    user = exception_handler(app.get_chat_member(chromusic_id, query.from_user.id))
+                    user = exception_handler(app.get_chat_member(bot_name_id, query.from_user.id))
 
                 es.update("user", id=query.from_user.id, body={
                     "script":
@@ -3434,9 +3437,9 @@ def index_user(bot, message):
                 # apt = apl[0]
                 lang_code = user_data["lang_code"]
                 if lang_code == "fa":
-                    user_status = app.get_chat_member(chromusic_fa_id, user.id)
+                    user_status = app.get_chat_member(bot_name_fa_id, user.id)
                 else:
-                    user_status = app.get_chat_member(chromusic_id, user.id)
+                    user_status = app.get_chat_member(bot_name_id, user.id)
 
                 if user_data["role"] == "searcher":
                     es.update(index="user", id=user.id, body={
@@ -3466,8 +3469,8 @@ def index_user(bot, message):
         except Exception as e:
             print(f"Exception from index_user: {e}")
         finally:
-            check_joining_status(chromusic_id)
-            check_joining_status(chromusic_fa_id)
+            check_joining_status(bot_name_id)
+            check_joining_status(bot_name_fa_id)
 
 @bot.on_message(Filters.command(["lang", "help", "home"]))
 def commands_handler(bot, message):
@@ -3888,13 +3891,13 @@ def save_audio(bot, message):
         print(es.exists(index="audio_files", id=str(audio.file_id[8:30:3]).replace("-", "d")))
         # try:
         # print("before")
-        # _caption = language_handler("file_caption", lang_code, audio_track, audio_track.message_id, chromusic_users_files_id)
-        # app.send_message(chat_id=chromusic_users_files_id, text=" test chrome")
-        sent_to_user_sent_channel = bot.forward_messages(chromusic_users_files_id, message.chat.id, message.message_id)
+        # _caption = language_handler("file_caption", lang_code, audio_track, audio_track.message_id, bot_name_users_files_id)
+        # app.send_message(chat_id=bot_name_users_files_id, text=" test chrome")
+        sent_to_user_sent_channel = bot.forward_messages(bot_name_users_files_id, message.chat.id, message.message_id)
         sender_info = f"Sender: \n{message.chat.first_name} \n@{message.chat.username}"
-        bot.send_message(chromusic_users_files_id, sender_info,
+        bot.send_message(bot_name_users_files_id, sender_info,
                          reply_to_message_id=sent_to_user_sent_channel.message_id)
-        # bot.forward_messages(chromusic_users_files_id, audio_track.chat.id, audio_track.message_id)
+        # bot.forward_messages(bot_name_users_files_id, audio_track.chat.id, audio_track.message_id)
         print("sent file: ", sent_to_user_sent_channel)
 
         res = es.create(index="audio_files", id=str(audio.file_id[8:30:3]).replace("-", "d"), body={
@@ -3979,8 +3982,8 @@ def client_handler(app, message):
     commands = ["/f", "/sf", "/d", "/v", "/clean", "/i", "/s"]
     supported_message_types = ["text", "photo", "video", "document", "audio", "animation",
                                "voice", "poll", "sticker", "web_page"]
-    valid_usernames = ["shelbycobra2016", "cmusic_self"]  # , pool_id]  # , "Pudax"]
-    destinations = {"ce": "cedeeplearning", "pool": pool_id, "me": "shelbycobra2016"}
+    valid_usernames = ["admin", "cmusic_self"]  # , pool_id]  # , "Pudax"]
+    destinations = {"ce": "cedeeplearning", "pool": pool_id, "me": "admin"}
 
     # if message.chat.id == "61709467":
     #     message_handler(app, message)
@@ -4047,7 +4050,7 @@ def client_handler(app, message):
                 try:
                     es.indices.delete('audio')
                     es.indices.delete('channel')
-                    # app.send_message("shelbycobra2016", text=f"deleted 2 indexes:\n1. audio\n2. channel")
+                    # app.send_message("admin", text=f"deleted 2 indexes:\n1. audio\n2. channel")
                     # audio = es.indices.create(
                     #     index="audio",
                     #     body=audio_mapping,
@@ -4059,9 +4062,9 @@ def client_handler(app, message):
                         ignore=400  # ignore 400 already exists code
                     )
 
-                    app.send_message('shelbycobra2016', 'created again')
+                    app.send_message('admin', 'created again')
                 except:
-                    app.send_message('shelbycobra2016', "There's no audio index!")
+                    app.send_message('admin', "There's no audio index!")
                     # for index in es.indices.get('*'):
                     #     print(index)
                     print(es.search(index="datacenter", body={
@@ -4093,7 +4096,7 @@ def client_handler(app, message):
                         }
                     }
                 }, refresh=True, ignore=409)
-                # app.send_message("shelbycobra2016",
+                # app.send_message("admin",
                 #                  text=f"created 3 indexes:\n\n1. audio: {audio}\n2. user: {user}\n\n3. channel: {channel}\n\n4. update responce: {response}")
                 print(es.get(index="user_role", id=165802777))
 
