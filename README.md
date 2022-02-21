@@ -124,9 +124,46 @@ results that lead to relevant information on high-quality websites.</p>
     <li>Multi-threaded search (searches multiple requests asynchronously)</li>
     <li>Uses Elasticsearch db (which means you have Kibana automatically)</li>
     * Kibana is a data visualization and exploration tool used for log and time-series analytics, application monitoring, and operational intelligence use cases. It offers powerful and easy-to-use features such as histograms, line graphs, pie charts, heat maps, and built-in geospatial support.
+    <li>Handles RTL texts perfectly</li>
 </ul>
-
-
 <ul>   
 </ul>
 </ol>
+
+<div>
+<h2>Call for Contributions</h2>
+<p>The Telegram audio search engine project welcomes your expertise and enthusiasm!</p>
+
+<p>Ways to contribute to Telegram audio search engine:</p>
+<ul>
+  <li>Writing code</li>
+  <li>Review pull requests</li>
+  <li>Develop tutorials, presentations, and other educational materials</li>
+  <li>Translate documentation and readme contents</li>
+</ul>
+</div>
+
+<div>
+  <h2>Issues</h2>
+  <p>If you happened to encounter any issue in the codes, please report it
+    <a href="https://github.com/soran-ghaderi/tase/issues">here</a>. 
+    A better way is to fork the repository on <b>Github</b> and/or to create a pull request.</p>
+    
+</div>
+
+<h3>Future work</h3>
+
+- [x] Modulate the functions
+- [ ] Make it more dynamic
+- [ ] Search based on lyrics
+- [ ] Unify and reconstruct the architecture and eliminate redundancy
+
+<h2>If you found it helpful, please give us a <span>:star:</span></h2>
+
+<h2>License</h3>
+<p>Released under the MIT License</p>
+<div class="footer"><pre>Copyright &copy; 2020-2022
+Soran Ghaderi (soran.gdr.cs@gmail.com)
+Website: https://soran-ghaderi.github.io/
+Linkedin: https://www.linkedin.com/in/soran-ghaderi/
+Twitter: itter.com/soranghadri</div>

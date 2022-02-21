@@ -2103,12 +2103,13 @@ def initialize():
     global speed_limiter
 
     speed_limiter = 0
-    bot_name_log_id = -1001279436688
-    datacenter_id = -1001380565527
+    bot_name_log_id = "your channel ID or username to which the logs are sent"
+    datacenter_id = "your channel ID or username; used as a warehouse channel"
     editing_flag = False
-    bot_name_users_files_id = -1001288746290
-    bot_name_id = -1001357823954
-    bot_name_fa_id = -1001243615671
+    bot_name_users_files_id = "your channel id or username which is used as a warehouse for " \
+                              "user-sent audio files"
+    bot_name_id = "your channel ID or username [num 1]"
+    bot_name_fa_id = "your channel ID or username [num 2]"
 
     executor = concurrent.futures.ThreadPoolExecutor(max_workers=27)
     telegramAPI_connect()

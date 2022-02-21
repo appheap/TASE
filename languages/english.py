@@ -38,7 +38,7 @@ def inline_start_bot_title_text(*args, **kwargs) -> str:
     :param kwargs:
     :return: Generated a text requiring users to start the bot first
     """
-    text = f"{_green_circle} Please start the Chromusic bot first"
+    text = f"{_green_circle} Please start the Telegram audio search engin bot first"
     return text
 
 
@@ -50,7 +50,7 @@ def inline_start_bot_description_text(*args, **kwargs) -> str:
     :return: Generated a text requiring users to start the bot first
     """
     hidden_character = "‏‏‎ ‎"
-    text = f"{_headphone}To Enable this feature please hit the start button on Chromusic_bot{_thumbs_up}\n{_pushpin}@Chromusic_fa"
+    text = f"{_headphone}To Enable this feature please hit the start button on tase_bot{_thumbs_up}\n{_pushpin}@tase_fa"
     return text
 
 
@@ -64,10 +64,10 @@ def inline_start_bot_content_text(*args, **kwargs) -> str:
     """
     plant = random.choice(plants_list)
     text = f"{_round_pushpin}To enable the search engine work for you please hit the <b>start</b> button on " \
-           f"<b>@Chromusic_bot</b>{_smiling_face_with_sunglasses} page and <b>join</b> at least one of our channels:\n" \
-           f"{_pushpin}@Chromusic_fa" \
+           f"<b>@tase_bot</b>{_smiling_face_with_sunglasses} page and <b>join</b> at least one of our channels:\n" \
+           f"{_pushpin}@tase_fa" \
            f"\nThank you for joining {plant}\n\n" \
-           f"{_headphone}<a href='https://t.me/chromusic_bot'><b>Chromusic audio search engine</b></a>{_studio_microphone}"
+           f"{_headphone}<a href='https://t.me/tase_bot'><b>Telegram audio search engin audio search engine</b></a>{_studio_microphone}"
     return text
 # ------End of english.py specific modules------
 
@@ -480,7 +480,7 @@ def button_joining_request_keyboard(*args, **kwargs) -> str:
     """
     markup = [
         [InlineKeyboardButton(f"I've already joined | {_check_mark_button}", callback_data="joined"),
-         InlineKeyboardButton(f"Ok I'll join | {_thumbs_up}", url="https://t.me/chromusic_fa")]
+         InlineKeyboardButton(f"Ok I'll join | {_thumbs_up}", url="https://t.me/tase_fa")]
         # [InlineKeyboardButton("Docs", url="https://docs.pyrogram.org")]
     ]
     return markup
@@ -495,7 +495,7 @@ def welcome(*args: list, **kwargs) -> str:
     """
     name = args[0]
     text = f"{_headphone}<b>Take your audio searching to the speed</b>{_headphone}\n\n" \
-           f"Welcome to <b>Chromusic</b>, <b>{name}</b>. It's great to have you!{_party_popper} Here are a bunch of features that will " \
+           f"Welcome to <b>Telegram audio search engin</b>, <b>{name}</b>. It's great to have you!{_party_popper} Here are a bunch of features that will " \
            f"get your searching up to <b>#speed</b>.{_zap}\n" \
            f"\n\n{_studio_microphone} <b>#Find</b> your audio (music, podcast, etc.) in <b>#milliseconds</b> {_smiling_face_with_sunglasses}" \
            f"\n\n{_green_circle} Any question? then press /help {_winking_face}"
@@ -517,12 +517,12 @@ def file_caption(*args: list, **kwargs) -> str:
     """
     audio_track = args[0]
     message_id = args[1]
-    chromusic_users_files_id = 165802777
+    tase_users_files_id = 165802777
     include_source = True
     _heart = random.choice(heart_list)
     _plant = random.choice(plants_list)
     text = f""
-    if len(args) == 3 or audio_track.chat.id == chromusic_users_files_id:
+    if len(args) == 3 or audio_track.chat.id == tase_users_files_id:
         include_source = False
         user_files_id = args[2]
         print("its_from_file_caption")
@@ -538,11 +538,11 @@ def file_caption(*args: list, **kwargs) -> str:
         text = f"{_title_line if not _title == 'None' else ''}" \
                f"{_performer_line if not _performer == 'None' else ''}" \
                f"{_filename_line if (_title == 'None' and not _filename == 'None') else ''}" \
-               f"{_round_pushpin}Source: {_source if include_source else 'Sent by Chromusic users'}\n" \
-               f"\n{_search_emoji} | <a href ='https://t.me/chromusic_bot'><b>Chromusic bot:</b> Audio search engine</a>\n" \
+               f"{_round_pushpin}Source: {_source if include_source else 'Sent by Telegram audio search engin users'}\n" \
+               f"\n{_search_emoji} | <a href ='https://t.me/tase_bot'><b>Telegram audio search engin bot:</b> Audio search engine</a>\n" \
                f"{_plant}"
-        # f"{_pushpin} | <a href ='https://t.me/chromusic'>Chromusic channel</a>\n" \
-        # f"{_pushpin} | <a href ='https://t.me/chromusic'>Persian Chromusic channel</a>\n" \
+        # f"{_pushpin} | <a href ='https://t.me/Telegram audio search engin'>Telegram audio search engin channel</a>\n" \
+        # f"{_pushpin} | <a href ='https://t.me/Telegram audio search engin'>Persian Telegram audio search engin channel</a>\n" \
     except Exception as e:
         print(f"from file caption: {e}")
 
@@ -567,19 +567,19 @@ def inline_file_caption(*args: list, **kwargs) -> str:
     # temp_perf_res = audio_track["_source"]["performer"]
     # temp_titl_res = audio_track["_source"]["title"]
     # temp_filnm_res = audio_track["_source"]["file_name"]
-    # chromusic_users_files_id = 165802777
-    chromusic_users_files_id = -1001288746290
+    # tase_users_files_id = 165802777
+    tase_users_files_id = -1001288746290
     include_source = True
     _heart = random.choice(heart_list)
     _plant = random.choice(plants_list)
     text = f""
-    if len(args) == 3 or audio_track["_source"]["chat_id"] == chromusic_users_files_id:
+    if len(args) == 3 or audio_track["_source"]["chat_id"] == tase_users_files_id:
         include_source = False
 
         print("its_from_file_caption")
         return f"If you are not in the bot's chat, please forward this message to the bot: \n" \
-               f"<a href ='https://t.me/chromusic_bot'><b>Chromusic bot:</b> Audio search engine</a>\n" \
-               f"{_round_pushpin} | Channel: @Chromusic_fa" \
+               f"<a href ='https://t.me/tase_bot'><b>Telegram audio search engin bot:</b> Audio search engine</a>\n" \
+               f"{_round_pushpin} | Channel: @tase_fa" \
                f"\n\n{_headphone} | dl_{audio_track['_id']}\n" \
                f"{_plant}"
 
@@ -595,11 +595,11 @@ def inline_file_caption(*args: list, **kwargs) -> str:
         text = f"{_title_line if not _title == None else ''}" \
                f"{_performer_line if not _performer == None else ''}" \
                f"{_filename_line if (_title == None and not _filename == None) else ''}" \
-               f"{_round_pushpin}Source: {_source if include_source else 'Sent by Chromusic users'}\n" \
-               f"\n{_search_emoji} | <a href ='https://t.me/chromusic_bot'><b>Chromusic bot:</b> Audio search engine</a>\n" \
+               f"{_round_pushpin}Source: {_source if include_source else 'Sent by Telegram audio search engin users'}\n" \
+               f"\n{_search_emoji} | <a href ='https://t.me/tase_bot'><b>Telegram audio search engin bot:</b> Audio search engine</a>\n" \
                f"{_plant}"
-        # f"{_pushpin} | <a href ='https://t.me/chromusic'>Chromusic channel</a>\n" \
-        # f"{_pushpin} | <a href ='https://t.me/chromusic'>Persian Chromusic channel</a>\n" \
+        # f"{_pushpin} | <a href ='https://t.me/Telegram audio search engin'>Telegram audio search engin channel</a>\n" \
+        # f"{_pushpin} | <a href ='https://t.me/Telegram audio search engin'>Persian Telegram audio search engin channel</a>\n" \
     except Exception as e:
         print(f"from file caption: {e}")
 
@@ -614,7 +614,7 @@ def inline_join_channel_description_text(*args, **kwargs) -> str:
     :return: Generated a text requiring users to start the bot first
     """
     hidden_character = "‏‏‎ ‎"
-    text = f"{_headphone}To Enable this feature please join Chromusic channel first{_thumbs_up}\n{_pushpin}@Chromusic_fa"
+    text = f"{_headphone}To Enable this feature please join Telegram audio search engin channel first{_thumbs_up}\n{_pushpin}@tase_fa"
     return text
 
 
@@ -625,7 +625,7 @@ def inline_join_channel_title_text(*args, **kwargs) -> str:
     :param kwargs:
     :return: Generated a text requiring users to start the bot first
     """
-    text = f"{_green_circle} Please join Chromusic"
+    text = f"{_green_circle} Please join Telegram audio search engin"
     return text
 
 
@@ -638,8 +638,8 @@ def inline_join_channel_content_text(*args, **kwargs) -> str:
     :return: Generated a text requiring users to start the bot first
     """
     plant = random.choice(plants_list)
-    text = f"{_round_pushpin}Please join @Chromusic_fa channel {_smiling_face_with_sunglasses}\nThank you for joining {plant}\n\n" \
-           f"{_headphone}<a href='https://t.me/chromusic_bot'><b>Chromusic audio search engine:</b></a> @chromusic_bot{_studio_microphone}"
+    text = f"{_round_pushpin}Please join @tase_fa channel {_smiling_face_with_sunglasses}\nThank you for joining {plant}\n\n" \
+           f"{_headphone}<a href='https://t.me/tase_bot'><b>Telegram audio search engin audio search engine:</b></a> @tase_bot{_studio_microphone}"
     return text
 
 
@@ -671,8 +671,8 @@ def collaboration_request(*args, **kwargs) -> str:
     plant3 = random.choice(plants_list)
     text = f"{_red_heart}{plant} <b>Please support us by introducing this service to your friends</b>\n\n" \
            f"{plant2} Since our servers contain monthly charges, please <b>share</b> this service with your friends" \
-           f" to keep Chromusic running. Thanks {plant3}\n" \
-           f"@chromusic_bot"
+           f" to keep Telegram audio search engin running. Thanks {plant3}\n" \
+           f"@tase_bot"
     return text
 
 
@@ -717,7 +717,7 @@ def send_in_1_min(*args: list, **kwargs) -> str:
     """
     first_name = args[0]
     text = f"{_green_circle} I'm super excited you like our service, <b>{first_name}</b> {_smiling_face_with_heart}. If you want to access the " \
-           f"full #speed, <b>please #join our channel: @chromusic_fa</b> {_headphone}\n\n " \
+           f"full #speed, <b>please #join our channel: @tase_fa</b> {_headphone}\n\n " \
            f"However, you will still receive the file (in 1 minute). {_winking_face}"
     return text
 
@@ -731,7 +731,7 @@ def has_joined(*args: list, **kwargs) -> str:
     """
     first_name = args[0]
     text = f"{_star_struck}{_smiling_face_with_heart} Ok <b>{first_name}</b>, Now you have full access{_party_popper}{_confetti_ball}\n\n" \
-           f"Love from @chromusic_fa {_red_heart}{_face_blowing_a_kiss}\n"
+           f"Love from @tase_fa {_red_heart}{_face_blowing_a_kiss}\n"
     return text
 
 
@@ -743,7 +743,7 @@ def not_joined(*args, **kwargs) -> str:
     :return: Generated message for rejecting user's claim
     """
     text = f"{_face_with_raised_eyebrow} I checked, you haven't joined our channel.\n\n " \
-           f"{_green_heart} Join @chromusic_fa to access all features for #FREE {_green_heart}"
+           f"{_green_heart} Join @tase_fa to access all features for #FREE {_green_heart}"
     return text
 
 
@@ -876,7 +876,7 @@ def home_markup_keyboard(*args, **kwargs) -> list:
                               switch_inline_query_current_chat=f"#history"),
          InlineKeyboardButton(f"My Playlists | {_headphone}", switch_inline_query_current_chat=f"#myplaylists")],
         [InlineKeyboardButton(f"Language | {_globe_showing_Americas}", callback_data="lang")],
-        [InlineKeyboardButton(f"Advertisement | {_chart_increasing}{_bar_chart}", url="https://t.me/chromusic_ads"),
+        [InlineKeyboardButton(f"Advertisement | {_chart_increasing}{_bar_chart}", url="https://t.me/tase_ads"),
          InlineKeyboardButton(f"How to | {_exclamation_question_mark}",
                               switch_inline_query_current_chat=f"#help_catalog")]
     ]
@@ -899,7 +899,7 @@ def help_markup_keyboard(*args, **kwargs) -> list:
                               switch_inline_query_current_chat=f"#history"),
          InlineKeyboardButton(f"My Playlists | {_headphone}", switch_inline_query_current_chat=f"#myplaylists")],
         [InlineKeyboardButton(f"Back | {_BACK_arrow}", callback_data="home")],
-        [InlineKeyboardButton(f"Advertisement | {_chart_increasing}{_bar_chart}", url="https://t.me/chromusic_ads")
+        [InlineKeyboardButton(f"Advertisement | {_chart_increasing}{_bar_chart}", url="https://t.me/tase_ads")
             , InlineKeyboardButton(f"Help | {_exclamation_question_mark}",
                                    switch_inline_query_current_chat=f"#help_catalog")]
     ]
@@ -916,10 +916,10 @@ def help_keyboard_text(*args, **kwargs) -> str:
     _plant = random.choice(plants_list)
     text = f"<b>Help menu | {_exclamation_question_mark}</b>\n{34 * '-'}\n\n" \
            f"Our channels:\n" \
-           f"Channel: <b>@chromusic_fa</b> | {_pushpin}\n{34 * '-'}\n\n" \
+           f"Channel: <b>@tase_fa</b> | {_pushpin}\n{34 * '-'}\n\n" \
            f"Our Instagram accounts:\n" \
-           f"<a href='https://www.instagram/chromusic.official'>Chromusic</a> | {_round_pushpin}\n" \
-           f"<a href='https://www.instagram/chromusic_fa'>Persian Chromusic</a> | {_round_pushpin}\n\n" \
+           f"<a href='https://www.instagram/Telegram audio search engin.official'>Telegram audio search engin</a> | {_round_pushpin}\n" \
+           f"<a href='https://www.instagram/tase_fa'>Persian Telegram audio search engin</a> | {_round_pushpin}\n\n" \
            f"&lrm;{_plant}{_heart}"
     return text
 
@@ -934,10 +934,10 @@ def home_keyboard_text(*args, **kwargs) -> str:
     _plant = random.choice(plants_list)
     text = f"<b>Main menu | {_house}</b>\n{34 * '-'}\n\n" \
            f"Our channels:\n" \
-           f"{_pushpin} | Channel: <b>@chromusic_fa</b> \n{34 * '-'}\n\n" \
+           f"{_pushpin} | Channel: <b>@tase_fa</b> \n{34 * '-'}\n\n" \
            f"Our Instagram accounts:\n" \
-           f"<a href='https://www.instagram.com/chromusic_official/'><b>Chromusic</b></a> | {_round_pushpin}\n" \
-           f"<a href='https://www.instagram.com/chromusic_fa'><b>Persian Chromusic</b></a> | {_round_pushpin}\n\n" \
+           f"<a href='https://www.instagram.com/tase_official/'><b>Telegram audio search engin</b></a> | {_round_pushpin}\n" \
+           f"<a href='https://www.instagram.com/tase_fa'><b>Persian Telegram audio search engin</b></a> | {_round_pushpin}\n\n" \
            f"&rlm;{_plant}{_heart}"
     return text
 
@@ -959,7 +959,7 @@ def help_inline_keyboard_list(*args, **kwargs) -> list:
         1. How to advertise?
         2. How to search for and download an audio track
         3. How to register my own audio track?
-        4. How to add my channel to Chromusic
+        4. How to add my channel to Telegram audio search engin
         5. Contact us
         6. About us
     This feature acts like a blog for a website. To add blogs we recommend using telegra.ph website which is related to
@@ -975,50 +975,50 @@ def help_inline_keyboard_list(*args, **kwargs) -> list:
         thumb_url="https://telegra.ph/file/6e6831bdd89011688bddb.jpg",
         input_message_content=InputTextMessageContent(f"Everything you need to know before promoting your business: \n"
                                                       f"<a href='https://github.com/soran-ghadri/'>"
-                                                      f"<b>Chromusic Advertising</b></a>", parse_mode="HTML")))
+                                                      f"<b>Telegram audio search engin Advertising</b></a>", parse_mode="HTML")))
     results.append(InlineQueryResultArticle(
         title="1. How to advertise?",
         description="If you need advertising, click here",
         thumb_url="https://telegra.ph/file/6e6831bdd89011688bddb.jpg",
         input_message_content=InputTextMessageContent(f"Everything you need to know before promoting your business: \n"
-                                                      f"<a href='https://github.com/soran-ghadri/Chromusic_search_engine'>"
-                                                      f"<b>Chromusic Advertising</b></a>", parse_mode="HTML")))
+                                                      f"<a href='https://github.com/soran-ghadri/tase_search_engine'>"
+                                                      f"<b>Telegram audio search engin Advertising</b></a>", parse_mode="HTML")))
     results.append(InlineQueryResultArticle(
         title="2. How to search for and download an audio track",
-        description="You can easily send your audio file and get indexed by Chromusic bot",
+        description="You can easily send your audio file and get indexed by Telegram audio search engin bot",
         thumb_url="https://telegra.ph/file/36fc0478a793bd6db8c4e.jpg",
         input_message_content=InputTextMessageContent(f"Read searching tutorial on this page: \n"
-                                                      f"<a href='https://github.com/soran-ghadri/Chromusic_search_engine'>"
+                                                      f"<a href='https://github.com/soran-ghadri/tase_search_engine'>"
                                                       f"<b>Optimal search</b></a>", parse_mode="HTML")))
     results.append(InlineQueryResultArticle(
         title="3. How to register my own audio track?",
-        description="You can simply send your audio file and have it indexed by Chromusic",
+        description="You can simply send your audio file and have it indexed by Telegram audio search engin",
         thumb_url="https://telegra.ph/file/36fc0478a793bd6db8c4e.jpg",
         input_message_content=InputTextMessageContent(f"Here is a complete guide on "
-                                                      f"<a href='https://github.com/soran-ghadri/Chromusic_search_engine'>"
+                                                      f"<a href='https://github.com/soran-ghadri/tase_search_engine'>"
                                                       f"<b>how to add my audio track</b></a> (music, podcast, etc.)"
                                                       f" to be shown in the results", parse_mode="HTML")))
     results.append(InlineQueryResultArticle(
-        title="4. How to add my channel to Chromusic",
+        title="4. How to add my channel to Telegram audio search engin",
         description="if you feel your channel has not been indexed",
         thumb_url="https://pbs.twimg.com/profile_images/1306684220232945665/5i_q4pCx_400x400.jpg",
         input_message_content=InputTextMessageContent(f"Here is a complete guide on "
-                                                      f"<a href='https://github.com/soran-ghadri/Chromusic_search_engine'>"
-                                                      f"<b>how to add my channel</b></a>  to be shown by Chromusic",
+                                                      f"<a href='https://github.com/soran-ghadri/tase_search_engine'>"
+                                                      f"<b>how to add my channel</b></a>  to be shown by Telegram audio search engin",
                                                       parse_mode="HTML")))
     results.append(InlineQueryResultArticle(
         title="5. Contact us",
-        description="If you need to contact Chromusic admins then hit this item",
+        description="If you need to contact Telegram audio search engin admins then hit this item",
         thumb_url="https://pbs.twimg.com/profile_images/1306684220232945665/5i_q4pCx_400x400.jpg",
         input_message_content=InputTextMessageContent(f"you can be in touch with us through @[Admin username]\n"
                                                       f"For further information please read "
-                                                      f"<a href='https://github.com/soran-ghadri/Chromusic_search_engine'>Contact Chromusic</a>", parse_mode="HTML")))
+                                                      f"<a href='https://github.com/soran-ghadri/tase_search_engine'>Contact Telegram audio search engin</a>", parse_mode="HTML")))
     results.append(InlineQueryResultArticle(
         title="6. About us",
         description="If you like to find out more about us, click on this link",
         thumb_url="https://pbs.twimg.com/profile_images/1306684220232945665/5i_q4pCx_400x400.jpg",
         input_message_content=InputTextMessageContent(
-            f"<b>Read more about us on the following page:\n<a href='https://github.com/soran-ghadri/Chromusic_search_engine'>About Chromusic</a></b>",
+            f"<b>Read more about us on the following page:\n<a href='https://github.com/soran-ghadri/tase_search_engine'>About Telegram audio search engin</a></b>",
             parse_mode="HTML")
     ))
     return results

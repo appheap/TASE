@@ -464,7 +464,7 @@ def button_joining_request_keyboard(*args, **kwargs) -> str:
     """
     markup = [
         [InlineKeyboardButton("همین الان عضو هستم", callback_data="joined"),
-         InlineKeyboardButton("باشه الان عضو میشم", url="https://t.me/chromusic_fa")]  #
+         InlineKeyboardButton("باشه الان عضو میشم", url="https://t.me/tase_fa")]  #
     ]
     return markup
 
@@ -479,7 +479,7 @@ def welcome(*args: list, **kwargs) -> str:
     text = f"{_headphone}" \
            f"<b>جستجوی انواع فایل های صوتی با بالاترین سرعت ممکن در تلگرام</b>{_headphone}\n\n" \
            f"به " \
-           f" <b>Chromusic</b> " \
+           f" <b>Telegram audio search engine</b> " \
            f"خوش اومدی" \
            f", <b>{name}</b>.&rlm;" \
            f" خوشحالم که اینجایی.{_party_popper}" \
@@ -509,11 +509,11 @@ def file_caption(*args: list, **kwargs) -> str:
     """
     audio_track = args[0]
     message_id = args[1]
-    chromusic_users_files_id = 165802777
+    tase_users_files_id = 165802777
     include_source = True
     _heart = random.choice(heart_list)
     _plant = random.choice(plants_list)
-    if len(args) == 3 or audio_track.chat.id == chromusic_users_files_id:
+    if len(args) == 3 or audio_track.chat.id == tase_users_files_id:
         include_source = False
         user_files_id = args[2]
         print("its_from_file_caption")
@@ -531,8 +531,8 @@ def file_caption(*args: list, **kwargs) -> str:
         text = f"{_title_line if not _title == 'None' else ''}" \
                f"{_performer_line if not _performer == 'None' else ''}" \
                f"{_filename_line if (_title == 'None' and not _filename == 'None') else ''}" \
-               f"{_round_pushpin}منبع: {_source if include_source else 'Sent by Chromusic users'}\n" \
-               f"\n{_search_emoji} | <a href ='https://t.me/chromusic_bot'><b>کروموزیک</b>: جستجوی فایل‌های صوتی</a>\n" \
+               f"{_round_pushpin}منبع: {_source if include_source else 'Sent by Telegram audio search engine users'}\n" \
+               f"\n{_search_emoji} | <a href ='https://t.me/tase_bot'><b>کروموزیک</b>: جستجوی فایل‌های صوتی</a>\n" \
                f"&rlm;{_plant}"
     except Exception as e:
         print(f"from file caption: {e}")
@@ -556,24 +556,24 @@ def inline_file_caption(*args: list, **kwargs) -> str:
     # temp_perf_res = audio_track["_source"]["performer"]
     # temp_titl_res = audio_track["_source"]["title"]
     # temp_filnm_res = audio_track["_source"]["file_name"]
-    # chromusic_users_files_id = 165802777
-    chromusic_users_files_id = -1001288746290
+    # tase_users_files_id = 165802777
+    tase_users_files_id = -1001288746290
     include_source = True
     _heart = random.choice(heart_list)
     _plant = random.choice(plants_list)
     text = f""
-    if len(args) == 3 or audio_track["_source"]["chat_id"] == chromusic_users_files_id:
+    if len(args) == 3 or audio_track["_source"]["chat_id"] == tase_users_files_id:
         include_source = False
 
         print("its_from_file_caption")
         return f"اگه در صفحه‌ی ربات نیستی, برای دریافت فایل این پیام رو برای ربات کروموزیک فوروارد کن" \
-               f"\n<a href ='https://t.me/chromusic_bot'><b>ربات کروموزیک:</b> جستجوی فایل‌های صوتی</a>\n" \
+               f"\n<a href ='https://t.me/tase_bot'><b>ربات کروموزیک:</b> جستجوی فایل‌های صوتی</a>\n" \
                f"{_round_pushpin} | " \
                f"کانال فارسی: " \
-               f"@Chromusic_fa\n" \
+               f"@tase_fa\n" \
                f"{_round_pushpin} | " \
                f"کانال بین‌المللی: " \
-               f"@Chromusic_fa" \
+               f"@tase_fa" \
                f"\n\n{_headphone} | dl_{audio_track['_id']}\n" \
                f"{_plant}"
 
@@ -589,7 +589,7 @@ def inline_file_caption(*args: list, **kwargs) -> str:
                f"{_performer_line if not _performer == None else ''}" \
                f"{_filename_line if (_title == None and not _filename == None) else ''}" \
                f"{_round_pushpin}منبع: {_source if include_source else 'فرستاده شده توسط کاربران کروموزیک'}\n" \
-               f"\n{_search_emoji} | <a href ='https://t.me/chromusic_bot'><b>کروموزیک:</b> جستجوی فایل‌های صوتی</a>\n" \
+               f"\n{_search_emoji} | <a href ='https://t.me/tase_bot'><b>کروموزیک:</b> جستجوی فایل‌های صوتی</a>\n" \
                f"&rlm;{_plant}"
     except Exception as e:
         print(f"from file caption: {e}")
@@ -607,7 +607,7 @@ def inline_join_channel_description_text(*args, **kwargs) -> str:
            f"لطفا ابتدا توی کانال کروموزیک عضو شوید" \
            f"{_thumbs_up}\n" \
            f"{_pushpin}آدرس: " \
-           f"@Chromusic_fa"
+           f"@tase_fa"
     return text
 
 def inline_join_channel_title_text(*args, **kwargs) -> str:
@@ -631,7 +631,7 @@ def inline_join_channel_content_text(*args, **kwargs) -> str:
     plant = random.choice(plants_list)
     text = f"{_round_pushpin} " \
            f"به " \
-           f"&lrm;<b>@Chromusic_fa</b> " \
+           f"&lrm;<b>@tase_fa</b> " \
            f"&rlm;" \
            f"بپیوندید " \
            f"{_smiling_face_with_sunglasses}\n" \
@@ -640,8 +640,8 @@ def inline_join_channel_content_text(*args, **kwargs) -> str:
            f"ضمنا یه کانال انگلیسی هم داریم خوشحال میشم تشریف بیارید" \
            f"\n" \
            f"آدرس کانال: " \
-           f"&lrm;<b>@Chromusic\n" \
-           f"&rlm;{_headphone}<a href='https://t.me/chromusic_bot'><b>جستجوی فایل‌های صوتی در کروموزیک:</b></a> &lrm;@chromusic_bot{_studio_microphone}"
+           f"&lrm;<b>@Telegram audio search engine\n" \
+           f"&rlm;{_headphone}<a href='https://t.me/tase_bot'><b>جستجوی فایل‌های صوتی در کروموزیک:</b></a> &lrm;@tase_bot{_studio_microphone}"
     return text
 
 def example_message(*args, **kwargs) -> str:
@@ -691,7 +691,7 @@ def collaboration_request(*args, **kwargs) -> str:
            f"</b> " \
            f"بگذارید تا همچنان این سرویس به صورت رایگان به فعالیت خود ادامه دهد. با تشکر" \
            f" {plant3}\n" \
-           f"@chromusic_bot"
+           f"@tase_bot"
     return text
 
 def thanks_new_channel(*args: list, **kwargs) -> str:
@@ -739,10 +739,10 @@ def send_in_1_min(*args: list, **kwargs) -> str:
            f"اگه دوست داری #سرعت سرویس همچنان بالا باشه " \
            f"<b>" \
            f"لطفا توی کانال" \
-           f" &lrm;@chromusic_fa {_headphone}{_artist_palette}" \
+           f" &lrm;@tase_fa {_headphone}{_artist_palette}" \
            f" عضو شو\n\n" \
            f"</b>" \
-           f" کانال انگلیسی ما: &lrm;@chromusic {_headphone}{_artist_palette}\n\n " \
+           f" کانال انگلیسی ما: &lrm;@Telegram audio search engine {_headphone}{_artist_palette}\n\n " \
            f"هرچند که فایل رو همچنان دریافت خواهی کرد (در ۱ دقیقه)" \
            f"  {_winking_face}"
     return text
@@ -758,7 +758,7 @@ def has_joined(*args: list, **kwargs) -> str:
     text = f"{_star_struck}{_smiling_face_with_heart} بسیار خب " \
            f"<b>{first_name}</b> " \
            f", حالا تمام دسترسی ها رو داری{_party_popper}{_confetti_ball}\n\n" \
-           f"تبریک از طرف @chromusic_fa {_red_heart}\n" \
+           f"تبریک از طرف @tase_fa {_red_heart}\n" \
            f"با خیال راحت هر فایل صوتی رو سرچ کن {_face_blowing_a_kiss}"
     return text
 
@@ -770,7 +770,7 @@ def not_joined(*args, **kwargs) -> str:
     :return: Generated message for rejecting user's claim
     """
     text = f"{_face_with_raised_eyebrow} الان نگاه کردم, هنوز عضو کانال فارسی نیستی.\n\n " \
-           f"{_green_heart} عضو @chromusic_fa شو" \
+           f"{_green_heart} عضو @tase_fa شو" \
            f" تا تمام قابلیت ها به صورت کاملا #رایگان برات فعال شه {_red_heart}"
     return text
 
@@ -917,7 +917,7 @@ def home_markup_keyboard(*args, **kwargs) -> list:
                               switch_inline_query_current_chat=f"#history"),
          InlineKeyboardButton(f"پلی‌لیست‌های من | {_headphone}", switch_inline_query_current_chat=f"#myplaylists")],
         [InlineKeyboardButton(f"زبان | {_globe_showing_Americas}", callback_data="lang")],
-        [InlineKeyboardButton(f"تبلیغات | {_chart_increasing}{_bar_chart}", url="https://t.me/chromusic_ads"),
+        [InlineKeyboardButton(f"تبلیغات | {_chart_increasing}{_bar_chart}", url="https://t.me/tase_ads"),
          # callback_data="ads"),
          InlineKeyboardButton(f"راهنمایی | {_exclamation_question_mark}",
                               switch_inline_query_current_chat=f"#help_catalog")]
@@ -941,7 +941,7 @@ def help_markup_keyboard(*args, **kwargs) -> list:
                               switch_inline_query_current_chat=f"#history"),
          InlineKeyboardButton(f"پلی‌لیست‌های من | {_headphone}", switch_inline_query_current_chat=f"#myplaylists")],
         [InlineKeyboardButton(f"برگشت | {_BACK_arrow}", callback_data="home")],
-        [InlineKeyboardButton(f"تبلیغات | {_chart_increasing}{_bar_chart}", url="https://t.me/chromusic_ads")
+        [InlineKeyboardButton(f"تبلیغات | {_chart_increasing}{_bar_chart}", url="https://t.me/tase_ads")
             , InlineKeyboardButton(f"راهنمایی | {_exclamation_question_mark}",
                                    switch_inline_query_current_chat=f"#help_catalog")]
     ]
@@ -960,13 +960,13 @@ def help_keyboard_text(*args, **kwargs) -> str:
            f"کانال‌های ما:\n" \
            f"{_pushpin} | " \
            f"کانال انگلیسی: " \
-           f"<b>@chromusic</b>\n" \
+           f"<b>@Telegram audio search engine</b>\n" \
            f"{_pushpin} | " \
            f"کانال فارسی: " \
-           f"<b>@chromusic_fa</b> \n&rlm;{34 * '-'}\n\n" \
+           f"<b>@tase_fa</b> \n&rlm;{34 * '-'}\n\n" \
            f"پیج‌های اینستاگرام کروموزیک:\n" \
-           f"<a href='https://www.instagram/chromusic.official'>کروموزیک</a> | {_round_pushpin}\n" \
-           f"<a href='https://www.instagram/chromusic_fa'>کروموزیک فارسی</a> | {_round_pushpin}\n\n" \
+           f"<a href='https://www.instagram/tase.official'>کروموزیک</a> | {_round_pushpin}\n" \
+           f"<a href='https://www.instagram/tase_fa'>کروموزیک فارسی</a> | {_round_pushpin}\n\n" \
            f"&rlm;{_plant}{_heart}"
     return text
 
@@ -983,13 +983,13 @@ def home_keyboard_text(*args, **kwargs) -> str:
            f"کانال‌های ما:\n" \
            f"{_pushpin} | &rlm;" \
            f"کانال انگلیسی: " \
-           f"<b>&lrm;@chromusic</b>\n" \
+           f"<b>&lrm;@Telegram audio search engine</b>\n" \
            f"{_pushpin} | &rlm;" \
            f"کانال فارسی: " \
-           f"<b>&lrm;@chromusic_fa</b>\n&rlm;{34 * '-'}\n\n" \
+           f"<b>&lrm;@tase_fa</b>\n&rlm;{34 * '-'}\n\n" \
            f"پیج‌های اینستاگرام کروموزیک:\n" \
-           f"<a href='https://www.instagram.com/chromusic_official/'><b>کروموزیک</b></a> | {_round_pushpin}\n" \
-           f"<a href='https://www.instagram.com/chromusic_fa'><b>کروموزیک فارسی</b></a> | {_round_pushpin}\n\n" \
+           f"<a href='https://www.instagram.com/tase_official/'><b>کروموزیک</b></a> | {_round_pushpin}\n" \
+           f"<a href='https://www.instagram.com/tase_fa'><b>کروموزیک فارسی</b></a> | {_round_pushpin}\n\n" \
            f"&rlm;{_plant}{_heart}"
     return text
 
@@ -1013,7 +1013,7 @@ def help_inline_keyboard_list(*args, **kwargs) -> list:
         1. How to advertise?
         2. How to search for and download an audio track
         3. How to register my own audio track?
-        4. How to add my channel to Chromusic
+        4. How to add my channel to Telegram audio search engine
         5. Contact us
         6. About us
     This feature acts like a blog for a website. To add blogs we recommend using telegra.ph website which is related to
@@ -1038,7 +1038,7 @@ def help_inline_keyboard_list(*args, **kwargs) -> list:
         thumb_url="https://telegra.ph/file/6e6831bdd89011688bddb.jpg",
         input_message_content=InputTextMessageContent(f"&rlm;"
                                                       f"هرآنچه رو قبل از تبلیغات باید بدونی:\n"
-                                                      f"<a href='https://github.com/soran-ghadri/Chromusic_search_engine'><b>"
+                                                      f"<a href='https://github.com/soran-ghadri/TASE'><b>"
                                                       f"تبلیغات کروموزیک"
                                                       f"</b></a>", parse_mode="HTML")))
     results.append(InlineQueryResultArticle(
@@ -1047,7 +1047,7 @@ def help_inline_keyboard_list(*args, **kwargs) -> list:
         thumb_url="https://telegra.ph/file/36fc0478a793bd6db8c4e.jpg",
         input_message_content=InputTextMessageContent(f"&rlm;"
                                                       f"آموزش جستجوی موزیک رو در این متلب بخونید: \n"
-                                                      f"<a href='https://github.com/soran-ghadri/Chromusic_search_engine'><b>&rlm;"
+                                                      f"<a href='https://github.com/soran-ghadri/TASE'><b>&rlm;"
                                                       f"جستجوی بهینه"
                                                       f"</b></a>", parse_mode="HTML")))
     results.append(InlineQueryResultArticle(
@@ -1056,7 +1056,7 @@ def help_inline_keyboard_list(*args, **kwargs) -> list:
         thumb_url="https://telegra.ph/file/36fc0478a793bd6db8c4e.jpg",
         input_message_content=InputTextMessageContent(f"&rlm;"
                                                       f"در این مقاله راهنمای کامل "
-                                                      f"<a href='https://github.com/soran-ghadri/Chromusic_search_engine'>"
+                                                      f"<a href='https://github.com/soran-ghadri/TASE'>"
                                                       f"<b>چگونه موزیک و فایل صوتی خودم رو در کروموزیک ثبت کنم</b></a> "
                                                       f"(موزیک, پادکست, کتاب صوتی و ...),"
                                                       f" بخوان", parse_mode="HTML")))
@@ -1066,7 +1066,7 @@ def help_inline_keyboard_list(*args, **kwargs) -> list:
         thumb_url="https://telegra.ph/file/36fc0478a793bd6db8c4e.jpg",
         input_message_content=InputTextMessageContent(f"&rlm;"
                                                       f"انیجا میتونی یک راهنمایی کامل در باره‌ی"
-                                                      f"<a href='https://github.com/soran-ghadri/Chromusic_search_engine'>"
+                                                      f"<a href='https://github.com/soran-ghadri/TASE'>"
                                                       f"<b>"
                                                       f"ثبت کانال"
                                                       f"</b></a>"
@@ -1083,7 +1083,7 @@ def help_inline_keyboard_list(*args, **kwargs) -> list:
                                                       f"در ارتباط با"
                                                       f"\n"
                                                       f"برای اطلاعات بیشتر روی لینک زیر کلیک کنید"
-                                                      f"<a href='https://github.com/soran-ghadri/Chromusic_search_engine'>"
+                                                      f"<a href='https://github.com/soran-ghadri/TASE'>"
                                                       f"تماس با ما"
                                                       f"</a>", parse_mode="HTML")))
     results.append(InlineQueryResultArticle(
