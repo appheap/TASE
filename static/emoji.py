@@ -1,6 +1,10 @@
 """####################################################################
 # Copyright (C)                                                       #
-# 2020 Soran Ghadri(soran.gdr.cs@gmail.com)                           #
+# 2021 Soran Ghaderi(soran.gdr.cs@gmail.com)                          #
+# Website: soran-ghaderi.github.io                                    #
+# Follow me on social media                                           #
+# Twitter: twitter.com/soranghadri                                    #
+# Linkedin: https://www.linkedin.com/in/soran-ghaderi/                #
 # Permission given to modify the code as long as you keep this        #
 # declaration at the top                                              #
 ####################################################################"""
