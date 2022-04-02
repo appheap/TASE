@@ -50,7 +50,6 @@ def telegramAPI_connect():
     global executor, app, app2, bot, adbot, indexer_list
     indexer_list = []
 
-
     indexer_bot_id = "api_id_0"
     indexer_bot_hash = "api_hash_0"
 
@@ -66,7 +65,7 @@ def telegramAPI_connect():
 
     api_id_3 = "api_id_3"
     api_hash_3 = "api_hash_3"
-    
+
     BOT_TOKEN = "Your bot toke here"  # bot_name_bot bot token
 
     # app_me = client_connect("admin", indexer_bot_id, indexer_bot_hash)
@@ -1371,6 +1370,7 @@ def new_channel_indexer(client: object, channels_username: list, db_index: str):
         # client.send_message(bot_name_log_id, text)
         time.sleep(30)
 
+
 def audio_file_indexer(client: object, channel_id: int, offset_date: int, *args: str) -> bool:
     """
     Crawl and index audio files within channels
@@ -1557,6 +1557,7 @@ def audio_file_indexer(client: object, channel_id: int, offset_date: int, *args:
         print("from audio file indexer: ", e)
         return False
 
+
 def main_join_left_checker_controller():
     """
     Control members' joining actions and handle exceptions
@@ -1583,6 +1584,7 @@ def main_join_left_checker_controller():
     finally:
         text = f"join/left checker controller has stopped: \n\n"
         app.send_message("admin", text)
+
 
 def main_index_scheduler_controller():
     """
@@ -1735,6 +1737,7 @@ def main_index_scheduler_controller():
         app.send_message(bot_name_log_id, f"exception from scheduler \n {e}")
         # main_index_scheduler_controller()
 
+
 def reset_last_index_offset_date():
     """
     Reset the last index date and the number of indexed files for channels after finishing indexing
@@ -1759,6 +1762,7 @@ def reset_last_index_offset_date():
         }, ignore=409)
 
     return True
+
 
 def buffer_gathered_channels_controller(client):
     """
@@ -1816,6 +1820,7 @@ def buffer_gathered_channels_controller(client):
         client.send_message(bot_name_log_id, text)
         buffer_gathered_channels_controller(client)
 
+
 def invalid_title_performer_remover(client):
     """
     Detect and remove fake audio-title and audio-performer information. (In case they were channel's username or title).
@@ -1871,6 +1876,7 @@ def invalid_title_performer_remover(client):
         text = f"encountered exception out of the while loop in the invalid_title_performer_remover()\n\n{e}"
         print(text)
         client.send_message(bot_name_log_id, text)
+
 
 def audio_file_forwarder(client):
     """
@@ -2123,6 +2129,7 @@ def initialize():
 
     return True
 
+
 if __name__ == '__main__':
     initialize()
 
@@ -2150,6 +2157,7 @@ def choose_language(bot, message):
                                        parse_mode='HTML'))
 
     return True
+
 
 @bot.on_inline_query()
 def inine_res(bot: object, query: object) -> object:
@@ -2619,6 +2627,7 @@ def inine_res(bot: object, query: object) -> object:
             bot.answer_inline_query(query.id, results=results,
                                     cache_time=10, switch_pm_text=back_text, switch_pm_parameter="back_to_the_bot"))
 
+
 @bot.on_callback_query()
 def callback_query_handler(bot, query):
     """
@@ -3002,6 +3011,7 @@ def callback_query_handler(bot, query):
 
     return True
 
+
 def show_playlist(query, user_data):
     """
     Generates a keyboard for each playlist; buttons:
@@ -3308,6 +3318,7 @@ def users_log(bot, message):
 
     return True
 
+
 def urgent_index(channel_username: str, user: object):
     """
     Index requested channel by the owner/admin immediately. Start from the first message if the channel was
@@ -3385,6 +3396,7 @@ def urgent_index(channel_username: str, user: object):
             exception_handler(bot.send_message(user.id, result_text, parse_mode="html"))
     time.sleep(5)
     return True
+
 
 @bot.on_message(Filters.private & Filters.command("start"))
 def index_user(bot, message):
@@ -3476,6 +3488,7 @@ def index_user(bot, message):
         finally:
             check_joining_status(bot_name_id)
             check_joining_status(bot_name_fa_id)
+
 
 @bot.on_message(Filters.command(["lang", "help", "home"]))
 def commands_handler(bot, message):
@@ -3746,6 +3759,7 @@ def playlist_commands_handler(bot, message):
         message.delete()
         return True
 
+
 @bot.on_message(Filters.private & Filters.regex("dl_"))
 def download_handler(bot, message):
     """
@@ -3757,6 +3771,7 @@ def download_handler(bot, message):
     """
     executor.submit(file_retrieve_handler, message)
     return True
+
 
 @bot.on_message(~Filters.via_bot & ~Filters.bot &
                 Filters.private & (Filters.forwarded | Filters.regex("@") | Filters.web_page | Filters.regex("https")))
@@ -3954,7 +3969,7 @@ def message_handler(bot, message):
     # print('got ur search query')
     # speed_limiter +=1
     if message.text and message.entities == None:
-        if len(message.text)>1:
+        if len(message.text) > 1:
             # adbot.send_message(message.chat.id, "it works")
             executor.submit(search_handler, bot, message)
     else:
@@ -3967,12 +3982,13 @@ def message_handler(bot, message):
             #                                    reply_markup=InlineKeyboardMarkup(markup_list),
             #                                    parse_mode='HTML'))
             exception_handler(bot.send_message(message.chat.id, text=help_keyboard_text,
-                                                      reply_markup=InlineKeyboardMarkup(help_markup_keyboard),
-                                                      parse_mode='HTML'))
+                                               reply_markup=InlineKeyboardMarkup(help_markup_keyboard),
+                                               parse_mode='HTML'))
         except Exception as e:
             print("from search on_message: ", e)
 
     return True
+
 
 # @app.on_message()
 def client_handler(app, message):

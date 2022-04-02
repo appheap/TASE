@@ -1,0 +1,52 @@
+[tool.poetry]
+name = "tase"
+version = "0.1.0"
+description = "Telegram Audio Search Engine (lightening fast)"
+homepage = "https://github.com/appheap/TASE"
+repository = "https://github.com/appheap/TASE"
+authors = [
+    "Soran Ghaderi <soran.gdr.cs@gmail.com>",
+    "Taleb Zarhesh <taleb.zarhesh@gmail.com>",
+]
+maintainers = [
+    "Soran Ghaderi <soran.gdr.cs@gmail.com>",
+    "Taleb Zarhesh <taleb.zarhesh@gmail.com>",
+]
+readme = "README.md"
+license = "MIT"
+include = [
+    "LICENSE",
+]
+packages = [
+    { include = "" }
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+keywords = [
+    "python",
+]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+emoji = "^1.7.0"
+schedule = "^1.1.0"
+elasticsearch = "^8.1.2"
+Pyrogram = "^1.4.12"
+TgCrypto = "^1.2.3"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+

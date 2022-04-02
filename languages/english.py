@@ -9,7 +9,6 @@
 # declaration at the top                                              #
 ####################################################################"""
 
-
 import random
 import textwrap
 import unicodedata as UD
@@ -29,6 +28,7 @@ from static.emoji import _traffic_light, _checkmark_emoji, _floppy_emoji, _clock
 
 plants_list = [_seedling, _evergreen_tree, _deciduous_tree, _palm_tree, _sheaf_of_rice, _herb, _shamrock,
                _four_leaf_clover, _maple_leaf, _fallen_leaf, _leaf_fluttering_in_wind]
+
 
 # ------Following three methods are specific to english.py module------
 def inline_start_bot_title_text(*args, **kwargs) -> str:
@@ -69,6 +69,8 @@ def inline_start_bot_content_text(*args, **kwargs) -> str:
            f"\nThank you for joining {plant}\n\n" \
            f"{_headphone}<a href='https://t.me/tase_bot'><b>Telegram audio search engin audio search engine</b></a>{_studio_microphone}"
     return text
+
+
 # ------End of english.py specific modules------
 
 def music_file_keyboard(*args: str, **kwargs: str) -> list[object]:
@@ -643,7 +645,6 @@ def inline_join_channel_content_text(*args, **kwargs) -> str:
     return text
 
 
-
 def example_message(*args, **kwargs) -> str:
     """
     Mini-tutorial for the first time the users starts the bot. This is a sample message on how to search
@@ -818,6 +819,7 @@ def playlist_updated_text(*args: list, **kwargs) -> str:
         text = f"{_check_mark_button} <b>Description updated successfully</b>"
     return text
 
+
 def added_to_playlist_success_text(*args: list, **kwargs) -> str:
     """
     Shows a success message for audio-file addition to a playlist
@@ -849,6 +851,7 @@ def added_to_playlist_success_text(*args: list, **kwargs) -> str:
                f"You can access your playlists and your download history using <b>Home</b> button | {_green_circle}"
     return text
 
+
 def delete_audio_guide_text(*args, **kwargs) -> str:
     """
     Guides users how to delete an audio-file from the current playlist.
@@ -858,6 +861,7 @@ def delete_audio_guide_text(*args, **kwargs) -> str:
     """
     text = f"{_green_circle} By clicking on each button you can remove that file from the current playlist | {_cross_mark}"
     return text
+
 
 def home_markup_keyboard(*args, **kwargs) -> list:
     """
@@ -882,6 +886,7 @@ def home_markup_keyboard(*args, **kwargs) -> list:
     ]
     return markup
 
+
 def help_markup_keyboard(*args, **kwargs) -> list:
     """
     The help keyboard of the bot. It contains following buttons:
@@ -905,6 +910,7 @@ def help_markup_keyboard(*args, **kwargs) -> list:
     ]
     return markup
 
+
 def help_keyboard_text(*args, **kwargs) -> str:
     """
     Help message showing on top of the 'Help' menu
@@ -922,6 +928,7 @@ def help_keyboard_text(*args, **kwargs) -> str:
            f"<a href='https://www.instagram/tase_fa'>Persian Telegram audio search engin</a> | {_round_pushpin}\n\n" \
            f"&lrm;{_plant}{_heart}"
     return text
+
 
 def home_keyboard_text(*args, **kwargs) -> str:
     """
@@ -941,6 +948,7 @@ def home_keyboard_text(*args, **kwargs) -> str:
            f"&rlm;{_plant}{_heart}"
     return text
 
+
 def file_deleted_from_playlist(*args, **kwargs) -> str:
     """
     Audio-file deletion validation message
@@ -950,6 +958,7 @@ def file_deleted_from_playlist(*args, **kwargs) -> str:
     """
     text = f"{_check_mark_button} Audio file deleted from playlist"
     return text
+
 
 def help_inline_keyboard_list(*args, **kwargs) -> list:
     """
@@ -975,14 +984,16 @@ def help_inline_keyboard_list(*args, **kwargs) -> list:
         thumb_url="https://telegra.ph/file/6e6831bdd89011688bddb.jpg",
         input_message_content=InputTextMessageContent(f"Everything you need to know before promoting your business: \n"
                                                       f"<a href='https://github.com/soran-ghadri/'>"
-                                                      f"<b>Telegram audio search engin Advertising</b></a>", parse_mode="HTML")))
+                                                      f"<b>Telegram audio search engin Advertising</b></a>",
+                                                      parse_mode="HTML")))
     results.append(InlineQueryResultArticle(
         title="1. How to advertise?",
         description="If you need advertising, click here",
         thumb_url="https://telegra.ph/file/6e6831bdd89011688bddb.jpg",
         input_message_content=InputTextMessageContent(f"Everything you need to know before promoting your business: \n"
                                                       f"<a href='https://github.com/soran-ghadri/tase_search_engine'>"
-                                                      f"<b>Telegram audio search engin Advertising</b></a>", parse_mode="HTML")))
+                                                      f"<b>Telegram audio search engin Advertising</b></a>",
+                                                      parse_mode="HTML")))
     results.append(InlineQueryResultArticle(
         title="2. How to search for and download an audio track",
         description="You can easily send your audio file and get indexed by Telegram audio search engin bot",
@@ -1012,7 +1023,8 @@ def help_inline_keyboard_list(*args, **kwargs) -> list:
         thumb_url="https://pbs.twimg.com/profile_images/1306684220232945665/5i_q4pCx_400x400.jpg",
         input_message_content=InputTextMessageContent(f"you can be in touch with us through @[Admin username]\n"
                                                       f"For further information please read "
-                                                      f"<a href='https://github.com/soran-ghadri/tase_search_engine'>Contact Telegram audio search engin</a>", parse_mode="HTML")))
+                                                      f"<a href='https://github.com/soran-ghadri/tase_search_engine'>Contact Telegram audio search engin</a>",
+                                                      parse_mode="HTML")))
     results.append(InlineQueryResultArticle(
         title="6. About us",
         description="If you like to find out more about us, click on this link",
@@ -1022,6 +1034,7 @@ def help_inline_keyboard_list(*args, **kwargs) -> list:
             parse_mode="HTML")
     ))
     return results
+
 
 def contribution_thanks(*args: list, **kwargs) -> str:
     """
@@ -1054,6 +1067,7 @@ def contribution_thanks(*args: list, **kwargs) -> str:
         # text = f"Thank you <b>{first_name};</b> However, this file/channel has already been registered. {_heart}{_plant}\n\n"
     return text
 
+
 def long_time_not_active(*args: list, **kwargs) -> str:
     """
     This message will be shown to users being inactive more than 5 days and 14 days (as the longer period)
@@ -1072,6 +1086,7 @@ def long_time_not_active(*args: list, **kwargs) -> str:
         text = f"Glad to see you again <b>{first_name}</b>.\n press <b>#help</b> button from the following keyboard if " \
                f"you think you need it"
     return text
+
 
 def checking_items_started(*args, **kwargs) -> str:
     """

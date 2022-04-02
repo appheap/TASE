@@ -9,7 +9,6 @@
 # declaration at the top                                              #
 ####################################################################"""
 
-
 """
 audio_files_mapping mapper is the template for storing audio-file data in Elasticsearch database.
 Featured fields:

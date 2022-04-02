@@ -288,6 +288,7 @@ def delete_playlist_validation_keyboard(*args, **kwargs):
     ]
     return markup
 
+
 def delete_playlist_validation_text(*args: list, **kwargs) -> str:
     """
     This message asks the user to verify the deletion. In case yes was chosen, it will return the ID of the feature,
@@ -310,6 +311,7 @@ def delete_playlist_validation_text(*args: list, **kwargs) -> str:
                f"</b> {_headphone}"
     return text
 
+
 def playlist_deleted_text(*args, **kwargs) -> str:
     """
     Deletion success text
@@ -320,6 +322,7 @@ def playlist_deleted_text(*args, **kwargs) -> str:
     text = f"{_check_mark_button}" \
            f"پلی‌لیست با موفقیت حذف شد"
     return text
+
 
 def edit_playlist_keyboard(*args: list, **kwargs) -> list:
     """
@@ -346,6 +349,7 @@ def edit_playlist_keyboard(*args: list, **kwargs) -> list:
     ]
     return markup
 
+
 def edit_playlist_text(*args: list, **kwargs) -> str:
     """
     Generates a text about the current attributes of the chosen playlist in the edit window
@@ -367,6 +371,7 @@ def edit_playlist_text(*args: list, **kwargs) -> str:
            f"</b> {playlist['_source']['description']}"
     return text
 
+
 def single_playlist_text(*args: list, **kwargs) -> str:
     """
     Creates a description about a specific playlist
@@ -387,6 +392,7 @@ def single_playlist_text(*args: list, **kwargs) -> str:
            f"</b> {playlist['description']}"
 
     return text
+
 
 def languages_list(*args, **kwargs) -> str:
     """
@@ -412,6 +418,7 @@ def languages_list(*args, **kwargs) -> str:
            f" رو بفرستی و زبان رو تغییر بدی"
     return text
 
+
 def choose_language_text(*args: list, **kwargs) -> str:
     """
     A call-to-action message for choosing the preferred language; plus a mini-guide on how to change the language later
@@ -431,6 +438,7 @@ def choose_language_text(*args: list, **kwargs) -> str:
            f"خانه | {_house}" \
            f"</b>"
     return text
+
 
 def button_language_list(*args, **kwargs) -> list:
     """
@@ -455,6 +463,7 @@ def button_language_list(*args, **kwargs) -> list:
                                             callback_data=value)])
     return markup
 
+
 def button_joining_request_keyboard(*args, **kwargs) -> str:
     """
     A keyboard containing buttons to join or announce if they are already joined
@@ -467,6 +476,7 @@ def button_joining_request_keyboard(*args, **kwargs) -> str:
          InlineKeyboardButton("باشه الان عضو میشم", url="https://t.me/tase_fa")]  #
     ]
     return markup
+
 
 def welcome(*args: list, **kwargs) -> str:
     """
@@ -493,6 +503,7 @@ def welcome(*args: list, **kwargs) -> str:
            f"کلیک کن" \
            f" {_winking_face}"
     return text
+
 
 def file_caption(*args: list, **kwargs) -> str:
     """
@@ -537,6 +548,7 @@ def file_caption(*args: list, **kwargs) -> str:
     except Exception as e:
         print(f"from file caption: {e}")
     return text
+
 
 def inline_file_caption(*args: list, **kwargs) -> str:
     """
@@ -595,6 +607,7 @@ def inline_file_caption(*args: list, **kwargs) -> str:
         print(f"from file caption: {e}")
     return text
 
+
 def inline_join_channel_description_text(*args, **kwargs) -> str:
     """
     Shows a call-to-action text to users who have not Joined the channel yet (Description)
@@ -610,6 +623,7 @@ def inline_join_channel_description_text(*args, **kwargs) -> str:
            f"@tase_fa"
     return text
 
+
 def inline_join_channel_title_text(*args, **kwargs) -> str:
     """
     Shows a call-to-action text to users who have not Joined the channel yet (Title)
@@ -619,6 +633,7 @@ def inline_join_channel_title_text(*args, **kwargs) -> str:
     """
     text = f"{_green_circle} لطفا وارد کروموزیک شوید"
     return text
+
 
 def inline_join_channel_content_text(*args, **kwargs) -> str:
     """
@@ -643,6 +658,7 @@ def inline_join_channel_content_text(*args, **kwargs) -> str:
            f"&lrm;<b>@Telegram audio search engine\n" \
            f"&rlm;{_headphone}<a href='https://t.me/tase_bot'><b>جستجوی فایل‌های صوتی در کروموزیک:</b></a> &lrm;@tase_bot{_studio_microphone}"
     return text
+
 
 def example_message(*args, **kwargs) -> str:
     """
@@ -694,6 +710,7 @@ def collaboration_request(*args, **kwargs) -> str:
            f"@tase_bot"
     return text
 
+
 def thanks_new_channel(*args: list, **kwargs) -> str:
     """
     Thanks a user for his/her collaboration
@@ -712,6 +729,7 @@ def thanks_new_channel(*args: list, **kwargs) -> str:
            f" {_heart}{_plant}"
     return text
 
+
 def lang_register_alert(*args: list, **kwargs) -> str:
     """
     An alert validating the user's preferred language has been saved
@@ -724,6 +742,7 @@ def lang_register_alert(*args: list, **kwargs) -> str:
     text = f"بسیار خب {first_name} زبان فارسی برات ثبت شد {_confetti_ball}{_party_popper}\n\n" \
            f"هرموقع خواستی میتونی با استفاده از\n کد دستوری \"lang/\" زبان رو دوباره انتخاب کنی"
     return text
+
 
 def send_in_1_min(*args: list, **kwargs) -> str:
     """
@@ -747,6 +766,7 @@ def send_in_1_min(*args: list, **kwargs) -> str:
            f"  {_winking_face}"
     return text
 
+
 def has_joined(*args: list, **kwargs) -> str:
     """
     Validates the user's joining the channel after being required to join.
@@ -762,6 +782,7 @@ def has_joined(*args: list, **kwargs) -> str:
            f"با خیال راحت هر فایل صوتی رو سرچ کن {_face_blowing_a_kiss}"
     return text
 
+
 def not_joined(*args, **kwargs) -> str:
     """
     This will be shown when users claim to already have joined and they are lying
@@ -773,6 +794,7 @@ def not_joined(*args, **kwargs) -> str:
            f"{_green_heart} عضو @tase_fa شو" \
            f" تا تمام قابلیت ها به صورت کاملا #رایگان برات فعال شه {_red_heart}"
     return text
+
 
 def result_list_handler(*args: list, **kwargs) -> str:
     """
@@ -827,6 +849,7 @@ def result_list_handler(*args: list, **kwargs) -> str:
                f"\n<pre>{textwrap.shorten(query, width=200, placeholder='...')}</pre>"
     return text
 
+
 def playlist_updated_text(*args: list, **kwargs) -> str:
     """
     Playlist update validation message on success
@@ -845,6 +868,7 @@ def playlist_updated_text(*args: list, **kwargs) -> str:
                f"توضیحات جدید پلی‌لیست با موفقیت ذخیره شد" \
                f"</b>"
     return text
+
 
 def added_to_playlist_success_text(*args: list, **kwargs) -> str:
     """
@@ -889,6 +913,7 @@ def added_to_playlist_success_text(*args: list, **kwargs) -> str:
                f"می‌توانید پلی‌لیست‌ها و لیست دانلود‌های اخیرتان را ببینید"
     return text
 
+
 def delete_audio_guide_text(*args, **kwargs) -> str:
     """
     Guides users how to delete an audio-file from the current playlist.
@@ -899,6 +924,7 @@ def delete_audio_guide_text(*args, **kwargs) -> str:
     text = f"{_green_circle}" \
            f"با کلیک روی هرکدام از دکمه‌های زیر می‌توانید فایل صوتی را از پلی‌لیست فعلی حذف کنید"
     return text
+
 
 def home_markup_keyboard(*args, **kwargs) -> list:
     """
@@ -924,6 +950,7 @@ def home_markup_keyboard(*args, **kwargs) -> list:
     ]
     return markup
 
+
 def help_markup_keyboard(*args, **kwargs) -> list:
     """
     The help keyboard of the bot. It contains following buttons:
@@ -947,6 +974,7 @@ def help_markup_keyboard(*args, **kwargs) -> list:
     ]
     return markup
 
+
 def help_keyboard_text(*args, **kwargs) -> str:
     """
     Help message showing on top of the 'Help' menu
@@ -969,6 +997,7 @@ def help_keyboard_text(*args, **kwargs) -> str:
            f"<a href='https://www.instagram/tase_fa'>کروموزیک فارسی</a> | {_round_pushpin}\n\n" \
            f"&rlm;{_plant}{_heart}"
     return text
+
 
 def home_keyboard_text(*args, **kwargs) -> str:
     """
@@ -1004,6 +1033,7 @@ def file_deleted_from_playlist(*args, **kwargs) -> str:
     text = f"{_check_mark_button} " \
            f"فایل با موفقیت حذف شد"
     return text
+
 
 def help_inline_keyboard_list(*args, **kwargs) -> list:
     """
@@ -1097,6 +1127,7 @@ def help_inline_keyboard_list(*args, **kwargs) -> list:
                                                       f"</a>", parse_mode="HTML")))
     return results
 
+
 def contribution_thanks(*args: list, **kwargs) -> str:
     """
     Shows a thank you message to the contributing users
@@ -1134,6 +1165,7 @@ def contribution_thanks(*args: list, **kwargs) -> str:
                f"{_heart}{_plant}\n\n"
     return text
 
+
 def long_time_not_active(*args: list, **kwargs) -> str:
     """
     This message will be shown to users being inactive more than 5 days and 14 days (as the longer period)
@@ -1163,6 +1195,7 @@ def long_time_not_active(*args: list, **kwargs) -> str:
                f"{_heart}{_plant}"
     return text
 
+
 def checking_items_started(*args, **kwargs) -> str:
     """
     This will appear after sending channel names to be indexed
@@ -1176,4 +1209,3 @@ def checking_items_started(*args, **kwargs) -> str:
            f"تموم شد بهت خبر میدم. " \
            f"{_plant}{_heart}"
     return text
-

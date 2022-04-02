@@ -55,7 +55,7 @@ results that lead to relevant information on high-quality websites.</p>
     <li>Hashes the file IDs in a specific way that avoids conflicts to a high degree and still keeps them as short as eight characters</li>    
     <li>Users and channel owners can send request to index a specific channel useing "/index channel_name"</li>    
     <li>Fast indexing</li>
-    
+
 </ul>
 <br>
 <li><h4>User limiting/controlling features</h4></li>
@@ -149,7 +149,7 @@ results that lead to relevant information on high-quality websites.</p>
   <p>If you happened to encounter any issue in the codes, please report it
     <a href="https://github.com/soran-ghaderi/tase/issues">here</a>. 
     A better way is to fork the repository on <b>Github</b> and/or to create a pull request.</p>
-    
+
 </div>
 
 <h3>Future work</h3>
