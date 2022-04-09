@@ -1,11 +1,11 @@
 from typing import List
 import tomli
 
-from tase.models import Client, ClientTypes
+from tase.models import TelegramClient, ClientTypes
 
 
 class TASE():
-    clients: List['Client']
+    clients: List['TelegramClient']
 
     def __init__(
             self,
@@ -39,11 +39,11 @@ class TASE():
                     print(pyrogram_workdir)
 
                 for user_dict in tase_config.get('users', None).values():
-                    tg_client = Client._parse(ClientTypes.USER, user_dict, pyrogram_workdir)
+                    tg_client = TelegramClient._parse(ClientTypes.USER, user_dict, pyrogram_workdir)
                     self.clients.append(tg_client)
 
                 for user_dict in tase_config.get('bots', None).values():
-                    tg_client = Client._parse(ClientTypes.BOT, user_dict, pyrogram_workdir)
+                    tg_client = TelegramClient._parse(ClientTypes.BOT, user_dict, pyrogram_workdir)
                     self.clients.append(tg_client)
             else:
                 # todo: raise error (config file is invalid)

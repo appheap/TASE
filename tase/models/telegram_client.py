@@ -2,6 +2,7 @@ from enum import Enum
 from typing import Optional
 
 import pyrogram
+from tase.my_logger import logger
 
 
 class UserClientRoles(Enum):
@@ -36,12 +37,13 @@ class ClientTypes(Enum):
     BOT = 2
 
 
-class Client:
+class TelegramClient:
     _client: 'pyrogram.Client' = None
     name: 'str' = None
     api_id: 'int' = None
     api_hash: 'str' = None
     workdir: 'str' = None
+    client_type: 'ClientTypes'
 
     def init_client(self):
         pass
@@ -50,9 +52,9 @@ class Client:
         if self._client is None:
             self.init_client()
 
-        print("#" * 50)
-        print(self.name)
-        print("#" * 50)
+        logger.info("#" * 50)
+        logger.info(self.name)
+        logger.info("#" * 50)
         self._client.start()
 
     def is_connected(self) -> bool:
@@ -62,20 +64,22 @@ class Client:
         return self._client.get_me()
 
     @staticmethod
-    def _parse(client_type: 'ClientTypes', client_configs: dict, workdir: str) -> Optional['Client']:
+    def _parse(client_type: 'ClientTypes', client_configs: dict, workdir: str) -> Optional['TelegramClient']:
         if client_type == ClientTypes.USER:
-            return UserClient(client_configs, workdir)
+            return UserTelegramClient(client_configs, workdir)
         elif client_type == ClientTypes.BOT:
-            return BotClient(client_configs, workdir)
+            return BotTelegramClient(client_configs, workdir)
         else:
             # todo: raise error (unknown client type)
+            logger.error("Unknown TelegramClient Type")
             pass
 
 
-class UserClient(Client):
+class UserTelegramClient(TelegramClient):
     role: 'UserClientRoles'
 
     def __init__(self, client_configs: dict, workdir: str):
+        self.client_type = ClientTypes.USER
         self.workdir = workdir
         self.name = client_configs.get('name')
         self.api_id = client_configs.get('api_id')
@@ -91,11 +95,12 @@ class UserClient(Client):
         )
 
 
-class BotClient(Client):
+class BotTelegramClient(TelegramClient):
     role: 'BotClientRoles'
     token: 'str'
 
     def __init__(self, client_configs: dict, workdir: str):
+        self.client_type = ClientTypes.BOT
         self.workdir = workdir
         self.name = client_configs.get('name')
         self.api_id = client_configs.get('api_id')
