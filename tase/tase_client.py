@@ -1,7 +1,12 @@
+import time
 from typing import List
-import tomli
 
-from tase.models import TelegramClient, ClientTypes
+import pyrogram
+
+from tase.db.database_client import DatabaseClient
+from tase.models import TelegramClient, ClientTypes, UserClientRoles
+from tase.my_logger import logger
+from tase.utils import _get_config_from_file
 
 
 class TASE():
@@ -13,22 +18,13 @@ class TASE():
     ):
         self.clients = []
         self.tase_config_path = tase_config_path
+        self.tase_config = None
         self._init_telegram_clients()
-
-    def _get_config_from_file(self, file_path: str):
-        try:
-            with open(file_path, 'rb') as f:
-                return tomli.load(f)
-        except tomli.TOMLDecodeError as e:
-            pass
-        except Exception as e:
-            pass
-
-        return None
 
     def _init_telegram_clients(self):
         if self.tase_config_path is not None:
-            tase_config = self._get_config_from_file(self.tase_config_path)
+            tase_config = _get_config_from_file(self.tase_config_path)
+            self.tase_config = tase_config
             if tase_config is not None:
                 pyrogram_config = tase_config.get('pyrogram', None)
                 # todo: what if it's None?
