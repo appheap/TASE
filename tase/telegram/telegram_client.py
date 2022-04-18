@@ -2,6 +2,8 @@ from enum import Enum
 from typing import Optional
 
 import pyrogram
+from pyrogram.handlers.handler import Handler
+
 from tase.my_logger import logger
 
 
@@ -48,7 +50,7 @@ class TelegramClient:
     def init_client(self):
         pass
 
-    def connect(self):
+    def start(self):
         if self._client is None:
             self.init_client()
 
@@ -57,11 +59,17 @@ class TelegramClient:
         logger.info("#" * 50)
         self._client.start()
 
+    def stop(self):
+        self._client.stop()
+
     def is_connected(self) -> bool:
         return self._client.is_connected
 
     def get_me(self):
         return self._client.get_me()
+
+    def add_handler(self, handler: "Handler", group: int = 0):
+        return self._client.add_handler(handler, group)
 
     @staticmethod
     def _parse(client_type: 'ClientTypes', client_configs: dict, workdir: str) -> Optional['TelegramClient']:

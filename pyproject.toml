@@ -48,7 +48,9 @@ tomli = "^2.0.1"
 termcolor = "^1.1.0"
 colorlog = "^6.6.0"
 python-decouple = "^3.6"
-python-arango = "^7.3.2"
+python-arango = "^7.3.3"
+kombu = "^5.2.4"
+arrow = "^1.2.2"
 
 [tool.poetry.dev-dependencies]
 
