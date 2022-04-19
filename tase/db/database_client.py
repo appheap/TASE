@@ -14,25 +14,32 @@ class DatabaseClient:
 
     def __init__(
             self,
-            url: str,
-            elastic_http_certs: str,
-            elastic_basic_auth: Tuple[str, str]
+            elasticsearch_config: dict,
+            graph_db_config: dict,
     ):
+
         self._es_client = Elasticsearch(
-            url,
-            ca_certs=elastic_http_certs,
-            basic_auth=elastic_basic_auth
+            elasticsearch_config.get('cluster_url'),
+            ca_certs=elasticsearch_config.get('https_certs_url'),
+            basic_auth=(
+                elasticsearch_config.get('basic_auth_username'),
+                elasticsearch_config.get('basic_auth_password'))
         )
 
         # Initialize the client for ArangoDB.
-        self.arango_client = ArangoClient(hosts="http://localhost:8529")
+        self.arango_client = ArangoClient(hosts=graph_db_config.get('db_host_url'))
 
         # Connect to "test" database as root user.
-        db = self.arango_client.db("test", username="root", password="passwd")
+        db = self.arango_client.db(
+            graph_db_config.get('db_name'),
+            username=graph_db_config.get('db_username'),
+            password=graph_db_config.get('db_password')
+        )
+
         self.db = db
 
-        if not db.has_graph('tase_songs'):
-            self.graph = db.create_graph("tase_songs")
+        if not db.has_graph(graph_db_config.get('graph_name')):
+            self.graph = db.create_graph(graph_db_config.get('graph_name'))
 
             self.audios = self.graph.create_vertex_collection('audios')
             self.chats = self.graph.create_vertex_collection('chats')

@@ -21,6 +21,7 @@ class TASE():
         self.client_managers = []
         self.tase_config_path = tase_config_path
         self.tase_config = None
+        self.database_client = None
 
     def init_telegram_clients(self):
         mgr = mp.Manager()
@@ -31,6 +32,13 @@ class TASE():
             tase_config = _get_config_from_file(self.tase_config_path)
             self.tase_config = tase_config
             if tase_config is not None:
+                graph_db_config = tase_config.get('graph-config')
+                elasticsearch_config = tase_config.get('elastic-config')
+                # db = DatabaseClient(
+                #     elasticsearch_config=elasticsearch_config,
+                #     graph_db_config=graph_db_config,
+                # )
+
                 pyrogram_config = tase_config.get('pyrogram', None)
                 # todo: what if it's None?
 
@@ -42,18 +50,24 @@ class TASE():
                 for user_dict in tase_config.get('users', None).values():
                     pass
                     tg_client = TelegramClient._parse(ClientTypes.USER, user_dict, pyrogram_workdir)
-                    client_manager = ClientManager(name=tg_client.name, )
-                    client_manager.telegram_client = tg_client
-                    client_manager.task_queues = task_queues
+                    client_manager = ClientManager(
+                        telegram_client_name=tg_client.name,
+                        telegram_client=tg_client,
+                        task_queues=task_queues,
+                        database_client=self.database_client
+                    )
                     client_manager.start()
                     self.clients.append(tg_client)
                     self.client_managers.append(client_manager)
 
                 for user_dict in tase_config.get('bots', None).values():
                     tg_client = TelegramClient._parse(ClientTypes.BOT, user_dict, pyrogram_workdir)
-                    client_manager = ClientManager(name=tg_client.name, )
-                    client_manager.telegram_client = tg_client
-                    client_manager.task_queues = task_queues
+                    client_manager = ClientManager(
+                        telegram_client_name=tg_client.name,
+                        telegram_client=tg_client,
+                        task_queues=task_queues,
+                        database_client=self.database_client
+                    )
                     client_manager.start()
                     self.clients.append(tg_client)
                     self.client_managers.append(client_manager)

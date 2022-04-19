@@ -1,8 +1,9 @@
 from enum import Enum
-from typing import Optional
+from typing import Optional, Any, Coroutine
 
 import pyrogram
 from pyrogram.handlers.handler import Handler
+from pyrogram.types import User
 
 from tase.my_logger import logger
 
@@ -59,14 +60,17 @@ class TelegramClient:
         logger.info("#" * 50)
         self._client.start()
 
-    def stop(self):
-        self._client.stop()
+    def stop(self) -> Coroutine:
+        return self._client.stop()
 
     def is_connected(self) -> bool:
         return self._client.is_connected
 
-    def get_me(self):
+    def get_me(self) -> Coroutine[Any, Any, 'pyrogram.types.User']:
         return self._client.get_me()
+
+    def get_session_name(self) -> str:
+        return self._client.session_name
 
     def add_handler(self, handler: "Handler", group: int = 0):
         return self._client.add_handler(handler, group)
