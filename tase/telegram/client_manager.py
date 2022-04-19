@@ -1,19 +1,18 @@
 import multiprocessing as mp
 import threading
-from typing import Optional, List, Union
+from typing import Optional, List, Union, Dict
 
 import arrow as arrow
+import kombu
 import pyrogram
-from pyrogram import types, idle
 from pyrogram import raw
+from pyrogram import types, idle
 from pyrogram.handlers import DisconnectHandler, MessageHandler, RawUpdateHandler
 
 from tase.db.database_client import DatabaseClient
 from tase.my_logger import logger
 from tase.telegram import TelegramClient
 from tase.telegram.client_worker import ClientWorkerThread
-from tase.telegram.globals import client_task
-from tase.utils import prettify
 
 
 class ClientManager(mp.Process):
@@ -22,7 +21,7 @@ class ClientManager(mp.Process):
             *,
             telegram_client_name: str,
             telegram_client: 'TelegramClient',
-            task_queues,
+            task_queues: Dict['str', 'kombu.Queue'],
             database_client: 'DatabaseClient',
     ):
         super().__init__()
