@@ -7,11 +7,12 @@ import kombu
 import pyrogram
 from pyrogram import raw
 from pyrogram import types, idle
-from pyrogram.handlers import DisconnectHandler, MessageHandler, RawUpdateHandler
+from pyrogram.handlers import DisconnectHandler, MessageHandler, RawUpdateHandler, InlineQueryHandler, \
+    DeletedMessagesHandler, ChosenInlineResultHandler
 
 from tase.db.database_client import DatabaseClient
 from tase.my_logger import logger
-from tase.telegram import TelegramClient
+from tase.telegram import TelegramClient, ClientTypes
 from tase.telegram.client_worker import ClientWorkerThread
 
 
@@ -35,9 +36,23 @@ class ClientManager(mp.Process):
             client: 'pyrogram.Client',
             message: 'types.Message'
     ):
-        # logger.info(message)
-        if client.bot_token is not None:
+        if self.telegram_client.client_type == ClientTypes.USER:
+            # the client type is a user
+            # logger.info(message)
+            logger.info(f'on_message : {message.chat.title}')
+            pass
+        elif self.telegram_client.client_type == ClientTypes.BOT:
+            # the client type is a bot
             logger.info(message)
+        else:
+            # the client type is unknown, raise an error
+            pass
+
+    def on_inline_query(self, client: 'pyrogram.Client', inline_query: 'types.InlineQuery'):
+        logger.info(f"on_inline_query: {inline_query}")
+
+    def on_chosen_inline_query(self, client: 'pyrogram.Client', chosen_inline_result: 'types.ChosenInlineResult'):
+        logger.info(f"on_chosen_inline_query: {chosen_inline_result}")
 
     def on_raw_update(
             self,
@@ -46,11 +61,24 @@ class ClientManager(mp.Process):
             users: List['types.User'],
             chats: List['types.Chat']
     ):
+        # logger.info(f"on_raw_update: {raw_update}")
         pass
 
-    @staticmethod
-    def on_disconnect(client: 'pyrogram.Client'):
+    def on_disconnect(self, client: 'pyrogram.Client'):
         logger.info(f"client {client.session_name} disconnected @ {arrow.utcnow()}")
+
+    def deleted_messages_handler(self, client: 'pyrogram.Client', messages: List['types.Message']):
+        logger.info(f"deleted_messages_handler: {messages}")
+        estimate_date_of_deletion = arrow.utcnow().timestamp()
+        for message in messages:
+            if message.chat is None:
+                # deleted message is from `saved messages`
+                message_id = message.message_id
+            else:
+                # deleted message if from other chats
+                message_id = message.message_id
+                chat_id: int = message.chat.id
+                chat_type: str = message.chat.type
 
     def run(self) -> None:
         logger.info(mp.current_process().name)
@@ -58,9 +86,20 @@ class ClientManager(mp.Process):
 
         self.telegram_client.start()
 
+        # register handler based on the type of the client
+        if self.telegram_client.client_type == ClientTypes.USER:
+            self.telegram_client.add_handler(MessageHandler(self.on_message), group=0)
+            self.telegram_client.add_handler(RawUpdateHandler(self.on_raw_update), group=1)
+            self.telegram_client.add_handler(DeletedMessagesHandler(self.deleted_messages_handler), group=2)
+        elif self.telegram_client.client_type == ClientTypes.BOT:
+            self.telegram_client.add_handler(MessageHandler(self.on_message))
+            self.telegram_client.add_handler(
+                DeletedMessagesHandler(self.deleted_messages_handler))  # todo: not working, why?
+            self.telegram_client.add_handler(InlineQueryHandler(self.on_inline_query))
+            self.telegram_client.add_handler(ChosenInlineResultHandler(self.on_chosen_inline_query))
+        else:
+            pass
         self.telegram_client.add_handler(DisconnectHandler(self.on_disconnect))
-        self.telegram_client.add_handler(MessageHandler(self.on_message))
-        self.telegram_client.add_handler(RawUpdateHandler(self.on_raw_update))
 
         worker = ClientWorkerThread(
             telegram_client=self.telegram_client,
