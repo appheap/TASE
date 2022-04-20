@@ -8,7 +8,7 @@ import pyrogram
 from pyrogram import raw
 from pyrogram import types, idle
 from pyrogram.handlers import DisconnectHandler, MessageHandler, RawUpdateHandler, InlineQueryHandler, \
-    DeletedMessagesHandler, ChosenInlineResultHandler
+    DeletedMessagesHandler, ChosenInlineResultHandler, CallbackQueryHandler, ChatMemberUpdatedHandler
 
 from tase.db.database_client import DatabaseClient
 from tase.my_logger import logger
@@ -48,12 +48,6 @@ class ClientManager(mp.Process):
             # the client type is unknown, raise an error
             pass
 
-    def on_inline_query(self, client: 'pyrogram.Client', inline_query: 'types.InlineQuery'):
-        logger.info(f"on_inline_query: {inline_query}")
-
-    def on_chosen_inline_query(self, client: 'pyrogram.Client', chosen_inline_result: 'types.ChosenInlineResult'):
-        logger.info(f"on_chosen_inline_query: {chosen_inline_result}")
-
     def on_raw_update(
             self,
             client: 'pyrogram.Client',
@@ -61,8 +55,20 @@ class ClientManager(mp.Process):
             users: List['types.User'],
             chats: List['types.Chat']
     ):
-        # logger.info(f"on_raw_update: {raw_update}")
+        logger.info(f"on_raw_update: {raw_update}")
         pass
+
+    def on_chat_member_updated(self, client: 'pyrogram.Client', chat_member_updated: 'types.ChatMemberUpdated'):
+        logger.info(f"on_chat_member_updated: {chat_member_updated}")
+
+    def on_inline_query(self, client: 'pyrogram.Client', inline_query: 'types.InlineQuery'):
+        logger.info(f"on_inline_query: {inline_query}")
+
+    def on_chosen_inline_query(self, client: 'pyrogram.Client', chosen_inline_result: 'types.ChosenInlineResult'):
+        logger.info(f"on_chosen_inline_query: {chosen_inline_result}")
+
+    def on_callback_query(self, client: 'pyrogram.Client', callback_query: 'types.CallbackQuery'):
+        logger.info(f"on_callback_query: {callback_query}")
 
     def on_disconnect(self, client: 'pyrogram.Client'):
         logger.info(f"client {client.session_name} disconnected @ {arrow.utcnow()}")
@@ -91,12 +97,22 @@ class ClientManager(mp.Process):
             self.telegram_client.add_handler(MessageHandler(self.on_message), group=0)
             self.telegram_client.add_handler(RawUpdateHandler(self.on_raw_update), group=1)
             self.telegram_client.add_handler(DeletedMessagesHandler(self.deleted_messages_handler), group=2)
+
+            # todo: not working, why?
+            self.telegram_client.add_handler(ChatMemberUpdatedHandler(self.on_chat_member_updated))
+
         elif self.telegram_client.client_type == ClientTypes.BOT:
             self.telegram_client.add_handler(MessageHandler(self.on_message))
-            self.telegram_client.add_handler(
-                DeletedMessagesHandler(self.deleted_messages_handler))  # todo: not working, why?
+
+            # todo: not working, why?
+            self.telegram_client.add_handler(DeletedMessagesHandler(self.deleted_messages_handler))
+
             self.telegram_client.add_handler(InlineQueryHandler(self.on_inline_query))
             self.telegram_client.add_handler(ChosenInlineResultHandler(self.on_chosen_inline_query))
+            self.telegram_client.add_handler(CallbackQueryHandler(self.on_callback_query))
+
+            # todo: not working, why?
+            self.telegram_client.add_handler(ChatMemberUpdatedHandler(self.on_chat_member_updated))
         else:
             pass
         self.telegram_client.add_handler(DisconnectHandler(self.on_disconnect))
