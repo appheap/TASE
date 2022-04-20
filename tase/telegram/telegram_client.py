@@ -1,11 +1,11 @@
 from enum import Enum
-from typing import Optional, Any, Coroutine
+from typing import Optional, Any, Coroutine, Union, Generator
 
 import pyrogram
 from pyrogram.handlers.handler import Handler
-from pyrogram.types import User
 
 from tase.my_logger import logger
+from .methods.search_messages import search_messages
 
 
 class UserClientRoles(Enum):
@@ -74,6 +74,25 @@ class TelegramClient:
 
     def add_handler(self, handler: "Handler", group: int = 0):
         return self._client.add_handler(handler, group)
+
+    def iter_audios(
+            self,
+            chat_id: Union['str', 'int'],
+            query: str = "",
+            offset: int = 0,
+            offset_id: int = 0,
+            only_newer_messages: bool = True,
+    ) -> Optional[Generator["pyrogram.types.Message", None]]:
+        for message in search_messages(
+                client=self._client,
+                chat_id=chat_id,
+                filter='audio',
+                query=query,
+                offset=offset,
+                offset_id=offset_id,
+                only_newer_messages=only_newer_messages,
+        ):
+            yield message
 
     @staticmethod
     def _parse(client_type: 'ClientTypes', client_configs: dict, workdir: str) -> Optional['TelegramClient']:

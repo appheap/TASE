@@ -11,6 +11,7 @@ from tase.my_logger import logger
 
 class DatabaseClient:
     _es_client: 'Elasticsearch'
+    arango_client: 'ArangoClient'
 
     def __init__(
             self,

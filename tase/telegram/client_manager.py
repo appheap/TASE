@@ -14,6 +14,8 @@ from tase.db.database_client import DatabaseClient
 from tase.my_logger import logger
 from tase.telegram import TelegramClient, ClientTypes
 from tase.telegram.client_worker import ClientWorkerThread
+from tase.telegram.globals import client_task
+from tase.telegram.tasks.index_audios_task import IndexAudiosTask
 
 
 class ClientManager(mp.Process):
@@ -55,7 +57,7 @@ class ClientManager(mp.Process):
             users: List['types.User'],
             chats: List['types.Chat']
     ):
-        logger.info(f"on_raw_update: {raw_update}")
+        # logger.info(f"on_raw_update: {raw_update}")
         pass
 
     def on_chat_member_updated(self, client: 'pyrogram.Client', chat_member_updated: 'types.ChatMemberUpdated'):

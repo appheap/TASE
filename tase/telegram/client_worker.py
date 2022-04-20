@@ -2,8 +2,6 @@ from threading import Thread
 from typing import Dict
 from typing import List
 
-import kombu
-from kombu import Connection, Queue, Consumer
 from kombu.mixins import ConsumerProducerMixin
 from kombu.transport import pyamqp
 
@@ -48,26 +46,15 @@ class ClientTaskConsumer(ConsumerProducerMixin):
             )
         ]
 
-    def on_task(self, body: dict, message: pyamqp.Message):
-        attr_name = body['func']
-        args = body['args']
-        kwargs = body['kwargs']
+    def on_task(self, body: object, message: pyamqp.Message):
+        message.ack()
+
+        task: BaseTask = body
         logger.info(f"client_task_consumer_on_task : {self.telegram_client.get_session_name()}")
 
-        response = {}
-        if self.telegram_client.is_connected() and attr_name:
-            logger.info(attr_name)
-            response['result'] = self.telegram_client.get_me()
-
-        self.producer.publish(
-            body=response,
-            exchange='',
-            routing_key=message.properties['reply_to'],
-            correlation_id=message.properties['correlation_id'],
-            serializer='pickle',
-            retry=True,
-        )
-        message.ack()
+        if self.telegram_client.is_connected() and task.name:
+            logger.info(task.name)
+            task.run_task(self.telegram_client, self.db)
 
 
 class ClientWorkerThread(Thread):
