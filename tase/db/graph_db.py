@@ -113,7 +113,22 @@ class GraphDatabase:
             self.linked_chat = self.graph.edge_collection(LinkedChat._collection_edge_name)
             self.sender_chat = self.graph.edge_collection(SenderChat._collection_edge_name)
 
-    def create_chat(self, telegram_chat: 'pyrogram.types.Chat') -> Optional['Chat']:
+    def create_user(self, telegram_user: 'pyrogram.types.User') -> Optional['User']:
+        if telegram_user is None:
+            return None
+
+        user = None
+        if not self.users.find({'_key': str(telegram_user.id)}):
+            user = User.parse_from_user(telegram_user)
+            if user:
+                metadata = self.users.insert(vertex=user.parse_for_graph())
+                user.update_from_metadata(metadata)
+            else:
+                user = None
+
+        return user
+
+    def create_chat(self, telegram_chat: 'pyrogram.types.Chat', creator: 'User' = None) -> Optional['Chat']:
         if telegram_chat is None:
             return None
 
@@ -124,7 +139,7 @@ class GraphDatabase:
                 chat.update_from_metadata(chat_metadata)
 
                 if telegram_chat.linked_chat:
-                    linked_chat = self.create_chat(telegram_chat.linked_chat)
+                    linked_chat = self.create_chat(telegram_chat.linked_chat, creator)
                     if linked_chat:
                         linked_chat_edge = LinkedChat.parse_from_chat_and_chat(chat, linked_chat)
                         if linked_chat_edge:
@@ -138,6 +153,11 @@ class GraphDatabase:
                 pass
         else:
             chat = None
+
+        if chat and telegram_chat.is_creator and creator:
+            creator_of = Creator.parse_from_chat_and_user(chat, creator)
+            metadata = self.creator.insert(creator_of.parse_for_graph())
+            creator_of.update_from_metadata(metadata)
 
         return chat
 
@@ -163,6 +183,13 @@ class GraphDatabase:
                     else:
                         pass
 
+                sender_chat = SenderChat.parse_from_audio_and_chat(audio, db_chat)
+                if sender_chat:
+                    metadata = self.sender_chat.insert(sender_chat.parse_for_graph())
+                    sender_chat.update_from_metadata(metadata)
+                else:
+                    pass
+
                 if self.files.has(audio.file_unique_id):
                     file = File.parse_from_graph(self.files.get(audio.file_unique_id))
                     if file:
@@ -187,5 +214,3 @@ class GraphDatabase:
                             pass
                     else:
                         pass
-
-            logger.info(audio)

@@ -1,7 +1,9 @@
 import datetime
+from typing import Optional
 
 import pyrogram.types
 
+from tase.db.graph_models.vertices import User, Chat, Audio
 from tase.my_logger import logger
 from .graph_db import GraphDatabase
 from .elasticsearch_db import ElasticsearchDatabase
@@ -25,13 +27,19 @@ class DatabaseClient:
             graph_db_config=graph_db_config,
         )
 
-    def create_chat(self, chat: 'pyrogram.types.Chat'):
+    def create_user(self, telegram_user: 'pyrogram.types.User') -> Optional['User']:
+        if telegram_user is None:
+            return None
+
+        return self._graph_db.create_user(telegram_user)
+
+    def create_chat(self, chat: 'pyrogram.types.Chat', creator: 'User' = None) -> Optional['Chat']:
         if chat is None:
             return None
 
-        return self._graph_db.create_chat(chat)
+        return self._graph_db.create_chat(chat, creator)
 
-    def create_audio(self, message: 'pyrogram.types.Message'):
+    def create_audio(self, message: 'pyrogram.types.Message') -> Optional['Audio']:
         if message is None or message.audio is None:
             return
 
