@@ -24,6 +24,15 @@ class File(BaseVertex):
         return super_dict
 
     @staticmethod
+    def parse_from_graph(vertex: dict) -> Optional['File']:
+        super_d = BaseVertex.parse_from_graph(vertex)
+        if not len(super_d):
+            return None
+
+        super_d.update({'file_unique_id': vertex.get('file_unique_id', None)})
+        return File(**super_d)
+
+    @staticmethod
     def parse_from_audio(audio: 'pyrogram.types.Audio') -> Optional['File']:
         if audio is None:
             return None
