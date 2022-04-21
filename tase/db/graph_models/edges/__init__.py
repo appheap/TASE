@@ -1,6 +1,7 @@
 from .archived_audio import ArchivedAudio
 from .base_edge import BaseEdge
 from .contact_of import ContactOf
+from .creator import Creator
 from .downloaded import Downloaded
 from .downloaded_audio import DownloadedAudio
 from .downloaded_from_bot import DownloadedFromBot
@@ -11,6 +12,7 @@ __all__ = [
     'ArchivedAudio',
     'BaseEdge',
     'ContactOf',
+    'Creator',
     'Downloaded',
     'DownloadedAudio',
     'DownloadedFromBot',
