@@ -19,9 +19,10 @@ class SenderChat(BaseEdge):
             return None
 
         ts = int(arrow.utcnow().timestamp())
+        key = f"{audio.key}:{chat.key}"
         return SenderChat(
             id=None,
-            key=None,
+            key=key,
             from_node=audio,
             to_node=chat,
             created_at=ts,

@@ -21,9 +21,10 @@ class Creator(BaseEdge):
             return None
 
         ts = int(arrow.utcnow().timestamp())
+        key = f'{chat.chat_id}:{creator.user_id}'
         return Creator(
             id=None,
-            key=None,
+            key=key,
             from_node=chat,
             to_node=creator,
             created_at=ts,
