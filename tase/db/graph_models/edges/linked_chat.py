@@ -19,9 +19,10 @@ class LinkedChat(BaseEdge):
             return None
 
         ts = int(arrow.utcnow().timestamp())
+        key = f'{chat.key}:{linked_chat.key}'
         return LinkedChat(
             id=None,
-            key=None,
+            key=key,
             from_node=chat,
             to_node=linked_chat,
             created_at=ts,

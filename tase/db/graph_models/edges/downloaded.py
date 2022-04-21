@@ -21,9 +21,10 @@ class Downloaded(BaseEdge):
             return None
 
         ts = int(arrow.utcnow().timestamp())
+        key = f'{user.key}:{download.key}'
         return Downloaded(
             id=None,
-            key=None,
+            key=key,
             from_node=user,
             to_node=download,
             created_at=ts,

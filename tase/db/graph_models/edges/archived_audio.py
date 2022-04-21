@@ -21,9 +21,10 @@ class ArchivedAudio(BaseEdge):
             return None
 
         ts = int(arrow.utcnow().timestamp())
+        key = f'{audio.key}:{archived_audio.key}'
         return ArchivedAudio(
             id=None,
-            key=None,
+            key=key,
             from_node=audio,
             to_node=archived_audio,
             created_at=ts,

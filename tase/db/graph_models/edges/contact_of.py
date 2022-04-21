@@ -21,9 +21,10 @@ class ContactOf(BaseEdge):
             return None
 
         ts = int(arrow.utcnow().timestamp())
+        key = f'{from_user.key}:{to_user.key}'
         return ContactOf(
             id=None,
-            key=None,
+            key=key,
             from_node=from_user,
             to_node=to_user,
             created_at=ts,

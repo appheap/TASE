@@ -4,6 +4,7 @@ from typing import Optional
 import arrow
 
 from .base_edge import BaseEdge
+from ..vertices import Download, Audio
 
 
 @dataclass
@@ -15,14 +16,15 @@ class DownloadedAudio(BaseEdge):
     _collection_edge_name = 'downloaded_audio'
 
     @staticmethod
-    def parse_from_download_and_audio(download: '', audio: '') -> Optional['DownloadedAudio']:
+    def parse_from_download_and_audio(download: 'Download', audio: 'Audio') -> Optional['DownloadedAudio']:
         if download is None or audio is None:
             return None
 
         ts = int(arrow.utcnow().timestamp())
+        key = f'{download.key}:{audio.key}'
         return DownloadedAudio(
             id=None,
-            key=None,
+            key=key,
             from_node=download,
             to_node=audio,
             created_at=ts,

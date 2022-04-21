@@ -21,9 +21,10 @@ class DownloadedFromBot(BaseEdge):
             return None
 
         ts = int(arrow.utcnow().timestamp())
+        key = f'{download.key}:{user.key}'
         return DownloadedFromBot(
             id=None,
-            key=None,
+            key=key,
             from_node=download,
             to_node=user,
             created_at=ts,
