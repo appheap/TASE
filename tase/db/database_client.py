@@ -1,17 +1,15 @@
-from typing import Tuple
-
-import pyrogram.types
-from elasticsearch import Elasticsearch
 import datetime
 
-from arango import ArangoClient
+import pyrogram.types
 
 from tase.my_logger import logger
+from .graph_db import GraphDatabase
+from .elasticsearch_db import ElasticsearchDatabase
 
 
 class DatabaseClient:
-    _es_client: 'Elasticsearch'
-    arango_client: 'ArangoClient'
+    _es_db: 'ElasticsearchDatabase'
+    _graph_db: 'GraphDatabase'
 
     def __init__(
             self,
@@ -19,48 +17,13 @@ class DatabaseClient:
             graph_db_config: dict,
     ):
 
-        self._es_client = Elasticsearch(
-            elasticsearch_config.get('cluster_url'),
-            ca_certs=elasticsearch_config.get('https_certs_url'),
-            basic_auth=(
-                elasticsearch_config.get('basic_auth_username'),
-                elasticsearch_config.get('basic_auth_password'))
+        self._es_db = ElasticsearchDatabase(
+            elasticsearch_config=elasticsearch_config,
         )
 
-        # Initialize the client for ArangoDB.
-        self.arango_client = ArangoClient(hosts=graph_db_config.get('db_host_url'))
-
-        # Connect to "test" database as root user.
-        db = self.arango_client.db(
-            graph_db_config.get('db_name'),
-            username=graph_db_config.get('db_username'),
-            password=graph_db_config.get('db_password')
+        self._graph_db = GraphDatabase(
+            graph_db_config=graph_db_config,
         )
-
-        self.db = db
-
-        if not db.has_graph(graph_db_config.get('graph_name')):
-            self.graph = db.create_graph(graph_db_config.get('graph_name'))
-
-            self.audios = self.graph.create_vertex_collection('audios')
-            self.chats = self.graph.create_vertex_collection('chats')
-
-            self.sent_message = self.graph.create_edge_definition(
-                edge_collection='sent_message',
-                from_vertex_collections=['chats'],
-                to_vertex_collections=['audios'],
-            )
-            self.edges = self.graph.create_edge_definition(
-                edge_collection='is',
-                from_vertex_collections=['audios'],
-                to_vertex_collections=['audios'],
-            )
-        else:
-            self.graph = db.graph('tase_songs')
-            self.audios = self.graph.vertex_collection('audios')
-            self.chats = self.graph.vertex_collection('chats')
-            self.sent_message = self.graph.edge_collection('sent_message')
-            self.edges = self.graph.edge_collection('is')
 
     def create_audio(self, message: 'pyrogram.types.Message'):
         if message is None or message.audio is None:
@@ -88,7 +51,8 @@ class DatabaseClient:
             #     }
             # )
 
-            self.process_audio_message(audio, message)
+            # self.process_audio_message(audio, message)
+            self._graph_db.create_audio(message)
         except Exception as e:
             logger.exception(e)
 
