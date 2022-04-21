@@ -24,3 +24,21 @@ class BaseEdge:
             'created_at': self.created_at,
             'modified_at': self.modified_at,
         }
+
+    @staticmethod
+    def parse_from_graph(vertex: dict) -> Optional['dict']:
+        if not len(vertex):
+            return None
+
+        return {
+            '_id': vertex.get('id'),
+            '_key': vertex.get('key'),
+            'from_node': BaseVertex.parse_from_graph({'_id': vertex.get('_from', None)}),
+            'to_node': BaseVertex.parse_from_graph({'_id': vertex.get('_to', None)}),
+            'created_at': vertex.get('created_at', None),
+            'modified_at': vertex.get('modified_at', None),
+        }
+
+    def update_from_metadata(self, metadata: dict):
+        self.id = metadata.get('_id', None)
+        self.key = metadata.get('_key', None)
