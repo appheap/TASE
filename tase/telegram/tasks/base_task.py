@@ -10,6 +10,7 @@ def exception_handler(func: 'Callable'):
     def wrap(*args, **kwargs):
         try:
             func(*args, **kwargs)
+            logger.info(f'Task Finished')
         except Exception as e:
             logger.exception(e)
 

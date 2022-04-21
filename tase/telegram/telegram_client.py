@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Optional, Any, Coroutine, Union, Generator
+from typing import Optional, Any, Coroutine, Union
 
 import pyrogram
 from pyrogram.handlers.handler import Handler
@@ -68,6 +68,9 @@ class TelegramClient:
 
     def get_me(self) -> Coroutine[Any, Any, 'pyrogram.types.User']:
         return self._client.get_me()
+
+    def get_chat(self, chat_id: Union[int, str]) -> Union["pyrogram.types.Chat", "pyrogram.types.ChatPreview"]:
+        return self._client.get_chat(chat_id=chat_id)
 
     def get_session_name(self) -> str:
         return self._client.session_name
