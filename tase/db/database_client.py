@@ -25,6 +25,12 @@ class DatabaseClient:
             graph_db_config=graph_db_config,
         )
 
+    def create_chat(self, chat: 'pyrogram.types.Chat'):
+        if chat is None:
+            return None
+
+        return self._graph_db.create_chat(chat)
+
     def create_audio(self, message: 'pyrogram.types.Message'):
         if message is None or message.audio is None:
             return

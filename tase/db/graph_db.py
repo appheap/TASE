@@ -113,6 +113,34 @@ class GraphDatabase:
             self.linked_chat = self.graph.edge_collection(LinkedChat._collection_edge_name)
             self.sender_chat = self.graph.edge_collection(SenderChat._collection_edge_name)
 
+    def create_chat(self, telegram_chat: 'pyrogram.types.Chat') -> Optional['Chat']:
+        if telegram_chat is None:
+            return None
+
+        if not self.chats.find({'_key': str(telegram_chat.id)}):
+            chat = Chat.parse_from_chat(chat=telegram_chat)
+            if chat:
+                chat_metadata = self.chats.insert(vertex=chat.parse_for_graph())
+                chat.update_from_metadata(chat_metadata)
+
+                if telegram_chat.linked_chat:
+                    linked_chat = self.create_chat(telegram_chat.linked_chat)
+                    if linked_chat:
+                        linked_chat_edge = LinkedChat.parse_from_chat_and_chat(chat, linked_chat)
+                        if linked_chat_edge:
+                            metadata = self.linked_chat.insert(linked_chat_edge.parse_for_graph())
+                            linked_chat_edge.update_from_metadata(metadata)
+                        else:
+                            pass
+                    else:
+                        pass
+            else:
+                pass
+        else:
+            chat = None
+
+        return chat
+
     def create_audio(self, message: 'pyrogram.types.Message') -> Optional['Audio']:
         if message is None or message.audio is None:
             return None
@@ -123,6 +151,17 @@ class GraphDatabase:
                 metadata = self.audios.insert(audio.parse_for_graph())
                 logger.info(metadata)
                 audio.update_from_metadata(metadata)
+
+                db_chat_dict = self.chats.get({'_key': str(message.chat.id)})
+                if db_chat_dict:
+                    db_chat = Chat.parse_from_graph(db_chat_dict)
+                else:
+                    db_chat = Chat.parse_from_chat(message.chat)
+                    if db_chat:
+                        db_chat_metadata = self.chats.insert(db_chat.parse_for_graph())
+                        db_chat.update_from_metadata(db_chat_metadata)
+                    else:
+                        pass
 
                 if self.files.has(audio.file_unique_id):
                     file = File.parse_from_graph(self.files.get(audio.file_unique_id))
