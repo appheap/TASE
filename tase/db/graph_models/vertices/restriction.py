@@ -30,7 +30,7 @@ class Restriction:
 
     @staticmethod
     def parse_all_from_graph(vertex_list: List['dict']) -> Optional[List['Restriction']]:
-        if not len(vertex_list):
+        if vertex_list is None or not len(vertex_list):
             return None
 
         restrictions = []
