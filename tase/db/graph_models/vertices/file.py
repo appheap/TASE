@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Optional
 
 import arrow
 import pyrogram
@@ -23,7 +24,7 @@ class File(BaseVertex):
         return super_dict
 
     @staticmethod
-    def parse_from_audio(audio: 'pyrogram.types.Audio'):
+    def parse_from_audio(audio: 'pyrogram.types.Audio') -> Optional['File']:
         if audio is None:
             return None
 
