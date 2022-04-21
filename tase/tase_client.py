@@ -34,10 +34,10 @@ class TASE():
             if tase_config is not None:
                 graph_db_config = tase_config.get('graph-config')
                 elasticsearch_config = tase_config.get('elastic-config')
-                # db = DatabaseClient(
-                #     elasticsearch_config=elasticsearch_config,
-                #     graph_db_config=graph_db_config,
-                # )
+                self.database_client = DatabaseClient(
+                    elasticsearch_config=elasticsearch_config,
+                    graph_db_config=graph_db_config,
+                )
 
                 pyrogram_config = tase_config.get('pyrogram', None)
                 # todo: what if it's None?
