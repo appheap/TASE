@@ -21,9 +21,10 @@ class FileRef(BaseEdge):
             return None
 
         ts = int(arrow.utcnow().timestamp())
+        key = f"{audio.key}:{file.key}"
         return FileRef(
             id=None,
-            key=None,
+            key=key,
             from_node=audio,
             to_node=file,
             created_at=ts,
