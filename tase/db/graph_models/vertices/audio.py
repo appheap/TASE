@@ -25,6 +25,10 @@ class Audio(BaseVertex):
     file_size: int
     date: int
 
+    @staticmethod
+    def get_key(message: 'pyrogram.types.Message'):
+        return f'{message.audio.file_unique_id}{message.chat.id}{message.message_id}'
+
     def parse_for_graph(self) -> dict:
         super_dict = super(Audio, self).parse_for_graph()
         super_dict.update(
@@ -50,7 +54,7 @@ class Audio(BaseVertex):
             return None
 
         ts = int(arrow.utcnow().timestamp())
-        key = f'{message.audio.file_unique_id}{message.chat.id}{message.message_id}'
+        key = Audio.get_key(message)
         return Audio(
             id=None,
             key=key,
@@ -69,3 +73,23 @@ class Audio(BaseVertex):
             file_size=message.audio.file_size,
             date=message.audio.date,
         )
+
+    @staticmethod
+    def parse_from_graph(vertex: dict):
+        super_d = BaseVertex.parse_from_graph(vertex)
+
+        super_d.update({
+            'message_id': vertex.get('message_id'),
+            'message_caption': vertex.get('caption'),
+            'message_date': vertex.get('date'),
+            'file_unique_id': vertex.get('file_unique_id'),
+            'duration': vertex.get('duration'),
+            'performer': vertex.get('performer'),
+            'title': vertex.get('title'),
+            'file_name': vertex.get('file_name'),
+            'mime_type': vertex.get('mime_type'),
+            'file_size': vertex.get('file_size'),
+            'date': vertex.get('date'),
+        })
+
+        return Audio(**super_d)
