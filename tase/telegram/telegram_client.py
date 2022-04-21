@@ -82,7 +82,7 @@ class TelegramClient:
             offset: int = 0,
             offset_id: int = 0,
             only_newer_messages: bool = True,
-    ) -> Optional[Generator["pyrogram.types.Message", None]]:
+    ):
         for message in search_messages(
                 client=self._client,
                 chat_id=chat_id,
