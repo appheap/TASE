@@ -13,6 +13,8 @@ class ContactOf(BaseEdge):
     Connection from a `User` to another `User`.
     """
 
+    _collection_edge_name = 'contact_of'
+
     @staticmethod
     def parse_from_user_and_user(from_user: 'User', to_user: 'User') -> Optional['ContactOf']:
         if from_user is None or to_user is None:

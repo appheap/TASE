@@ -6,6 +6,8 @@ from ..vertices import BaseVertex
 
 @dataclass
 class BaseEdge:
+    _collection_edge_name = 'base_edge_collection'
+
     id: Optional[str]
     key: Optional[str]
     from_node: 'BaseVertex'

@@ -11,6 +11,8 @@ from ..vertices import Audio, Chat
 class SenderChat(BaseEdge):
     """Connection from `Audio` to `Chat`"""
 
+    _collection_edge_name = 'sender_chat'
+
     @staticmethod
     def parse_from_audio_and_chat(audio: 'Audio', chat: 'Chat') -> Optional['SenderChat']:
         if audio is None and chat is None:

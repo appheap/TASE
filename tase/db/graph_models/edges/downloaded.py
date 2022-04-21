@@ -13,6 +13,8 @@ class Downloaded(BaseEdge):
     Connection from `User` to `Download`
     """
 
+    _collection_edge_name = 'downloaded'
+
     @staticmethod
     def parse_from_user_and_download(user: 'User', download: 'Download') -> Optional['Downloaded']:
         if user is None or download is None:

@@ -13,6 +13,8 @@ class Creator(BaseEdge):
     Connection from `Chat` to `User`.
     """
 
+    _collection_edge_name = 'creator'
+
     @staticmethod
     def parse_from_chat_and_user(chat: 'Chat', creator: 'User') -> Optional['Creator']:
         if chat is None or creator is None:

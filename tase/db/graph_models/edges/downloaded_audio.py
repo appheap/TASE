@@ -12,6 +12,8 @@ class DownloadedAudio(BaseEdge):
     Connection from `Download` to `Audio`
     """
 
+    _collection_edge_name = 'downloaded_audio'
+
     @staticmethod
     def parse_from_download_and_audio(download: '', audio: '') -> Optional['DownloadedAudio']:
         if download is None or audio is None:

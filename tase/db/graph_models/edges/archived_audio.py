@@ -13,6 +13,8 @@ class ArchivedAudio(BaseEdge):
     Connection from `Audio` to the archived `Audio`
     """
 
+    _collection_edge_name = 'archived_audio'
+
     @staticmethod
     def parse_from_audio_and_audio(audio: 'Audio', archived_audio: 'Audio') -> Optional['ArchivedAudio']:
         if audio is None or archived_audio is None:

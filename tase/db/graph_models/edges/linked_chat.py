@@ -11,6 +11,8 @@ from ..vertices import Audio, Chat
 class LinkedChat(BaseEdge):
     """Connection from `Chat` to `Chat`"""
 
+    _collection_edge_name = 'linked_chat'
+
     @staticmethod
     def parse_from_chat_and_chat(chat: 'Chat', linked_chat: 'Chat') -> Optional['LinkedChat']:
         if chat is None and linked_chat is None:
