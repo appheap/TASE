@@ -18,6 +18,28 @@ class Restriction:
         }
 
     @staticmethod
+    def parse_from_graph(vertex: dict) -> Optional['Restriction']:
+        if not vertex or not len(vertex):
+            return None
+
+        return Restriction(
+            platform=vertex.get('platform', None),
+            reason=vertex.get('reason', None),
+            text=vertex.get('text', None),
+        )
+
+    @staticmethod
+    def parse_all_from_graph(vertex_list: List['dict']) -> Optional[List['Restriction']]:
+        if not len(vertex_list):
+            return None
+
+        restrictions = []
+        for vertex in vertex_list:
+            restrictions.append(Restriction.parse_from_graph(vertex))
+
+        return restrictions
+
+    @staticmethod
     def parse_from_restriction(restriction: 'pyrogram.types.Restriction') -> Optional['Restriction']:
         if restriction is None:
             return None

@@ -96,3 +96,37 @@ class Chat(BaseVertex):
             member_count=chat.members_count,
             distance=chat.distance,
         )
+
+    @staticmethod
+    def parse_from_graph(vertex: dict) -> Optional['Chat']:
+        super_dict = BaseVertex.parse_from_graph(vertex)
+        if not super_dict:
+            return None
+
+        return Chat(
+            id=super_dict.get('id', None),
+            key=super_dict.get('key', None),
+            rev=super_dict.get('rev', None),
+            created_at=super_dict.get('created_at', None),
+            modified_at=super_dict.get('modified_at', None),
+            chat_id=super_dict.get('chat_id', None),
+            chat_type=super_dict.get('chat_type', None),
+            is_verified=super_dict.get('is_verified', None),
+            is_restricted=super_dict.get('is_restricted', None),
+            is_scam=super_dict.get('is_scam', None),
+            is_fake=super_dict.get('is_fake', None),
+            is_support=super_dict.get('is_support', None),
+            title=super_dict.get('title', None),
+            username=super_dict.get('username', None),
+            first_name=super_dict.get('first_name', None),
+            last_name=super_dict.get('last_name', None),
+            bio=super_dict.get('bio', None),
+            description=super_dict.get('description', None),
+            dc_id=super_dict.get('dc_id', None),
+            has_protected_content=super_dict.get('has_protected_content', None),
+            invite_link=super_dict.get('invite_link', None),
+            restrictions=Restriction.parse_all_from_graph(super_dict.get('restrictions', None)),
+            available_reactions=super_dict.get('available_reactions', None),
+            member_count=super_dict.get('member_count', None),
+            distance=super_dict.get('distance', None),
+        )
