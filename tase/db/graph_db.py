@@ -39,7 +39,7 @@ class GraphDatabase:
             password=graph_db_config.get('db_password')
         )
 
-        if not sys_db.has_graph(graph_db_config.get('graph_name')):
+        if not self.db.has_graph(graph_db_config.get('graph_name')):
             self.graph = self.db.create_graph(graph_db_config.get('graph_name'))
 
             self.files = self.graph.create_vertex_collection(File._vertex_name)
