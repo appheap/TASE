@@ -6,6 +6,7 @@ from .downloaded import Downloaded
 from .downloaded_audio import DownloadedAudio
 from .downloaded_from_bot import DownloadedFromBot
 from .file_ref import FileRef
+from .linked_chat import LinkedChat
 from .sender_chat import SenderChat
 
 __all__ = [
@@ -17,5 +18,6 @@ __all__ = [
     'DownloadedAudio',
     'DownloadedFromBot',
     'FileRef',
+    'LinkedChat',
     'SenderChat',
 ]
