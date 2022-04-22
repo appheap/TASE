@@ -1,13 +1,8 @@
-from typing import Optional, Union
+from typing import Optional
 
-import arrow
 from pydantic import BaseModel, Field
 
-from tase.my_logger import logger
-
-
-def get_time() -> int:
-    return int(arrow.utcnow().timestamp())
+from tase.utils import get_timestamp
 
 
 class BaseVertex(BaseModel):
@@ -26,8 +21,8 @@ class BaseVertex(BaseModel):
     id: Optional[str]
     key: Optional[str]
     rev: Optional[str]
-    created_at: int = Field(default_factory=get_time)
-    modified_at: int = Field(default_factory=get_time)
+    created_at: int = Field(default_factory=get_timestamp)
+    modified_at: int = Field(default_factory=get_timestamp)
 
     def _to_graph(self) -> dict:
         temp_dict = self.dict()

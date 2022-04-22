@@ -3,6 +3,7 @@ import typing
 from collections import OrderedDict
 from typing import Optional
 
+import arrow
 import tomli
 
 from tase.my_logger import logger
@@ -65,3 +66,7 @@ def prettify(obj: object, sort_keys=False, include_class_name=True) -> 'str':
                       default=default if include_class_name else default_no_class_name,
                       sort_keys=sort_keys,
                       ensure_ascii=False)
+
+
+def get_timestamp() -> int:
+    return int(arrow.utcnow().timestamp())
