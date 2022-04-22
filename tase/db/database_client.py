@@ -33,11 +33,16 @@ class DatabaseClient:
 
         return self._graph_db.create_user(telegram_user)
 
-    def create_chat(self, chat: 'pyrogram.types.Chat', creator: 'User' = None) -> Optional['Chat']:
-        if chat is None:
+    def create_chat(
+            self,
+            telegram_chat: 'pyrogram.types.Chat',
+            creator: 'User' = None,
+            member: 'User' = None
+    ) -> Optional['Chat']:
+        if telegram_chat is None:
             return None
 
-        return self._graph_db.create_chat(chat, creator)
+        return self._graph_db.create_chat(telegram_chat, creator, member)
 
     def create_audio(self, message: 'pyrogram.types.Message') -> Optional['Audio']:
         if message is None or message.audio is None:
