@@ -1,13 +1,10 @@
 from dataclasses import dataclass
 from typing import Optional
 
-import arrow
-
 from .base_edge import BaseEdge
 from ..vertices import Audio, Chat
 
 
-@dataclass
 class SenderChat(BaseEdge):
     """Connection from `Audio` to `Chat`"""
 
@@ -18,14 +15,9 @@ class SenderChat(BaseEdge):
         if audio is None and chat is None:
             return None
 
-        ts = int(arrow.utcnow().timestamp())
         key = f"{audio.key}:{chat.key}"
         return SenderChat(
-            id=None,
             key=key,
-            rev=None,
             from_node=audio,
             to_node=chat,
-            created_at=ts,
-            modified_at=ts,
         )

@@ -1,13 +1,9 @@
-from dataclasses import dataclass
 from typing import Optional
 
-import arrow
-
 from .base_edge import BaseEdge
-from ..vertices import Audio, Chat
+from ..vertices import Chat
 
 
-@dataclass
 class LinkedChat(BaseEdge):
     """Connection from `Chat` to `Chat`"""
 
@@ -18,14 +14,9 @@ class LinkedChat(BaseEdge):
         if chat is None and linked_chat is None:
             return None
 
-        ts = int(arrow.utcnow().timestamp())
         key = f'{chat.key}:{linked_chat.key}'
         return LinkedChat(
-            id=None,
             key=key,
-            rev=None,
             from_node=chat,
             to_node=linked_chat,
-            created_at=ts,
-            modified_at=ts,
         )

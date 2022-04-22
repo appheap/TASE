@@ -1,13 +1,9 @@
-from dataclasses import dataclass
 from typing import Optional
-
-import arrow
 
 from .base_edge import BaseEdge
 from ..vertices import Download, User
 
 
-@dataclass
 class DownloadedFromBot(BaseEdge):
     """
     Connection from `Download` to `User`
@@ -20,14 +16,9 @@ class DownloadedFromBot(BaseEdge):
         if download is None or user is None:
             return None
 
-        ts = int(arrow.utcnow().timestamp())
         key = f'{download.key}:{user.key}'
         return DownloadedFromBot(
-            id=None,
             key=key,
-            rev=None,
             from_node=download,
             to_node=user,
-            created_at=ts,
-            modified_at=ts,
         )

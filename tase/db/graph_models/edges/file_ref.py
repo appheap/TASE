@@ -1,13 +1,9 @@
-from dataclasses import dataclass
 from typing import Optional
-
-import arrow
 
 from .base_edge import BaseEdge
 from ..vertices import File, Audio
 
 
-@dataclass
 class FileRef(BaseEdge):
     """
     Connection from `Audio` to `File`
@@ -20,14 +16,9 @@ class FileRef(BaseEdge):
         if audio is None or file is None:
             return None
 
-        ts = int(arrow.utcnow().timestamp())
         key = f"{audio.key}:{file.key}"
         return FileRef(
-            id=None,
             key=key,
-            rev=None,
             from_node=audio,
             to_node=file,
-            created_at=ts,
-            modified_at=ts,
         )

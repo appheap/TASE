@@ -1,13 +1,9 @@
-from dataclasses import dataclass
 from typing import Optional
-
-import arrow
 
 from .base_edge import BaseEdge
 from ..vertices import User, Chat
 
 
-@dataclass
 class MemberOf(BaseEdge):
     """
     Connection from `User` to `Chat`.
@@ -20,14 +16,9 @@ class MemberOf(BaseEdge):
         if chat is None or user is None:
             return None
 
-        ts = int(arrow.utcnow().timestamp())
         key = f'{user.key}:{chat.key}'
         return MemberOf(
-            id=None,
             key=key,
-            rev=None,
             from_node=user,
             to_node=chat,
-            created_at=ts,
-            modified_at=ts,
         )
