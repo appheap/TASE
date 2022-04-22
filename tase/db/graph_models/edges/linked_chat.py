@@ -23,6 +23,7 @@ class LinkedChat(BaseEdge):
         return LinkedChat(
             id=None,
             key=key,
+            rev=None,
             from_node=chat,
             to_node=linked_chat,
             created_at=ts,

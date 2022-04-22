@@ -23,6 +23,7 @@ class SenderChat(BaseEdge):
         return SenderChat(
             id=None,
             key=key,
+            rev=None,
             from_node=audio,
             to_node=chat,
             created_at=ts,

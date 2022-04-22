@@ -25,6 +25,7 @@ class Downloaded(BaseEdge):
         return Downloaded(
             id=None,
             key=key,
+            rev=None,
             from_node=user,
             to_node=download,
             created_at=ts,

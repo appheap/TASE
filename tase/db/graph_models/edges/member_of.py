@@ -25,6 +25,7 @@ class MemberOf(BaseEdge):
         return MemberOf(
             id=None,
             key=key,
+            rev=None,
             from_node=user,
             to_node=chat,
             created_at=ts,

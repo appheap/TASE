@@ -25,6 +25,7 @@ class ArchivedAudio(BaseEdge):
         return ArchivedAudio(
             id=None,
             key=key,
+            rev=None,
             from_node=audio,
             to_node=archived_audio,
             created_at=ts,

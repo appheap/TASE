@@ -25,6 +25,7 @@ class DownloadedFromBot(BaseEdge):
         return DownloadedFromBot(
             id=None,
             key=key,
+            rev=None,
             from_node=download,
             to_node=user,
             created_at=ts,

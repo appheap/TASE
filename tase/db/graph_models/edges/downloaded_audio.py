@@ -25,6 +25,7 @@ class DownloadedAudio(BaseEdge):
         return DownloadedAudio(
             id=None,
             key=key,
+            rev=None,
             from_node=download,
             to_node=audio,
             created_at=ts,

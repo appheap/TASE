@@ -25,6 +25,7 @@ class Creator(BaseEdge):
         return Creator(
             id=None,
             key=key,
+            rev=None,
             from_node=chat,
             to_node=creator,
             created_at=ts,

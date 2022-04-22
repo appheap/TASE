@@ -25,6 +25,7 @@ class ContactOf(BaseEdge):
         return ContactOf(
             id=None,
             key=key,
+            rev=None,
             from_node=from_user,
             to_node=to_user,
             created_at=ts,

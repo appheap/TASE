@@ -25,6 +25,7 @@ class FileRef(BaseEdge):
         return FileRef(
             id=None,
             key=key,
+            rev=None,
             from_node=audio,
             to_node=file,
             created_at=ts,
