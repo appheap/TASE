@@ -1,43 +1,13 @@
-from dataclasses import dataclass
 from typing import Optional, List
 
 import pyrogram
+from pydantic import BaseModel
 
 
-@dataclass
-class Restriction:
+class Restriction(BaseModel):
     platform: Optional['str']
     reason: Optional['str']
     text: Optional['str']
-
-    def parse_for_graph(self) -> dict:
-        return {
-            'platform': self.platform,
-            'reason': self.reason,
-            'text': self.reason,
-        }
-
-    @staticmethod
-    def parse_from_graph(vertex: dict) -> Optional['Restriction']:
-        if not vertex or not len(vertex):
-            return None
-
-        return Restriction(
-            platform=vertex.get('platform', None),
-            reason=vertex.get('reason', None),
-            text=vertex.get('text', None),
-        )
-
-    @staticmethod
-    def parse_all_from_graph(vertex_list: List['dict']) -> Optional[List['Restriction']]:
-        if vertex_list is None or not len(vertex_list):
-            return None
-
-        restrictions = []
-        for vertex in vertex_list:
-            restrictions.append(Restriction.parse_from_graph(vertex))
-
-        return restrictions
 
     @staticmethod
     def parse_from_restriction(restriction: 'pyrogram.types.Restriction') -> Optional['Restriction']:
@@ -58,13 +28,4 @@ class Restriction:
         l = []
         for restriction in restrictions:
             l.append(Restriction.parse_from_restriction(restriction))
-        return l
-
-    @staticmethod
-    def parse_all_for_graph(restrictions: List['Restriction']) -> Optional[List[dict]]:
-        if restrictions is None or not len(restrictions):
-            return None
-        l = []
-        for restriction in restrictions:
-            l.append(restriction.parse_for_graph())
         return l

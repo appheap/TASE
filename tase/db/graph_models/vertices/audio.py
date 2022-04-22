@@ -1,4 +1,3 @@
-from dataclasses import dataclass, field
 from typing import Optional
 
 import arrow
@@ -7,21 +6,20 @@ import pyrogram
 from .base_vertex import BaseVertex
 
 
-@dataclass
 class Audio(BaseVertex):
     _vertex_name = 'audios'
 
     message_id: int
-    message_caption: Optional['str']
+    message_caption: Optional[str]
     message_date: int
 
     # file_id: str # todo: is it necessary?
     file_unique_id: str
     duration: int
-    performer: Optional['str']
-    title: Optional['str']
-    file_name: Optional['str']
-    mime_type: Optional['str']
+    performer: Optional[str]
+    title: Optional[str]
+    file_name: Optional[str]
+    mime_type: Optional[str]
     file_size: int
     date: int
 
@@ -29,38 +27,14 @@ class Audio(BaseVertex):
     def get_key(message: 'pyrogram.types.Message'):
         return f'{message.audio.file_unique_id}{message.chat.id}{message.message_id}'
 
-    def parse_for_graph(self) -> dict:
-        super_dict = super(Audio, self).parse_for_graph()
-        super_dict.update(
-            {
-                'message_id': self.message_id,
-                'message_caption': self.message_caption,
-                'message_date': self.message_date,
-                'file_unique_id': self.file_unique_id,
-                'duration': self.duration,
-                'performer': self.performer,
-                'title': self.title,
-                'file_name': self.file_name,
-                'mime_type': self.mime_type,
-                'file_size': self.file_size,
-                'date': self.date,
-            }
-        )
-        return super_dict
-
     @staticmethod
     def parse_from_message(message: 'pyrogram.types.Message') -> Optional['Audio']:
         if not message or not message.audio:
             return None
 
-        ts = int(arrow.utcnow().timestamp())
         key = Audio.get_key(message)
         return Audio(
-            id=None,
             key=key,
-            rev=None,
-            created_at=ts,
-            modified_at=ts,
             message_id=message.message_id,
             message_caption=message.caption,
             message_date=message.date,
@@ -73,23 +47,3 @@ class Audio(BaseVertex):
             file_size=message.audio.file_size,
             date=message.audio.date,
         )
-
-    @staticmethod
-    def parse_from_graph(vertex: dict):
-        super_d = BaseVertex.parse_from_graph(vertex)
-
-        super_d.update({
-            'message_id': vertex.get('message_id'),
-            'message_caption': vertex.get('caption'),
-            'message_date': vertex.get('date'),
-            'file_unique_id': vertex.get('file_unique_id'),
-            'duration': vertex.get('duration'),
-            'performer': vertex.get('performer'),
-            'title': vertex.get('title'),
-            'file_name': vertex.get('file_name'),
-            'mime_type': vertex.get('mime_type'),
-            'file_size': vertex.get('file_size'),
-            'date': vertex.get('date'),
-        })
-
-        return Audio(**super_d)

@@ -150,6 +150,7 @@ class GraphDatabase:
                 chat.update_from_metadata(chat_metadata)
 
                 if telegram_chat.linked_chat:
+                    # todo: fix this
                     linked_chat = self.create_chat(telegram_chat.linked_chat, creator)
                     if linked_chat:
                         linked_chat_edge = LinkedChat.parse_from_chat_and_chat(chat, linked_chat)

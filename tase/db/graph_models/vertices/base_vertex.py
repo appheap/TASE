@@ -1,40 +1,78 @@
-from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Union
+
+import arrow
+from pydantic import BaseModel, Field
+
+from tase.my_logger import logger
 
 
-@dataclass
-class BaseVertex:
+def get_time() -> int:
+    return int(arrow.utcnow().timestamp())
+
+
+class BaseVertex(BaseModel):
     _vertex_name = 'base_vertices'
+    _from_graph_db_mapping = {
+        '_id': 'id',
+        '_key': 'key',
+        '_rev': 'rev',
+    }
+    _to_graph_db_mapping = {
+        'id': '_id',
+        'key': '_key',
+        'rev': '_rev',
+    }
 
     id: Optional[str]
     key: Optional[str]
     rev: Optional[str]
-    created_at: int
-    modified_at: int
+    created_at: int = Field(default_factory=get_time)
+    modified_at: int = Field(default_factory=get_time)
 
-    def parse_for_graph(self) -> dict:
-        return {
-            '_id': self.id,
-            '_key': self.key,
-            '_rev': self.rev,
-            'created_at': self.created_at,
-            'modified_at': self.modified_at,
-        }
+    def _to_graph(self) -> dict:
+        temp_dict = self.dict()
+        for k, v in self._to_graph_db_mapping.items():
+            if temp_dict.get(k, None):
+                temp_dict[v] = temp_dict[k]
+                del temp_dict[k]
+            else:
+                del temp_dict[k]
+                temp_dict[v] = None
 
-    @staticmethod
-    def parse_from_graph(vertex: dict) -> Optional['dict']:
+        return temp_dict
+
+    @classmethod
+    def _from_graph(cls, vertex: dict) -> Optional['dict']:
         if not len(vertex):
             return None
 
-        return {
-            'id': vertex.get('_id', None),
-            'key': vertex.get('_key', None),
-            'rev': vertex.get('_rev', None),
-            'created_at': vertex.get('created_at', None),
-            'modified_at': vertex.get('modified_at', None),
-        }
+        for k, v in BaseVertex._from_graph_db_mapping.items():
+            if vertex.get(k, None):
+                vertex[v] = vertex[k]
+                del vertex[k]
+            else:
+                vertex[v] = None
+
+        return vertex
+
+    def parse_for_graph(self) -> dict:
+        return self._to_graph()
+
+    @classmethod
+    def parse_from_graph(cls, vertex: dict):
+        return cls(**cls._from_graph(vertex))
 
     def update_from_metadata(self, metadata: dict):
-        self.id = metadata.get('_id', None)
-        self.key = metadata.get('_key', None)
-        self.rev = metadata.get('_rev', None)
+        for k, v in self._from_graph_db_mapping.items():
+            setattr(self, v, metadata.get(k, None))
+
+
+if __name__ == '__main__':
+    # base_vertex = BaseVertex()
+    # logger.info(base_vertex)
+    # logger.info(dict(base_vertex))
+    # logger.info(base_vertex.dict())
+    v = BaseVertex.parse_from_graph({'_id': 'sample_id', '_key': 'sample_key', '_rev': 'sample_rev'})
+    v.update_from_metadata({'_id': 'metadata_id', '_key': 'metadata_key', '_rev': 'metadata_rev'})
+    d = v.parse_for_graph()
+    logger.info(d)
