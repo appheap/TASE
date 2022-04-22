@@ -6,7 +6,7 @@ from arango.database import StandardDatabase
 from arango.graph import Graph
 
 from .graph_models.edges import FileRef, ArchivedAudio, SenderChat, LinkedChat, ContactOf, Creator, Downloaded, \
-    DownloadedAudio, DownloadedFromBot
+    DownloadedAudio, DownloadedFromBot, MemberOf
 from .graph_models.vertices import Audio, Chat, File, User, Download
 from ..my_logger import logger
 
@@ -88,6 +88,11 @@ class GraphDatabase:
                 from_vertex_collections=[Chat._vertex_name],
                 to_vertex_collections=[Chat._vertex_name],
             )
+            self.member_of = self.graph.create_edge_definition(
+                edge_collection=MemberOf._collection_edge_name,
+                from_vertex_collections=[User._vertex_name],
+                to_vertex_collections=[Chat._vertex_name],
+            )
             self.sender_chat = self.graph.create_edge_definition(
                 edge_collection=SenderChat._collection_edge_name,
                 from_vertex_collections=[Audio._vertex_name],
@@ -111,6 +116,7 @@ class GraphDatabase:
             self.downloaded_from_bot = self.graph.edge_collection(DownloadedFromBot._collection_edge_name)
             self.file_ref = self.graph.edge_collection(FileRef._collection_edge_name)
             self.linked_chat = self.graph.edge_collection(LinkedChat._collection_edge_name)
+            self.member_of = self.graph.edge_collection(MemberOf._collection_edge_name)
             self.sender_chat = self.graph.edge_collection(SenderChat._collection_edge_name)
 
     def create_user(self, telegram_user: 'pyrogram.types.User') -> Optional['User']:
@@ -128,7 +134,12 @@ class GraphDatabase:
 
         return user
 
-    def create_chat(self, telegram_chat: 'pyrogram.types.Chat', creator: 'User' = None) -> Optional['Chat']:
+    def create_chat(
+            self,
+            telegram_chat: 'pyrogram.types.Chat',
+            creator: 'User' = None,
+            member: 'User' = None
+    ) -> Optional['Chat']:
         if telegram_chat is None:
             return None
 
@@ -158,6 +169,14 @@ class GraphDatabase:
             creator_of = Creator.parse_from_chat_and_user(chat, creator)
             metadata = self.creator.insert(creator_of.parse_for_graph())
             creator_of.update_from_metadata(metadata)
+
+        if chat and member:
+            member_of = MemberOf.parse_from_user_and_chat(user=member, chat=chat)
+            if member_of:
+                metadata = self.member_of.insert(member_of.parse_for_graph())
+                member_of.update_from_metadata(metadata)
+            else:
+                pass
 
         return chat
 
