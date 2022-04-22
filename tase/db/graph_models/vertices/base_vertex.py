@@ -65,14 +65,3 @@ class BaseVertex(BaseModel):
     def update_from_metadata(self, metadata: dict):
         for k, v in self._from_graph_db_mapping.items():
             setattr(self, v, metadata.get(k, None))
-
-
-if __name__ == '__main__':
-    # base_vertex = BaseVertex()
-    # logger.info(base_vertex)
-    # logger.info(dict(base_vertex))
-    # logger.info(base_vertex.dict())
-    v = BaseVertex.parse_from_graph({'_id': 'sample_id', '_key': 'sample_key', '_rev': 'sample_rev'})
-    v.update_from_metadata({'_id': 'metadata_id', '_key': 'metadata_key', '_rev': 'metadata_rev'})
-    d = v.parse_for_graph()
-    logger.info(d)
