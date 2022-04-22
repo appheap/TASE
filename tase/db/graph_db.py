@@ -189,7 +189,6 @@ class GraphDatabase:
             audio = Audio.parse_from_message(message)
             if audio:
                 metadata = self.audios.insert(audio.parse_for_graph())
-                logger.info(metadata)
                 audio.update_from_metadata(metadata)
 
                 db_chat_dict = self.chats.get({'_key': str(message.chat.id)})
