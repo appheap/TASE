@@ -127,8 +127,7 @@ class GraphDatabase:
         if not self.users.find({'_key': str(telegram_user.id)}):
             user = User.parse_from_user(telegram_user)
             if user:
-                metadata = self.users.insert(vertex=user.parse_for_graph())
-                user.update_from_metadata(metadata)
+                user.create(self.users)
             else:
                 user = None
 
@@ -148,10 +147,7 @@ class GraphDatabase:
             # update the audio
             chat = Chat.parse_from_graph(cursor.pop())
             if chat:
-                d=Chat.parse_from_chat(telegram_chat).update_metadata_from_vertex(chat).parse_for_graph()
-                metadata = self.chats.update(d)
-                chat.update_from_metadata(metadata)
-                logger.info(metadata)
+                chat.update(self.chats, Chat.parse_from_chat(telegram_chat))
             else:
                 chat = None
         else:
@@ -172,8 +168,7 @@ class GraphDatabase:
         if not self.chats.find({'_key': Chat.get_key(telegram_chat)}):
             chat = Chat.parse_from_chat(chat=telegram_chat)
             if chat:
-                chat_metadata = self.chats.insert(vertex=chat.parse_for_graph())
-                chat.update_from_metadata(chat_metadata)
+                chat.create(self.chats)
 
                 if telegram_chat.linked_chat:
                     # todo: fix this
@@ -216,9 +211,7 @@ class GraphDatabase:
             # update the audio
             audio = Audio.parse_from_graph(cursor.pop())
             if audio:
-                metadata = self.audios.update(Audio.parse_from_message(message).update_metadata_from_vertex(audio).parse_for_graph())
-                audio.update_from_metadata(metadata)
-                logger.info(metadata)
+                audio.update(self.audios, Audio.parse_from_message(message))
             else:
                 audio = None
         else:
@@ -234,8 +227,7 @@ class GraphDatabase:
         if not self.audios.has(Audio.get_key(message)):
             audio = Audio.parse_from_message(message)
             if audio:
-                metadata = self.audios.insert(audio.parse_for_graph())
-                audio.update_from_metadata(metadata)
+                audio.create(self.audios)
 
                 chat = self.update_or_create_chat(message.chat)
 
@@ -258,8 +250,7 @@ class GraphDatabase:
                 else:
                     file = File.parse_from_audio(message.audio)
                     if file:
-                        file_metadata = self.files.insert(file.parse_for_graph())
-                        file.update_from_metadata(file_metadata)
+                        file.create(self.files)
 
                         if not self.file_ref.find({'_from': audio.id, '_to': file.id}):
                             file_ref = FileRef.parse_from_audio_and_file(audio, file)
