@@ -42,7 +42,7 @@ class DatabaseClient:
         if telegram_chat is None:
             return None
 
-        return self._graph_db.create_chat(telegram_chat, creator, member)
+        return self._graph_db.update_or_create_chat(telegram_chat, creator, member)
 
     def create_audio(self, message: 'pyrogram.types.Message') -> Optional['Audio']:
         if message is None or message.audio is None:
@@ -71,7 +71,7 @@ class DatabaseClient:
             # )
 
             # self.process_audio_message(audio, message)
-            self._graph_db.create_audio(message)
+            self._graph_db.update_or_create_audio(message)
         except Exception as e:
             logger.exception(e)
 

@@ -60,3 +60,9 @@ class BaseVertex(BaseModel):
     def update_from_metadata(self, metadata: dict):
         for k, v in self._from_graph_db_mapping.items():
             setattr(self, v, metadata.get(k, None))
+
+    def update_metadata_from_vertex(self, vertex: 'BaseVertex'):
+        for k in self._to_graph_db_mapping.keys():
+            setattr(self, k, getattr(vertex, k, None))
+
+        return self

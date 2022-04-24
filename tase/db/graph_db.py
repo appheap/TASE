@@ -134,6 +134,32 @@ class GraphDatabase:
 
         return user
 
+    def update_or_create_chat(
+            self,
+            telegram_chat: 'pyrogram.types.Chat',
+            creator: 'User' = None,
+            member: 'User' = None
+    ) -> Optional['Chat']:
+        if telegram_chat is None:
+            return None
+
+        cursor = self.chats.find({'_key': Chat.get_key(telegram_chat)})
+        if cursor and len(cursor):
+            # update the audio
+            chat = Chat.parse_from_graph(cursor.pop())
+            if chat:
+                d=Chat.parse_from_chat(telegram_chat).update_metadata_from_vertex(chat).parse_for_graph()
+                metadata = self.chats.update(d)
+                chat.update_from_metadata(metadata)
+                logger.info(metadata)
+            else:
+                chat = None
+        else:
+            # audio does not exist, create it
+            chat = self.create_chat(telegram_chat, creator, member)
+
+        return chat
+
     def create_chat(
             self,
             telegram_chat: 'pyrogram.types.Chat',
@@ -143,7 +169,7 @@ class GraphDatabase:
         if telegram_chat is None:
             return None
 
-        if not self.chats.find({'_key': str(telegram_chat.id)}):
+        if not self.chats.find({'_key': Chat.get_key(telegram_chat)}):
             chat = Chat.parse_from_chat(chat=telegram_chat)
             if chat:
                 chat_metadata = self.chats.insert(vertex=chat.parse_for_graph())
@@ -151,7 +177,7 @@ class GraphDatabase:
 
                 if telegram_chat.linked_chat:
                     # todo: fix this
-                    linked_chat = self.create_chat(telegram_chat.linked_chat, creator)
+                    linked_chat = self.update_or_create_chat(telegram_chat.linked_chat, creator, member)
                     if linked_chat:
                         linked_chat_edge = LinkedChat.parse_from_chat_and_chat(chat, linked_chat)
                         if linked_chat_edge:
@@ -181,6 +207,26 @@ class GraphDatabase:
 
         return chat
 
+    def update_or_create_audio(self, message: 'pyrogram.types.Message') -> Optional['Audio']:
+        if message is None or message.audio is None:
+            return None
+
+        cursor = self.audios.find({'_key': Audio.get_key(message)})
+        if cursor and len(cursor):
+            # update the audio
+            audio = Audio.parse_from_graph(cursor.pop())
+            if audio:
+                metadata = self.audios.update(Audio.parse_from_message(message).update_metadata_from_vertex(audio).parse_for_graph())
+                audio.update_from_metadata(metadata)
+                logger.info(metadata)
+            else:
+                audio = None
+        else:
+            # audio does not exist, create it
+            audio = self.create_audio(message)
+
+        return audio
+
     def create_audio(self, message: 'pyrogram.types.Message') -> Optional['Audio']:
         if message is None or message.audio is None:
             return None
@@ -191,18 +237,9 @@ class GraphDatabase:
                 metadata = self.audios.insert(audio.parse_for_graph())
                 audio.update_from_metadata(metadata)
 
-                db_chat_dict = self.chats.get({'_key': str(message.chat.id)})
-                if db_chat_dict:
-                    db_chat = Chat.parse_from_graph(db_chat_dict)
-                else:
-                    db_chat = Chat.parse_from_chat(message.chat)
-                    if db_chat:
-                        db_chat_metadata = self.chats.insert(db_chat.parse_for_graph())
-                        db_chat.update_from_metadata(db_chat_metadata)
-                    else:
-                        pass
+                chat = self.update_or_create_chat(message.chat)
 
-                sender_chat = SenderChat.parse_from_audio_and_chat(audio, db_chat)
+                sender_chat = SenderChat.parse_from_audio_and_chat(audio, chat)
                 if sender_chat:
                     metadata = self.sender_chat.insert(sender_chat.parse_for_graph())
                     sender_chat.update_from_metadata(metadata)
@@ -233,3 +270,5 @@ class GraphDatabase:
                             pass
                     else:
                         pass
+
+        return None

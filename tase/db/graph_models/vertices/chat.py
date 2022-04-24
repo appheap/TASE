@@ -33,12 +33,16 @@ class Chat(BaseVertex):
     distance: Optional[int]
 
     @staticmethod
+    def get_key(chat: 'pyrogram.types.Chat'):
+        return f'{chat.id}'
+
+    @staticmethod
     def parse_from_chat(chat: 'pyrogram.types.Chat') -> Optional['Chat']:
         if chat is None:
             return None
 
         return Chat(
-            key=str(chat.id),
+            key=Chat.get_key(chat),
             chat_id=chat.id,
             chat_type=chat.type,
             is_verified=chat.is_verified,
