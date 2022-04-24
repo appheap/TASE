@@ -73,7 +73,7 @@ class TelegramClient:
         return self._client.get_chat(chat_id=chat_id)
 
     def get_session_name(self) -> str:
-        return self._client.session_name
+        return self._client.name
 
     def add_handler(self, handler: "Handler", group: int = 0):
         return self._client.add_handler(handler, group)
@@ -122,7 +122,7 @@ class UserTelegramClient(TelegramClient):
 
     def init_client(self):
         self._client = pyrogram.Client(
-            session_name=self.name,
+            name=self.name,
             api_id=self.api_id,
             api_hash=self.api_hash,
             workdir=self.workdir,
@@ -144,7 +144,7 @@ class BotTelegramClient(TelegramClient):
 
     def init_client(self):
         self._client = pyrogram.Client(
-            session_name=self.name,
+            name=self.name,
             api_id=self.api_id,
             api_hash=self.api_hash,
             bot_token=self.token,

@@ -81,12 +81,12 @@ class ClientManager(mp.Process):
         for message in messages:
             if message.chat is None:
                 # deleted message is from `saved messages`
-                message_id = message.message_id
+                message_id = message.id
             else:
                 # deleted message if from other chats
-                message_id = message.message_id
+                message_id = message.id
                 chat_id: int = message.chat.id
-                chat_type: str = message.chat.type
+                chat_type: str = message.chat.type.name
 
     def run(self) -> None:
         logger.info(mp.current_process().name)

@@ -5,7 +5,6 @@ import pyrogram
 from pyrogram import raw
 from pyrogram import types
 from pyrogram import utils
-from pyrogram.scaffold import Scaffold
 
 
 class Filters:
@@ -33,7 +32,7 @@ POSSIBLE_VALUES = list(map(lambda x: x.lower(), filter(lambda x: not x.startswit
 
 # noinspection PyShadowingBuiltins
 async def get_chunk(
-        client: Scaffold,
+        client: 'pyrogram.Client',
         chat_id: Union[int, str],
         query: str = "",
         filter: str = "empty",
@@ -55,7 +54,7 @@ async def get_chunk(
     else:
         add_offset = offset
 
-    r = await client.send(
+    r = await client.invoke(
         raw.functions.messages.Search(
             peer=await client.resolve_peer(chat_id),
             q=query,
@@ -174,9 +173,9 @@ def search_messages(
         offset += len(messages)
         if with_id:
             if only_newer_messages:
-                offset_id = messages[0].message_id + 1
+                offset_id = messages[0].id + 1
             else:
-                offset_id = messages[-1].message_id
+                offset_id = messages[-1].id
 
             if offset_id == last_offset_id:
                 return

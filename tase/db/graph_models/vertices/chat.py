@@ -44,7 +44,7 @@ class Chat(BaseVertex):
         return Chat(
             key=Chat.get_key(chat),
             chat_id=chat.id,
-            chat_type=chat.type,
+            chat_type=chat.type.name,
             is_verified=chat.is_verified,
             is_restricted=chat.is_restricted,
             is_scam=chat.is_scam,

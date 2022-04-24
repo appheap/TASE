@@ -176,8 +176,7 @@ class GraphDatabase:
                     if linked_chat:
                         linked_chat_edge = LinkedChat.parse_from_chat_and_chat(chat, linked_chat)
                         if linked_chat_edge:
-                            metadata = self.linked_chat.insert(linked_chat_edge.parse_for_graph())
-                            linked_chat_edge.update_from_metadata(metadata)
+                            linked_chat_edge.create(self.linked_chat)
                         else:
                             pass
                     else:
@@ -189,14 +188,12 @@ class GraphDatabase:
 
         if chat and telegram_chat.is_creator and creator:
             creator_of = Creator.parse_from_chat_and_user(chat, creator)
-            metadata = self.creator.insert(creator_of.parse_for_graph())
-            creator_of.update_from_metadata(metadata)
+            creator_of.create(self.creator)
 
         if chat and member:
             member_of = MemberOf.parse_from_user_and_chat(user=member, chat=chat)
             if member_of:
-                metadata = self.member_of.insert(member_of.parse_for_graph())
-                member_of.update_from_metadata(metadata)
+                member_of.create(self.member_of)
             else:
                 pass
 
@@ -233,8 +230,7 @@ class GraphDatabase:
 
                 sender_chat = SenderChat.parse_from_audio_and_chat(audio, chat)
                 if sender_chat:
-                    metadata = self.sender_chat.insert(sender_chat.parse_for_graph())
-                    sender_chat.update_from_metadata(metadata)
+                    sender_chat.create(self.sender_chat)
                 else:
                     pass
 
@@ -243,8 +239,7 @@ class GraphDatabase:
                     if file:
                         file_ref = FileRef.parse_from_audio_and_file(audio, file)
                         if file_ref:
-                            file_ref_metadata = self.file_ref.insert(file_ref.parse_for_graph())
-                            file_ref.update_from_metadata(file_ref_metadata)
+                            file_ref.create(self.file_ref)
                         else:
                             pass
                 else:
@@ -255,8 +250,7 @@ class GraphDatabase:
                         if not self.file_ref.find({'_from': audio.id, '_to': file.id}):
                             file_ref = FileRef.parse_from_audio_and_file(audio, file)
                             if file_ref:
-                                file_ref_metadata = self.file_ref.insert(file_ref.parse_for_graph())
-                                file_ref.update_from_metadata(file_ref_metadata)
+                                file_ref.create(self.file_ref)
                         else:
                             pass
                     else:

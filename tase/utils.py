@@ -68,5 +68,7 @@ def prettify(obj: object, sort_keys=False, include_class_name=True) -> 'str':
                       ensure_ascii=False)
 
 
-def get_timestamp() -> int:
+def get_timestamp(date=None) -> int:
+    if date is not None:
+        return int(arrow.get(date).timestamp())
     return int(arrow.utcnow().timestamp())

@@ -104,6 +104,7 @@ class BaseVertex(BaseModel):
         """
         Update an object in the database
 
+        :param vertex: The vertex used for updating the object
         :param db: The VertexCollection to use for updating the object
         :return: self, successful
         """

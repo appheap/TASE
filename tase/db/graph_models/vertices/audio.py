@@ -1,8 +1,8 @@
 from typing import Optional
 
-import arrow
 import pyrogram
 
+from tase.utils import get_timestamp
 from .base_vertex import BaseVertex
 
 
@@ -25,7 +25,7 @@ class Audio(BaseVertex):
 
     @staticmethod
     def get_key(message: 'pyrogram.types.Message'):
-        return f'{message.audio.file_unique_id}{message.chat.id}{message.message_id}'
+        return f'{message.audio.file_unique_id}{message.chat.id}{message.id}'
 
     @staticmethod
     def parse_from_message(message: 'pyrogram.types.Message') -> Optional['Audio']:
@@ -35,9 +35,9 @@ class Audio(BaseVertex):
         key = Audio.get_key(message)
         return Audio(
             key=key,
-            message_id=message.message_id,
+            message_id=message.id,
             message_caption=message.caption,
-            message_date=message.date,
+            message_date=get_timestamp(message.date),
             file_unique_id=message.audio.file_unique_id,
             duration=message.audio.duration,
             performer=message.audio.performer,
@@ -45,5 +45,5 @@ class Audio(BaseVertex):
             file_name=message.audio.file_name,
             mime_type=message.audio.mime_type,
             file_size=message.audio.file_size,
-            date=message.audio.date,
+            date=get_timestamp(message.audio.date),
         )
