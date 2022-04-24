@@ -103,7 +103,7 @@ class BaseEdge(BaseModel):
 
         return self
 
-    def create(self, db: 'EdgeCollection') -> Tuple['BaseEdge', bool]:
+    def create(self, db: 'EdgeCollection'):
         """
         Insert the object into the database
 
@@ -123,7 +123,7 @@ class BaseEdge(BaseModel):
             logger.exception(e)
         return self, successful
 
-    def update(self, db: 'EdgeCollection', edge: 'BaseEdge') -> Tuple['BaseEdge', bool]:
+    def update(self, db: 'EdgeCollection', edge: 'BaseEdge'):
         """
         Update an object in the database
 
