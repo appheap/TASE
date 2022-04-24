@@ -20,7 +20,6 @@ class BaseVertex(BaseModel):
         'key': '_key',
         'rev': '_rev',
     }
-    _parsed = True
 
     id: Optional[str]
     key: Optional[str]
