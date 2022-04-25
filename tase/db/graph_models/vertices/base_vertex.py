@@ -59,6 +59,8 @@ class BaseVertex(BaseModel):
 
     @classmethod
     def parse_from_graph(cls, vertex: dict):
+        if vertex is None or not len(vertex):
+            return None
         return cls(**cls._from_graph(vertex))
 
     def _update_from_metadata(self, metadata: dict):
@@ -148,3 +150,14 @@ class BaseVertex(BaseModel):
         except Exception as e:
             logger.exception(e)
         return vertex, successful
+
+    @classmethod
+    def find_by_key(cls, db: 'VertexCollection', key: str):
+        if db is None or key is None:
+            return None
+
+        cursor = db.find({'_key': key})
+        if cursor and len(cursor):
+            return cls.parse_from_graph(cursor.pop())
+        else:
+            return None

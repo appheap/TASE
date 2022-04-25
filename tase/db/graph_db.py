@@ -124,7 +124,7 @@ class GraphDatabase:
             return None
 
         user = None
-        if not self.users.find({'_key': str(telegram_user.id)}):
+        if not User.find_by_key(self.users, User.get_key(telegram_user)):
             user, successful = User.create(self.users, User.parse_from_user(telegram_user))
         return user
 
@@ -137,15 +137,10 @@ class GraphDatabase:
         if telegram_chat is None:
             return None
 
-        chat = None
-        cursor = self.chats.find({'_key': Chat.get_key(telegram_chat)})
-        if cursor and len(cursor):
-            # update the audio
-            chat = Chat.parse_from_graph(cursor.pop())
-        else:
+        chat = Chat.find_by_key(self.chats, Chat.get_key(telegram_chat))
+        if not chat:
             # audio does not exist, create it
             chat = self.create_chat(telegram_chat, creator, member)
-
         return chat
 
     def update_or_create_chat(
@@ -157,15 +152,10 @@ class GraphDatabase:
         if telegram_chat is None:
             return None
 
-        chat = None
-        cursor = self.chats.find({'_key': Chat.get_key(telegram_chat)})
-        if cursor and len(cursor):
-            # update the audio
-            chat, successful = Chat.update(
-                self.chats,
-                Chat.parse_from_graph(cursor.pop()),
-                Chat.parse_from_chat(telegram_chat),
-            )
+        chat = Chat.find_by_key(self.chats, Chat.get_key(telegram_chat))
+        if chat:
+            # audio exists in the database, update the audio
+            chat, successful = Chat.update(self.chats, chat, Chat.parse_from_chat(telegram_chat))
         else:
             # audio does not exist, create it
             chat = self.create_chat(telegram_chat, creator, member)
@@ -181,24 +171,21 @@ class GraphDatabase:
         if telegram_chat is None:
             return None
 
-        if not self.chats.find({'_key': Chat.get_key(telegram_chat)}):
-            chat, successful = Chat.create(self.chats, Chat.parse_from_chat(telegram_chat))
-            if chat and successful:
-                if telegram_chat.linked_chat:
-                    # todo: fix this
-                    linked_chat = self.get_or_create_chat(telegram_chat.linked_chat, creator, member)
-                    if linked_chat:
-                        linked_chat_edge = LinkedChat.parse_from_chat_and_chat(chat, linked_chat)
-                        if linked_chat_edge:
-                            linked_chat_edge.create(self.linked_chat)
-                        else:
-                            pass
+        chat, successful = Chat.create(self.chats, Chat.parse_from_chat(telegram_chat))
+        if chat and successful:
+            if telegram_chat.linked_chat:
+                # todo: fix this
+                linked_chat = self.get_or_create_chat(telegram_chat.linked_chat, creator, member)
+                if linked_chat:
+                    linked_chat_edge = LinkedChat.parse_from_chat_and_chat(chat, linked_chat)
+                    if linked_chat_edge:
+                        linked_chat_edge.create(self.linked_chat)
                     else:
                         pass
-            else:
-                pass
+                else:
+                    pass
         else:
-            chat = None
+            pass
 
         if chat and telegram_chat.is_creator and creator:
             creator_of = Creator.parse_from_chat_and_user(chat, creator)
@@ -217,17 +204,12 @@ class GraphDatabase:
         if message is None or message.audio is None:
             return None
 
-        audio = None
-        cursor = self.audios.find({'_key': Audio.get_key(message)})
-        if cursor and len(cursor):
-            # update the audio
-            audio, successful = Audio.update(
-                self.audios,
-                Audio.parse_from_graph(cursor.pop()),
-                Audio.parse_from_message(message)
-            )
+        audio = Audio.find_by_key(self.audios, Audio.get_key(message))
+        if audio:
+            # audio exists in the database, update the audio
+            audio, successful = Audio.update(self.audios, audio, Audio.parse_from_message(message))
         else:
-            # audio does not exist, create it
+            # audio does not exist in the database, create it
             audio = self.create_audio(message)
 
         return audio
@@ -236,31 +218,30 @@ class GraphDatabase:
         if message is None or message.audio is None:
             return None
 
-        if not self.audios.has(Audio.get_key(message)):
-            audio, successful = Audio.create(self.audios, Audio.parse_from_message(message))
-            if audio and successful:
-                chat = self.get_or_create_chat(message.chat)
+        audio, successful = Audio.create(self.audios, Audio.parse_from_message(message))
+        if audio and successful:
+            chat = self.get_or_create_chat(message.chat)
 
-                sender_chat, successful = SenderChat.parse_from_audio_and_chat(audio, chat).create(self.sender_chat)
+            sender_chat, successful = SenderChat.parse_from_audio_and_chat(audio, chat).create(self.sender_chat)
 
-                if self.files.has(audio.file_unique_id):
-                    file = File.parse_from_graph(self.files.get(audio.file_unique_id))
-                    if file:
+            if self.files.has(audio.file_unique_id):
+                file = File.parse_from_graph(self.files.get(audio.file_unique_id))
+                if file:
+                    file_ref = FileRef.parse_from_audio_and_file(audio, file)
+                    if file_ref:
+                        file_ref.create(self.file_ref)
+                    else:
+                        pass
+            else:
+                file, successful = File.create(self.files, File.parse_from_audio(message.audio))
+                if file and successful:
+                    if not self.file_ref.find({'_from': audio.id, '_to': file.id}):
                         file_ref = FileRef.parse_from_audio_and_file(audio, file)
                         if file_ref:
                             file_ref.create(self.file_ref)
-                        else:
-                            pass
-                else:
-                    file, successful = File.create(self.files, File.parse_from_audio(message.audio))
-                    if file and successful:
-                        if not self.file_ref.find({'_from': audio.id, '_to': file.id}):
-                            file_ref = FileRef.parse_from_audio_and_file(audio, file)
-                            if file_ref:
-                                file_ref.create(self.file_ref)
-                        else:
-                            pass
                     else:
                         pass
+                else:
+                    pass
 
-        return None
+        return audio

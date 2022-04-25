@@ -27,6 +27,10 @@ class User(BaseVertex):
     restrictions: Optional[List[Restriction]]
 
     @staticmethod
+    def get_key(user: 'pyrogram.types.User') -> str:
+        return str(user.id)
+
+    @staticmethod
     def parse_from_user(user: 'pyrogram.types.User') -> Optional['User']:
         if user is None:
             return None
