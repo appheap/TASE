@@ -70,64 +70,81 @@ class BaseVertex(BaseModel):
         for k, v in self._from_graph_db_mapping.items():
             setattr(self, v, metadata.get(k, None))
 
-    def _update_metadata_from_vertex(self, vertex: 'BaseVertex'):
+    def _update_metadata_from_old_vertex(self, old_vertex: 'BaseVertex'):
         """
         Updates the metadata of this vertex from another vertex metadata
-        :param vertex: The vertex to get the metadata from
+        :param old_vertex: The vertex to get the metadata from
         :return: self
         """
         for k in self._to_graph_db_mapping.keys():
-            setattr(self, k, getattr(vertex, k, None))
+            setattr(self, k, getattr(old_vertex, k, None))
 
         for k in self._do_not_update:
-            setattr(self, k, getattr(vertex, k, None))
+            setattr(self, k, getattr(old_vertex, k, None))
 
         return self
 
-    def create(self, db: 'VertexCollection'):
+    @classmethod
+    def create(
+            cls,
+            db: 'VertexCollection',
+            vertex: 'BaseVertex'
+    ):
         """
-        Insert the object into the database
+        Insert an object into the database
 
         :param db: The VertexCollection to use for inserting the object
+        :param vertex: The vertex to insert into the database
         :return: self, successful
         """
-        successful = True
+
+        if db is None or vertex is None:
+            return None, False
+
+        successful = False
         try:
-            metadata = db.insert(self.parse_for_graph())
-            self._update_from_metadata(metadata)
+            metadata = db.insert(vertex.parse_for_graph())
+            vertex._update_from_metadata(metadata)
+            successful = True
         except DocumentInsertError as e:
             # Failed to insert the document
-            successful = False
             logger.exception(e)
         except Exception as e:
-            successful = False
             logger.exception(e)
-        return self, successful
+        return vertex, successful
 
-    def update(self, db: 'VertexCollection', vertex: 'BaseVertex') -> Tuple['BaseVertex', bool]:
+    @classmethod
+    def update(
+            cls,
+            db: 'VertexCollection',
+            old_vertex: 'BaseVertex',
+            vertex: 'BaseVertex'
+    ):
         """
         Update an object in the database
 
-        :param vertex: The vertex used for updating the object
         :param db: The VertexCollection to use for updating the object
+        :param old_vertex:  The vertex that is already in the database
+        :param vertex: The vertex used for updating the object
         :return: self, successful
         """
         if not isinstance(vertex, BaseVertex):
             raise Exception(f'`vertex` is not an instance of {BaseVertex.__class__.__name__} class')
 
-        successful = True
+        if db is None or old_vertex is None or vertex is None:
+            return None, False
+
+        successful = False
         try:
-            metadata = db.update(vertex._update_metadata_from_vertex(self).parse_for_graph())
-            self._update_from_metadata(metadata)
+            metadata = db.update(vertex._update_metadata_from_old_vertex(old_vertex).parse_for_graph())
+            old_vertex._update_from_metadata(metadata)
+            successful = True
         except DocumentUpdateError as e:
             # Failed to update document.
-            successful = False
             logger.exception(e)
         except DocumentRevisionError as e:
             # The expected and actual document revisions mismatched.
-            successful = False
             logger.exception(e)
         except Exception as e:
-            successful = False
             logger.exception(e)
-        return self, successful
+        return vertex, successful
