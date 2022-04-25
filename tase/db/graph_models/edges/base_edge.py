@@ -87,6 +87,9 @@ class BaseEdge(BaseModel):
 
     @classmethod
     def parse_from_graph(cls, vertex: dict):
+        if vertex is None or not len(vertex):
+            return None
+
         return cls(**cls._from_graph(vertex))
 
     def _update_from_metadata(self, metadata: dict):

@@ -139,7 +139,7 @@ class BaseVertex(BaseModel):
         successful = False
         try:
             metadata = db.update(vertex._update_metadata_from_old_vertex(old_vertex).parse_for_graph())
-            old_vertex._update_from_metadata(metadata)
+            vertex._update_from_metadata(metadata)
             successful = True
         except DocumentUpdateError as e:
             # Failed to update document.
