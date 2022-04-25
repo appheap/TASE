@@ -116,6 +116,7 @@ class BaseEdge(BaseModel):
         Insert an object into the database
 
         :param db: The EdgeCollection to use for inserting the object
+        :param edge: The edge to insert into the database
         :return: self, successful
         """
 
