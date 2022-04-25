@@ -6,9 +6,8 @@ from arango.database import StandardDatabase
 from arango.graph import Graph
 
 from .graph_models.edges import FileRef, ArchivedAudio, SenderChat, LinkedChat, ContactOf, Creator, Downloaded, \
-    DownloadedAudio, DownloadedFromBot, MemberOf
-from .graph_models.vertices import Audio, Chat, File, User, Download
-from .graph_models.vertices.playlist import Playlist
+    DownloadedAudio, DownloadedFromBot, MemberOf, HasAudio, HasPlaylist
+from .graph_models.vertices import Audio, Chat, File, User, Download, Playlist
 from ..my_logger import logger
 
 
@@ -84,6 +83,16 @@ class GraphDatabase:
                 edge_collection=FileRef._collection_edge_name,
                 from_vertex_collections=[Audio._vertex_name],
                 to_vertex_collections=[File._vertex_name],
+            )
+            self.has_audio = self.graph.create_edge_definition(
+                edge_collection=HasAudio._collection_edge_name,
+                from_vertex_collections=[Playlist._vertex_name],
+                to_vertex_collections=[Audio._vertex_name],
+            )
+            self.has_playlist = self.graph.create_edge_definition(
+                edge_collection=HasPlaylist._collection_edge_name,
+                from_vertex_collections=[User._vertex_name],
+                to_vertex_collections=[Playlist._vertex_name],
             )
             self.linked_chat = self.graph.create_edge_definition(
                 edge_collection=LinkedChat._collection_edge_name,
