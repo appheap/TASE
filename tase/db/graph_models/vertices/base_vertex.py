@@ -20,6 +20,7 @@ class BaseVertex(BaseModel):
         'key': '_key',
         'rev': '_rev',
     }
+    _do_not_update = ['created_at']
 
     id: Optional[str]
     key: Optional[str]
@@ -76,6 +77,9 @@ class BaseVertex(BaseModel):
         :return: self
         """
         for k in self._to_graph_db_mapping.keys():
+            setattr(self, k, getattr(vertex, k, None))
+
+        for k in self._do_not_update:
             setattr(self, k, getattr(vertex, k, None))
 
         return self

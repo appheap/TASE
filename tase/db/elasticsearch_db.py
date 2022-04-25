@@ -1,10 +1,9 @@
 from typing import Optional
 
 import pyrogram
-from elasticsearch import Elasticsearch, NotFoundError
+from elasticsearch import Elasticsearch
 
 from tase.db.elasticsearch_models.audio import Audio
-from tase.my_logger import logger
 
 
 class ElasticsearchDatabase:
@@ -26,23 +25,8 @@ class ElasticsearchDatabase:
         if message is None or message.audio is None:
             return None
 
-        audio = None
-        try:
-            response = self.es.get(index=Audio._index_name, id=Audio.get_id(message))
-            audio = Audio.parse_from_db(response)
-        except NotFoundError as e:
+        audio = Audio.get(self.es, Audio.get_id(message))
+        if audio is None:
             # audio does not exist in the index, create it
-            audio = Audio.parse_from_message(message)
-            id, doc = audio.parse_for_db()
-            if id and doc:
-                response = self.es.create(
-                    index=Audio._index_name,
-                    id=id,
-                    document=doc
-                )
-                logger.info(response)
-            # logger.exception(e)
-        except Exception as e:
-            logger.exception(e)
-
+            audio, successful = Audio.create(self.es, Audio.parse_from_message(message))
         return audio

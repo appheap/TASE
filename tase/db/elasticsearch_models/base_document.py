@@ -1,8 +1,10 @@
 from typing import Optional, Tuple
 
 from elastic_transport import ObjectApiResponse
+from elasticsearch import Elasticsearch, ConflictError, NotFoundError
 from pydantic import BaseModel, Field
 
+from tase.my_logger import logger
 from tase.utils import get_timestamp
 
 
@@ -10,6 +12,7 @@ class BaseDocument(BaseModel):
     _index_name = "base_index_name"
 
     _to_db_mapping = ['id']
+    _do_not_update = ['created_at']
 
     id: Optional[str]
 
@@ -32,3 +35,49 @@ class BaseDocument(BaseModel):
         body.update({'id': response.body['_id']})
 
         return cls(**body)
+
+    @classmethod
+    def get(cls, es: 'Elasticsearch', doc_id: str):
+        obj = None
+        try:
+            response = es.get(index=cls._index_name, id=doc_id)
+            obj = cls.parse_from_db(response)
+        except NotFoundError as e:
+            # audio does not exist in the index
+            pass
+        except Exception as e:
+            logger.exception(e)
+        return obj
+
+    @classmethod
+    def create(cls, es: 'Elasticsearch', document: 'BaseDocument'):
+        """
+        Creates the document in the index
+
+        :param document: The document to insert in the index
+        :param es: Elasticsearch low-level client
+        :return: document, successful
+        """
+        if document is None:
+            return None, False
+
+        if not isinstance(document, BaseDocument):
+            raise Exception(f'`document` is not an instance of {BaseDocument.__class__.__name__} class')
+
+        successful = False
+        try:
+            id, doc = document.parse_for_db()
+            if id and doc:
+                response = es.create(
+                    index=cls._index_name,
+                    id=id,
+                    document=doc
+                )
+                successful = True
+        except ConflictError as e:
+            # Exception representing a 409 status code. Document exists in the index
+            logger.exception(e)
+        except Exception as e:
+            logger.exception(e)
+
+        return document, successful
