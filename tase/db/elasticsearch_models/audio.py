@@ -8,7 +8,54 @@ from ...utils import get_timestamp
 
 class Audio(BaseDocument):
     _index_name = 'audios_index'
+    _mappings = {
+        "properties": {
+            "created_at": {
+                "type": "long"
+            },
+            "modified_at": {
+                "type": "long"
+            },
+            "chat_id": {
+                "type": "long"
+            },
+            "message_id": {
+                "type": "long"
+            },
+            "message_caption": {
+                "type": "text"
+            },
+            "message_date": {
+                "type": "date"
+            },
+            "file_unique_id": {
+                "type": "keyword"
+            },
+            "duration": {
+                "type": "integer"
+            },
+            "performer": {
+                "type": "text"
+            },
+            "title": {
+                "type": "text"
+            },
+            "file_name": {
+                "type": "text"
+            },
+            "mime_type": {
+                "type": "keyword"
+            },
+            "file_size": {
+                "type": "integer"
+            },
+            "date": {
+                "type": "date"
+            },
+        }
+    }
 
+    chat_id: int
     message_id: int
     message_caption: Optional[str]
     message_date: int
@@ -33,6 +80,7 @@ class Audio(BaseDocument):
 
         return Audio(
             id=cls.get_id(message),
+            chat_id=message.chat.id,
             message_id=message.id,
             message_caption=message.caption,
             message_date=get_timestamp(message.date),

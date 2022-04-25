@@ -10,6 +10,7 @@ from tase.utils import get_timestamp
 
 class BaseDocument(BaseModel):
     _index_name = "base_index_name"
+    _mappings = {}
 
     _to_db_mapping = ['id']
     _do_not_update = ['created_at']
@@ -42,6 +43,28 @@ class BaseDocument(BaseModel):
                 setattr(self, k, getattr(old_doc, k, None))
 
         return self
+
+    @classmethod
+    def has_index(cls, es: 'Elasticsearch') -> bool:
+        index_exists = False
+        try:
+            es.indices.get(cls._index_name)
+            index_exists = True
+        except NotFoundError as e:
+            pass
+        except Exception as e:
+            logger.exception(e)
+        return index_exists
+
+    @classmethod
+    def create_index(cls, es: 'Elasticsearch'):
+        try:
+            es.indices.create(
+                index=cls._index_name,
+                mappings=cls._mappings,
+            )
+        except Exception as e:
+            pass
 
     @classmethod
     def get(cls, es: 'Elasticsearch', doc_id: str):
