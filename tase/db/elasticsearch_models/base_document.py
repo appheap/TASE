@@ -48,7 +48,7 @@ class BaseDocument(BaseModel):
     def has_index(cls, es: 'Elasticsearch') -> bool:
         index_exists = False
         try:
-            es.indices.get(cls._index_name)
+            es.indices.get(index=cls._index_name)
             index_exists = True
         except NotFoundError as e:
             pass
