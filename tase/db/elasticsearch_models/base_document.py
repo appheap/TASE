@@ -36,8 +36,18 @@ class BaseDocument(BaseModel):
 
         return cls(**body)
 
+    def _update_doc_from_old_doc(self, old_doc: 'BaseDocument'):
+        for k in self._do_not_update:
+            if getattr(self, k, None):
+                setattr(self, k, getattr(old_doc, k, None))
+
+        return self
+
     @classmethod
     def get(cls, es: 'Elasticsearch', doc_id: str):
+        if es is None:
+            return None
+
         obj = None
         try:
             response = es.get(index=cls._index_name, id=doc_id)
@@ -52,13 +62,13 @@ class BaseDocument(BaseModel):
     @classmethod
     def create(cls, es: 'Elasticsearch', document: 'BaseDocument'):
         """
-        Creates the document in the index
+        Creates a document in the index
 
-        :param document: The document to insert in the index
         :param es: Elasticsearch low-level client
+        :param document: The document to insert in the index
         :return: document, successful
         """
-        if document is None:
+        if es is None or document is None:
             return None, False
 
         if not isinstance(document, BaseDocument):
@@ -77,6 +87,37 @@ class BaseDocument(BaseModel):
         except ConflictError as e:
             # Exception representing a 409 status code. Document exists in the index
             logger.exception(e)
+        except Exception as e:
+            logger.exception(e)
+
+        return document, successful
+
+    @classmethod
+    def update(cls, es: 'Elasticsearch', old_document: 'BaseDocument', document: 'BaseDocument'):
+        """
+        Updates a document in the index
+
+        :param es: Elasticsearch low-level client
+        :param old_document: The old document that is already in the index
+        :param document: The new document to update in the index
+        :return: document, successful
+        """
+        if es is None or old_document is None or document is None:
+            return None, False
+
+        if not isinstance(document, BaseDocument):
+            raise Exception(f'`document` is not an instance of {BaseDocument.__class__.__name__} class')
+
+        successful = False
+        try:
+            id, doc = document._update_doc_from_old_doc(old_document).parse_for_db()
+            if id and doc:
+                response = es.update(
+                    index=cls._index_name,
+                    id=id,
+                    doc=doc
+                )
+                successful = True
         except Exception as e:
             logger.exception(e)
 

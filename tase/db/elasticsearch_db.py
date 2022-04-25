@@ -4,6 +4,7 @@ import pyrogram
 from elasticsearch import Elasticsearch
 
 from tase.db.elasticsearch_models.audio import Audio
+from tase.my_logger import logger
 
 
 class ElasticsearchDatabase:
@@ -30,3 +31,17 @@ class ElasticsearchDatabase:
             # audio does not exist in the index, create it
             audio, successful = Audio.create(self.es, Audio.parse_from_message(message))
         return audio
+
+    def update_or_create_audio(self, message: 'pyrogram.types.Message') -> Optional['Audio']:
+        if message is None or message.audio is None:
+            return None
+
+        audio = Audio.get(self.es, Audio.get_id(message))
+        if audio is None:
+            # audio does not exist in the index, create it
+            audio, successful = Audio.create(self.es, Audio.parse_from_message(message))
+            logger.info(f'created : {audio.id}')
+        else:
+            # audio exists in the index, update it
+            audio, successful = Audio.update(self.es, audio, Audio.parse_from_message(message))
+            logger.info(f'updated : {audio.id}')
