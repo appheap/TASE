@@ -25,7 +25,7 @@ class Audio(BaseVertex):
 
     @staticmethod
     def get_key(message: 'pyrogram.types.Message'):
-        return f'{message.audio.file_unique_id}{message.chat.id}{message.id}'
+        return f'{message.audio.file_unique_id}:{message.chat.id}:{message.id}'
 
     @staticmethod
     def parse_from_message(message: 'pyrogram.types.Message') -> Optional['Audio']:
