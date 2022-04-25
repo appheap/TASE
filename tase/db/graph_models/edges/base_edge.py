@@ -31,6 +31,7 @@ class BaseEdge(BaseModel):
         'from_node': '_from',
         'to_node': '_to',
     }
+    _do_not_update = ['created_at']
 
     id: Optional[str]
     key: Optional[str]
@@ -92,61 +93,71 @@ class BaseEdge(BaseModel):
         for k, v in self._from_graph_db_mapping.items():
             setattr(self, v, metadata.get(k, None))
 
-    def _update_metadata_from_edge(self, edge: 'BaseEdge'):
+    def _update_metadata_from_old_edge(self, old_edge: 'BaseEdge'):
         """
         Updates the metadata of this edge from another edge metadata
-        :param edge: The edge to get the metadata from
+        :param old_edge: The edge to get the metadata from
         :return: self
         """
         for k in self._to_graph_db_mapping.keys():
-            setattr(self, k, getattr(edge, k, None))
+            setattr(self, k, getattr(old_edge, k, None))
+
+        for k in self._do_not_update:
+            setattr(self, k, getattr(old_edge, k, None))
 
         return self
 
-    def create(self, db: 'EdgeCollection'):
+    @classmethod
+    def create(cls, db: 'EdgeCollection', edge: 'BaseEdge'):
         """
-        Insert the object into the database
+        Insert an object into the database
 
         :param db: The EdgeCollection to use for inserting the object
         :return: self, successful
         """
-        successful = True
+
+        if db is None or edge is None:
+            return None, False
+
+        successful = False
         try:
-            metadata = db.insert(self.parse_for_graph())
-            self._update_from_metadata(metadata)
+            metadata = db.insert(edge.parse_for_graph())
+            edge._update_from_metadata(metadata)
+            successful = True
         except DocumentInsertError as e:
             # Failed to insert the document
-            successful = False
             logger.exception(e)
         except Exception as e:
-            successful = False
             logger.exception(e)
-        return self, successful
+        return edge, successful
 
-    def update(self, db: 'EdgeCollection', edge: 'BaseEdge'):
+    @classmethod
+    def update(cls, db: 'EdgeCollection', old_edge: 'BaseEdge', edge: 'BaseEdge'):
         """
         Update an object in the database
 
-        :param edge: The vertex used for updating the object
         :param db: The EdgeCollection to use for updating the object
+        :param old_edge: The edge that is already in the database
+        :param edge: The edge used for updating the object in the database
         :return: self, successful
         """
+        if db is None or old_edge is None or edge is None:
+            return None, False
+
         if not isinstance(edge, BaseEdge):
             raise Exception(f'`edge` is not an instance of {BaseEdge.__class__.__name__} class')
 
-        successful = True
+        successful = False
         try:
-            metadata = db.update(edge._update_metadata_from_edge(self).parse_for_graph())
-            self._update_from_metadata(metadata)
+            metadata = db.update(edge._update_metadata_from_old_edge(old_edge).parse_for_graph())
+            edge._update_from_metadata(metadata)
+            successful = True
         except DocumentUpdateError as e:
             # Failed to update document.
-            successful = False
             logger.exception(e)
         except DocumentRevisionError as e:
             # The expected and actual document revisions mismatched.
-            successful = False
             logger.exception(e)
         except Exception as e:
-            successful = False
             logger.exception(e)
-        return self, successful
+        return edge, successful

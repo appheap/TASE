@@ -177,26 +177,23 @@ class GraphDatabase:
                 # todo: fix this
                 linked_chat = self.get_or_create_chat(telegram_chat.linked_chat, creator, member)
                 if linked_chat:
-                    linked_chat_edge = LinkedChat.parse_from_chat_and_chat(chat, linked_chat)
-                    if linked_chat_edge:
-                        linked_chat_edge.create(self.linked_chat)
-                    else:
-                        pass
+                    linked_chat_edge, successful = LinkedChat.create(
+                        self.linked_chat,
+                        LinkedChat.parse_from_chat_and_chat(chat, linked_chat),
+                    )
                 else:
                     pass
         else:
             pass
 
         if chat and telegram_chat.is_creator and creator:
-            creator_of = Creator.parse_from_chat_and_user(chat, creator)
-            creator_of.create(self.creator)
+            creator_of, successful = Creator.create(self.creator, Creator.parse_from_chat_and_user(chat, creator))
 
         if chat and member:
-            member_of = MemberOf.parse_from_user_and_chat(user=member, chat=chat)
-            if member_of:
-                member_of.create(self.member_of)
-            else:
-                pass
+            member_of, successful = MemberOf.create(
+                self.member_of,
+                MemberOf.parse_from_user_and_chat(user=member, chat=chat)
+            )
 
         return chat
 
@@ -222,23 +219,26 @@ class GraphDatabase:
         if audio and successful:
             chat = self.get_or_create_chat(message.chat)
 
-            sender_chat, successful = SenderChat.parse_from_audio_and_chat(audio, chat).create(self.sender_chat)
+            sender_chat, successful = SenderChat.create(
+                self.sender_chat,
+                SenderChat.parse_from_audio_and_chat(audio, chat)
+            )
 
             if self.files.has(audio.file_unique_id):
                 file = File.parse_from_graph(self.files.get(audio.file_unique_id))
                 if file:
-                    file_ref = FileRef.parse_from_audio_and_file(audio, file)
-                    if file_ref:
-                        file_ref.create(self.file_ref)
-                    else:
-                        pass
+                    file_ref, successful = FileRef.create(
+                        self.file_ref,
+                        FileRef.parse_from_audio_and_file(audio, file)
+                    )
             else:
                 file, successful = File.create(self.files, File.parse_from_audio(message.audio))
                 if file and successful:
                     if not self.file_ref.find({'_from': audio.id, '_to': file.id}):
-                        file_ref = FileRef.parse_from_audio_and_file(audio, file)
-                        if file_ref:
-                            file_ref.create(self.file_ref)
+                        file_ref, successful = FileRef.create(
+                            self.file_ref,
+                            FileRef.parse_from_audio_and_file(audio, file)
+                        )
                     else:
                         pass
                 else:

@@ -127,7 +127,7 @@ class BaseVertex(BaseModel):
 
         :param db: The VertexCollection to use for updating the object
         :param old_vertex:  The vertex that is already in the database
-        :param vertex: The vertex used for updating the object
+        :param vertex: The vertex used for updating the object in the database
         :return: self, successful
         """
         if not isinstance(vertex, BaseVertex):
