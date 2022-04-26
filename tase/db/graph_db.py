@@ -139,6 +139,31 @@ class GraphDatabase:
             user, successful = User.create(self.users, User.parse_from_user(telegram_user))
         return user
 
+    def get_or_create_user(self, telegram_user: 'pyrogram.types.User') -> Optional['User']:
+        if telegram_user is None:
+            return None
+
+        user = User.find_by_key(self.users, User.get_key(telegram_user))
+        if not user:
+            # user does not exist in the database, create it
+            user, successful = User.create(self.users, User.parse_from_user(telegram_user))
+
+        return user
+
+    def update_or_create_user(self, telegram_user: 'pyrogram.types.User') -> Optional['User']:
+        if telegram_user is None:
+            return None
+
+        user = User.find_by_key(self.users, User.get_key(telegram_user))
+        if user:
+            # user exists in the database, update it
+            user, successful = User.update(self.users, user, User.parse_from_user(telegram_user))
+        else:
+            # user does not exist in the database, create it
+            user, successful = User.create(self.users, User.parse_from_user(telegram_user))
+
+        return user
+
     def get_or_create_chat(
             self,
             telegram_chat: 'pyrogram.types.Chat',
@@ -217,6 +242,17 @@ class GraphDatabase:
             # audio exists in the database, update the audio
             audio, successful = Audio.update(self.audios, audio, Audio.parse_from_message(message))
         else:
+            # audio does not exist in the database, create it
+            audio = self.create_audio(message)
+
+        return audio
+
+    def get_or_create_audio(self, message: 'pyrogram.types.Message') -> Optional['Audio']:
+        if message is None or message.audio is None:
+            return None
+
+        audio = Audio.find_by_key(self.audios, Audio.get_key(message))
+        if not audio:
             # audio does not exist in the database, create it
             audio = self.create_audio(message)
 
