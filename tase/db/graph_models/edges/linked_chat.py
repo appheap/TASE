@@ -9,6 +9,9 @@ class LinkedChat(BaseEdge):
 
     _collection_edge_name = 'linked_chat'
 
+    _from_vertex_collections = [Chat._vertex_name]
+    _to_vertex_collections = [Chat._vertex_name]
+
     @staticmethod
     def parse_from_chat_and_chat(chat: 'Chat', linked_chat: 'Chat') -> Optional['LinkedChat']:
         if chat is None and linked_chat is None:

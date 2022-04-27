@@ -11,6 +11,9 @@ class FileRef(BaseEdge):
 
     _collection_edge_name = 'file_ref'
 
+    _from_vertex_collections = [Audio._vertex_name]
+    _to_vertex_collections = [File._vertex_name]
+
     @staticmethod
     def parse_from_audio_and_file(audio: Audio, file: File) -> Optional['FileRef']:
         if audio is None or file is None:

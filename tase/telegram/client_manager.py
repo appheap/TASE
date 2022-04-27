@@ -65,6 +65,7 @@ class ClientManager(mp.Process):
 
     def on_inline_query(self, client: 'pyrogram.Client', inline_query: 'types.InlineQuery'):
         logger.info(f"on_inline_query: {inline_query}")
+        db_inline_query = self.db.get_or_create_inline_query(self.telegram_client.telegram_id, inline_query)
 
     def on_chosen_inline_query(self, client: 'pyrogram.Client', chosen_inline_result: 'types.ChosenInlineResult'):
         logger.info(f"on_chosen_inline_query: {chosen_inline_result}")
@@ -73,7 +74,7 @@ class ClientManager(mp.Process):
         logger.info(f"on_callback_query: {callback_query}")
 
     def on_disconnect(self, client: 'pyrogram.Client'):
-        logger.info(f"client {client.session_name} disconnected @ {arrow.utcnow()}")
+        logger.info(f"client {client.name} disconnected @ {arrow.utcnow()}")
 
     def deleted_messages_handler(self, client: 'pyrogram.Client', messages: List['types.Message']):
         logger.info(f"deleted_messages_handler: {messages}")
@@ -93,6 +94,11 @@ class ClientManager(mp.Process):
         logger.info(threading.current_thread())
 
         self.telegram_client.start()
+
+        me = self.telegram_client.get_me()
+        if me:
+            self.telegram_client.telegram_id = me.id
+            self.db.update_or_create_user(me)
 
         # register handler based on the type of the client
         if self.telegram_client.client_type == ClientTypes.USER:

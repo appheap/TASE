@@ -46,6 +46,7 @@ class TelegramClient:
     api_id: 'int' = None
     api_hash: 'str' = None
     workdir: 'str' = None
+    telegram_id: int = None
     client_type: 'ClientTypes'
 
     def init_client(self):
@@ -66,7 +67,7 @@ class TelegramClient:
     def is_connected(self) -> bool:
         return self._client.is_connected
 
-    def get_me(self) -> Coroutine[Any, Any, 'pyrogram.types.User']:
+    def get_me(self) -> Optional['pyrogram.types.User']:
         return self._client.get_me()
 
     def get_chat(self, chat_id: Union[int, str]) -> Union["pyrogram.types.Chat", "pyrogram.types.ChatPreview"]:

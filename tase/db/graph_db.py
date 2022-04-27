@@ -2,19 +2,39 @@ from typing import Optional
 
 import pyrogram
 from arango import ArangoClient
+from arango.collection import VertexCollection, EdgeCollection
 from arango.database import StandardDatabase
 from arango.graph import Graph
 
-from .graph_models.edges import FileRef, ArchivedAudio, SenderChat, LinkedChat, ContactOf, Creator, Downloaded, \
-    DownloadedAudio, DownloadedFromBot, MemberOf, HasAudio, HasPlaylist
-from .graph_models.vertices import Audio, Chat, File, User, Download, Playlist
-from ..my_logger import logger
+from .graph_models.edges import FileRef, SenderChat, LinkedChat, Creator, MemberOf, edges
+from .graph_models.vertices import Audio, Chat, File, User, InlineQuery, vertices
 
 
 class GraphDatabase:
     arango_client: 'ArangoClient'
     db: 'StandardDatabase'
     graph: 'Graph'
+
+    audios: 'VertexCollection'
+    chats: 'VertexCollection'
+    downloads: 'VertexCollection'
+    files: 'VertexCollection'
+    inline_queries: 'VertexCollection'
+    playlists: 'VertexCollection'
+    users: 'VertexCollection'
+
+    archived_audio: 'EdgeCollection'
+    contact_of: 'EdgeCollection'
+    creator: 'EdgeCollection'
+    downloaded: 'EdgeCollection'
+    downloaded_audio: 'EdgeCollection'
+    downloaded_from_bot: 'EdgeCollection'
+    file_ref: 'EdgeCollection'
+    has_audio: 'EdgeCollection'
+    has_playlist: 'EdgeCollection'
+    linked_chat: 'EdgeCollection'
+    member_of: 'EdgeCollection'
+    sender_chat: 'EdgeCollection'
 
     def __init__(
             self,
@@ -41,94 +61,32 @@ class GraphDatabase:
 
         if not self.db.has_graph(graph_db_config.get('graph_name')):
             self.graph = self.db.create_graph(graph_db_config.get('graph_name'))
-
-            self.audios = self.graph.create_vertex_collection(Audio._vertex_name)
-            self.chats = self.graph.create_vertex_collection(Chat._vertex_name)
-            self.downloads = self.graph.create_vertex_collection(Download._vertex_name)
-            self.files = self.graph.create_vertex_collection(File._vertex_name)
-            self.playlists = self.graph.create_vertex_collection(Playlist._vertex_name)
-            self.users = self.graph.create_vertex_collection(User._vertex_name)
-
-            self.archived_audio = self.graph.create_edge_definition(
-                edge_collection=ArchivedAudio._collection_edge_name,
-                from_vertex_collections=[Audio._vertex_name],
-                to_vertex_collections=[Audio._vertex_name],
-            )
-            self.contact_of = self.graph.create_edge_definition(
-                edge_collection=ContactOf._collection_edge_name,
-                from_vertex_collections=[User._vertex_name],
-                to_vertex_collections=[User._vertex_name],
-            )
-            self.creator = self.graph.create_edge_definition(
-                edge_collection=Creator._collection_edge_name,
-                from_vertex_collections=[Chat._vertex_name],
-                to_vertex_collections=[User._vertex_name],
-            )
-            self.downloaded = self.graph.create_edge_definition(
-                edge_collection=Downloaded._collection_edge_name,
-                from_vertex_collections=[User._vertex_name],
-                to_vertex_collections=[Download._vertex_name],
-            )
-            self.downloaded_audio = self.graph.create_edge_definition(
-                edge_collection=DownloadedAudio._collection_edge_name,
-                from_vertex_collections=[Download._vertex_name],
-                to_vertex_collections=[Audio._vertex_name],
-            )
-            self.downloaded_from_bot = self.graph.create_edge_definition(
-                edge_collection=DownloadedFromBot._collection_edge_name,
-                from_vertex_collections=[Download._vertex_name],
-                to_vertex_collections=[User._vertex_name],
-            )
-            self.file_ref = self.graph.create_edge_definition(
-                edge_collection=FileRef._collection_edge_name,
-                from_vertex_collections=[Audio._vertex_name],
-                to_vertex_collections=[File._vertex_name],
-            )
-            self.has_audio = self.graph.create_edge_definition(
-                edge_collection=HasAudio._collection_edge_name,
-                from_vertex_collections=[Playlist._vertex_name],
-                to_vertex_collections=[Audio._vertex_name],
-            )
-            self.has_playlist = self.graph.create_edge_definition(
-                edge_collection=HasPlaylist._collection_edge_name,
-                from_vertex_collections=[User._vertex_name],
-                to_vertex_collections=[Playlist._vertex_name],
-            )
-            self.linked_chat = self.graph.create_edge_definition(
-                edge_collection=LinkedChat._collection_edge_name,
-                from_vertex_collections=[Chat._vertex_name],
-                to_vertex_collections=[Chat._vertex_name],
-            )
-            self.member_of = self.graph.create_edge_definition(
-                edge_collection=MemberOf._collection_edge_name,
-                from_vertex_collections=[User._vertex_name],
-                to_vertex_collections=[Chat._vertex_name],
-            )
-            self.sender_chat = self.graph.create_edge_definition(
-                edge_collection=SenderChat._collection_edge_name,
-                from_vertex_collections=[Audio._vertex_name],
-                to_vertex_collections=[Chat._vertex_name],
-            )
-
         else:
             self.graph = self.db.graph(graph_db_config.get('graph_name'))
 
-            self.files = self.graph.vertex_collection(File._vertex_name)
-            self.audios = self.graph.vertex_collection(Audio._vertex_name)
-            self.chats = self.graph.vertex_collection(Chat._vertex_name)
-            self.users = self.graph.vertex_collection(User._vertex_name)
-            self.downloads = self.graph.vertex_collection(Download._vertex_name)
+        for v_class in vertices:
+            if not self.graph.has_vertex_collection(v_class._vertex_name):
+                setattr(self, v_class._vertex_name, self.graph.create_vertex_collection(v_class._vertex_name))
+            else:
+                setattr(self, v_class._vertex_name, self.graph.vertex_collection(v_class._vertex_name))
 
-            self.archived_audio = self.graph.edge_collection(ArchivedAudio._collection_edge_name)
-            self.contact_of = self.graph.edge_collection(ContactOf._collection_edge_name)
-            self.creator = self.graph.edge_collection(Creator._collection_edge_name)
-            self.downloaded = self.graph.edge_collection(Downloaded._collection_edge_name)
-            self.downloaded_audio = self.graph.edge_collection(DownloadedAudio._collection_edge_name)
-            self.downloaded_from_bot = self.graph.edge_collection(DownloadedFromBot._collection_edge_name)
-            self.file_ref = self.graph.edge_collection(FileRef._collection_edge_name)
-            self.linked_chat = self.graph.edge_collection(LinkedChat._collection_edge_name)
-            self.member_of = self.graph.edge_collection(MemberOf._collection_edge_name)
-            self.sender_chat = self.graph.edge_collection(SenderChat._collection_edge_name)
+        for e_class in edges:
+            if not self.graph.has_edge_definition(e_class._collection_edge_name):
+                setattr(
+                    self,
+                    e_class._collection_edge_name,
+                    self.graph.create_edge_definition(
+                        edge_collection=e_class._collection_edge_name,
+                        from_vertex_collections=e_class._from_vertex_collections,
+                        to_vertex_collections=e_class._to_vertex_collections,
+                    )
+                )
+            else:
+                setattr(
+                    self,
+                    e_class._collection_edge_name,
+                    self.graph.vertex_collection(e_class._collection_edge_name)
+                )
 
     def create_user(self, telegram_user: 'pyrogram.types.User') -> Optional['User']:
         if telegram_user is None:
@@ -292,3 +250,33 @@ class GraphDatabase:
                     pass
 
         return audio
+
+    def get_user_by_user_id(self, user_id) -> Optional['User']:
+        if user_id is None:
+            return None
+        return User.find_by_key(self.users, str(user_id))
+
+    def get_or_create_inline_query(
+            self,
+            bot_id: int,
+            inline_query: 'pyrogram.types.InlineQuery'
+    ) -> Optional['InlineQuery']:
+        if bot_id is None or inline_query is None:
+            return None
+        db_bot = self.get_user_by_user_id(bot_id)
+        db_from_user = self.update_or_create_user(inline_query.from_user)
+        db_inline_query = None
+
+        if db_bot and db_from_user:
+            db_inline_query = InlineQuery.find_by_key(self.inline_queries, InlineQuery.get_key(db_bot, inline_query))
+            if not db_inline_query:
+                db_inline_query, successful = InlineQuery.create(
+                    self.inline_queries,
+                    InlineQuery.parse_from_inline_query(db_bot, inline_query)
+                )
+
+            if db_inline_query:
+                # todo: create edges of this vertex
+                pass
+
+        return db_inline_query

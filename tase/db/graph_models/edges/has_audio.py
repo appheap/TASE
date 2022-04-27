@@ -11,6 +11,9 @@ class HasAudio(BaseEdge):
 
     _collection_edge_name = 'has_audio'
 
+    _from_vertex_collections = [Playlist._vertex_name]
+    _to_vertex_collections = [Audio._vertex_name]
+
     @staticmethod
     def parse_from_playlist_and_audio(playlist: 'Playlist', audio: 'Audio') -> Optional['HasAudio']:
         if playlist is None or audio is None:

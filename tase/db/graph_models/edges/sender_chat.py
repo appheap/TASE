@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from typing import Optional
 
 from .base_edge import BaseEdge
@@ -9,6 +8,9 @@ class SenderChat(BaseEdge):
     """Connection from `Audio` to `Chat`"""
 
     _collection_edge_name = 'sender_chat'
+
+    _from_vertex_collections = [Audio._vertex_name]
+    _to_vertex_collections = [Chat._vertex_name]
 
     @staticmethod
     def parse_from_audio_and_chat(audio: 'Audio', chat: 'Chat') -> Optional['SenderChat']:

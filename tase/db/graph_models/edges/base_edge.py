@@ -12,6 +12,9 @@ from ..vertices import BaseVertex
 class BaseEdge(BaseModel):
     _collection_edge_name = 'base_edge_collection'
 
+    _from_vertex_collections = [BaseVertex._vertex_name]
+    _to_vertex_collections = [BaseVertex._vertex_name]
+
     _from_graph_db_mapping = {
         '_id': 'id',
         '_key': 'key',

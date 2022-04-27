@@ -27,3 +27,18 @@ __all__ = [
     'MemberOf',
     'SenderChat',
 ]
+
+edges = [
+    ArchivedAudio,
+    ContactOf,
+    Creator,
+    Downloaded,
+    DownloadedAudio,
+    DownloadedFromBot,
+    FileRef,
+    HasAudio,
+    HasPlaylist,
+    LinkedChat,
+    MemberOf,
+    SenderChat,
+]

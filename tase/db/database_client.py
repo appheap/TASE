@@ -2,7 +2,7 @@ from typing import Optional
 
 import pyrogram.types
 
-from tase.db.graph_models.vertices import User, Chat, Audio
+from tase.db.graph_models.vertices import User, Chat, Audio, InlineQuery
 from tase.my_logger import logger
 from .elasticsearch_db import ElasticsearchDatabase
 from .graph_db import GraphDatabase
@@ -25,6 +25,11 @@ class DatabaseClient:
         self._graph_db = GraphDatabase(
             graph_db_config=graph_db_config,
         )
+
+    def get_user_by_user_id(self, user_id: int) -> Optional['User']:
+        if user_id is None:
+            return None
+        return self._graph_db.get_user_by_user_id(user_id)
 
     def get_or_create_user(self, telegram_user: 'pyrogram.types.User') -> Optional['User']:
         if telegram_user is None:
@@ -73,3 +78,13 @@ class DatabaseClient:
             self._graph_db.update_or_create_audio(message)
         except Exception as e:
             logger.exception(e)
+
+    def get_or_create_inline_query(
+            self,
+            bot_id: int,
+            inline_query: 'pyrogram.types.InlineQuery'
+    ) -> Optional['InlineQuery']:
+        if bot_id is None or inline_query is None:
+            return None
+
+        return self._graph_db.get_or_create_inline_query(bot_id, inline_query)

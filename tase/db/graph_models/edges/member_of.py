@@ -11,6 +11,9 @@ class MemberOf(BaseEdge):
 
     _collection_edge_name = 'member_of'
 
+    _from_vertex_collections = [User._vertex_name]
+    _to_vertex_collections = [Chat._vertex_name]
+
     @staticmethod
     def parse_from_user_and_chat(user: 'User', chat: 'Chat') -> Optional['MemberOf']:
         if chat is None or user is None:

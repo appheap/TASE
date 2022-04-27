@@ -11,6 +11,9 @@ class ArchivedAudio(BaseEdge):
 
     _collection_edge_name = 'archived_audio'
 
+    _from_vertex_collections = [Audio._vertex_name]
+    _to_vertex_collections = [Audio._vertex_name]
+
     @staticmethod
     def parse_from_audio_and_audio(audio: 'Audio', archived_audio: 'Audio') -> Optional['ArchivedAudio']:
         if audio is None or archived_audio is None:
