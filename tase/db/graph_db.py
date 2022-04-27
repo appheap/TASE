@@ -6,7 +6,7 @@ from arango.collection import VertexCollection, EdgeCollection
 from arango.database import StandardDatabase
 from arango.graph import Graph
 
-from .graph_models.edges import FileRef, SenderChat, LinkedChat, Creator, MemberOf, edges
+from .graph_models.edges import FileRef, SenderChat, LinkedChat, Creator, MemberOf, edges, FromUser, ToBot
 from .graph_models.vertices import Audio, Chat, File, User, InlineQuery, vertices
 
 
@@ -30,11 +30,13 @@ class GraphDatabase:
     downloaded_audio: 'EdgeCollection'
     downloaded_from_bot: 'EdgeCollection'
     file_ref: 'EdgeCollection'
+    from_user: 'EdgeCollection'
     has_audio: 'EdgeCollection'
     has_playlist: 'EdgeCollection'
     linked_chat: 'EdgeCollection'
     member_of: 'EdgeCollection'
     sender_chat: 'EdgeCollection'
+    to_bot: 'EdgeCollection'
 
     def __init__(
             self,
@@ -276,7 +278,12 @@ class GraphDatabase:
                 )
 
             if db_inline_query:
-                # todo: create edges of this vertex
-                pass
-
+                db_from_user_edge = FromUser.create(
+                    self.from_user,
+                    FromUser.parse_from_inline_query_and_user(db_inline_query, db_from_user)
+                )
+                db_to_bot_edge = ToBot.create(
+                    self.to_bot,
+                    ToBot.parse_from_inline_query_and_user(db_inline_query, db_bot)
+                )
         return db_inline_query
