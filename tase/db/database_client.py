@@ -5,6 +5,7 @@ import pyrogram.types
 from tase.db.graph_models.vertices import User, Chat, Audio, InlineQuery, Query
 from tase.my_logger import logger
 from . import elasticsearch_db
+from .document_db import DocumentDatabase
 from .elasticsearch_db import ElasticsearchDatabase
 from .graph_db import GraphDatabase
 
@@ -12,6 +13,7 @@ from .graph_db import GraphDatabase
 class DatabaseClient:
     _es_db: 'ElasticsearchDatabase'
     _graph_db: 'GraphDatabase'
+    _document_db: 'DocumentDatabase'
 
     def __init__(
             self,
@@ -25,6 +27,10 @@ class DatabaseClient:
 
         self._graph_db = GraphDatabase(
             graph_db_config=graph_db_config,
+        )
+
+        self._document_db = DocumentDatabase(
+            doc_db_config=graph_db_config,
         )
 
     def get_user_by_user_id(self, user_id: int) -> Optional['User']:
