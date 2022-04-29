@@ -264,9 +264,12 @@ class GraphDatabase:
     def get_or_create_inline_query(
             self,
             bot_id: int,
-            inline_query: 'pyrogram.types.InlineQuery'
+            inline_query: 'pyrogram.types.InlineQuery',
+            query_date: int,
+            query_metadata: dict,
+            audio_docs: List['elasticsearch_db.Audio']
     ) -> Optional['InlineQuery']:
-        if bot_id is None or inline_query is None:
+        if bot_id is None or inline_query is None or query_date is None or query_metadata is None or audio_docs is None:
             return None
         db_bot = self.get_user_by_user_id(bot_id)
         db_from_user = self.update_or_create_user(inline_query.from_user)
@@ -277,7 +280,7 @@ class GraphDatabase:
             if not db_inline_query:
                 db_inline_query, successful = InlineQuery.create(
                     self.inline_queries,
-                    InlineQuery.parse_from_inline_query(db_bot, inline_query)
+                    InlineQuery.parse_from_inline_query(db_bot, inline_query,query_date,query_metadata)
                 )
 
             if db_inline_query:
@@ -289,6 +292,14 @@ class GraphDatabase:
                     self.to_bot,
                     ToBot.parse_from_inline_query_and_user(db_inline_query, db_bot)
                 )
+
+                for audio_doc in audio_docs:
+                    db_audio = self.get_audio_by_key(audio_doc.id)
+                    if db_audio:
+                        db_hit = Hit.create(
+                            self.hit,
+                            Hit.parse_from_inline_query_and_audio(db_inline_query, db_audio, audio_doc.search_metadata)
+                        )
         return db_inline_query
 
     def get_or_create_query(

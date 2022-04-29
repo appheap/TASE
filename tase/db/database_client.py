@@ -83,12 +83,15 @@ class DatabaseClient:
     def get_or_create_inline_query(
             self,
             bot_id: int,
-            inline_query: 'pyrogram.types.InlineQuery'
+            inline_query: 'pyrogram.types.InlineQuery',
+            query_date: int,
+            query_metadata: dict,
+            audio_docs: List['elasticsearch_db.Audio']
     ) -> Optional['InlineQuery']:
-        if bot_id is None or inline_query is None:
+        if bot_id is None or inline_query is None or query_date is None or query_metadata is None or audio_docs is None:
             return None
 
-        return self._graph_db.get_or_create_inline_query(bot_id, inline_query)
+        return self._graph_db.get_or_create_inline_query(bot_id, inline_query, query_date, query_metadata, audio_docs)
 
     def get_or_create_query(
             self,

@@ -35,3 +35,21 @@ class Hit(BaseEdge):
             rank=search_metadata.rank,
             score=search_metadata.score,
         )
+
+    @staticmethod
+    def parse_from_inline_query_and_audio(
+            inline_query: 'InlineQuery',
+            audio: 'Audio',
+            search_metadata: 'SearchMetaData'
+    ) -> Optional['Hit']:
+        if inline_query is None or audio is None:
+            return None
+
+        key = f'{inline_query.key}:{audio.key}'
+        return Hit(
+            key=key,
+            from_node=inline_query,
+            to_node=audio,
+            rank=search_metadata.rank,
+            score=search_metadata.score,
+        )
