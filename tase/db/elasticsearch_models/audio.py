@@ -55,6 +55,8 @@ class Audio(BaseDocument):
         }
     }
 
+    _search_fields = ['performer', 'file_name', 'message_caption', 'title']
+
     chat_id: int
     message_id: int
     message_caption: Optional[str]

@@ -8,17 +8,25 @@ from tase.my_logger import logger
 from tase.utils import get_timestamp
 
 
+class SearchMetaData(BaseModel):
+    rank: int
+    score: float
+
+
 class BaseDocument(BaseModel):
     _index_name = "base_index_name"
     _mappings = {}
 
-    _to_db_mapping = ['id']
+    _to_db_mapping = ['id', 'search_metadata']
     _do_not_update = ['created_at']
+    _search_fields = []
 
     id: Optional[str]
 
     created_at: int = Field(default_factory=get_timestamp)
     modified_at: int = Field(default_factory=get_timestamp)
+
+    search_metadata: Optional[SearchMetaData]
 
     def parse_for_db(self) -> Tuple[str, dict]:
         temp_dict = self.dict()
@@ -36,6 +44,18 @@ class BaseDocument(BaseModel):
         body.update({'id': response.body['_id']})
 
         return cls(**body)
+
+    @classmethod
+    def parse_from_db_hit(cls, hit: dict, rank: int):
+        if hit is None or not len(hit) or not len(hit['_source']) or rank is None:
+            return None
+
+        body = dict(**hit['_source'])
+        body.update({'id': hit['_id']})
+
+        obj = cls(**body)
+        obj.search_metadata = SearchMetaData(rank=rank, score=hit.get('_score', None))
+        return obj
 
     def _update_doc_from_old_doc(self, old_doc: 'BaseDocument'):
         for k in self._do_not_update:
@@ -145,3 +165,52 @@ class BaseDocument(BaseModel):
             logger.exception(e)
 
         return document, successful
+
+    @classmethod
+    def search(cls, es: 'Elasticsearch', query: str):
+        if es is None or query is None:
+            return None
+
+        db_docs = []
+        search_metadata = {
+            'duration': None,
+            'total_hits': None,
+            'total_rel': None,
+            'max_score': None,
+        }
+
+        try:
+            res: 'ObjectApiResponse' = es.search(
+                index=cls._index_name,
+                query={
+                    "multi_match": {
+                        "query": query,
+                        "type": 'best_fields',
+                        "minimum_should_match": "60%",
+                        "fields": cls._search_fields,
+                    },
+                }
+            )
+
+            hits = res.body['hits']['hits']
+
+            duration = res.meta.duration
+            total_hits = res.body['hits']['total']['value']
+            total_rel = res.body['hits']['total']['relation']
+            max_score = res.body['hits']['max_score']
+
+            search_metadata = {
+                'duration': duration,
+                'total_hits': total_hits,
+                'total_rel': total_rel,
+                'max_score': max_score,
+            }
+
+            for index, hit in enumerate(hits, start=1):
+                db_doc = cls.parse_from_db_hit(hit, len(hits) - index + 1)
+                db_docs.append(db_doc)
+
+        except Exception as e:
+            logger.exception(e)
+
+        return db_docs, search_metadata

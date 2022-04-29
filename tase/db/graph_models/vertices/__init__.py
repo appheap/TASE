@@ -5,6 +5,7 @@ from .download import Download
 from .file import File
 from .inline_query import InlineQuery
 from .playlist import Playlist
+from .query import Query
 from .restriction import Restriction
 from .user import User
 
@@ -16,6 +17,7 @@ __all__ = [
     'File',
     'InlineQuery',
     'Playlist',
+    'Query',
     'Restriction',
     'User',
 ]
@@ -27,5 +29,6 @@ vertices = [
     File,
     InlineQuery,
     Playlist,
+    Query,
     User,
 ]

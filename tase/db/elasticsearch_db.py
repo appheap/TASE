@@ -45,3 +45,10 @@ class ElasticsearchDatabase:
         else:
             # audio exists in the index, update it
             audio, successful = Audio.update(self.es, audio, Audio.parse_from_message(message))
+
+    def search_audio(self, query: str):
+        if query is None:
+            return None
+
+        audios, search_metadata = Audio.search(self.es, query)
+        return audios, search_metadata

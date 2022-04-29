@@ -7,7 +7,7 @@ from arango.database import StandardDatabase
 from arango.graph import Graph
 
 from .graph_models.edges import FileRef, SenderChat, LinkedChat, Creator, MemberOf, edges, FromUser, ToBot
-from .graph_models.vertices import Audio, Chat, File, User, InlineQuery, vertices
+from .graph_models.vertices import Audio, Chat, File, User, InlineQuery, vertices, Query
 
 
 class GraphDatabase:
@@ -21,6 +21,7 @@ class GraphDatabase:
     files: 'VertexCollection'
     inline_queries: 'VertexCollection'
     playlists: 'VertexCollection'
+    queries: 'VertexCollection'
     users: 'VertexCollection'
 
     archived_audio: 'EdgeCollection'
@@ -287,3 +288,43 @@ class GraphDatabase:
                     ToBot.parse_from_inline_query_and_user(db_inline_query, db_bot)
                 )
         return db_inline_query
+
+    def get_or_create_query(
+            self,
+            bot_id: int,
+            from_user: 'pyrogram.types.User',
+            query: 'str',
+            query_date: int,
+            query_metadata: dict,
+    ) -> Optional['Query']:
+        if bot_id is None or from_user is None or query is None or query_date is None or query_metadata is None:
+            return None
+
+        db_bot = self.get_user_by_user_id(bot_id)
+        db_from_user = self.update_or_create_user(from_user)
+        db_query = None
+
+        if db_bot and db_from_user:
+            db_query = Query.find_by_key(self.queries, Query.get_key(db_bot, db_from_user, query_date))
+            if not db_query:
+                db_query, successful = Query.create(
+                    self.queries,
+                    Query.parse_from_query(db_bot, db_from_user, query, query_date, query_metadata)
+                )
+
+            if db_query:
+                db_from_user_edge = FromUser.create(
+                    self.from_user,
+                    FromUser.parse_from_query_and_user(db_query, db_from_user)
+                )
+                db_to_bot_edge = ToBot.create(
+                    self.to_bot,
+                    ToBot.parse_from_query_and_user(db_query, db_bot)
+                )
+        return db_query
+
+    def get_chat_by_chat_id(self, chat_id) -> Optional[Chat]:
+        if chat_id is None:
+            return None
+
+        return Chat.find_by_key(self.chats, str(chat_id))

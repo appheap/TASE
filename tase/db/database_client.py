@@ -1,8 +1,8 @@
-from typing import Optional
+from typing import Optional, List, Tuple
 
 import pyrogram.types
 
-from tase.db.graph_models.vertices import User, Chat, Audio, InlineQuery
+from tase.db.graph_models.vertices import User, Chat, Audio, InlineQuery, Query
 from tase.my_logger import logger
 from .elasticsearch_db import ElasticsearchDatabase
 from .graph_db import GraphDatabase
@@ -88,3 +88,28 @@ class DatabaseClient:
             return None
 
         return self._graph_db.get_or_create_inline_query(bot_id, inline_query)
+
+    def get_or_create_query(
+            self,
+            bot_id: int,
+            from_user: 'pyrogram.types.User',
+            query: 'str',
+            query_date: int,
+            query_metadata: dict
+    ) -> Optional['Query']:
+        if bot_id is None or from_user is None or query is None or query_date is None or query_metadata is None:
+            return None
+
+        return self._graph_db.get_or_create_query(bot_id, from_user, query, query_date, query_metadata)
+
+    def search_audio(self, query: str) -> Optional[Tuple[List[Audio], dict]]:
+        if query is None:
+            return None
+
+        return self._es_db.search_audio(query)
+
+    def get_chat_by_chat_id(self, chat_id: int) -> Optional['Chat']:
+        if chat_id is None:
+            return None
+
+        return self._graph_db.get_chat_by_chat_id(chat_id)
