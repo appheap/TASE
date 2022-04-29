@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 
 import pyrogram
 from arango import ArangoClient
@@ -6,7 +6,8 @@ from arango.collection import VertexCollection, EdgeCollection
 from arango.database import StandardDatabase
 from arango.graph import Graph
 
-from .graph_models.edges import FileRef, SenderChat, LinkedChat, Creator, MemberOf, edges, FromUser, ToBot
+from . import elasticsearch_db
+from .graph_models.edges import FileRef, SenderChat, LinkedChat, Creator, MemberOf, edges, FromUser, ToBot, Hit
 from .graph_models.vertices import Audio, Chat, File, User, InlineQuery, vertices, Query
 
 
@@ -34,6 +35,7 @@ class GraphDatabase:
     from_user: 'EdgeCollection'
     has_audio: 'EdgeCollection'
     has_playlist: 'EdgeCollection'
+    hits: 'EdgeCollection'
     linked_chat: 'EdgeCollection'
     member_of: 'EdgeCollection'
     sender_chat: 'EdgeCollection'
@@ -296,8 +298,9 @@ class GraphDatabase:
             query: 'str',
             query_date: int,
             query_metadata: dict,
+            audio_docs: List['elasticsearch_db.Audio']
     ) -> Optional['Query']:
-        if bot_id is None or from_user is None or query is None or query_date is None or query_metadata is None:
+        if bot_id is None or from_user is None or query is None or query_date is None or query_metadata is None or audio_docs is None:
             return None
 
         db_bot = self.get_user_by_user_id(bot_id)
@@ -321,6 +324,14 @@ class GraphDatabase:
                     self.to_bot,
                     ToBot.parse_from_query_and_user(db_query, db_bot)
                 )
+
+                for audio_doc in audio_docs:
+                    db_audio = self.get_audio_by_key(audio_doc.id)
+                    if db_audio:
+                        db_hit = Hit.create(
+                            self.hits,
+                            Hit.parse_from_query_and_audio(db_query, db_audio, audio_doc.search_metadata)
+                        )
         return db_query
 
     def get_chat_by_chat_id(self, chat_id) -> Optional[Chat]:
@@ -328,3 +339,9 @@ class GraphDatabase:
             return None
 
         return Chat.find_by_key(self.chats, str(chat_id))
+
+    def get_audio_by_key(self, id: str) -> Optional[Audio]:
+        if id is None:
+            return None
+
+        return Audio.find_by_key(self.audios, id)

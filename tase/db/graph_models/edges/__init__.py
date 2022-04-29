@@ -9,6 +9,7 @@ from .file_ref import FileRef
 from .from_user import FromUser
 from .has_audio import HasAudio
 from .has_playlist import HasPlaylist
+from .hit import Hit
 from .linked_chat import LinkedChat
 from .member_of import MemberOf
 from .sender_chat import SenderChat
@@ -26,6 +27,7 @@ __all__ = [
     'FromUser',
     'HasAudio',
     'HasPlaylist',
+    'Hit',
     'LinkedChat',
     'MemberOf',
     'SenderChat',
@@ -43,6 +45,7 @@ edges = [
     FromUser,
     HasAudio,
     HasPlaylist,
+    Hit,
     LinkedChat,
     MemberOf,
     SenderChat,
