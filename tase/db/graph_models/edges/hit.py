@@ -10,7 +10,7 @@ class Hit(BaseEdge):
     Connection from `Query` or `InlineQuery` to `Audio`
     """
 
-    _collection_edge_name = 'hits'
+    _collection_edge_name = 'hit'
 
     _from_vertex_collections = [Query._vertex_name, InlineQuery._vertex_name]
     _to_vertex_collections = [Audio._vertex_name]

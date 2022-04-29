@@ -35,7 +35,7 @@ class GraphDatabase:
     from_user: 'EdgeCollection'
     has_audio: 'EdgeCollection'
     has_playlist: 'EdgeCollection'
-    hits: 'EdgeCollection'
+    hit: 'EdgeCollection'
     linked_chat: 'EdgeCollection'
     member_of: 'EdgeCollection'
     sender_chat: 'EdgeCollection'
@@ -329,7 +329,7 @@ class GraphDatabase:
                     db_audio = self.get_audio_by_key(audio_doc.id)
                     if db_audio:
                         db_hit = Hit.create(
-                            self.hits,
+                            self.hit,
                             Hit.parse_from_query_and_audio(db_query, db_audio, audio_doc.search_metadata)
                         )
         return db_query
