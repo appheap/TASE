@@ -1,7 +1,10 @@
 from typing import Optional
 
+from arango import DocumentInsertError, DocumentUpdateError, DocumentRevisionError
+from arango.collection import StandardCollection
 from pydantic import BaseModel, Field
 
+from tase.my_logger import logger
 from tase.utils import get_timestamp
 
 
@@ -40,27 +43,27 @@ class BaseDocument(BaseModel):
         return temp_dict
 
     @classmethod
-    def _from_db(cls, vertex: dict) -> Optional['dict']:
-        if not len(vertex):
+    def _from_db(cls, document: dict) -> Optional['dict']:
+        if not len(document):
             return None
 
         for k, v in BaseDocument._from_document_db_mapping.items():
-            if vertex.get(k, None):
-                vertex[v] = vertex[k]
-                del vertex[k]
+            if document.get(k, None):
+                document[v] = document[k]
+                del document[k]
             else:
-                vertex[v] = None
+                document[v] = None
 
-        return vertex
+        return document
 
     def parse_for_db(self) -> dict:
         return self._to_db()
 
     @classmethod
-    def parse_from_db(cls, vertex: dict):
-        if vertex is None or not len(vertex):
+    def parse_from_db(cls, document: dict):
+        if document is None or not len(document):
             return None
-        return cls(**cls._from_db(vertex))
+        return cls(**cls._from_db(document))
 
     def _update_from_metadata(self, metadata: dict):
         """
@@ -84,3 +87,79 @@ class BaseDocument(BaseModel):
             setattr(self, k, getattr(old_document, k, None))
 
         return self
+
+    @classmethod
+    def create(
+            cls,
+            db: 'StandardCollection',
+            doc: 'BaseDocument'
+    ):
+        """
+        Insert a document into the database
+
+        :param db: The StandardCollection to use for inserting the document
+        :param doc: The document to insert into the database
+        :return: self, successful
+        """
+
+        if db is None or doc is None:
+            return None, False
+
+        successful = False
+        try:
+            metadata = db.insert(doc.parse_for_db())
+            doc._update_from_metadata(metadata)
+            successful = True
+        except DocumentInsertError as e:
+            # Failed to insert the document
+            logger.exception(e)
+        except Exception as e:
+            logger.exception(e)
+        return doc, successful
+
+    @classmethod
+    def update(
+            cls,
+            db: 'StandardCollection',
+            old_doc: 'BaseDocument',
+            doc: 'BaseDocument'
+    ):
+        """
+        Update a document in the database
+
+        :param db: The StandardCollection to use for updating the document
+        :param old_doc:  The document that is already in the database
+        :param doc: The document used for updating the object in the database
+        :return: self, successful
+        """
+        if not isinstance(doc, BaseDocument):
+            raise Exception(f'`document` is not an instance of {BaseDocument.__class__.__name__} class')
+
+        if db is None or old_doc is None or doc is None:
+            return None, False
+
+        successful = False
+        try:
+            metadata = db.update(doc._update_metadata_from_old_document(old_doc).parse_for_db())
+            doc._update_from_metadata(metadata)
+            successful = True
+        except DocumentUpdateError as e:
+            # Failed to update document.
+            logger.exception(e)
+        except DocumentRevisionError as e:
+            # The expected and actual document revisions mismatched.
+            logger.exception(e)
+        except Exception as e:
+            logger.exception(e)
+        return doc, successful
+
+    @classmethod
+    def find_by_key(cls, db: 'StandardCollection', key: str):
+        if db is None or key is None:
+            return None
+
+        cursor = db.find({'_key': key})
+        if cursor and len(cursor):
+            return cls.parse_from_db(cursor.pop())
+        else:
+            return None
