@@ -2,9 +2,8 @@ from typing import Optional, List, Tuple
 
 import pyrogram.types
 
-from tase.db.graph_models.vertices import User, Chat, Audio, InlineQuery, Query
 from tase.my_logger import logger
-from . import elasticsearch_db
+from . import document_models, elasticsearch_models, graph_models
 from .document_db import DocumentDatabase
 from .elasticsearch_db import ElasticsearchDatabase
 from .graph_db import GraphDatabase
@@ -33,17 +32,17 @@ class DatabaseClient:
             doc_db_config=graph_db_config,
         )
 
-    def get_user_by_user_id(self, user_id: int) -> Optional['User']:
+    def get_user_by_user_id(self, user_id: int) -> Optional[graph_models.User]:
         if user_id is None:
             return None
         return self._graph_db.get_user_by_user_id(user_id)
 
-    def get_or_create_user(self, telegram_user: 'pyrogram.types.User') -> Optional['User']:
+    def get_or_create_user(self, telegram_user: 'pyrogram.types.User') -> Optional[graph_models.User]:
         if telegram_user is None:
             return None
         return self._graph_db.get_or_create_user(telegram_user)
 
-    def update_or_create_user(self, telegram_user: 'pyrogram.types.User') -> Optional['User']:
+    def update_or_create_user(self, telegram_user: 'pyrogram.types.User') -> Optional[graph_models.User]:
         if telegram_user is None:
             return None
         return self._graph_db.update_or_create_user(telegram_user)
@@ -51,9 +50,9 @@ class DatabaseClient:
     def get_or_create_chat(
             self,
             telegram_chat: 'pyrogram.types.Chat',
-            creator: 'User' = None,
-            member: 'User' = None
-    ) -> Optional['Chat']:
+            creator: graph_models.User = None,
+            member: graph_models.User = None
+    ) -> Optional[graph_models.Chat]:
         if telegram_chat is None:
             return None
         return self._graph_db.get_or_create_chat(telegram_chat, creator, member)
@@ -61,28 +60,30 @@ class DatabaseClient:
     def update_or_create_chat(
             self,
             telegram_chat: 'pyrogram.types.Chat',
-            creator: 'User' = None,
-            member: 'User' = None
-    ) -> Optional['Chat']:
+            creator: graph_models.User = None,
+            member: graph_models.User = None
+    ) -> Optional[graph_models.Chat]:
         if telegram_chat is None:
             return None
         return self._graph_db.update_or_create_chat(telegram_chat, creator, member)
 
-    def get_or_create_audio(self, message: 'pyrogram.types.Message') -> Optional['Audio']:
+    def get_or_create_audio(self, message: 'pyrogram.types.Message', telegram_client_id: int):
         if message is None or message.audio is None:
             return
         try:
             self._es_db.get_or_create_audio(message)
             self._graph_db.get_or_create_audio(message)
+            self._document_db.get_or_create_audio(message, telegram_client_id)
         except Exception as e:
             logger.exception(e)
 
-    def update_or_create_audio(self, message: 'pyrogram.types.Message') -> Optional['Audio']:
-        if message is None or message.audio is None:
+    def update_or_create_audio(self, message: 'pyrogram.types.Message', telegram_client_id: int):
+        if message is None or message.audio is None or telegram_client_id is None:
             return
         try:
             self._es_db.update_or_create_audio(message)
             self._graph_db.update_or_create_audio(message)
+            self._document_db.update_or_create_audio(message, telegram_client_id)
         except Exception as e:
             logger.exception(e)
 
@@ -92,8 +93,8 @@ class DatabaseClient:
             inline_query: 'pyrogram.types.InlineQuery',
             query_date: int,
             query_metadata: dict,
-            audio_docs: List['elasticsearch_db.Audio']
-    ) -> Optional['InlineQuery']:
+            audio_docs: List[elasticsearch_models.Audio]
+    ) -> Optional[graph_models.InlineQuery]:
         if bot_id is None or inline_query is None or query_date is None or query_metadata is None or audio_docs is None:
             return None
 
@@ -106,21 +107,42 @@ class DatabaseClient:
             query: 'str',
             query_date: int,
             query_metadata: dict,
-            audio_docs: List['elasticsearch_db.Audio']
-    ) -> Optional['Query']:
+            audio_docs: List[elasticsearch_models.Audio]
+    ) -> Optional[graph_models.Query]:
         if bot_id is None or from_user is None or query is None or query_date is None or query_metadata is None or audio_docs is None:
             return None
 
         return self._graph_db.get_or_create_query(bot_id, from_user, query, query_date, query_metadata, audio_docs)
 
-    def search_audio(self, query: str) -> Optional[Tuple[List[Audio], dict]]:
-        if query is None:
+    def search_audio(
+            self,
+            query: str,
+            from_: int = 0,
+            size: int = 50
+    ) -> Optional[Tuple[List[graph_models.Audio], dict]]:
+        if query is None or from_ is None or size is None:
             return None
 
-        return self._es_db.search_audio(query)
+        return self._es_db.search_audio(query, from_, size)
 
-    def get_chat_by_chat_id(self, chat_id: int) -> Optional['Chat']:
+    def get_chat_by_chat_id(self, chat_id: int) -> Optional[graph_models.Chat]:
         if chat_id is None:
             return None
 
         return self._graph_db.get_chat_by_chat_id(chat_id)
+
+    def get_audio_file_from_cache(
+            self,
+            audio: 'elasticsearch_models.Audio',
+            telegram_client_id: int,
+    ) -> Optional[document_models.Audio]:
+        if audio is None or telegram_client_id is None:
+            return None
+
+        return self._document_db.get_audio_file_from_cache(audio, telegram_client_id)
+
+    def get_audio_doc_by_download_url(self, download_url: str) -> Optional[elasticsearch_models.Audio]:
+        if download_url is None:
+            return None
+
+        return self._es_db.get_audio_by_download_url(download_url)
