@@ -9,6 +9,7 @@ from .base_vertex import BaseVertex
 class Audio(BaseVertex):
     _vertex_name = 'audios'
 
+    chat_id: int
     message_id: int
     message_caption: Optional[str]
     message_date: int
@@ -35,6 +36,7 @@ class Audio(BaseVertex):
         key = Audio.get_key(message)
         return Audio(
             key=key,
+            chat_id=message.chat.id,
             message_id=message.id,
             message_caption=message.caption,
             message_date=get_timestamp(message.date),
