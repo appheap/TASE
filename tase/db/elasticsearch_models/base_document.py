@@ -167,8 +167,14 @@ class BaseDocument(BaseModel):
         return document, successful
 
     @classmethod
-    def search(cls, es: 'Elasticsearch', query: str):
-        if es is None or query is None:
+    def search(
+            cls,
+            es: 'Elasticsearch',
+            query: str,
+            from_: int = 0,
+            size: int = 50,
+    ):
+        if es is None or query is None or from_ is None or size is None:
             return None
 
         db_docs = []
@@ -182,6 +188,8 @@ class BaseDocument(BaseModel):
         try:
             res: 'ObjectApiResponse' = es.search(
                 index=cls._index_name,
+                from_=from_,
+                size=size,
                 query={
                     "multi_match": {
                         "query": query,
