@@ -88,7 +88,7 @@ class DocumentDatabase:
 
         return audio
 
-    def get_audio_document(self, audio, telegram_client_id) -> Optional[Audio]:
+    def get_audio_file_from_cache(self, audio, telegram_client_id) -> Optional[Audio]:
         if audio is None or telegram_client_id is None:
             return None
         return Audio.find_by_key(self.doc_audios, Audio.get_key_from_audio(audio, telegram_client_id))
