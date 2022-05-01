@@ -3,7 +3,7 @@ from typing import List, Callable
 
 from tase.db.database_client import DatabaseClient
 from tase.my_logger import logger
-from tase.telegram import TelegramClient
+from tase.telegram.telegram_client import TelegramClient
 
 
 def exception_handler(func: 'Callable'):

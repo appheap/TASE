@@ -1,10 +1,11 @@
 from enum import Enum
-from typing import Optional, Any, Coroutine, Union
+from typing import Optional, Coroutine, Union, List
 
 import pyrogram
 from pyrogram.handlers.handler import Handler
 
 from tase.my_logger import logger
+from tase.telegram import handlers
 from .methods.search_messages import search_messages
 
 
@@ -78,6 +79,19 @@ class TelegramClient:
 
     def add_handler(self, handler: "Handler", group: int = 0):
         return self._client.add_handler(handler, group)
+
+    def add_handlers(self, handlers_list: List['handlers.BaseHandler']):
+        for handler in handlers_list:
+            for h in handler.init_handlers():
+                self.add_handler(
+                    h.cls(
+                        callback=h.callback,
+                        filters=h.filters,
+                    ) if h.has_filter else h.cls(
+                        callback=h.callback,
+                    ),
+                    h.group,
+                )
 
     def iter_audios(
             self,
