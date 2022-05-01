@@ -52,7 +52,7 @@ class InlineQuery(BaseVertex):
             chat_type=inline_query.chat_type.name,
             query_date=query_date,
             duration=query_metadata.get('duration'),
-            max_score=query_metadata.get('max_score'),
+            max_score=query_metadata.get('max_score') or 0,
             total_hits=query_metadata.get('total_hits'),
             total_rel=query_metadata.get('total_rel'),
         )
