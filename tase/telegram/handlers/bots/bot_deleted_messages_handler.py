@@ -24,7 +24,7 @@ class BotDeletedMessagesHandler(BaseHandler):
 
     # todo: not working, why?
     def deleted_messages_handler(self, client: 'pyrogram.Client', messages: List['pyrogram.types.Message']):
-        logger.info(f"bot_deleted_messages_handler: {messages}")
+        logger.debug(f"bot_deleted_messages_handler: {messages}")
         estimate_date_of_deletion = arrow.utcnow().timestamp()
         for message in messages:
             if message.chat is None:

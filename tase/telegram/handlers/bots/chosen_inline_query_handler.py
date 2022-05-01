@@ -23,4 +23,4 @@ class ChosenInlineQueryHandler(BaseHandler):
             client: 'pyrogram.Client',
             chosen_inline_result: 'pyrogram.types.ChosenInlineResult'
     ):
-        logger.info(f"on_chosen_inline_query: {chosen_inline_result}")
+        logger.debug(f"on_chosen_inline_query: {chosen_inline_result}")

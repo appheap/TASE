@@ -27,7 +27,7 @@ class UserRawUpdateHandler(BaseHandler):
             users: List['pyrogram.types.User'],
             chats: List['pyrogram.types.Chat']
     ):
-        logger.info(f"user_raw_update_handler: {raw_update}")
+        logger.debug(f"user_raw_update_handler: {raw_update}")
 
 
 _update = Union[

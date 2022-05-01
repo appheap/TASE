@@ -25,4 +25,4 @@ class InlineQueryHandler(BaseHandler):
         ]
 
     def on_inline_query(self, client: 'pyrogram.Client', inline_query: 'pyrogram.types.InlineQuery'):
-        logger.info(f"on_inline_query: {inline_query}")
+        logger.debug(f"on_inline_query: {inline_query}")

@@ -17,4 +17,4 @@ class UserMessageHandler(BaseHandler):
 
     def user_message_handler(self, client: 'pyrogram.Client', message: 'pyrogram.types.Message'):
         direction = '=>' if message.outgoing else '<='
-        logger.info(f"user_message_handler: {direction} {message.chat.title or message.chat.first_name}")
+        logger.debug(f"user_message_handler: {direction} {message.chat.title or message.chat.first_name}")

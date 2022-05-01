@@ -24,4 +24,4 @@ class UserChatMemberUpdatedHandler(BaseHandler):
             client: 'pyrogram.Client',
             chat_member_updated: 'pyrogram.types.ChatMemberUpdated'
     ):
-        logger.info(f"chat_member_update_handler: {chat_member_updated}")
+        logger.debug(f"chat_member_update_handler: {chat_member_updated}")
