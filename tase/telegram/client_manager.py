@@ -105,6 +105,24 @@ class ClientManager(mp.Process):
             self.telegram_client.telegram_id = me.id
             self.db.update_or_create_user(me)
 
+        self.register_update_handlers()
+
+        worker = ClientWorkerThread(
+            telegram_client=self.telegram_client,
+            index=0,
+            db=self.db,
+            task_queues=self.task_queues,
+        )
+        worker.start()
+
+        idle()
+        self.telegram_client.stop()
+
+    def register_update_handlers(self) -> None:
+        """
+        Register update handlers for this telegram client based on its type.
+        """
+
         # register handler based on the type of the client
         if self.telegram_client.client_type == ClientTypes.USER:
             self.telegram_client.add_handlers(self.user_update_handlers)
@@ -118,16 +136,4 @@ class ClientManager(mp.Process):
             # )
         else:
             pass
-
         self.telegram_client.add_handlers([self.disconnect_handler])
-
-        worker = ClientWorkerThread(
-            telegram_client=self.telegram_client,
-            index=0,
-            db=self.db,
-            task_queues=self.task_queues,
-        )
-        worker.start()
-
-        idle()
-        self.telegram_client.stop()
