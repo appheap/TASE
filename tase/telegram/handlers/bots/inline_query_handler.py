@@ -65,8 +65,6 @@ class InlineQueryHandler(BaseHandler):
 
                 # todo: this approach is only for public channels, what about private channels?
                 messages = self.telegram_client.get_messages(chat_id=db_chat.username, message_ids=message_ids)
-                if messages and not isinstance(messages, list):
-                    messages = [messages]
 
                 for message in messages:
                     self.db.update_or_create_audio(

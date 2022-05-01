@@ -128,7 +128,11 @@ class TelegramClient:
             chat_id: Union[int, str],
             message_ids: Union[int, Iterable[int]] = None
     ) -> Union["pyrogram.types.Message", List["pyrogram.types.Message"]]:
-        return self._client.get_messages(chat_id=chat_id, message_ids=message_ids)
+        messages = self._client.get_messages(chat_id=chat_id, message_ids=message_ids)
+        if messages and not isinstance(messages, list):
+            messages = [messages]
+
+        return messages
 
 
 class UserTelegramClient(TelegramClient):
