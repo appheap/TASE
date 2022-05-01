@@ -1,8 +1,8 @@
 from dataclasses import field, dataclass
 
 from .base_task import BaseTask, exception_handler
-from .. import TelegramClient
-from ...db.database_client import DatabaseClient
+from ..telegram_client import TelegramClient
+from ...db import DatabaseClient
 from ...my_logger import logger
 
 

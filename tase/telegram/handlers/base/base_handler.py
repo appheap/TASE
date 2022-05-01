@@ -1,10 +1,13 @@
-from typing import Dict
+from __future__ import annotations
+
+from typing import Dict, List
 
 import kombu
 from pydantic import BaseModel
 
 from tase.db.database_client import DatabaseClient
-from tase.telegram import TelegramClient
+from .handler_metadata import HandlerMetadata
+from ...telegram_client import TelegramClient
 
 
 class BaseHandler(BaseModel):
@@ -14,3 +17,6 @@ class BaseHandler(BaseModel):
 
     class Config:
         arbitrary_types_allowed = True
+
+    def init_handlers(self) -> List['HandlerMetadata']:
+        raise NotImplementedError

@@ -3,20 +3,32 @@ from typing import List, Union
 import pyrogram
 from pyrogram import raw
 
-from .base_handler import BaseHandler
+from tase.my_logger import logger
+from pyrogram import handlers
+
+from tase.telegram.handlers import BaseHandler, HandlerMetadata
 
 
-class RawUpdateHandler(BaseHandler):
+class BotRawUpdateHandler(BaseHandler):
 
-    def on_raw_update(
+    def init_handlers(self) -> List[HandlerMetadata]:
+        return [
+            HandlerMetadata(
+                cls=handlers.RawUpdateHandler,
+                callback=self.raw_update_handler,
+                has_filter=False,
+                group=1,
+            )
+        ]
+
+    def raw_update_handler(
             self,
             client: 'pyrogram.Client',
             raw_update: '_update',
             users: List['pyrogram.types.User'],
             chats: List['pyrogram.types.Chat']
     ):
-        # logger.info(f"on_raw_update: {raw_update}")
-        pass
+        logger.info(f"bot_raw_update_handler: {raw_update}")
 
 
 _update = Union[

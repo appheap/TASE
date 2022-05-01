@@ -1,17 +1,20 @@
+from __future__ import annotations
+
 import multiprocessing as mp
 import threading
 from typing import Optional, Dict
 
 import kombu
 from pyrogram import idle
-from pyrogram.handlers import DisconnectHandler, MessageHandler, RawUpdateHandler, InlineQueryHandler, \
-    DeletedMessagesHandler, ChosenInlineResultHandler, CallbackQueryHandler, ChatMemberUpdatedHandler
 
 from tase.db.database_client import DatabaseClient
 from tase.my_logger import logger
-from tase.telegram import TelegramClient, ClientTypes
-from tase.telegram import handlers
+from tase.telegram import ClientTypes, TelegramClient
 from tase.telegram.client_worker import ClientWorkerThread
+from tase.telegram.handlers.base import ClientDisconnectHandler
+from tase.telegram.handlers.bots import BotDeletedMessagesHandler, BotMessageHandler, CallbackQueryHandler, \
+    ChosenInlineQueryHandler, InlineQueryHandler
+from tase.telegram.handlers.users import UserChatMemberUpdatedHandler, UserDeletedMessagesHandler, UserMessageHandler
 
 
 class ClientManager(mp.Process):
@@ -29,49 +32,63 @@ class ClientManager(mp.Process):
         self.task_queues = task_queues
         self.db = database_client
 
-        self.callback_query_handler = handlers.CallbackQueryHandler(
-            db=self.db,
-            task_queues=self.task_queues,
-            telegram_client=self.telegram_client
-        )
+        self.user_update_handlers = [
+            UserChatMemberUpdatedHandler(
+                db=self.db,
+                task_queues=self.task_queues,
+                telegram_client=self.telegram_client
+            ),
+            UserDeletedMessagesHandler(
+                db=self.db,
+                task_queues=self.task_queues,
+                telegram_client=self.telegram_client
+            ),
+            UserMessageHandler(
+                db=self.db,
+                task_queues=self.task_queues,
+                telegram_client=self.telegram_client
+            ),
+            # UserRawUpdateHandler(
+            #     db=self.db,
+            #     task_queues=self.task_queues,
+            #     telegram_client=self.telegram_client
+            # ),
+        ]
 
-        self.chat_member_update_handler = handlers.ChatMemberUpdatedHandler(
-            db=self.db,
-            task_queues=self.task_queues,
-            telegram_client=self.telegram_client
-        )
+        self.bot_update_handlers = [
+            BotDeletedMessagesHandler(
+                db=self.db,
+                task_queues=self.task_queues,
+                telegram_client=self.telegram_client
+            ),
+            BotMessageHandler(
+                db=self.db,
+                task_queues=self.task_queues,
+                telegram_client=self.telegram_client
+            ),
+            # handlers.BotRawUpdateHandler(
+            #     db=self.db,
+            #     task_queues=self.task_queues,
+            #     telegram_client=self.telegram_client
+            # ),
+            CallbackQueryHandler(
+                db=self.db,
+                task_queues=self.task_queues,
+                telegram_client=self.telegram_client
+            ),
+            ChosenInlineQueryHandler(
+                db=self.db,
+                task_queues=self.task_queues,
+                telegram_client=self.telegram_client
+            ),
+            InlineQueryHandler(
+                db=self.db,
+                task_queues=self.task_queues,
+                telegram_client=self.telegram_client
+            ),
+        ]
 
-        self.chosen_inline_query_handler = handlers.ChosenInlineQueryHandler(
-            db=self.db,
-            task_queues=self.task_queues,
-            telegram_client=self.telegram_client
-        )
-
-        self.client_disconnect_handler = handlers.ClientDisconnectHandler(
-            db=self.db,
-            task_queues=self.task_queues,
-            telegram_client=self.telegram_client
-        )
-
-        self.deleted_messages_handler = handlers.DeletedMessagesHandler(
-            db=self.db,
-            task_queues=self.task_queues,
-            telegram_client=self.telegram_client
-        )
-
-        self.inline_query_handler = handlers.InlineQueryHandler(
-            db=self.db,
-            task_queues=self.task_queues,
-            telegram_client=self.telegram_client
-        )
-
-        self.message_handler = handlers.MessageHandler(
-            db=self.db,
-            task_queues=self.task_queues,
-            telegram_client=self.telegram_client
-        )
-
-        self.raw_update_handler = handlers.RawUpdateHandler(
+        self.disconnect_handler = ClientDisconnectHandler(
             db=self.db,
             task_queues=self.task_queues,
             telegram_client=self.telegram_client
@@ -90,39 +107,19 @@ class ClientManager(mp.Process):
 
         # register handler based on the type of the client
         if self.telegram_client.client_type == ClientTypes.USER:
-            self.telegram_client.add_handler(MessageHandler(self.message_handler.on_message), group=0)
-            self.telegram_client.add_handler(RawUpdateHandler(self.raw_update_handler.on_raw_update), group=1)
-            self.telegram_client.add_handler(
-                DeletedMessagesHandler(self.deleted_messages_handler.deleted_messages_handler),
-                group=2
-            )
-
-            # todo: not working, why?
-            self.telegram_client.add_handler(
-                ChatMemberUpdatedHandler(self.chat_member_update_handler.on_chat_member_updated)
-            )
+            self.telegram_client.add_handlers(self.user_update_handlers)
 
         elif self.telegram_client.client_type == ClientTypes.BOT:
-            self.telegram_client.add_handler(MessageHandler(self.message_handler.on_message))
+            self.telegram_client.add_handlers(self.bot_update_handlers)
 
             # todo: not working, why?
-            self.telegram_client.add_handler(
-                DeletedMessagesHandler(self.deleted_messages_handler.deleted_messages_handler)
-            )
-
-            self.telegram_client.add_handler(InlineQueryHandler(self.inline_query_handler.on_inline_query))
-            self.telegram_client.add_handler(
-                ChosenInlineResultHandler(self.chosen_inline_query_handler.on_chosen_inline_query)
-            )
-            self.telegram_client.add_handler(CallbackQueryHandler(self.callback_query_handler.on_callback_query))
-
-            # todo: not working, why?
-            self.telegram_client.add_handler(
-                ChatMemberUpdatedHandler(self.chat_member_update_handler.on_chat_member_updated)
-            )
+            # self.telegram_client.add_handler(
+            #     ChatMemberUpdatedHandler(self.chat_member_update_handler.on_chat_member_updated)
+            # )
         else:
             pass
-        self.telegram_client.add_handler(DisconnectHandler(self.client_disconnect_handler.on_disconnect))
+
+        self.telegram_client.add_handlers([self.disconnect_handler])
 
         worker = ClientWorkerThread(
             telegram_client=self.telegram_client,

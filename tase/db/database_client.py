@@ -3,7 +3,7 @@ from typing import Optional, List, Tuple
 import pyrogram.types
 
 from tase.my_logger import logger
-from . import document_models, elasticsearch_models, graph_models
+from . import graph_models, elasticsearch_models, document_models
 from .document_db import DocumentDatabase
 from .elasticsearch_db import ElasticsearchDatabase
 from .graph_db import GraphDatabase
@@ -32,17 +32,17 @@ class DatabaseClient:
             doc_db_config=graph_db_config,
         )
 
-    def get_user_by_user_id(self, user_id: int) -> Optional[graph_models.User]:
+    def get_user_by_user_id(self, user_id: int) -> Optional[graph_models.vertices.User]:
         if user_id is None:
             return None
         return self._graph_db.get_user_by_user_id(user_id)
 
-    def get_or_create_user(self, telegram_user: 'pyrogram.types.User') -> Optional[graph_models.User]:
+    def get_or_create_user(self, telegram_user: 'pyrogram.types.User') -> Optional[graph_models.vertices.User]:
         if telegram_user is None:
             return None
         return self._graph_db.get_or_create_user(telegram_user)
 
-    def update_or_create_user(self, telegram_user: 'pyrogram.types.User') -> Optional[graph_models.User]:
+    def update_or_create_user(self, telegram_user: 'pyrogram.types.User') -> Optional[graph_models.vertices.User]:
         if telegram_user is None:
             return None
         return self._graph_db.update_or_create_user(telegram_user)
@@ -50,9 +50,9 @@ class DatabaseClient:
     def get_or_create_chat(
             self,
             telegram_chat: 'pyrogram.types.Chat',
-            creator: graph_models.User = None,
-            member: graph_models.User = None
-    ) -> Optional[graph_models.Chat]:
+            creator: graph_models.vertices.User = None,
+            member: graph_models.vertices.User = None
+    ) -> Optional[graph_models.vertices.Chat]:
         if telegram_chat is None:
             return None
         return self._graph_db.get_or_create_chat(telegram_chat, creator, member)
@@ -60,9 +60,9 @@ class DatabaseClient:
     def update_or_create_chat(
             self,
             telegram_chat: 'pyrogram.types.Chat',
-            creator: graph_models.User = None,
-            member: graph_models.User = None
-    ) -> Optional[graph_models.Chat]:
+            creator: graph_models.vertices.User = None,
+            member: graph_models.vertices.User = None
+    ) -> Optional[graph_models.vertices.Chat]:
         if telegram_chat is None:
             return None
         return self._graph_db.update_or_create_chat(telegram_chat, creator, member)
@@ -94,7 +94,7 @@ class DatabaseClient:
             query_date: int,
             query_metadata: dict,
             audio_docs: List[elasticsearch_models.Audio]
-    ) -> Optional[graph_models.InlineQuery]:
+    ) -> Optional[graph_models.vertices.InlineQuery]:
         if bot_id is None or inline_query is None or query_date is None or query_metadata is None or audio_docs is None:
             return None
 
@@ -108,7 +108,7 @@ class DatabaseClient:
             query_date: int,
             query_metadata: dict,
             audio_docs: List[elasticsearch_models.Audio]
-    ) -> Optional[graph_models.Query]:
+    ) -> Optional[graph_models.vertices.Query]:
         if bot_id is None or from_user is None or query is None or query_date is None or query_metadata is None or audio_docs is None:
             return None
 
@@ -119,13 +119,13 @@ class DatabaseClient:
             query: str,
             from_: int = 0,
             size: int = 50
-    ) -> Optional[Tuple[List[graph_models.Audio], dict]]:
+    ) -> Optional[Tuple[List[graph_models.vertices.Audio], dict]]:
         if query is None or from_ is None or size is None:
             return None
 
         return self._es_db.search_audio(query, from_, size)
 
-    def get_chat_by_chat_id(self, chat_id: int) -> Optional[graph_models.Chat]:
+    def get_chat_by_chat_id(self, chat_id: int) -> Optional[graph_models.vertices.Chat]:
         if chat_id is None:
             return None
 

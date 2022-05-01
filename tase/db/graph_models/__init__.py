@@ -1,2 +1,1 @@
-from .edges import *
-from .vertices import *
+from . import edges, vertices
