@@ -144,12 +144,13 @@ class BotMessageHandler(BaseHandler):
                 else:
                     name = _file_name
 
-                text += f"<b>{str(index + 1)}. {dir_str} {_headphone_emoji} {fruit if index == 0 else ''}</b>" \
-                        f"<b>{textwrap.shorten(name, width=35, placeholder='...')}</b>\n" \
-                        f"{dir_str}     {_floppy_emoji} | {round(db_audio.file_size / 1000_000, 1)} MB  " \
-                        f"{dir_str}{_clock_emoji} | {str(d.hour) + ':' if d.hour > 0 else ''}{d.minute}:{d.second}\n{dir_str}" \
-                        f"{dir_str}      Download: /dl_{db_audio.download_url}\n" \
-                        f"{40 * '-' if index != 0 else ''}{dir_str} \n\n"
+                audio_title = f"<b>{str(index + 1)}. {dir_str} {_headphone_emoji} {fruit if index == 0 else ''}</b><b>{textwrap.shorten(name, width=35, placeholder='...')}</b>\n"
+                audio_file_info = f"{dir_str}     {_floppy_emoji} | {round(db_audio.file_size / 1000_000, 1)} MB  {dir_str}{_clock_emoji} | {str(d.hour) + ':' if d.hour > 0 else ''}{d.minute:02}:{d.second:02}\n{dir_str}"
+                download_url = f"{dir_str}      Download: /dl_{db_audio.download_url}\n"
+                seperator = f"{40 * '-' if index != 0 else ''}{dir_str} \n\n"
+
+                text += audio_title + audio_file_info + download_url + seperator
+
         else:
             text = f"{_traffic_light}  No results were found!" \
                    f"\n<pre>{textwrap.shorten(query, width=200, placeholder='...')}</pre>"
