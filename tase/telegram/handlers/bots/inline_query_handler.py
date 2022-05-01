@@ -40,44 +40,50 @@ class InlineQueryHandler(BaseHandler):
             if inline_query.offset is not None and len(inline_query.offset):
                 from_ = int(inline_query.offset)
 
-            db_docs, query_metadata = self.db.search_audio(inline_query.query, from_, size=10)
+            db_audio_docs, query_metadata = self.db.search_audio(inline_query.query, from_, size=15)
 
-            if not db_docs or not len(db_docs) or not len(query_metadata):
+            if not db_audio_docs or not len(db_audio_docs) or not len(query_metadata):
                 found_any = False
 
-            db_docs: List['elasticsearch_models.Audio'] = db_docs
+            db_audio_docs: List['elasticsearch_models.Audio'] = db_audio_docs
 
             db_inline_query = self.db.get_or_create_inline_query(
                 self.telegram_client.telegram_id,
                 inline_query,
                 query_date=query_date,
                 query_metadata=query_metadata,
-                audio_docs=db_docs,
+                audio_docs=db_audio_docs,
             )
 
             chat_msg = defaultdict(list)
-            for db_audio in db_docs:
-                chat_msg[db_audio.chat_id].append(db_audio.message_id)
+            for db_audio in db_audio_docs:
+                if not self.db.get_audio_file_from_cache(db_audio, self.telegram_client.telegram_id):
+                    chat_msg[db_audio.chat_id].append(db_audio.message_id)
 
             for chat_id, message_ids in chat_msg.items():
                 db_chat = self.db.get_chat_by_chat_id(chat_id)
-                messages = self.telegram_client._client.get_messages(chat_id=db_chat.username, message_ids=message_ids)
+
+                # todo: this approach is only for public channels, what about private channels?
+                messages = self.telegram_client.get_messages(chat_id=db_chat.username, message_ids=message_ids)
+                if messages and not isinstance(messages, list):
+                    messages = [messages]
+
                 for message in messages:
                     self.db.update_or_create_audio(
                         message,
                         self.telegram_client.telegram_id,
                     )
 
-            for db_audio in db_docs:
-                db_audio_doc = self.db.get_audio_file_from_cache(db_audio, self.telegram_client.telegram_id)
+            for db_audio in db_audio_docs:
+                db_audio_file_cache = self.db.get_audio_file_from_cache(db_audio, self.telegram_client.telegram_id)
 
                 #  todo: Some audios have null titles, solution?
-                if not db_audio_doc or not db_audio.title:
+                if not db_audio_file_cache or not db_audio.title:
                     continue
 
                 results.append(
                     InlineQueryResultCachedAudio(
-                        audio_file_id=db_audio_doc.file_id,
+                        audio_file_id=db_audio_file_cache.file_id,
                         id=f'{inline_query.id}->{db_audio.id}',
                         caption=db_audio.message_caption,
                     )
@@ -97,7 +103,7 @@ class InlineQueryHandler(BaseHandler):
                         title="No Results were found",
                         description="description",
                         input_message_content=InputTextMessageContent(
-                            message_text="message",
+                            message_text="",
                         )
                     )
                 ]

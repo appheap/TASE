@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Optional, Coroutine, Union, List
+from typing import Optional, Coroutine, Union, List, Iterable
 
 import pyrogram
 from pyrogram.handlers.handler import Handler
@@ -122,6 +122,13 @@ class TelegramClient:
             # todo: raise error (unknown client type)
             logger.error("Unknown TelegramClient Type")
             pass
+
+    def get_messages(
+            self,
+            chat_id: Union[int, str],
+            message_ids: Union[int, Iterable[int]] = None
+    ) -> Union["pyrogram.types.Message", List["pyrogram.types.Message"]]:
+        return self._client.get_messages(chat_id=chat_id, message_ids=message_ids)
 
 
 class UserTelegramClient(TelegramClient):
