@@ -47,7 +47,7 @@ class Query(BaseVertex):
             query_date=query_date,
             query=query,
             duration=query_metadata.get('duration'),
-            max_score=query_metadata.get('max_score'),
+            max_score=query_metadata.get('max_score') or 0,
             total_hits=query_metadata.get('total_hits'),
             total_rel=query_metadata.get('total_rel'),
         )
