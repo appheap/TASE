@@ -34,6 +34,17 @@ def _trans(text: str, lang_code: str = 'en') -> str:
     return languages.get(lang_code, languages['en'])(text)
 
 
+def translate_text(text: str, lang_code: str = 'en') -> str:
+    """
+    Translates the given text to another language given by the `lang_code` parameter
+
+    :param text: The text to be translated
+    :param lang_code: Code of the language to be translated to. Default is `en` for English
+    :return: The translated text
+    """
+    return languages.get(lang_code, languages['en'])(text)
+
+
 def _get_config_from_file(file_path: str) -> Optional['dict']:
     try:
         with open(file_path, 'rb') as f:

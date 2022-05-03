@@ -1,5 +1,4 @@
 import textwrap
-import unicodedata
 from datetime import timedelta, datetime
 from typing import List
 
@@ -9,21 +8,10 @@ from pyrogram import filters
 from pyrogram import handlers
 from pyrogram.enums import ParseMode
 
-from static.emoji import _search_emoji, _checkmark_emoji, _clock_emoji, _traffic_light, _floppy_emoji, _headphone
 from tase.my_logger import logger
 from tase.telegram.handlers import BaseHandler, HandlerMetadata
+from tase.templates import QueryResultsData, NoResultsWereFoundData, AudioCaptionData
 from tase.utils import get_timestamp, _trans
-
-_results_template = "<b>{{_search_emoji}} {{search_results_for}} {{query}}</b>{{new_line}}" \
-                    "{{_checkmark_emoji}} {{better_results}}{{new_line}}{{new_line}}{{new_line}}" \
-                    "{% for item in items%}" \
-                    "<b>{{item.index}}. {{d}}{{_headphone_emoji}} </b><b>{{item.name}}</b> {{new_line}}" \
-                    "{{d}}      {{_floppy_emoji}} | {{item.file_size}} {{MB}} {{d}}{{_clock_emoji}} | {{item.time}}{{d}}{{new_line}}" \
-                    "{{d}}       {{download}} /dl_{{item.url}}{{new_line}}" \
-                    "{{item.sep}}{{d}}{{new_line}}{{new_line}}" \
-                    "{% endfor %}"
-
-_no_results_were_found_template = "{{_traffic_light}}  {{no_results_were_found}}{{new_line}}<pre>{{query}}</pre>"
 
 
 class BotMessageHandler(BaseHandler):
@@ -31,8 +19,6 @@ class BotMessageHandler(BaseHandler):
     no_results_were_found: Template = None
 
     def init_handlers(self) -> List[HandlerMetadata]:
-        self.results_template = Template(source=_results_template)
-        self.no_results_were_found = Template(source=_no_results_were_found_template)
 
         handlers_list = [
             HandlerMetadata(
@@ -84,15 +70,15 @@ class BotMessageHandler(BaseHandler):
         logger.debug(f"base_downloads_handler: {message.text}")
 
         # todo: find a better way to update user when it's necessary
-        # db_user = self.db.get_user_by_user_id(message.from_user.id)
-        db_user = self.db.update_or_create_user(message.from_user)
+        db_user = self.db.get_user_by_user_id(message.from_user.id)
+        # db_user = self.db.update_or_create_user(message.from_user)
 
         download_url = message.text.split('/dl_')[1]
         db_audio_doc = self.db.get_audio_doc_by_download_url(download_url)
         if db_audio_doc:
             audio_file_cache = self.db.get_audio_file_from_cache(db_audio_doc, self.telegram_client.telegram_id)
+            db_chat = self.db.get_chat_by_chat_id(db_audio_doc.chat_id)
             if not audio_file_cache:
-                db_chat = self.db.get_chat_by_chat_id(db_audio_doc.chat_id)
                 messages = client.get_messages(db_chat.username, [db_audio_doc.message_id])
                 if not messages or not len(messages):
                     # todo: could not get the audio from telegram servers, what to do now?
@@ -102,9 +88,20 @@ class BotMessageHandler(BaseHandler):
             else:
                 file_id = audio_file_cache.file_id
 
+            text = self.audio_caption_template.render(
+                AudioCaptionData.parse_from_audio_doc(
+                    db_audio_doc,
+                    db_user,
+                    db_chat,
+                    bot_url='',
+                    include_source=True,
+                )
+            )
+
             message.reply_audio(
                 audio=file_id,
-                caption=db_audio_doc.message_caption if db_audio_doc.message_caption else "my caption"
+                caption=text,
+                parse_mode=ParseMode.HTML,
             )
         else:
             # todo: An Error occurred while processing this audio download url, why?
@@ -143,9 +140,6 @@ class BotMessageHandler(BaseHandler):
             )
 
         if found_any:
-            x = len([None for ch in query if unicodedata.bidirectional(ch) in ('R', 'AL')]) / float(len(query))
-            dir_str = "&rlm;" if x > 0.5 else '&lrm;'
-
             def process_item(index, db_audio):
                 duration = timedelta(seconds=db_audio.duration)
                 d = datetime(1, 1, 1) + duration
@@ -172,37 +166,22 @@ class BotMessageHandler(BaseHandler):
                 process_item(index, db_audio)
                 for index, db_audio in reversed(list(enumerate(db_audio_docs)))
             ]
-            template_data = {
-                'query': query,
-                'items': items,
 
-                '_search_emoji': _search_emoji,
-                '_checkmark_emoji': _checkmark_emoji,
-                '_headphone_emoji': _headphone,
-                '_floppy_emoji': _floppy_emoji,
-                '_clock_emoji': _clock_emoji,
+            data = QueryResultsData(
+                c_query=query,
 
-                'd': dir_str,
-                'new_line': "\n",
-                'MB': _trans('MB', lang_code),
+                query=query,
+                items=items,
+                lang_code=lang_code,
+            )
 
-                'download': _trans("Download:", lang_code),
-                'better_results': _trans("Better results are at the bottom of the list", lang_code),
-                'search_results_for': _trans('Search results for:', lang_code),
-            }
-
-            text = self.results_template.render(template_data)
-
+            text = self.query_results_template.render(data)
         else:
-            template_date = {
-                'new_line': "\n",
-                '_traffic_light': _traffic_light,
-
-                'no_results_were_found': _trans("No results were found for this query!", lang_code),
-
-                'query': query,
-            }
-            text = self.no_results_were_found.render(template_date)
+            text = self.no_results_were_found_template.render(
+                NoResultsWereFoundData(
+                    query=query, c_query=query, lang_code=lang_code
+                )
+            )
 
         message.reply_text(
             text=text,

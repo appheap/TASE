@@ -3,7 +3,6 @@ from collections import defaultdict
 from typing import List
 
 import arrow
-import emoji
 import pyrogram
 from pyrogram.types import InlineQueryResultCachedAudio, InlineKeyboardMarkup, InlineKeyboardButton, \
     InlineQueryResultArticle, InputMessageContent, InputTextMessageContent
@@ -11,6 +10,7 @@ from pyrogram.types import InlineQueryResultCachedAudio, InlineKeyboardMarkup, I
 from tase.db import elasticsearch_models
 from tase.my_logger import logger
 from tase.telegram.handlers import BaseHandler, HandlerMetadata
+from tase.templates import AudioCaptionData
 from tase.utils import get_timestamp
 from pyrogram import handlers
 
@@ -56,12 +56,19 @@ class InlineQueryHandler(BaseHandler):
             )
 
             chat_msg = defaultdict(list)
+            chats_dict = {}
+
             for db_audio in db_audio_docs:
                 if not self.db.get_audio_file_from_cache(db_audio, self.telegram_client.telegram_id):
                     chat_msg[db_audio.chat_id].append(db_audio.message_id)
 
+                if not chats_dict.get(db_audio.chat_id, None):
+                    db_chat = self.db.get_chat_by_chat_id(db_audio.chat_id)
+
+                    chats_dict[db_chat.chat_id] = db_chat
+
             for chat_id, message_ids in chat_msg.items():
-                db_chat = self.db.get_chat_by_chat_id(chat_id)
+                db_chat = chats_dict[chat_id]
 
                 # todo: this approach is only for public channels, what about private channels?
                 messages = self.telegram_client.get_messages(chat_id=db_chat.username, message_ids=message_ids)
@@ -72,6 +79,8 @@ class InlineQueryHandler(BaseHandler):
                         self.telegram_client.telegram_id,
                     )
 
+            db_user = self.db.get_user_by_user_id(inline_query.from_user.id)
+
             for db_audio in db_audio_docs:
                 db_audio_file_cache = self.db.get_audio_file_from_cache(db_audio, self.telegram_client.telegram_id)
 
@@ -79,11 +88,21 @@ class InlineQueryHandler(BaseHandler):
                 if not db_audio_file_cache or not db_audio.title:
                     continue
 
+                text = self.audio_caption_template.render(
+                    AudioCaptionData.parse_from_audio_doc(
+                        db_audio,
+                        db_user,
+                        chats_dict[db_audio.chat_id],
+                        bot_url='',
+                        include_source=True,
+                    )
+                )
+
                 results.append(
                     InlineQueryResultCachedAudio(
                         audio_file_id=db_audio_file_cache.file_id,
                         id=f'{inline_query.id}->{db_audio.id}',
-                        caption=db_audio.message_caption,
+                        caption=text,
                     )
                 )
 
