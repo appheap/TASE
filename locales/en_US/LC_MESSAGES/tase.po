@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: tase\n"
-"POT-Creation-Date: 2022-05-03 03:20+0430\n"
-"PO-Revision-Date: 2022-05-03 03:20+0430\n"
+"POT-Creation-Date: 2022-05-03 12:56+0430\n"
+"PO-Revision-Date: 2022-05-03 12:56+0430\n"
 "Last-Translator: \n"
 "Language-Team: English (United States)\n"
 "Language: en_US\n"
@@ -16,22 +16,26 @@ msgstr ""
 "X-Poedit-KeywordsList: _trans\n"
 "X-Poedit-SearchPath-0: .\n"
 
-#: telegram/handlers/bots/bot_message_handler.py:182
+#: telegram/handlers/bots/bot_message_handler.py:109
+msgid "An Error occurred while processing this audio download url"
+msgstr ""
+
+#: telegram/handlers/bots/bot_message_handler.py:183
 msgid "MB"
 msgstr ""
 
-#: telegram/handlers/bots/bot_message_handler.py:184
+#: telegram/handlers/bots/bot_message_handler.py:185
 msgid "Download:"
 msgstr ""
 
-#: telegram/handlers/bots/bot_message_handler.py:185
+#: telegram/handlers/bots/bot_message_handler.py:186
 msgid "Better results are at the bottom of the list"
 msgstr ""
 
-#: telegram/handlers/bots/bot_message_handler.py:186
+#: telegram/handlers/bots/bot_message_handler.py:187
 msgid "Search results for:"
 msgstr ""
 
-#: telegram/handlers/bots/bot_message_handler.py:196
+#: telegram/handlers/bots/bot_message_handler.py:197
 msgid "No results were found for this query!"
 msgstr ""

@@ -82,6 +82,11 @@ class BotMessageHandler(BaseHandler):
         :return:
         """
         logger.debug(f"base_downloads_handler: {message.text}")
+
+        # todo: find a better way to update user when it's necessary
+        # db_user = self.db.get_user_by_user_id(message.from_user.id)
+        db_user = self.db.update_or_create_user(message.from_user)
+
         download_url = message.text.split('/dl_')[1]
         db_audio_doc = self.db.get_audio_doc_by_download_url(download_url)
         if db_audio_doc:
@@ -105,7 +110,7 @@ class BotMessageHandler(BaseHandler):
             # todo: An Error occurred while processing this audio download url, why?
             logger.error(f"An Error occurred while processing this audio download url: {download_url}")
             message.reply_text(
-                "An Error occurred while processing this audio download url"
+                _trans("An Error occurred while processing this audio download url", db_user.language_code)
             )
 
     def search_query_handler(self, client: 'pyrogram.Client', message: 'pyrogram.types.Message'):
