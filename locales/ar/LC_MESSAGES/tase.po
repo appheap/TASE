@@ -1,0 +1,58 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: tase\n"
+"POT-Creation-Date: 2022-05-04 00:50+0430\n"
+"PO-Revision-Date: 2022-05-04 00:50+0430\n"
+"Last-Translator: \n"
+"Language-Team: Arabic\n"
+"Language: ar\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=6; plural=(n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
+"&& n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5);\n"
+"X-Generator: Poedit 3.0.1\n"
+"X-Poedit-Basepath: ../../../tase\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Poedit-KeywordsList: _trans\n"
+"X-Poedit-SearchPath-0: .\n"
+
+#: telegram/handlers/bots/bot_message_handler.py:110
+msgid "An Error occurred while processing this audio download url"
+msgstr "حدث خطأ أثناء معالجة عنوان URL لتنزيل الصوت"
+
+#: templates/audio_caption_template.py:25
+msgid "Title:"
+msgstr "عنوان:"
+
+#: templates/audio_caption_template.py:26
+msgid "Performer:"
+msgstr "المؤدي:"
+
+#: templates/audio_caption_template.py:27
+msgid "File name:"
+msgstr "اسم الملف:"
+
+#: templates/audio_caption_template.py:28
+msgid "Source:"
+msgstr "مصدر:"
+
+#: templates/no_results_were_found_template.py:9
+msgid "No results were found for this query!"
+msgstr "لم يتم العثور على نتائج لهذا الاستعلام!"
+
+#: templates/query_results_template.py:24
+msgid "Search results for:"
+msgstr "نتائج البحث عن:"
+
+#: templates/query_results_template.py:25
+msgid "Better results are at the bottom of the list"
+msgstr "أفضل النتائج في أسفل القائمة"
+
+#: templates/query_results_template.py:26
+msgid "Download:"
+msgstr "تنزيل:"
+
+#: templates/query_results_template.py:27
+msgid "MB"
+msgstr "ميغابايت"

@@ -15,7 +15,7 @@ _gt = gettext.gettext
 # todo: it's not a good practice to hardcode like this, fix it
 languages = dict()
 # lang_codes = ['en', 'fa', 'ku_KU', 'ku_TR', 'tr']
-lang_codes = ['en', 'fa', ]
+lang_codes = ['en', 'fa', 'ar',]
 if not len(languages):
     for lang_code in lang_codes:
         lang = gettext.translation('tase', localedir='../locales', languages=[lang_code])
