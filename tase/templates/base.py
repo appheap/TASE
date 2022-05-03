@@ -1,4 +1,5 @@
 import unicodedata
+from typing import Optional
 
 from jinja2 import Template
 from pydantic import BaseModel
@@ -14,11 +15,11 @@ class BaseTemplateData(BaseModel):
     c_dir: str = "&lrm;"
     c_query: str
 
-    lang_code: str = 'en'
+    lang_code: Optional[str] = 'en'
 
     def update_translations(self) -> 'BaseTemplateData':
         temp_dict = self.dict()
-        if self.lang_code != 'en':
+        if not self.lang_code or self.lang_code != 'en':
             for attr_name, attr_value in temp_dict.items():
                 if attr_name.startswith('s_'):
                     setattr(self, attr_name, translate_text(attr_value, self.lang_code))
