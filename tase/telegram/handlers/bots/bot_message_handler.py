@@ -12,7 +12,7 @@ from pyrogram.enums import ParseMode
 from static.emoji import _search_emoji, _checkmark_emoji, _clock_emoji, _traffic_light, _floppy_emoji, _headphone
 from tase.my_logger import logger
 from tase.telegram.handlers import BaseHandler, HandlerMetadata
-from tase.utils import get_timestamp
+from tase.utils import get_timestamp, _trans
 
 _results_template = "<b>{{_search_emoji}} {{search_results_for}} {{query}}</b>{{new_line}}" \
                     "{{_checkmark_emoji}} {{better_results}}{{new_line}}{{new_line}}{{new_line}}" \
@@ -110,6 +110,8 @@ class BotMessageHandler(BaseHandler):
 
     def search_query_handler(self, client: 'pyrogram.Client', message: 'pyrogram.types.Message'):
         logger.info(f"search_query_handler: {message.text}")
+        # todo: fix this
+        lang_code = message.from_user.language_code
 
         from_user = message.from_user
         chat = message.chat
@@ -177,11 +179,11 @@ class BotMessageHandler(BaseHandler):
 
                 'd': dir_str,
                 'new_line': "\n",
-                'MB': 'MB',
+                'MB': _trans('MB', lang_code),
 
-                'download': "Download:",
-                'better_results': "Better results are at the bottom of the list",
-                'search_results_for': 'Search results for:',
+                'download': _trans("Download:", lang_code),
+                'better_results': _trans("Better results are at the bottom of the list", lang_code),
+                'search_results_for': _trans('Search results for:', lang_code),
             }
 
             text = self.results_template.render(template_data)
@@ -191,7 +193,7 @@ class BotMessageHandler(BaseHandler):
                 'new_line': "\n",
                 '_traffic_light': _traffic_light,
 
-                'no_results_were_found': "No results were found!",
+                'no_results_were_found': _trans("No results were found for this query!", lang_code),
 
                 'query': query,
             }
