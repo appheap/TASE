@@ -4,7 +4,7 @@ from typing import Optional
 
 from jinja2 import Template
 
-from static.emoji import Emoji
+from tase.static import Emoji
 from .base import BaseTemplate, BaseTemplateData
 from ..db import elasticsearch_models, graph_models
 from ..utils import _trans

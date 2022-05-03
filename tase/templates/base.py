@@ -3,7 +3,7 @@ import unicodedata
 from jinja2 import Template
 from pydantic import BaseModel
 
-from static.emoji import Emoji
+from tase.static import Emoji
 from tase.utils import translate_text
 
 
