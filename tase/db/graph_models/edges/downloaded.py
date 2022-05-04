@@ -11,8 +11,8 @@ class Downloaded(BaseEdge):
 
     _collection_edge_name = 'downloaded'
 
-    _from_vertex_collections = [User._vertex_name]
-    _to_vertex_collections = [Download._vertex_name]
+    _from_vertex_collections = [User]
+    _to_vertex_collections = [Download]
 
     @staticmethod
     def parse_from_user_and_download(user: 'User', download: 'Download') -> Optional['Downloaded']:

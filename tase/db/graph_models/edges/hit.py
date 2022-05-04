@@ -12,8 +12,8 @@ class Hit(BaseEdge):
 
     _collection_edge_name = 'hit'
 
-    _from_vertex_collections = [Query._vertex_name, InlineQuery._vertex_name]
-    _to_vertex_collections = [Audio._vertex_name]
+    _from_vertex_collections = [Query, InlineQuery]
+    _to_vertex_collections = [Audio]
 
     rank: int
     score: float

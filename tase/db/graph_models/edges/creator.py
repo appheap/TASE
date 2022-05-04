@@ -11,8 +11,8 @@ class Creator(BaseEdge):
 
     _collection_edge_name = 'creator'
 
-    _from_vertex_collections = [Chat._vertex_name]
-    _to_vertex_collections = [User._vertex_name]
+    _from_vertex_collections = [Chat]
+    _to_vertex_collections = [User]
 
     @staticmethod
     def parse_from_chat_and_user(chat: 'Chat', creator: 'User') -> Optional['Creator']:

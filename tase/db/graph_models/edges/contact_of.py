@@ -11,8 +11,8 @@ class ContactOf(BaseEdge):
 
     _collection_edge_name = 'contact_of'
 
-    _from_vertex_collections = [User._vertex_name]
-    _to_vertex_collections = [User._vertex_name]
+    _from_vertex_collections = [User]
+    _to_vertex_collections = [User]
 
     @staticmethod
     def parse_from_user_and_user(from_user: 'User', to_user: 'User') -> Optional['ContactOf']:

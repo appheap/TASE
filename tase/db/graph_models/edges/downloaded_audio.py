@@ -11,8 +11,8 @@ class DownloadedAudio(BaseEdge):
 
     _collection_edge_name = 'downloaded_audio'
 
-    _from_vertex_collections = [Download._vertex_name]
-    _to_vertex_collections = [Audio._vertex_name]
+    _from_vertex_collections = [Download]
+    _to_vertex_collections = [Audio]
 
     @staticmethod
     def parse_from_download_and_audio(download: 'Download', audio: 'Audio') -> Optional['DownloadedAudio']:

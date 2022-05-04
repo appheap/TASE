@@ -1,4 +1,4 @@
-from typing import Optional, Tuple
+from typing import Optional, Tuple, List
 
 from arango import DocumentInsertError, DocumentUpdateError, DocumentRevisionError
 from arango.collection import EdgeCollection
@@ -12,8 +12,8 @@ from ..vertices import BaseVertex
 class BaseEdge(BaseModel):
     _collection_edge_name = 'base_edge_collection'
 
-    _from_vertex_collections = [BaseVertex._vertex_name]
-    _to_vertex_collections = [BaseVertex._vertex_name]
+    _from_vertex_collections = [BaseVertex]
+    _to_vertex_collections = [BaseVertex]
 
     _from_graph_db_mapping = {
         '_id': 'id',
@@ -43,6 +43,12 @@ class BaseEdge(BaseModel):
     to_node: 'BaseVertex'
     created_at: int = Field(default_factory=get_timestamp)
     modified_at: int = Field(default_factory=get_timestamp)
+
+    def to_vertex_collections(self) -> List[str]:
+        return [v._vertex_name for v in self._to_vertex_collections]
+
+    def from_vertex_collections(self) -> List[str]:
+        return [v._vertex_name for v in self._from_vertex_collections]
 
     def _to_graph(self) -> dict:
         temp_dict = self.dict()

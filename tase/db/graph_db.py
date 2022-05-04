@@ -82,8 +82,8 @@ class GraphDatabase:
                     e_class._collection_edge_name,
                     self.graph.create_edge_definition(
                         edge_collection=e_class._collection_edge_name,
-                        from_vertex_collections=e_class._from_vertex_collections,
-                        to_vertex_collections=e_class._to_vertex_collections,
+                        from_vertex_collections=e_class.from_vertex_collections(),
+                        to_vertex_collections=e_class.to_vertex_collections(),
                     )
                 )
             else:
@@ -280,7 +280,7 @@ class GraphDatabase:
             if not db_inline_query:
                 db_inline_query, successful = InlineQuery.create(
                     self.inline_queries,
-                    InlineQuery.parse_from_inline_query(db_bot, inline_query,query_date,query_metadata)
+                    InlineQuery.parse_from_inline_query(db_bot, inline_query, query_date, query_metadata)
                 )
 
             if db_inline_query:

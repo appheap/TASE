@@ -11,8 +11,8 @@ class HasPlaylist(BaseEdge):
 
     _collection_edge_name = 'has_playlist'
 
-    _from_vertex_collections = [User._vertex_name]
-    _to_vertex_collections = [Playlist._vertex_name]
+    _from_vertex_collections = [User]
+    _to_vertex_collections = [Playlist]
 
     @staticmethod
     def parse_from_user_and_playlist(user: 'User', playlist: 'Playlist') -> Optional['HasPlaylist']:

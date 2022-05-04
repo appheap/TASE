@@ -11,8 +11,8 @@ class FromUser(BaseEdge):
 
     _collection_edge_name = 'from_user'
 
-    _from_vertex_collections = [InlineQuery._vertex_name, Query._vertex_name]
-    _to_vertex_collections = [User._vertex_name]
+    _from_vertex_collections = [InlineQuery, Query]
+    _to_vertex_collections = [User]
 
     @staticmethod
     def parse_from_inline_query_and_user(inline_query: 'InlineQuery', user: 'User') -> Optional['FromUser']:
