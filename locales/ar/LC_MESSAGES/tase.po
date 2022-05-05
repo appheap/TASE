@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: tase\n"
-"POT-Creation-Date: 2022-05-04 00:50+0430\n"
-"PO-Revision-Date: 2022-05-04 00:50+0430\n"
+"POT-Creation-Date: 2022-05-06 00:01+0430\n"
+"PO-Revision-Date: 2022-05-06 00:01+0430\n"
 "Last-Translator: \n"
 "Language-Team: Arabic\n"
 "Language: ar\n"
@@ -36,6 +36,10 @@ msgstr "اسم الملف:"
 #: templates/audio_caption_template.py:28
 msgid "Source:"
 msgstr "مصدر:"
+
+#: templates/audio_caption_template.py:29
+msgid "Audio Search Engine"
+msgstr "محرك البحث الصوتي"
 
 #: templates/no_results_were_found_template.py:9
 msgid "No results were found for this query!"

@@ -85,7 +85,7 @@ class InlineQueryHandler(BaseHandler):
                         db_audio,
                         db_user,
                         chats_dict[db_audio.chat_id],
-                        bot_url='',
+                        bot_url='https://t.me/bot?start',
                         include_source=True,
                     )
                 )

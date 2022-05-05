@@ -16,7 +16,7 @@ class AudioCaptionTemplate(BaseTemplate):
         "<b>{{s_performer}}</b> {{performer}} {{c_new_line}}"
         "<b>{{s_file_name}}</b> {{file_name}} {{c_new_line}}"
         "{{emoji._round_pushpin}}{{s_source}} {{source}}{{c_new_line}}{{c_new_line}}"
-        "{{emoji._search_emoji}} | <a href='{{bot_url}}'><b>TASE Bot:</b> Audio Search Engine</a>{{c_new_line}}"
+        "{{emoji._search_emoji}} | <a href='{{bot_url}}'><b>TASE Bot:</b> {{s_audio_search_engine}}</a>{{c_new_line}}"
         "{{plant}}"
     )
 
@@ -26,6 +26,7 @@ class AudioCaptionData(BaseTemplateData):
     s_performer: str = _trans("Performer:")
     s_file_name: str = _trans("File name:")
     s_source: str = _trans("Source:")
+    s_audio_search_engine: str = _trans("Audio Search Engine")
 
     title: str
     performer: str
@@ -39,7 +40,7 @@ class AudioCaptionData(BaseTemplateData):
             audio_doc: elasticsearch_models.Audio,
             user: graph_models.vertices.User,
             chat: graph_models.vertices.Chat,
-            bot_url: str,
+            bot_url: str,  # todo: get bot_url from config
             include_source: bool = True,  # todo: where to get this variable?
     ) -> Optional['AudioCaptionData']:
         if audio_doc is None or user is None or chat is None or bot_url is None:
