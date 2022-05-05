@@ -19,7 +19,7 @@ class Downloaded(BaseEdge):
         if user is None or download is None:
             return None
 
-        key = f'{user.key}:{download.key}'
+        key = f'{user.key}@{download.key}'
         return Downloaded(
             key=key,
             from_node=user,

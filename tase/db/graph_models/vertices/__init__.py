@@ -3,9 +3,11 @@ from .base_vertex import BaseVertex
 from .chat import Chat
 from .download import Download
 from .file import File
+from .hit import Hit
 from .inline_query import InlineQuery
 from .playlist import Playlist
 from .query import Query
+from .query_keyword import QueryKeyword
 from .restriction import Restriction
 from .user import User
 
@@ -15,9 +17,11 @@ __all__ = [
     'Chat',
     'Download',
     'File',
+    'Hit',
     'InlineQuery',
     'Playlist',
     'Query',
+    'QueryKeyword',
     'Restriction',
     'User',
 ]
@@ -27,8 +31,10 @@ vertices = [
     Chat,
     Download,
     File,
+    Hit,
     InlineQuery,
     Playlist,
     Query,
+    QueryKeyword,
     User,
 ]

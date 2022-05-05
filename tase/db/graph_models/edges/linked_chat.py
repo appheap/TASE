@@ -17,7 +17,7 @@ class LinkedChat(BaseEdge):
         if chat is None and linked_chat is None:
             return None
 
-        key = f'{chat.key}:{linked_chat.key}'
+        key = f'{chat.key}@{linked_chat.key}'
         return LinkedChat(
             key=key,
             from_node=chat,

@@ -31,7 +31,7 @@ class ClientTaskConsumer(ConsumerProducerMixin):
             routing_key=f'{self.telegram_client.get_session_name()}_queue',
         )
         self.task_queue = task_queue
-        self.task_queues[self.telegram_client.get_session_name()] = task_queue
+        self.task_queues[self.telegram_client.name] = task_queue
         logger.info(f"task_queues: {self.task_queues}")
 
     def get_consumers(self, consumer, channel) -> List[Consumer]:

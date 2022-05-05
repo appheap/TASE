@@ -1,3 +1,4 @@
+import uuid
 from typing import Optional, List
 
 import pyrogram
@@ -7,8 +8,9 @@ from arango.database import StandardDatabase
 from arango.graph import Graph
 
 from . import elasticsearch_db
-from .graph_models.edges import FileRef, SenderChat, LinkedChat, Creator, MemberOf, edges, FromUser, ToBot, Hit
-from .graph_models.vertices import Audio, Chat, File, User, InlineQuery, vertices, Query
+from .graph_models.edges import FileRef, SenderChat, LinkedChat, Creator, MemberOf, edges, FromUser, ToBot, HasHit, \
+    ToQueryKeyword, HasAudio, Downloaded, DownloadedFromBot, DownloadedAudio, FromHit
+from .graph_models.vertices import Audio, Chat, File, User, InlineQuery, vertices, Query, QueryKeyword, Hit, Download
 
 
 class GraphDatabase:
@@ -20,9 +22,11 @@ class GraphDatabase:
     chats: 'VertexCollection'
     downloads: 'VertexCollection'
     files: 'VertexCollection'
+    hits: 'VertexCollection'
     inline_queries: 'VertexCollection'
     playlists: 'VertexCollection'
     queries: 'VertexCollection'
+    query_keywords: 'VertexCollection'
     users: 'VertexCollection'
 
     archived_audio: 'EdgeCollection'
@@ -32,14 +36,16 @@ class GraphDatabase:
     downloaded_audio: 'EdgeCollection'
     downloaded_from_bot: 'EdgeCollection'
     file_ref: 'EdgeCollection'
+    from_hit: 'EdgeCollection'
     from_user: 'EdgeCollection'
     has_audio: 'EdgeCollection'
+    has_hit: 'EdgeCollection'
     has_playlist: 'EdgeCollection'
-    hit: 'EdgeCollection'
     linked_chat: 'EdgeCollection'
     member_of: 'EdgeCollection'
     sender_chat: 'EdgeCollection'
     to_bot: 'EdgeCollection'
+    to_query_keyword: 'EdgeCollection'
 
     def __init__(
             self,
@@ -261,13 +267,24 @@ class GraphDatabase:
             return None
         return User.find_by_key(self.users, str(user_id))
 
+    def get_or_create_query_keyword(self, query: str) -> Optional[QueryKeyword]:
+        if query is None:
+            return None
+
+        query_keyword = QueryKeyword.find_by_key(self.query_keywords, QueryKeyword.get_key(query))
+        if not query_keyword:
+            query_keyword, successful = QueryKeyword.create(self.query_keywords, QueryKeyword.parse_from_query(query))
+
+        return query_keyword
+
     def get_or_create_inline_query(
             self,
             bot_id: int,
             inline_query: 'pyrogram.types.InlineQuery',
             query_date: int,
             query_metadata: dict,
-            audio_docs: List['elasticsearch_db.Audio']
+            audio_docs: List['elasticsearch_db.Audio'],
+            next_offset: Optional[str],
     ) -> Optional['InlineQuery']:
         if bot_id is None or inline_query is None or query_date is None or query_metadata is None or audio_docs is None:
             return None
@@ -280,15 +297,24 @@ class GraphDatabase:
             if not db_inline_query:
                 db_inline_query, successful = InlineQuery.create(
                     self.inline_queries,
-                    InlineQuery.parse_from_inline_query(db_bot, inline_query, query_date, query_metadata)
+                    InlineQuery.parse_from_inline_query(db_bot, inline_query, query_date, query_metadata, next_offset)
                 )
 
             if db_inline_query:
-                db_from_user_edge = FromUser.create(
+                db_query_keyword = self.get_or_create_query_keyword(inline_query.query)
+                db_to_query_keyword_edge, successful = ToQueryKeyword.create(
+                    self.to_query_keyword,
+                    ToQueryKeyword.parse_from_inline_query_and_query_keyword(
+                        db_inline_query,
+                        db_query_keyword,
+                    )
+                )
+
+                db_from_user_edge, successful = FromUser.create(
                     self.from_user,
                     FromUser.parse_from_inline_query_and_user(db_inline_query, db_from_user)
                 )
-                db_to_bot_edge = ToBot.create(
+                db_to_bot_edge, successful = ToBot.create(
                     self.to_bot,
                     ToBot.parse_from_inline_query_and_user(db_inline_query, db_bot)
                 )
@@ -296,9 +322,21 @@ class GraphDatabase:
                 for audio_doc in audio_docs:
                     db_audio = self.get_audio_by_key(audio_doc.id)
                     if db_audio:
-                        db_hit = Hit.create(
-                            self.hit,
-                            Hit.parse_from_inline_query_and_audio(db_inline_query, db_audio, audio_doc.search_metadata)
+                        db_hit, successful = Hit.create(
+                            self.hits,
+                            Hit.parse_from_inline_query_and_audio(
+                                db_inline_query,
+                                db_audio,
+                                audio_doc.search_metadata,
+                            )
+                        )
+                        db_has_hit, successful = HasHit.create(
+                            self.has_hit,
+                            HasHit.parse_from_inline_query_and_hit(db_inline_query, db_hit)
+                        )
+                        db_has_audio, successful = HasAudio.create(
+                            self.has_audio,
+                            HasAudio.parse_from_hit_and_audio(db_hit, db_audio),
                         )
         return db_inline_query
 
@@ -327,11 +365,20 @@ class GraphDatabase:
                 )
 
             if db_query:
-                db_from_user_edge = FromUser.create(
+                db_query_keyword = self.get_or_create_query_keyword(query)
+                db_to_query_keyword_edge, successful = ToQueryKeyword.create(
+                    self.to_query_keyword,
+                    ToQueryKeyword.parse_from_query_and_query_keyword(
+                        db_query,
+                        db_query_keyword,
+                    )
+                )
+
+                db_from_user_edge, successful = FromUser.create(
                     self.from_user,
                     FromUser.parse_from_query_and_user(db_query, db_from_user)
                 )
-                db_to_bot_edge = ToBot.create(
+                db_to_bot_edge, successful = ToBot.create(
                     self.to_bot,
                     ToBot.parse_from_query_and_user(db_query, db_bot)
                 )
@@ -339,9 +386,21 @@ class GraphDatabase:
                 for audio_doc in audio_docs:
                     db_audio = self.get_audio_by_key(audio_doc.id)
                     if db_audio:
-                        db_hit = Hit.create(
-                            self.hit,
-                            Hit.parse_from_query_and_audio(db_query, db_audio, audio_doc.search_metadata)
+                        db_hit, successful = Hit.create(
+                            self.hits,
+                            Hit.parse_from_query_and_audio(
+                                db_query,
+                                db_audio,
+                                audio_doc.search_metadata,
+                            )
+                        )
+                        db_has_hit, successful = HasHit.create(
+                            self.has_hit,
+                            HasHit.parse_from_query_and_hit(db_query, db_hit)
+                        )
+                        db_has_audio, successful = HasAudio.create(
+                            self.has_audio,
+                            HasAudio.parse_from_hit_and_audio(db_hit, db_audio),
                         )
         return db_query
 
@@ -356,3 +415,66 @@ class GraphDatabase:
             return None
 
         return Audio.find_by_key(self.audios, id)
+
+    def get_or_create_download(
+            self,
+            chosen_inline_result: 'pyrogram.types.ChosenInlineResult',
+            bot_id: int,
+    ) -> Optional['Download']:
+        if chosen_inline_result is None or bot_id is None:
+            return None
+
+        inline_query_id, audio_key = chosen_inline_result.result_id.split("->")
+        cursor = self.inline_queries.find(
+            {
+                'query_id': inline_query_id,
+                'query': chosen_inline_result.query,
+            }
+        )
+        if cursor and len(cursor):
+            db_inline_query = InlineQuery.parse_from_graph(cursor.pop())
+        else:
+            db_inline_query = None
+
+        if db_inline_query:
+            db_audio = self.get_audio_by_key(audio_key)
+            db_bot = self.get_user_by_user_id(bot_id)
+            db_user = self.get_user_by_user_id(chosen_inline_result.from_user.id)
+            if db_bot and db_audio and db_user:
+                # todo: fix this
+                d = Download()
+                d.key = str(uuid.uuid4())
+                db_download, successful = Download.create(
+                    self.downloads,
+                    d,
+                )
+                if db_download:
+                    db_downloaded_edge, successful = Downloaded.create(
+                        self.downloaded,
+                        Downloaded.parse_from_user_and_download(db_user, db_download),
+                    )
+                    db_downloaded_from_bot_edge = DownloadedFromBot.create(
+                        self.downloaded_from_bot,
+                        DownloadedFromBot.parse_from_download_and_user(db_download, db_bot),
+                    )
+                    db_downloaded_audio = DownloadedAudio.create(
+                        self.downloaded_audio,
+                        DownloadedAudio.parse_from_download_and_audio(db_download, db_audio),
+                    )
+                    db_hit = Hit.find_by_key(self.hits, Hit.get_key(db_inline_query, db_audio))
+                    if db_hit:
+                        db_from_hit_edge, successful = FromHit.create(
+                            self.from_hit,
+                            FromHit.parse_from_download_and_hit(db_download, db_hit)
+                        )
+                    else:
+                        # todo: what then?
+                        pass
+
+                    return db_download
+                else:
+                    return None
+            else:
+                return None
+        else:
+            return None

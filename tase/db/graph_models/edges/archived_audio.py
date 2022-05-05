@@ -19,7 +19,7 @@ class ArchivedAudio(BaseEdge):
         if audio is None or archived_audio is None:
             return None
 
-        key = f'{audio.key}:{archived_audio.key}'
+        key = f'{audio.key}@{archived_audio.key}'
         return ArchivedAudio(
             key=key,
             from_node=audio,

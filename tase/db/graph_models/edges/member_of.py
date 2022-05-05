@@ -19,7 +19,7 @@ class MemberOf(BaseEdge):
         if chat is None or user is None:
             return None
 
-        key = f'{user.key}:{chat.key}'
+        key = f'{user.key}@{chat.key}'
         return MemberOf(
             key=key,
             from_node=user,

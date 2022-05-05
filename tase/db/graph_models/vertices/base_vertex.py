@@ -110,9 +110,9 @@ class BaseVertex(BaseModel):
             successful = True
         except DocumentInsertError as e:
             # Failed to insert the document
-            logger.exception(e)
+            logger.exception(f"{cls.__name__} : {e}")
         except Exception as e:
-            logger.exception(e)
+            logger.exception(f"{cls.__name__} : {e}")
         return vertex, successful
 
     @classmethod
@@ -143,12 +143,12 @@ class BaseVertex(BaseModel):
             successful = True
         except DocumentUpdateError as e:
             # Failed to update document.
-            logger.exception(e)
+            logger.exception(f"{cls.__name__} : {e}")
         except DocumentRevisionError as e:
             # The expected and actual document revisions mismatched.
-            logger.exception(e)
+            logger.exception(f"{cls.__name__} : {e}")
         except Exception as e:
-            logger.exception(e)
+            logger.exception(f"{cls.__name__} : {e}")
         return vertex, successful
 
     @classmethod

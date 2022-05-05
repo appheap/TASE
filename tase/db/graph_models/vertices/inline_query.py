@@ -16,6 +16,8 @@ class InlineQuery(BaseVertex):
 
     query_date: int
 
+    next_offset: Optional[str]
+
     duration: float
     max_score: float
     total_hits: int
@@ -28,14 +30,15 @@ class InlineQuery(BaseVertex):
     ) -> Optional['str']:
         if bot is None or inline_query is None:
             return None
-        return f'{bot.key}:{inline_query.id}'
+        return f'{bot.key}:{inline_query.from_user.id}:{inline_query.id}'
 
     @staticmethod
     def parse_from_inline_query(
             bot: 'User',
             inline_query: 'pyrogram.types.InlineQuery',
             query_date: int,
-            query_metadata: dict
+            query_metadata: dict,
+            next_offset: Optional[str],
     ) -> Optional['InlineQuery']:
         if bot is None or inline_query is None:
             return None
@@ -55,4 +58,5 @@ class InlineQuery(BaseVertex):
             max_score=query_metadata.get('max_score') or 0,
             total_hits=query_metadata.get('total_hits'),
             total_rel=query_metadata.get('total_rel'),
+            next_offset=next_offset,
         )

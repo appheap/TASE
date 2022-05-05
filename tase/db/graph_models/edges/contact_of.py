@@ -19,7 +19,7 @@ class ContactOf(BaseEdge):
         if from_user is None or to_user is None:
             return None
 
-        key = f'{from_user.key}:{to_user.key}'
+        key = f'{from_user.key}@{to_user.key}'
         return ContactOf(
             key=key,
             from_node=from_user,

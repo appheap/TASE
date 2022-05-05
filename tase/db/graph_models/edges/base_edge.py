@@ -44,11 +44,13 @@ class BaseEdge(BaseModel):
     created_at: int = Field(default_factory=get_timestamp)
     modified_at: int = Field(default_factory=get_timestamp)
 
-    def to_vertex_collections(self) -> List[str]:
-        return [v._vertex_name for v in self._to_vertex_collections]
+    @classmethod
+    def to_vertex_collections(cls) -> List[str]:
+        return [v._vertex_name for v in cls._to_vertex_collections]
 
-    def from_vertex_collections(self) -> List[str]:
-        return [v._vertex_name for v in self._from_vertex_collections]
+    @classmethod
+    def from_vertex_collections(cls) -> List[str]:
+        return [v._vertex_name for v in cls._from_vertex_collections]
 
     def _to_graph(self) -> dict:
         temp_dict = self.dict()
@@ -139,9 +141,9 @@ class BaseEdge(BaseModel):
             successful = True
         except DocumentInsertError as e:
             # Failed to insert the document
-            logger.exception(e)
+            logger.exception(f"{cls.__name__} : {e}")
         except Exception as e:
-            logger.exception(e)
+            logger.exception(f"{cls.__name__} : {e}")
         return edge, successful
 
     @classmethod
@@ -167,10 +169,10 @@ class BaseEdge(BaseModel):
             successful = True
         except DocumentUpdateError as e:
             # Failed to update document.
-            logger.exception(e)
+            logger.exception(f"{cls.__name__} : {e}")
         except DocumentRevisionError as e:
             # The expected and actual document revisions mismatched.
-            logger.exception(e)
+            logger.exception(f"{cls.__name__} : {e}")
         except Exception as e:
-            logger.exception(e)
+            logger.exception(f"{cls.__name__} : {e}")
         return edge, successful

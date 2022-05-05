@@ -19,7 +19,7 @@ class Creator(BaseEdge):
         if chat is None or creator is None:
             return None
 
-        key = f'{chat.key}:{creator.key}'
+        key = f'{chat.key}@{creator.key}'
         return Creator(
             key=key,
             from_node=chat,

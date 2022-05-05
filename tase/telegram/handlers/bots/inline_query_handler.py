@@ -1,18 +1,17 @@
 from __future__ import annotations
+
 from collections import defaultdict
 from typing import List
 
-import arrow
 import pyrogram
-from pyrogram.types import InlineQueryResultCachedAudio, InlineKeyboardMarkup, InlineKeyboardButton, \
-    InlineQueryResultArticle, InputMessageContent, InputTextMessageContent
+from pyrogram import handlers
+from pyrogram.types import InlineQueryResultCachedAudio, InlineQueryResultArticle, InputTextMessageContent
 
 from tase.db import elasticsearch_models
 from tase.my_logger import logger
 from tase.telegram.handlers import BaseHandler, HandlerMetadata
 from tase.templates import AudioCaptionData
 from tase.utils import get_timestamp
-from pyrogram import handlers
 
 
 class InlineQueryHandler(BaseHandler):
@@ -27,11 +26,12 @@ class InlineQueryHandler(BaseHandler):
 
     def on_inline_query(self, client: 'pyrogram.Client', inline_query: 'pyrogram.types.InlineQuery'):
         logger.debug(f"on_inline_query: {inline_query}")
-        query_date = get_timestamp(arrow.utcnow())
+        query_date = get_timestamp()
 
         found_any = True
         from_ = 0
         results = []
+        next_offset = None
 
         if inline_query.query is None or not len(inline_query.query):
             # todo: query is empty
@@ -46,14 +46,6 @@ class InlineQueryHandler(BaseHandler):
                 found_any = False
 
             db_audio_docs: List['elasticsearch_models.Audio'] = db_audio_docs
-
-            db_inline_query = self.db.get_or_create_inline_query(
-                self.telegram_client.telegram_id,
-                inline_query,
-                query_date=query_date,
-                query_metadata=query_metadata,
-                audio_docs=db_audio_docs,
-            )
 
             chat_msg = defaultdict(list)
             chats_dict = {}
@@ -106,9 +98,25 @@ class InlineQueryHandler(BaseHandler):
                     )
                 )
 
+            # todo: `2` works, but why?
+            plus = 2 if inline_query.offset is None or not len(inline_query.offset) else 0
+            next_offset = str(from_ + len(results) + plus) if len(results) else None
+            db_inline_query = self.db.get_or_create_inline_query(
+                self.telegram_client.telegram_id,
+                inline_query,
+                query_date=query_date,
+                query_metadata=query_metadata,
+                audio_docs=db_audio_docs,
+                next_offset=next_offset
+            )
+
+            # ids = [result.audio_file_id for result in results]
+            logger.info(
+                f"{inline_query.id} : {inline_query.query} ({len(results)}) => {inline_query.offset} : {next_offset}")
+            # logger.info(ids)
+
         if found_any:
             try:
-                next_offset = str(from_ + len(results) - 1) if (len(results) - 1) else None
                 inline_query.answer(results, cache_time=1, next_offset=next_offset)
             except Exception as e:
                 logger.exception(e)
@@ -120,7 +128,7 @@ class InlineQueryHandler(BaseHandler):
                         title="No Results were found",
                         description="description",
                         input_message_content=InputTextMessageContent(
-                            message_text="",
+                            message_text="No Results were found",
                         )
                     )
                 ]

@@ -19,7 +19,7 @@ class FileRef(BaseEdge):
         if audio is None or file is None:
             return None
 
-        key = f"{audio.key}:{file.key}"
+        key = f"{audio.key}@{file.key}"
         return FileRef(
             key=key,
             from_node=audio,

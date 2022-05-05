@@ -19,7 +19,7 @@ class DownloadedFromBot(BaseEdge):
         if download is None or user is None:
             return None
 
-        key = f'{download.key}:{user.key}'
+        key = f'{download.key}@{user.key}'
         return DownloadedFromBot(
             key=key,
             from_node=download,

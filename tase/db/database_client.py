@@ -93,12 +93,20 @@ class DatabaseClient:
             inline_query: 'pyrogram.types.InlineQuery',
             query_date: int,
             query_metadata: dict,
-            audio_docs: List[elasticsearch_models.Audio]
+            audio_docs: List[elasticsearch_models.Audio],
+            next_offset: Optional[str],
     ) -> Optional[graph_models.vertices.InlineQuery]:
         if bot_id is None or inline_query is None or query_date is None or query_metadata is None or audio_docs is None:
             return None
 
-        return self._graph_db.get_or_create_inline_query(bot_id, inline_query, query_date, query_metadata, audio_docs)
+        return self._graph_db.get_or_create_inline_query(
+            bot_id,
+            inline_query,
+            query_date,
+            query_metadata,
+            audio_docs,
+            next_offset,
+        )
 
     def get_or_create_query(
             self,
@@ -146,3 +154,13 @@ class DatabaseClient:
             return None
 
         return self._es_db.get_audio_by_download_url(download_url)
+
+    def get_or_create_download(
+            self,
+            chosen_inline_result: 'pyrogram.types.ChosenInlineResult',
+            bot_id: int,
+    ) -> Optional['graph_models.vertices.Download']:
+        if chosen_inline_result is None or bot_id is None:
+            return None
+
+        return self._graph_db.get_or_create_download(chosen_inline_result, bot_id)

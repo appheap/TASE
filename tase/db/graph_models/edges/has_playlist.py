@@ -19,7 +19,7 @@ class HasPlaylist(BaseEdge):
         if user is None or playlist is None:
             return None
 
-        key = f'{user.key}:{playlist.key}'
+        key = f'{user.key}@{playlist.key}'
         return HasPlaylist(
             key=key,
             from_node=user,

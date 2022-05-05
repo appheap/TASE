@@ -19,7 +19,7 @@ class DownloadedAudio(BaseEdge):
         if download is None or audio is None:
             return None
 
-        key = f'{download.key}:{audio.key}'
+        key = f'{download.key}@{audio.key}'
         return DownloadedAudio(
             key=key,
             from_node=download,

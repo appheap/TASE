@@ -17,7 +17,7 @@ class SenderChat(BaseEdge):
         if audio is None and chat is None:
             return None
 
-        key = f"{audio.key}:{chat.key}"
+        key = f"{audio.key}@{chat.key}"
         return SenderChat(
             key=key,
             from_node=audio,

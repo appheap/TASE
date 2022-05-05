@@ -19,7 +19,7 @@ class FromUser(BaseEdge):
         if inline_query is None or user is None:
             return None
 
-        key = f'{inline_query.key}:{user.key}'
+        key = f'{inline_query.key}@{user.key}'
         return FromUser(
             key=key,
             from_node=inline_query,
@@ -31,7 +31,7 @@ class FromUser(BaseEdge):
         if query is None or user is None:
             return None
 
-        key = f'{query.key}:{user.key}'
+        key = f'{query.key}@{user.key}'
         return FromUser(
             key=key,
             from_node=query,

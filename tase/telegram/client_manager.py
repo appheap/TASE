@@ -32,6 +32,32 @@ class ClientManager(mp.Process):
         self.task_queues = task_queues
         self.db = database_client
 
+    def run(self) -> None:
+        logger.info(mp.current_process().name)
+        logger.info(threading.current_thread())
+
+        self.telegram_client.start()
+
+        me = self.telegram_client.get_me()
+        if me:
+            self.telegram_client.telegram_id = me.id
+            self.db.update_or_create_user(me)
+
+        worker = ClientWorkerThread(
+            telegram_client=self.telegram_client,
+            index=0,
+            db=self.db,
+            task_queues=self.task_queues,
+        )
+        worker.start()
+
+        self.init_handlers()
+        self.register_update_handlers()
+
+        idle()
+        self.telegram_client.stop()
+
+    def init_handlers(self):
         self.user_update_handlers = [
             UserChatMemberUpdatedHandler(
                 db=self.db,
@@ -93,30 +119,6 @@ class ClientManager(mp.Process):
             task_queues=self.task_queues,
             telegram_client=self.telegram_client
         )
-
-    def run(self) -> None:
-        logger.info(mp.current_process().name)
-        logger.info(threading.current_thread())
-
-        self.telegram_client.start()
-
-        me = self.telegram_client.get_me()
-        if me:
-            self.telegram_client.telegram_id = me.id
-            self.db.update_or_create_user(me)
-
-        self.register_update_handlers()
-
-        worker = ClientWorkerThread(
-            telegram_client=self.telegram_client,
-            index=0,
-            db=self.db,
-            task_queues=self.task_queues,
-        )
-        worker.start()
-
-        idle()
-        self.telegram_client.stop()
 
     def register_update_handlers(self) -> None:
         """
