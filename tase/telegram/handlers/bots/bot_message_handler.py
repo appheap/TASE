@@ -71,10 +71,14 @@ class BotMessageHandler(BaseHandler):
 
         # todo: find a better way to update user when it's necessary
         db_user = self.db.get_user_by_user_id(message.from_user.id)
-        # db_user = self.db.update_or_create_user(message.from_user)
+        if not db_user:
+            db_user = self.db.update_or_create_user(message.from_user)
 
+        # todo: handle errors for invalid messages
         download_url = message.text.split('/dl_')[1]
-        db_audio_doc = self.db.get_audio_doc_by_download_url(download_url)
+        db_hit = self.db.get_hit_by_download_url(download_url)
+        db_audio = self.db.get_audio_from_hit(db_hit)
+        db_audio_doc = self.db.get_audio_doc_by_key(db_audio.key)
         if db_audio_doc:
             audio_file_cache = self.db.get_audio_file_from_cache(db_audio_doc, self.telegram_client.telegram_id)
             db_chat = self.db.get_chat_by_chat_id(db_audio_doc.chat_id)
@@ -93,7 +97,7 @@ class BotMessageHandler(BaseHandler):
                     db_audio_doc,
                     db_user,
                     db_chat,
-                    bot_url='',
+                    bot_url='https://t.me/bot?start',
                     include_source=True,
                 )
             )
@@ -102,6 +106,11 @@ class BotMessageHandler(BaseHandler):
                 audio=file_id,
                 caption=text,
                 parse_mode=ParseMode.HTML,
+            )
+
+            db_download = self.db.get_or_create_download_from_download_url(
+                download_url, db_user,
+                self.telegram_client.telegram_id,
             )
         else:
             # todo: An Error occurred while processing this audio download url, why?
@@ -120,6 +129,9 @@ class BotMessageHandler(BaseHandler):
         message_date = message.date
         query = message.text
 
+        # update the user
+        db_from_user = self.db.update_or_create_user(message.from_user)
+
         found_any = True
         db_audio_docs = []
 
@@ -130,7 +142,7 @@ class BotMessageHandler(BaseHandler):
             if not db_audio_docs or not len(db_audio_docs) or not len(query_metadata):
                 found_any = False
 
-            db_query = self.db.get_or_create_query(
+            db_query, db_hits = self.db.get_or_create_query(
                 self.telegram_client.telegram_id,
                 from_user,
                 query,
@@ -140,7 +152,7 @@ class BotMessageHandler(BaseHandler):
             )
 
         if found_any:
-            def process_item(index, db_audio):
+            def process_item(index, db_audio, db_hit):
                 duration = timedelta(seconds=db_audio.duration)
                 d = datetime(1, 1, 1) + duration
                 _performer = db_audio.performer or ""
@@ -158,13 +170,13 @@ class BotMessageHandler(BaseHandler):
                     'name': textwrap.shorten(name, width=35, placeholder='...'),
                     'file_size': round(db_audio.file_size / 1000_000, 1),
                     'time': f"{str(d.hour) + ':' if d.hour > 0 else ''}{d.minute:02}:{d.second:02}",
-                    'url': db_audio.download_url,
+                    'url': db_hit.download_url,
                     'sep': f"{40 * '-' if index != 0 else ''}",
                 }
 
             items = [
-                process_item(index, db_audio)
-                for index, db_audio in reversed(list(enumerate(db_audio_docs)))
+                process_item(index, db_audio, db_hit)
+                for index, (db_audio, db_hit) in reversed(list(enumerate(zip(db_audio_docs, db_hits))))
             ]
 
             data = QueryResultsData(

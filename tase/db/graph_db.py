@@ -1,5 +1,5 @@
 import uuid
-from typing import Optional, List
+from typing import Optional, List, Tuple
 
 import pyrogram
 from arango import ArangoClient
@@ -289,7 +289,7 @@ class GraphDatabase:
         if bot_id is None or inline_query is None or query_date is None or query_metadata is None or audio_docs is None:
             return None
         db_bot = self.get_user_by_user_id(bot_id)
-        db_from_user = self.update_or_create_user(inline_query.from_user)
+        db_from_user = self.get_user_by_user_id(inline_query.from_user.id)
         db_inline_query = None
 
         if db_bot and db_from_user:
@@ -348,12 +348,15 @@ class GraphDatabase:
             query_date: int,
             query_metadata: dict,
             audio_docs: List['elasticsearch_db.Audio']
-    ) -> Optional['Query']:
+    ) -> Optional[Tuple[Query, List[Hit]]]:
         if bot_id is None or from_user is None or query is None or query_date is None or query_metadata is None or audio_docs is None:
             return None
 
+        # todo: this is a temporary solution
+        hits = []
+
         db_bot = self.get_user_by_user_id(bot_id)
-        db_from_user = self.update_or_create_user(from_user)
+        db_from_user = self.get_user_by_user_id(from_user.id)
         db_query = None
 
         if db_bot and db_from_user:
@@ -394,6 +397,9 @@ class GraphDatabase:
                                 audio_doc.search_metadata,
                             )
                         )
+                        if db_hit and successful:
+                            hits.append(db_hit)
+
                         db_has_hit, successful = HasHit.create(
                             self.has_hit,
                             HasHit.parse_from_query_and_hit(db_query, db_hit)
@@ -402,7 +408,7 @@ class GraphDatabase:
                             self.has_audio,
                             HasAudio.parse_from_hit_and_audio(db_hit, db_audio),
                         )
-        return db_query
+        return db_query, hits
 
     def get_chat_by_chat_id(self, chat_id) -> Optional[Chat]:
         if chat_id is None:
@@ -416,7 +422,7 @@ class GraphDatabase:
 
         return Audio.find_by_key(self.audios, id)
 
-    def get_or_create_download(
+    def get_or_create_download_from_chosen_inline_query(
             self,
             chosen_inline_result: 'pyrogram.types.ChosenInlineResult',
             bot_id: int,
@@ -476,5 +482,69 @@ class GraphDatabase:
                     return None
             else:
                 return None
+        else:
+            return None
+
+    def get_or_create_download_from_download_link(
+            self,
+            download_url: 'str',
+            from_user: 'User',
+            bot_id: int,
+    ) -> Optional['Download']:
+        if download_url is None or bot_id is None or from_user is None:
+            return None
+
+        db_hit = self.get_hit_by_download_url(download_url)
+        db_audio = self.get_audio_from_hit(db_hit)
+        db_bot = self.get_user_by_user_id(bot_id)
+        db_user = from_user
+        if db_hit and db_bot and db_audio and db_user:
+            # todo: fix this
+            d = Download()
+            d.key = str(uuid.uuid4())
+            db_download, successful = Download.create(
+                self.downloads,
+                d,
+            )
+            if db_download:
+                db_downloaded_edge, successful = Downloaded.create(
+                    self.downloaded,
+                    Downloaded.parse_from_user_and_download(db_user, db_download),
+                )
+                db_downloaded_from_bot_edge = DownloadedFromBot.create(
+                    self.downloaded_from_bot,
+                    DownloadedFromBot.parse_from_download_and_user(db_download, db_bot),
+                )
+                db_downloaded_audio = DownloadedAudio.create(
+                    self.downloaded_audio,
+                    DownloadedAudio.parse_from_download_and_audio(db_download, db_audio),
+                )
+                db_from_hit_edge, successful = FromHit.create(
+                    self.from_hit,
+                    FromHit.parse_from_download_and_hit(db_download, db_hit)
+                )
+                return db_download
+            else:
+                return None
+        else:
+            return None
+
+    def get_hit_by_download_url(self, download_url: str) -> Optional[Hit]:
+        if download_url is None:
+            return None
+
+        return Hit.find_by_download_url(self.hits, download_url)
+
+    def get_audio_from_hit(self, hit: Hit) -> Optional[Audio]:
+        if hit is None:
+            return None
+
+        cursor = self.db.aql.execute(
+            f"for v_audio in 1..1 any '{hit.id}' {HasAudio._collection_edge_name}"
+            f"  return v_audio",
+            count=True,
+        )
+        if cursor and len(cursor):
+            return Audio.parse_from_graph(vertex=cursor.pop())
         else:
             return None

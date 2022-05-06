@@ -24,7 +24,7 @@ class ChosenInlineQueryHandler(BaseHandler):
     ):
         logger.debug(f"on_chosen_inline_query: {chosen_inline_result}")
 
-        db_download = self.db.get_or_create_download(
+        db_download = self.db.get_or_create_download_from_chosen_inline_query(
             chosen_inline_result,
             self.telegram_client.telegram_id
         )

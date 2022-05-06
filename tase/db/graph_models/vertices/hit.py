@@ -1,4 +1,7 @@
+import secrets
 from typing import Optional, Union
+
+from arango.collection import VertexCollection
 
 from .base_vertex import BaseVertex
 from .audio import Audio
@@ -14,6 +17,8 @@ class Hit(BaseVertex):
     score: float
     query_date: int
 
+    download_url: Optional[str]
+
     @staticmethod
     def get_key(
             q: Union[Query, InlineQuery],
@@ -25,6 +30,15 @@ class Hit(BaseVertex):
         return f'{q.key}:{audio.key}:{q.query_date}'
 
     @staticmethod
+    def generate_download_url():
+        while True:
+            # todo: make sure the generated token is unique
+            download_url = secrets.token_urlsafe(6)
+            if download_url.find('-') == -1:
+                break
+        return download_url
+
+    @staticmethod
     def parse_from_query_and_audio(
             query: 'Query',
             audio: 'Audio',
@@ -34,11 +48,13 @@ class Hit(BaseVertex):
             return None
 
         key = Hit.get_key(query, audio)
+        download_url = Hit.generate_download_url()
         return Hit(
             key=key,
             rank=search_metadata.rank,
             score=search_metadata.score,
             query_date=query.query_date,
+            download_url=download_url,
         )
 
     @staticmethod
@@ -57,3 +73,14 @@ class Hit(BaseVertex):
             score=search_metadata.score,
             query_date=inline_query.query_date,
         )
+
+    @classmethod
+    def find_by_download_url(cls, db: 'VertexCollection', download_url: str) -> Optional['Hit']:
+        if db is None or download_url is None:
+            return None
+
+        cursor = db.find({'download_url': download_url})
+        if cursor and len(cursor):
+            return cls.parse_from_graph(cursor.pop())
+        else:
+            return None

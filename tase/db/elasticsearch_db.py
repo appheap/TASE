@@ -61,3 +61,8 @@ class ElasticsearchDatabase:
         if download_url is None:
             return None
         return Audio.search_by_download_url(self.es, download_url)
+
+    def get_audio_by_id(self, key: str) -> Optional[Audio]:
+        if key is None:
+            return None
+        return Audio.search_by_id(self.es, key)

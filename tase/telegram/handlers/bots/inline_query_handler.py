@@ -28,6 +28,9 @@ class InlineQueryHandler(BaseHandler):
         logger.debug(f"on_inline_query: {inline_query}")
         query_date = get_timestamp()
 
+        # update the user
+        db_from_user = self.db.update_or_create_user(inline_query.from_user)
+
         found_any = True
         from_ = 0
         results = []

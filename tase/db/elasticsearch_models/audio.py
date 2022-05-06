@@ -59,13 +59,10 @@ class Audio(BaseDocument):
             "download_count": {
                 "type": "long"
             },
-            "download_url": {
-                "type": "keyword"
-            }
         }
     }
 
-    _do_not_update = ['created_at', 'download_count', 'download_url']
+    _do_not_update = ['created_at', 'download_count', ]
     _search_fields = ['performer', 'file_name', 'message_caption', 'title']
 
     chat_id: int
@@ -83,7 +80,6 @@ class Audio(BaseDocument):
     date: int
 
     download_count: int
-    download_url: str
 
     @staticmethod
     def get_id(message: 'pyrogram.types.Message'):
@@ -114,7 +110,6 @@ class Audio(BaseDocument):
             file_size=message.audio.file_size,
             date=get_timestamp(message.audio.date),
             download_count=0,
-            download_url=download_url,
         )
 
     @classmethod
@@ -129,6 +124,33 @@ class Audio(BaseDocument):
                 query={
                     "match": {
                         "download_url": download_url,
+                    },
+                }
+            )
+
+            hits = res.body['hits']['hits']
+
+            for index, hit in enumerate(hits, start=1):
+                db_doc = cls.parse_from_db_hit(hit, len(hits) - index + 1)
+                db_docs.append(db_doc)
+
+        except Exception as e:
+            logger.exception(e)
+
+        return db_docs[0] if len(db_docs) else None
+
+    @classmethod
+    def search_by_id(cls, es: 'Elasticsearch', key: str) -> Optional['Audio']:
+        if es is None or key is None:
+            return None
+        db_docs = []
+
+        try:
+            res: 'ObjectApiResponse' = es.search(
+                index=cls._index_name,
+                query={
+                    "match": {
+                        "_id": key,
                     },
                 }
             )

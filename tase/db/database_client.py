@@ -116,7 +116,7 @@ class DatabaseClient:
             query_date: int,
             query_metadata: dict,
             audio_docs: List[elasticsearch_models.Audio]
-    ) -> Optional[graph_models.vertices.Query]:
+    ) -> Optional[Tuple[graph_models.vertices.Query, List[graph_models.vertices.Hit]]]:
         if bot_id is None or from_user is None or query is None or query_date is None or query_metadata is None or audio_docs is None:
             return None
 
@@ -155,7 +155,13 @@ class DatabaseClient:
 
         return self._es_db.get_audio_by_download_url(download_url)
 
-    def get_or_create_download(
+    def get_audio_doc_by_key(self, key: str) -> Optional[elasticsearch_models.Audio]:
+        if key is None:
+            return None
+
+        return self._es_db.get_audio_by_id(key)
+
+    def get_or_create_download_from_chosen_inline_query(
             self,
             chosen_inline_result: 'pyrogram.types.ChosenInlineResult',
             bot_id: int,
@@ -163,4 +169,27 @@ class DatabaseClient:
         if chosen_inline_result is None or bot_id is None:
             return None
 
-        return self._graph_db.get_or_create_download(chosen_inline_result, bot_id)
+        return self._graph_db.get_or_create_download_from_chosen_inline_query(chosen_inline_result, bot_id)
+
+    def get_or_create_download_from_download_url(
+            self,
+            download_url: str,
+            from_user: 'graph_models.vertices.User',
+            bot_id: int,
+    ) -> Optional['graph_models.vertices.Download']:
+        if download_url is None or bot_id is None or from_user is None:
+            return None
+
+        return self._graph_db.get_or_create_download_from_download_link(download_url, from_user, bot_id)
+
+    def get_hit_by_download_url(self, download_url: str) -> Optional[graph_models.vertices.Hit]:
+        if download_url is None:
+            return None
+
+        return self._graph_db.get_hit_by_download_url(download_url)
+
+    def get_audio_from_hit(self, hit: graph_models.vertices.Hit) -> Optional[graph_models.vertices.Audio]:
+        if hit is None:
+            return None
+
+        return self._graph_db.get_audio_from_hit(hit)
