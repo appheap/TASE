@@ -9,7 +9,7 @@ from pyrogram.types import InlineQueryResultCachedAudio, InlineQueryResultArticl
 
 from tase.db import elasticsearch_models
 from tase.my_logger import logger
-from tase.telegram.handlers import BaseHandler, HandlerMetadata
+from tase.telegram.handlers import BaseHandler, HandlerMetadata, exception_handler
 from tase.templates import AudioCaptionData
 from tase.utils import get_timestamp
 
@@ -24,6 +24,7 @@ class InlineQueryHandler(BaseHandler):
             )
         ]
 
+    @exception_handler
     def on_inline_query(self, client: 'pyrogram.Client', inline_query: 'pyrogram.types.InlineQuery'):
         logger.debug(f"on_inline_query: {inline_query}")
         query_date = get_timestamp()

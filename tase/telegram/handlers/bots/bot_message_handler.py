@@ -9,7 +9,7 @@ from pyrogram import handlers
 from pyrogram.enums import ParseMode
 
 from tase.my_logger import logger
-from tase.telegram.handlers import BaseHandler, HandlerMetadata
+from tase.telegram.handlers import BaseHandler, HandlerMetadata, exception_handler
 from tase.templates import QueryResultsData, NoResultsWereFoundData, AudioCaptionData
 from tase.utils import get_timestamp, _trans
 
@@ -53,12 +53,15 @@ class BotMessageHandler(BaseHandler):
         ]
         return handlers_list
 
+    @exception_handler
     def start_bot_handler(self, client: 'pyrogram.Client', message: 'pyrogram.types.Message'):
         logger.debug(f"start_bot_handler: {message.command}")
 
+    @exception_handler
     def base_commands_handler(self, client: 'pyrogram.Client', message: 'pyrogram.types.Message'):
         logger.debug(f"base_commands_handler: {message.command}")
 
+    @exception_handler
     def downloads_handler(self, client: 'pyrogram.Client', message: 'pyrogram.types.Message'):
         """
         Check if the message is coming from a Telegram client and contains "dl_" regex, and then submit
@@ -119,6 +122,7 @@ class BotMessageHandler(BaseHandler):
                 _trans("An Error occurred while processing this audio download url", db_user.language_code)
             )
 
+    @exception_handler
     def search_query_handler(self, client: 'pyrogram.Client', message: 'pyrogram.types.Message'):
         logger.info(f"search_query_handler: {message.text}")
         # todo: fix this
@@ -201,5 +205,6 @@ class BotMessageHandler(BaseHandler):
             parse_mode=ParseMode.HTML,
         )
 
+    @exception_handler
     def bot_message_handler(self, client: 'pyrogram.Client', message: 'pyrogram.types.Message'):
         logger.info(f"bot_message_handler: {message}")

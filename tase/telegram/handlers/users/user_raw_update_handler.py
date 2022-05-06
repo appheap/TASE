@@ -5,7 +5,7 @@ from pyrogram import handlers
 from pyrogram import raw
 
 from tase.my_logger import logger
-from tase.telegram.handlers import BaseHandler, HandlerMetadata
+from tase.telegram.handlers import BaseHandler, HandlerMetadata, exception_handler
 
 
 class UserRawUpdateHandler(BaseHandler):
@@ -20,6 +20,7 @@ class UserRawUpdateHandler(BaseHandler):
             )
         ]
 
+    @exception_handler
     def raw_update_handler(
             self,
             client: 'pyrogram.Client',

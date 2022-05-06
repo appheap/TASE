@@ -6,7 +6,7 @@ from tase.my_logger import logger
 
 from pyrogram import handlers
 
-from tase.telegram.handlers import HandlerMetadata, BaseHandler
+from tase.telegram.handlers import HandlerMetadata, BaseHandler, exception_handler
 
 
 class CallbackQueryHandler(BaseHandler):
@@ -18,6 +18,7 @@ class CallbackQueryHandler(BaseHandler):
             )
         ]
 
+    @exception_handler
     def on_callback_query(self, client: 'pyrogram.Client', callback_query: 'pyrogram.types.CallbackQuery'):
         logger.debug(f"on_callback_query: {callback_query}")
         # callback_query.edit_message_caption(str(arrow.utcnow()),reply_markup=callback_query.message.reply_markup)

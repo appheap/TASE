@@ -3,7 +3,7 @@ from typing import List
 import arrow
 import pyrogram
 from pyrogram import handlers
-from .base_handler import BaseHandler
+from .base_handler import BaseHandler, exception_handler
 from tase.my_logger import logger
 from .handler_metadata import HandlerMetadata
 
@@ -18,5 +18,6 @@ class ClientDisconnectHandler(BaseHandler):
             )
         ]
 
+    @exception_handler
     def on_disconnect(self, client: 'pyrogram.Client'):
         logger.info(f"client {client.name} disconnected @ {arrow.utcnow()}")

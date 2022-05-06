@@ -4,7 +4,7 @@ import pyrogram
 from pyrogram import handlers
 
 from tase.my_logger import logger
-from tase.telegram.handlers import BaseHandler, HandlerMetadata
+from tase.telegram.handlers import BaseHandler, HandlerMetadata, exception_handler
 
 
 class ChosenInlineQueryHandler(BaseHandler):
@@ -17,6 +17,7 @@ class ChosenInlineQueryHandler(BaseHandler):
             )
         ]
 
+    @exception_handler
     def on_chosen_inline_query(
             self,
             client: 'pyrogram.Client',

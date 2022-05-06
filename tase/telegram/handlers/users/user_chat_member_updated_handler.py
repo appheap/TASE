@@ -4,7 +4,7 @@ from tase.my_logger import logger
 import pyrogram
 from pyrogram import handlers
 
-from tase.telegram.handlers import BaseHandler, HandlerMetadata
+from tase.telegram.handlers import BaseHandler, HandlerMetadata, exception_handler
 
 
 class UserChatMemberUpdatedHandler(BaseHandler):
@@ -18,6 +18,7 @@ class UserChatMemberUpdatedHandler(BaseHandler):
             )
         ]
 
+    @exception_handler
     # todo: not working, why?
     def chat_member_update_handler(
             self,
