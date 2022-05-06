@@ -1,59 +1,47 @@
 from .archived_audio import ArchivedAudio
 from .base_edge import BaseEdge
-from .contact_of import ContactOf
-from .creator import Creator
 from .downloaded import Downloaded
-from .downloaded_audio import DownloadedAudio
-from .downloaded_from_bot import DownloadedFromBot
 from .file_ref import FileRef
+from .from_bot import FromBot
 from .from_hit import FromHit
-from .from_user import FromUser
-from .has_audio import HasAudio
-from .has_playlist import HasPlaylist
-from .has_hit import HasHit
+from .has import Has
+from .has_made import HasMade
+from .is_contact_of import IsContactOf
+from .is_creator_of import IsCreatorOf
+from .is_member_of import IsMemberOf
 from .linked_chat import LinkedChat
-from .member_of import MemberOf
-from .sender_chat import SenderChat
+from .sent_by import SentBy
 from .to_bot import ToBot
-from .to_query_keyword import ToQueryKeyword
 
 __all__ = [
     'ArchivedAudio',
     'BaseEdge',
-    'ContactOf',
-    'Creator',
     'Downloaded',
-    'DownloadedAudio',
-    'DownloadedFromBot',
     'FileRef',
+    'FromBot',
     'FromHit',
-    'FromUser',
-    'HasAudio',
-    'HasPlaylist',
-    'HasHit',
+    'Has',
+    'HasMade',
+    'IsContactOf',
+    'IsCreatorOf',
+    'IsMemberOf',
     'LinkedChat',
-    'MemberOf',
-    'SenderChat',
+    'SentBy',
     'ToBot',
-    'ToQueryKeyword',
 ]
 
 edges = [
     ArchivedAudio,
-    ContactOf,
-    Creator,
     Downloaded,
-    DownloadedAudio,
-    DownloadedFromBot,
     FileRef,
+    FromBot,
     FromHit,
-    FromUser,
-    HasAudio,
-    HasPlaylist,
-    HasHit,
+    Has,
+    HasMade,
+    IsContactOf,
+    IsCreatorOf,
+    IsMemberOf,
     LinkedChat,
-    MemberOf,
-    SenderChat,
+    SentBy,
     ToBot,
-    ToQueryKeyword,
 ]

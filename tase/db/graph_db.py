@@ -8,8 +8,8 @@ from arango.database import StandardDatabase
 from arango.graph import Graph
 
 from . import elasticsearch_db
-from .graph_models.edges import FileRef, SenderChat, LinkedChat, Creator, MemberOf, edges, FromUser, ToBot, HasHit, \
-    ToQueryKeyword, HasAudio, Downloaded, DownloadedFromBot, DownloadedAudio, FromHit
+from .graph_models.edges import FileRef, SentBy, LinkedChat, IsCreatorOf, IsMemberOf, edges, HasMade, ToBot, Has, \
+    Downloaded, FromBot, FromHit
 from .graph_models.vertices import Audio, Chat, File, User, InlineQuery, vertices, Query, QueryKeyword, Hit, Download
 
 
@@ -30,22 +30,18 @@ class GraphDatabase:
     users: 'VertexCollection'
 
     archived_audio: 'EdgeCollection'
-    contact_of: 'EdgeCollection'
-    creator: 'EdgeCollection'
     downloaded: 'EdgeCollection'
-    downloaded_audio: 'EdgeCollection'
-    downloaded_from_bot: 'EdgeCollection'
     file_ref: 'EdgeCollection'
+    from_bot: 'EdgeCollection'
     from_hit: 'EdgeCollection'
-    from_user: 'EdgeCollection'
-    has_audio: 'EdgeCollection'
-    has_hit: 'EdgeCollection'
-    has_playlist: 'EdgeCollection'
+    has: 'EdgeCollection'
+    has_made: 'EdgeCollection'
+    is_contact_of: 'EdgeCollection'
+    is_creator_of: 'EdgeCollection'
+    is_member_of: 'EdgeCollection'
     linked_chat: 'EdgeCollection'
-    member_of: 'EdgeCollection'
-    sender_chat: 'EdgeCollection'
+    sent_by: 'EdgeCollection'
     to_bot: 'EdgeCollection'
-    to_query_keyword: 'EdgeCollection'
 
     def __init__(
             self,
@@ -192,12 +188,13 @@ class GraphDatabase:
             pass
 
         if chat and telegram_chat.is_creator and creator:
-            creator_of, successful = Creator.create(self.creator, Creator.parse_from_chat_and_user(chat, creator))
+            is_creator_of, successful = IsCreatorOf.create(self.is_creator_of,
+                                                           IsCreatorOf.parse_from_chat_and_user(chat, creator))
 
         if chat and member:
-            member_of, successful = MemberOf.create(
-                self.member_of,
-                MemberOf.parse_from_user_and_chat(user=member, chat=chat)
+            is_member_of, successful = IsMemberOf.create(
+                self.is_creator_of,
+                IsMemberOf.parse_from_user_and_chat(user=member, chat=chat)
             )
 
         return chat
@@ -235,9 +232,9 @@ class GraphDatabase:
         if audio and successful:
             chat = self.get_or_create_chat(message.chat)
 
-            sender_chat, successful = SenderChat.create(
-                self.sender_chat,
-                SenderChat.parse_from_audio_and_chat(audio, chat)
+            sent_by, successful = SentBy.create(
+                self.sent_by,
+                SentBy.parse_from_audio_and_chat(audio, chat)
             )
 
             if self.files.has(audio.file_unique_id):
@@ -302,17 +299,17 @@ class GraphDatabase:
 
             if db_inline_query:
                 db_query_keyword = self.get_or_create_query_keyword(inline_query.query)
-                db_to_query_keyword_edge, successful = ToQueryKeyword.create(
-                    self.to_query_keyword,
-                    ToQueryKeyword.parse_from_inline_query_and_query_keyword(
+                db_has_query_keyword, successful = Has.create(
+                    self.has,
+                    Has.parse_from_inline_query_and_query_keyword(
                         db_inline_query,
                         db_query_keyword,
                     )
                 )
 
-                db_from_user_edge, successful = FromUser.create(
-                    self.from_user,
-                    FromUser.parse_from_inline_query_and_user(db_inline_query, db_from_user)
+                db_has_made, successful = HasMade.create(
+                    self.has_made,
+                    HasMade.parse_from_user_and_inline_query(db_from_user, db_inline_query)
                 )
                 db_to_bot_edge, successful = ToBot.create(
                     self.to_bot,
@@ -330,13 +327,13 @@ class GraphDatabase:
                                 audio_doc.search_metadata,
                             )
                         )
-                        db_has_hit, successful = HasHit.create(
-                            self.has_hit,
-                            HasHit.parse_from_inline_query_and_hit(db_inline_query, db_hit)
+                        db_has_hit, successful = Has.create(
+                            self.has,
+                            Has.parse_from_inline_query_and_hit(db_inline_query, db_hit)
                         )
-                        db_has_audio, successful = HasAudio.create(
-                            self.has_audio,
-                            HasAudio.parse_from_hit_and_audio(db_hit, db_audio),
+                        db_has_audio, successful = Has.create(
+                            self.has,
+                            Has.parse_from_hit_and_audio(db_hit, db_audio),
                         )
         return db_inline_query
 
@@ -369,17 +366,17 @@ class GraphDatabase:
 
             if db_query:
                 db_query_keyword = self.get_or_create_query_keyword(query)
-                db_to_query_keyword_edge, successful = ToQueryKeyword.create(
-                    self.to_query_keyword,
-                    ToQueryKeyword.parse_from_query_and_query_keyword(
+                db_has_query_keyword, successful = Has.create(
+                    self.has,
+                    Has.parse_from_query_and_query_keyword(
                         db_query,
                         db_query_keyword,
                     )
                 )
 
-                db_from_user_edge, successful = FromUser.create(
-                    self.from_user,
-                    FromUser.parse_from_query_and_user(db_query, db_from_user)
+                db_has_made, successful = HasMade.create(
+                    self.has_made,
+                    HasMade.parse_from_user_and_query(db_from_user, db_query)
                 )
                 db_to_bot_edge, successful = ToBot.create(
                     self.to_bot,
@@ -400,13 +397,13 @@ class GraphDatabase:
                         if db_hit and successful:
                             hits.append(db_hit)
 
-                        db_has_hit, successful = HasHit.create(
-                            self.has_hit,
-                            HasHit.parse_from_query_and_hit(db_query, db_hit)
+                        db_has_hit, successful = Has.create(
+                            self.has,
+                            Has.parse_from_query_and_hit(db_query, db_hit)
                         )
-                        db_has_audio, successful = HasAudio.create(
-                            self.has_audio,
-                            HasAudio.parse_from_hit_and_audio(db_hit, db_audio),
+                        db_has_audio, successful = Has.create(
+                            self.has,
+                            Has.parse_from_hit_and_audio(db_hit, db_audio),
                         )
         return db_query, hits
 
@@ -459,13 +456,13 @@ class GraphDatabase:
                         self.downloaded,
                         Downloaded.parse_from_user_and_download(db_user, db_download),
                     )
-                    db_downloaded_from_bot_edge = DownloadedFromBot.create(
-                        self.downloaded_from_bot,
-                        DownloadedFromBot.parse_from_download_and_user(db_download, db_bot),
+                    db_from_bot = FromBot.create(
+                        self.from_bot,
+                        FromBot.parse_from_download_and_user(db_download, db_bot),
                     )
-                    db_downloaded_audio = DownloadedAudio.create(
-                        self.downloaded_audio,
-                        DownloadedAudio.parse_from_download_and_audio(db_download, db_audio),
+                    db_downloaded_audio = Has.create(
+                        self.has,
+                        Has.parse_from_download_and_audio(db_download, db_audio),
                     )
                     db_hit = Hit.find_by_key(self.hits, Hit.get_key(db_inline_query, db_audio))
                     if db_hit:
@@ -511,13 +508,13 @@ class GraphDatabase:
                     self.downloaded,
                     Downloaded.parse_from_user_and_download(db_user, db_download),
                 )
-                db_downloaded_from_bot_edge = DownloadedFromBot.create(
-                    self.downloaded_from_bot,
-                    DownloadedFromBot.parse_from_download_and_user(db_download, db_bot),
+                db_from_bot = FromBot.create(
+                    self.from_bot,
+                    FromBot.parse_from_download_and_user(db_download, db_bot),
                 )
-                db_downloaded_audio = DownloadedAudio.create(
-                    self.downloaded_audio,
-                    DownloadedAudio.parse_from_download_and_audio(db_download, db_audio),
+                db_downloaded_audio = Has.create(
+                    self.has,
+                    Has.parse_from_download_and_audio(db_download, db_audio),
                 )
                 db_from_hit_edge, successful = FromHit.create(
                     self.from_hit,
@@ -540,7 +537,7 @@ class GraphDatabase:
             return None
 
         cursor = self.db.aql.execute(
-            f"for v_audio in 1..1 any '{hit.id}' {HasAudio._collection_edge_name}"
+            f"for v_audio in 1..1 outbound '{hit.id}' {Has._collection_edge_name}"
             f"  return v_audio",
             count=True,
         )
