@@ -3,3 +3,4 @@ from .base import BaseTemplate, BaseTemplateData
 from .choose_language_template import ChooseLanguageData, ChooseLanguageTemplate
 from .no_results_were_found_template import NoResultsWereFoundTemplate, NoResultsWereFoundData
 from .query_results_template import QueryResultsData, QueryResultsTemplate
+from .welcome_template import WelcomeData, WelcomeTemplate

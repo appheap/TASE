@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: tase\n"
-"POT-Creation-Date: 2022-05-09 22:02+0430\n"
-"PO-Revision-Date: 2022-05-09 22:02+0430\n"
+"POT-Creation-Date: 2022-05-10 02:00+0430\n"
+"PO-Revision-Date: 2022-05-10 02:00+0430\n"
 "Last-Translator: \n"
 "Language-Team: English (United States)\n"
 "Language: en_US\n"
@@ -16,7 +16,7 @@ msgstr ""
 "X-Poedit-KeywordsList: _trans\n"
 "X-Poedit-SearchPath-0: .\n"
 
-#: telegram/handlers/bots/bot_message_handler.py:136
+#: telegram/handlers/bots/bot_message_handler.py:139
 msgid "An Error occurred while processing this audio download url"
 msgstr ""
 
@@ -86,4 +86,44 @@ msgstr ""
 
 #: templates/query_results_template.py:27
 msgid "MB"
+msgstr ""
+
+#: templates/welcome_template.py:18
+msgid "Take your audio searching to the speed"
+msgstr ""
+
+#: templates/welcome_template.py:19
+msgid "Welcome to"
+msgstr ""
+
+#: templates/welcome_template.py:20
+msgid "Telegram Audio Search Engine"
+msgstr ""
+
+#: templates/welcome_template.py:21
+msgid "It's great to have you!"
+msgstr ""
+
+#: templates/welcome_template.py:22
+msgid "Here are a bunch of features that will get your searching up to"
+msgstr ""
+
+#: templates/welcome_template.py:23
+msgid "speed"
+msgstr ""
+
+#: templates/welcome_template.py:24
+msgid "Find"
+msgstr ""
+
+#: templates/welcome_template.py:25
+msgid "your audio (music, podcast, etc.) in"
+msgstr ""
+
+#: templates/welcome_template.py:26
+msgid "Any question? then press"
+msgstr ""
+
+#: templates/welcome_template.py:27
+msgid "milliseconds"
 msgstr ""

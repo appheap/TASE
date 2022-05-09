@@ -9,6 +9,7 @@ from .restriction import Restriction
 
 class User(BaseVertex):
     _vertex_name = 'users'
+    _do_not_update = ['created_at', 'chosen_language_code', ]
 
     user_id: int
     # is_contact : contact_of => User

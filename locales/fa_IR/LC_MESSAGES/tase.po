@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: tase\n"
-"POT-Creation-Date: 2022-05-09 22:02+0430\n"
-"PO-Revision-Date: 2022-05-09 22:05+0430\n"
+"POT-Creation-Date: 2022-05-10 02:00+0430\n"
+"PO-Revision-Date: 2022-05-10 02:00+0430\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: fa_IR\n"
@@ -16,7 +16,7 @@ msgstr ""
 "X-Poedit-KeywordsList: _trans\n"
 "X-Poedit-SearchPath-0: .\n"
 
-#: telegram/handlers/bots/bot_message_handler.py:136
+#: telegram/handlers/bots/bot_message_handler.py:139
 msgid "An Error occurred while processing this audio download url"
 msgstr "حین پردازش لینک دانلود این موزیک خطایی به وجود آمد"
 
@@ -87,6 +87,46 @@ msgstr "دانلود:"
 #: templates/query_results_template.py:27
 msgid "MB"
 msgstr "مگابایت"
+
+#: templates/welcome_template.py:18
+msgid "Take your audio searching to the speed"
+msgstr "جستجوی صوتی خود را به سرعت بالا ببرید"
+
+#: templates/welcome_template.py:19
+msgid "Welcome to"
+msgstr "خوش آمدید به"
+
+#: templates/welcome_template.py:20
+msgid "Telegram Audio Search Engine"
+msgstr "موتور جستجوی آهنگ تلگرام"
+
+#: templates/welcome_template.py:21
+msgid "It's great to have you!"
+msgstr "خوشحالم که اینجایی!"
+
+#: templates/welcome_template.py:22
+msgid "Here are a bunch of features that will get your searching up to"
+msgstr "در اینجا مجموعه ای از ویژگی ها وجود دارد که جستجوی شما را بالا می برد"
+
+#: templates/welcome_template.py:23
+msgid "speed"
+msgstr "سرعت"
+
+#: templates/welcome_template.py:24
+msgid "Find"
+msgstr "پیدا کردن"
+
+#: templates/welcome_template.py:25
+msgid "your audio (music, podcast, etc.) in"
+msgstr "آهنگ مورد نظر خود (موسیقی، پادکست و غیره) را در"
+
+#: templates/welcome_template.py:26
+msgid "Any question? then press"
+msgstr "سوالی دارید؟ بزن رو"
+
+#: templates/welcome_template.py:27
+msgid "milliseconds"
+msgstr "میلی ثانیه"
 
 #~ msgid "You have changed your language"
 #~ msgstr "شما زبان خود رو تغییر دادەاید"

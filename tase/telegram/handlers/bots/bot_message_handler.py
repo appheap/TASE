@@ -8,9 +8,10 @@ from pyrogram import filters
 from pyrogram import handlers
 from pyrogram.enums import ParseMode
 
+from tase.db import graph_models
 from tase.my_logger import logger
 from tase.telegram.handlers import BaseHandler, HandlerMetadata, exception_handler
-from tase.templates import QueryResultsData, NoResultsWereFoundData, AudioCaptionData, ChooseLanguageData
+from tase.templates import QueryResultsData, NoResultsWereFoundData, AudioCaptionData, ChooseLanguageData, WelcomeData
 from tase.utils import get_timestamp, _trans, languages_object
 
 
@@ -59,21 +60,29 @@ class BotMessageHandler(BaseHandler):
 
         db_from_user = self.db.get_or_create_user(message.from_user)
 
-        data = ChooseLanguageData(
-            name=message.from_user.first_name or message.from_user.last_name,
-            lang_code=db_from_user.chosen_language_code,
-        )
+        self.say_welcome(client, db_from_user, message)
 
-        client.send_message(
-            chat_id=message.from_user.id,
-            text=self.choose_language_template.render(data),
-            reply_markup=languages_object.get_choose_language_markup(),
-            parse_mode=ParseMode.HTML
-        )
+        if db_from_user.chosen_language_code is None:
+            self.choose_language(client, db_from_user, message)
 
     @exception_handler
     def base_commands_handler(self, client: 'pyrogram.Client', message: 'pyrogram.types.Message'):
         logger.debug(f"base_commands_handler: {message.command}")
+
+        db_from_user = self.db.get_or_create_user(message.from_user)
+
+        command = message.command[0]
+        if not command or command is None:
+            return
+
+        if command == 'lang':
+            self.choose_language(client, db_from_user, message)
+        elif command == 'help':
+            pass
+        elif command == 'home':
+            pass
+        else:
+            pass
 
     @exception_handler
     def downloads_handler(self, client: 'pyrogram.Client', message: 'pyrogram.types.Message'):
@@ -224,3 +233,56 @@ class BotMessageHandler(BaseHandler):
     @exception_handler
     def bot_message_handler(self, client: 'pyrogram.Client', message: 'pyrogram.types.Message'):
         logger.info(f"bot_message_handler: {message}")
+
+    #######################################################################################################
+
+    def say_welcome(
+            self,
+            client: 'pyrogram.Client',
+            db_from_user: graph_models.vertices.User,
+            message: 'pyrogram.types.Message'
+    ) -> None:
+        """
+        Shows a welcome message to the user after hitting 'start'
+
+        :param client: Telegram client
+        :param db_from_user: User Object from the graph database
+        :param message: Telegram message object
+        :return:
+        """
+        data = WelcomeData(
+            name=message.from_user.first_name or message.from_user.last_name,
+            lang_code=db_from_user.chosen_language_code,
+        )
+
+        client.send_message(
+            chat_id=message.from_user.id,
+            text=self.welcome_template.render(data),
+            parse_mode=ParseMode.HTML
+        )
+
+    def choose_language(
+            self,
+            client: 'pyrogram.Client',
+            db_from_user: graph_models.vertices.User,
+            message: 'pyrogram.types.Message'
+    ) -> None:
+        """
+        Ask users to choose a language among a menu shows a list of available languages.
+
+        :param client: Telegram client
+        :param db_from_user: User Object from the graph database
+        :param message: Telegram message object
+        :return:
+        """
+        data = ChooseLanguageData(
+            name=message.from_user.first_name or message.from_user.last_name,
+            lang_code=db_from_user.chosen_language_code,
+        )
+
+        client.send_message(
+            chat_id=message.from_user.id,
+            text=self.choose_language_template.render(data),
+            reply_markup=languages_object.get_choose_language_markup(),
+            parse_mode=ParseMode.HTML
+        )
