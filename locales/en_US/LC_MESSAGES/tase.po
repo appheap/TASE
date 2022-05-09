@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: tase\n"
-"POT-Creation-Date: 2022-05-09 16:24+0430\n"
-"PO-Revision-Date: 2022-05-09 16:24+0430\n"
+"POT-Creation-Date: 2022-05-09 19:26+0430\n"
+"PO-Revision-Date: 2022-05-09 19:26+0430\n"
 "Last-Translator: \n"
 "Language-Team: English (United States)\n"
 "Language: en_US\n"
@@ -16,7 +16,7 @@ msgstr ""
 "X-Poedit-KeywordsList: _trans\n"
 "X-Poedit-SearchPath-0: .\n"
 
-#: telegram/handlers/bots/bot_message_handler.py:122
+#: telegram/handlers/bots/bot_message_handler.py:140
 msgid "An Error occurred while processing this audio download url"
 msgstr ""
 
@@ -42,6 +42,26 @@ msgstr ""
 
 #: templates/audio_caption_template.py:30
 msgid "Sent by Telegram Audio Search Engine Users"
+msgstr ""
+
+#: templates/choose_language_template.py:17
+msgid "Please choose your language"
+msgstr ""
+
+#: templates/choose_language_template.py:18
+msgid "You can change this later by:"
+msgstr ""
+
+#: templates/choose_language_template.py:19
+msgid "Sending"
+msgstr ""
+
+#: templates/choose_language_template.py:20
+msgid "Going to"
+msgstr ""
+
+#: templates/choose_language_template.py:21
+msgid "Home"
 msgstr ""
 
 #: templates/no_results_were_found_template.py:9

@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: tase\n"
-"POT-Creation-Date: 2022-05-09 16:24+0430\n"
-"PO-Revision-Date: 2022-05-09 16:24+0430\n"
+"POT-Creation-Date: 2022-05-09 19:26+0430\n"
+"PO-Revision-Date: 2022-05-09 19:26+0430\n"
 "Last-Translator: \n"
 "Language-Team: Arabic\n"
 "Language: ar\n"
@@ -17,7 +17,7 @@ msgstr ""
 "X-Poedit-KeywordsList: _trans\n"
 "X-Poedit-SearchPath-0: .\n"
 
-#: telegram/handlers/bots/bot_message_handler.py:122
+#: telegram/handlers/bots/bot_message_handler.py:140
 msgid "An Error occurred while processing this audio download url"
 msgstr "حدث خطأ أثناء معالجة عنوان URL لتنزيل الصوت"
 
@@ -44,6 +44,26 @@ msgstr "محرك البحث الصوتي"
 #: templates/audio_caption_template.py:30
 msgid "Sent by Telegram Audio Search Engine Users"
 msgstr "أرسلها مستخدمو محرك البحث الصوتي تلغرام"
+
+#: templates/choose_language_template.py:17
+msgid "Please choose your language"
+msgstr "الرجاء اختيار لغتك"
+
+#: templates/choose_language_template.py:18
+msgid "You can change this later by:"
+msgstr "يمكنك تغيير هذا لاحقًا عن طريق:"
+
+#: templates/choose_language_template.py:19
+msgid "Sending"
+msgstr "إرسال"
+
+#: templates/choose_language_template.py:20
+msgid "Going to"
+msgstr "الذهاب الى"
+
+#: templates/choose_language_template.py:21
+msgid "Home"
+msgstr "منزل"
 
 #: templates/no_results_were_found_template.py:9
 msgid "No results were found for this query!"

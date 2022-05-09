@@ -1,3 +1,4 @@
+import gettext
 import json
 import typing
 from collections import OrderedDict
@@ -8,14 +9,12 @@ import tomli
 
 from tase.my_logger import logger
 
-import gettext
-
 _gt = gettext.gettext
 
 # todo: it's not a good practice to hardcode like this, fix it
 languages = dict()
 # lang_codes = ['en', 'fa', 'ku_KU', 'ku_TR', 'tr']
-lang_codes = ['en', 'fa', 'ar',]
+lang_codes = ['en', 'fa', 'ar', ]
 if not len(languages):
     for lang_code in lang_codes:
         lang = gettext.translation('tase', localedir='../locales', languages=[lang_code])
@@ -31,7 +30,7 @@ def _trans(text: str, lang_code: str = 'en') -> str:
     :param lang_code: Code of the language to be translated to. Default is `en` for English
     :return: The translated text
     """
-    return languages.get(lang_code, languages['en'])(text)
+    return translate_text(text, lang_code)
 
 
 def translate_text(text: str, lang_code: str = 'en') -> str:

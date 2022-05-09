@@ -7,7 +7,8 @@ from pydantic import BaseModel
 
 from tase.db.database_client import DatabaseClient
 from tase.my_logger import logger
-from tase.templates import QueryResultsTemplate, NoResultsWereFoundTemplate, AudioCaptionTemplate
+from tase.templates import QueryResultsTemplate, NoResultsWereFoundTemplate, AudioCaptionTemplate, \
+    ChooseLanguageTemplate
 from .handler_metadata import HandlerMetadata
 from ...telegram_client import TelegramClient
 
@@ -30,6 +31,7 @@ class BaseHandler(BaseModel):
     query_results_template: QueryResultsTemplate = QueryResultsTemplate()
     no_results_were_found_template: NoResultsWereFoundTemplate = NoResultsWereFoundTemplate()
     audio_caption_template: AudioCaptionTemplate = AudioCaptionTemplate()
+    choose_language_template: ChooseLanguageTemplate = ChooseLanguageTemplate()
 
     class Config:
         arbitrary_types_allowed = True

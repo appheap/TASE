@@ -18,11 +18,11 @@ from pydantic import BaseModel
 
 class Emoji(BaseModel):
     # -------------Country Flags--------------------
-    _en = emoji.EMOJI_ALIAS_UNICODE_ENGLISH[':United_States:']
-    _fa = emoji.EMOJI_ALIAS_UNICODE_ENGLISH[':Iran:']
-    _ar = emoji.EMOJI_ALIAS_UNICODE_ENGLISH[':Saudi_Arabia:']
-    _hi = emoji.EMOJI_ALIAS_UNICODE_ENGLISH[':India:']
-    _ru = emoji.EMOJI_ALIAS_UNICODE_ENGLISH[':Russia:']
+    _usa_flag = emoji.EMOJI_ALIAS_UNICODE_ENGLISH[':United_States:']
+    _iran_flag = emoji.EMOJI_ALIAS_UNICODE_ENGLISH[':Iran:']
+    _saudi_arabia_flag = emoji.EMOJI_ALIAS_UNICODE_ENGLISH[':Saudi_Arabia:']
+    _india_flag = emoji.EMOJI_ALIAS_UNICODE_ENGLISH[':India:']
+    _russia_flag = emoji.EMOJI_ALIAS_UNICODE_ENGLISH[':Russia:']
     _zap = emoji.EMOJI_ALIAS_UNICODE_ENGLISH[':zap:']
     _globe_showing_Americas = emoji.EMOJI_ALIAS_UNICODE_ENGLISH[':globe_showing_Americas:']
 

@@ -8,9 +8,10 @@ from pyrogram import filters
 from pyrogram import handlers
 from pyrogram.enums import ParseMode
 
+from tase.languages import languages_object
 from tase.my_logger import logger
 from tase.telegram.handlers import BaseHandler, HandlerMetadata, exception_handler
-from tase.templates import QueryResultsData, NoResultsWereFoundData, AudioCaptionData
+from tase.templates import QueryResultsData, NoResultsWereFoundData, AudioCaptionData, ChooseLanguageData
 from tase.utils import get_timestamp, _trans
 
 
@@ -56,6 +57,18 @@ class BotMessageHandler(BaseHandler):
     @exception_handler
     def start_bot_handler(self, client: 'pyrogram.Client', message: 'pyrogram.types.Message'):
         logger.debug(f"start_bot_handler: {message.command}")
+
+        data = ChooseLanguageData(
+            name=message.from_user.first_name or message.from_user.last_name,
+            lang_code=message.from_user.language_code,
+        )
+
+        client.send_message(
+            chat_id=message.from_user.id,
+            text=self.choose_language_template.render(data),
+            reply_markup=languages_object.get_choose_language_markup(),
+            parse_mode=ParseMode.HTML
+        )
 
     @exception_handler
     def base_commands_handler(self, client: 'pyrogram.Client', message: 'pyrogram.types.Message'):
