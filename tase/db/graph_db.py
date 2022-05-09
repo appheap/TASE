@@ -545,3 +545,9 @@ class GraphDatabase:
             return Audio.parse_from_graph(vertex=cursor.pop())
         else:
             return None
+
+    def update_user_chosen_language(self, user: User, lang_code: str):
+        if user is None or lang_code is None:
+            return
+
+        user.update_chosen_language(self.users, lang_code)

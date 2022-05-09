@@ -1,6 +1,7 @@
 from typing import Optional, List
 
 import pyrogram
+from arango.collection import VertexCollection
 
 from .base_vertex import BaseVertex
 from .restriction import Restriction
@@ -25,6 +26,9 @@ class User(BaseVertex):
     dc_id: Optional['int']
     phone_number: Optional['str']
     restrictions: Optional[List[Restriction]]
+
+    # custom field that are not from telegram
+    chosen_language_code: Optional[str]
 
     @staticmethod
     def get_key(user: 'pyrogram.types.User') -> str:
@@ -52,4 +56,16 @@ class User(BaseVertex):
             dc_id=user.dc_id,
             phone_number=user.phone_number,
             restrictions=Restriction.parse_from_restrictions(user.restrictions)
+        )
+
+    def update_chosen_language(self, db: 'VertexCollection', chosen_language_code: str):
+        if db is None or chosen_language_code is None:
+            return None
+
+        db.update(
+            {
+                '_key': self.key,
+                'chosen_language_code': chosen_language_code
+            },
+            silent=True
         )

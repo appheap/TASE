@@ -32,6 +32,12 @@ class DatabaseClient:
             doc_db_config=graph_db_config,
         )
 
+    def update_user_chosen_language(self, user: graph_models.vertices.User, lang_code: str):
+        if user is None or lang_code is None:
+            return
+
+        self._graph_db.update_user_chosen_language(user, lang_code)
+
     def get_user_by_user_id(self, user_id: int) -> Optional[graph_models.vertices.User]:
         if user_id is None:
             return None

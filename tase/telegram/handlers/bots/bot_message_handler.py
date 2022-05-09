@@ -58,9 +58,11 @@ class BotMessageHandler(BaseHandler):
     def start_bot_handler(self, client: 'pyrogram.Client', message: 'pyrogram.types.Message'):
         logger.debug(f"start_bot_handler: {message.command}")
 
+        db_from_user = self.db.get_or_create_user(message.from_user)
+
         data = ChooseLanguageData(
             name=message.from_user.first_name or message.from_user.last_name,
-            lang_code=message.from_user.language_code,
+            lang_code=db_from_user.chosen_language_code,
         )
 
         client.send_message(
@@ -132,7 +134,7 @@ class BotMessageHandler(BaseHandler):
             # todo: An Error occurred while processing this audio download url, why?
             logger.error(f"An Error occurred while processing this audio download url: {download_url}")
             message.reply_text(
-                _trans("An Error occurred while processing this audio download url", db_user.language_code)
+                _trans("An Error occurred while processing this audio download url", db_user.chosen_language_code)
             )
 
     @exception_handler
@@ -148,6 +150,9 @@ class BotMessageHandler(BaseHandler):
 
         # update the user
         db_from_user = self.db.update_or_create_user(message.from_user)
+
+        # todo: fix this
+        db_from_user = self.db.get_user_by_user_id(message.from_user.id)
 
         found_any = True
         db_audio_docs = []
@@ -199,14 +204,15 @@ class BotMessageHandler(BaseHandler):
             data = QueryResultsData(
                 query=query,
                 items=items,
-                lang_code=lang_code,
+                lang_code=db_from_user.chosen_language_code,
             )
 
             text = self.query_results_template.render(data)
         else:
             text = self.no_results_were_found_template.render(
                 NoResultsWereFoundData(
-                    query=query, lang_code=lang_code
+                    query=query,
+                    lang_code=db_from_user.chosen_language_code,
                 )
             )
 

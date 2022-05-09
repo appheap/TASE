@@ -32,6 +32,9 @@ class InlineQueryHandler(BaseHandler):
         # update the user
         db_from_user = self.db.update_or_create_user(inline_query.from_user)
 
+        # todo: fix this
+        db_from_user = self.db.get_user_by_user_id(inline_query.from_user.id)
+
         found_any = True
         from_ = 0
         results = []

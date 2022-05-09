@@ -63,5 +63,5 @@ class AudioCaptionData(BaseTemplateData):
             # todo: fix this
             plant=random.choice(Emoji().plants_list),
 
-            lang_code=user.language_code,
+            lang_code=user.chosen_language_code,
         )
