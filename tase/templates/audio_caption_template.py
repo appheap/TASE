@@ -15,9 +15,9 @@ class AudioCaptionTemplate(BaseTemplate):
         "<b>{{s_title}}</b> {{title}} {{c_new_line}}"
         "<b>{{s_performer}}</b> {{performer}} {{c_new_line}}"
         "<b>{{s_file_name}}</b> {{file_name}} {{c_new_line}}"
-        "{{emoji._round_pushpin}}{{s_source}} {{source}}{{c_new_line}}{{c_new_line}}"
-        "{{emoji._search_emoji}} | <a href='{{bot_url}}'><b>TASE Bot:</b> {{s_audio_search_engine}}</a>{{c_new_line}}"
-        "{{plant}}"
+        "{{emoji._round_pushpin}}{{s_source}} {% if include_source %}{{source}}{%else%}{{s_sent_by_users}}{% endif %}{{c_new_line}}{{c_new_line}}"
+        "{{c_dir}}{{emoji._search_emoji}} | <a href='{{bot_url}}'><b>TASE Bot:</b> {{s_audio_search_engine}}</a>{{c_new_line}}"
+        "{{c_dir}}{{plant}}"
     )
 
 
@@ -27,11 +27,13 @@ class AudioCaptionData(BaseTemplateData):
     s_file_name: str = _trans("File name:")
     s_source: str = _trans("Source:")
     s_audio_search_engine: str = _trans("Audio Search Engine")
+    s_sent_by_users: str = _trans('Sent by Telegram Audio Search Engine Users')
 
     title: str
     performer: str
     file_name: str
     source: str
+    include_source: bool
     bot_url: str
     plant: str = random.choice(Emoji().plants_list)
 
@@ -54,7 +56,8 @@ class AudioCaptionData(BaseTemplateData):
                 width=40,
                 placeholder='...'
             ),
-            source=f"<a href ='https://t.me/{chat.username}/{audio_doc.message_id}'>{chat.username}</a>" if include_source else 'Sent by Telegram Sudio Search Engine Users',
+            source=f"<a href ='https://t.me/{chat.username}/{audio_doc.message_id}'>{chat.username}</a>",
+            include_source=include_source,
             bot_url=bot_url,
 
             # todo: fix this

@@ -2,7 +2,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: tase\n"
-"POT-Creation-Date: 2022-05-05 23:59+0430\n"
+"POT-Creation-Date: 2022-05-09 16:19+0430\n"
 "PO-Revision-Date: 2022-05-03 02:40+0430\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -17,7 +17,7 @@ msgstr ""
 "X-Poedit-KeywordsList: _trans\n"
 "X-Poedit-SearchPath-0: .\n"
 
-#: telegram/handlers/bots/bot_message_handler.py:110
+#: telegram/handlers/bots/bot_message_handler.py:122
 msgid "An Error occurred while processing this audio download url"
 msgstr ""
 
@@ -39,6 +39,10 @@ msgstr ""
 
 #: templates/audio_caption_template.py:29
 msgid "Audio Search Engine"
+msgstr ""
+
+#: templates/audio_caption_template.py:30
+msgid "Sent by Telegram Sudio Search Engine Users"
 msgstr ""
 
 #: templates/no_results_were_found_template.py:9

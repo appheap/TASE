@@ -184,8 +184,6 @@ class BotMessageHandler(BaseHandler):
             ]
 
             data = QueryResultsData(
-                c_query=query,
-
                 query=query,
                 items=items,
                 lang_code=lang_code,
@@ -195,7 +193,7 @@ class BotMessageHandler(BaseHandler):
         else:
             text = self.no_results_were_found_template.render(
                 NoResultsWereFoundData(
-                    query=query, c_query=query, lang_code=lang_code
+                    query=query, lang_code=lang_code
                 )
             )
 
