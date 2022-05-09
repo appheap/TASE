@@ -85,3 +85,8 @@ class TASE():
     def connect_clients(self):
         for client in self.clients:
             client.start()
+
+
+if __name__ == '__main__':
+    tase = TASE('../tase.toml')
+    tase.init_telegram_clients()
