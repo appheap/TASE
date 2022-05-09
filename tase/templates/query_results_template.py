@@ -6,13 +6,22 @@ from tase.utils import _trans
 
 class QueryResultsTemplate(BaseTemplate):
     template = Template(
-        "<b>{{emoji._search_emoji}} {{s_search_results_for}} {{query}}</b>{{c_new_line}}"
-        "{{emoji._checkmark_emoji}} {{s_better_results}}{{c_new_line}}{{c_new_line}}{{c_new_line}}"
+        "<b>{{emoji._search_emoji}} {{s_search_results_for}} {{query}}</b>"
+        "{{c_new_line}}"
+        "{{emoji._checkmark_emoji}} {{s_better_results}}"
+        "{{c_new_line}}"
+        "{{c_new_line}}"
+        "{{c_new_line}}"
         "{% for item in items %}"
-        "<b>{{item.index}}. {{c_dir}}{{emoji._headphone_emoji}} </b><b>{{item.name}}</b> {{c_new_line}}"
-        "{{c_dir}}      {{emoji._floppy_emoji}} | {{item.file_size}} {{s_MB}} {{c_dir}}{{emoji._clock_emoji}} | {{item.time}}{{c_dir}}{{c_new_line}}"
-        "{{c_dir}}       {{s_download}} /dl_{{item.url}}{{c_new_line}}"
-        "{{item.sep}}{{c_dir}}{{c_new_line}}{{c_new_line}}"
+        "{{c_dir}}<b>{{item.index}}. {{c_dir}}{{emoji._headphone_emoji}} </b><b>{{item.name}}</b>"
+        "{{c_new_line}}"
+        "{{c_dir}}      {{emoji._floppy_emoji}} | {{item.file_size}} {{s_MB}} {{c_dir}}{{emoji._clock_emoji}} | {{item.time}}{{c_dir}}"
+        "{{c_new_line}}"
+        "{{c_dir}}       {{s_download}} /dl_{{item.url}}"
+        "{{c_new_line}}"
+        "{{c_dir}}{{item.sep}}"
+        "{{c_new_line}}"
+        "{{c_new_line}}"
         "{% endfor %}"
     )
 

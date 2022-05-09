@@ -12,11 +12,17 @@ from ..utils import _trans
 
 class AudioCaptionTemplate(BaseTemplate):
     template = Template(
-        "<b>{{s_title}}</b> {{title}} {{c_new_line}}"
-        "<b>{{s_performer}}</b> {{performer}} {{c_new_line}}"
-        "<b>{{s_file_name}}</b> {{file_name}} {{c_new_line}}"
-        "{{emoji._round_pushpin}}{{s_source}} {% if include_source %}{{source}}{%else%}{{s_sent_by_users}}{% endif %}{{c_new_line}}{{c_new_line}}"
-        "{{c_dir}}{{emoji._search_emoji}} | <a href='{{bot_url}}'><b>TASE Bot:</b> {{s_audio_search_engine}}</a>{{c_new_line}}"
+        "{{c_dir}}<b>{{s_title}}</b> {{title}}"
+        "{{c_new_line}}"
+        "{{c_dir}}<b>{{s_performer}}</b> {{performer}}"
+        "{{c_new_line}}"
+        "{{c_dir}}<b>{{s_file_name}}</b> {{file_name}}"
+        "{{c_new_line}}"
+        "{{c_dir}}{{emoji._round_pushpin}}{{s_source}} {% if include_source %}{{source}}{%else%}{{s_sent_by_users}}{% endif %}"
+        "{{c_new_line}}"
+        "{{c_new_line}}"
+        "{{c_dir}}{{emoji._search_emoji}} | <a href='{{bot_url}}'><b>TASE Bot:</b> {{s_audio_search_engine}}</a>"
+        "{{c_new_line}}"
         "{{c_dir}}{{plant}}"
     )
 

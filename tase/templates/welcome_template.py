@@ -6,10 +6,18 @@ from ..utils import _trans
 
 class WelcomeTemplate(BaseTemplate):
     template = Template(
-        "{{c_dir}}{{emoji._headphone}}<b>{{s_title1}}</b>{{emoji._headphone}}{{c_new_line}}{{c_new_line}}"
-        "{{c_dir}}<b>{{name}}</b>, {{s_welcome_to}} <b>{{s_tase}}</b>. {{s_title_2}}{{emoji._party_popper}}{{c_new_line}}"
-        "{{c_dir}}{{s_title3}} <b>{{s_speed}}</b>{{emoji._zap}}{{c_new_line}}{{c_new_line}}{{c_new_line}}"
-        "{{c_dir}}{{emoji._studio_microphone}} <b>{{s_find}}</b> {{s_title4}} <b>{{s_ms}}</b> {{emoji._smiling_face_with_sunglasses}}{{c_new_line}}{{c_new_line}}"
+        "{{c_dir}}{{emoji._headphone}}<b>{{s_title1}}</b>{{emoji._headphone}}"
+        "{{c_new_line}}"
+        "{{c_new_line}}"
+        "{{c_dir}}<b>{{name}}</b>, {{s_welcome_to}} <b>{{s_tase}}</b>. {{s_title_2}}{{emoji._party_popper}}"
+        "{{c_new_line}}"
+        "{{c_dir}}{{s_title3}} <b>{{s_speed}}</b>{{emoji._zap}}"
+        "{{c_new_line}}"
+        "{{c_new_line}}"
+        "{{c_new_line}}"
+        "{{c_dir}}{{emoji._studio_microphone}} <b>{{s_find}}</b> {{s_title4}} <b>{{s_ms}}</b> {{emoji._smiling_face_with_sunglasses}}"
+        "{{c_new_line}}"
+        "{{c_new_line}}"
         "{{c_dir}}{{emoji._green_circle}} {{s_any_questions}} /help {{emoji._winking_face}}"
     )
 
