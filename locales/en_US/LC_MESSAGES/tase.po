@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: tase\n"
-"POT-Creation-Date: 2022-05-10 02:00+0430\n"
-"PO-Revision-Date: 2022-05-10 02:00+0430\n"
+"POT-Creation-Date: 2022-05-10 03:04+0430\n"
+"PO-Revision-Date: 2022-05-10 03:04+0430\n"
 "Last-Translator: \n"
 "Language-Team: English (United States)\n"
 "Language: en_US\n"
@@ -16,7 +16,7 @@ msgstr ""
 "X-Poedit-KeywordsList: _trans\n"
 "X-Poedit-SearchPath-0: .\n"
 
-#: telegram/handlers/bots/bot_message_handler.py:139
+#: telegram/handlers/bots/bot_message_handler.py:146
 msgid "An Error occurred while processing this audio download url"
 msgstr ""
 
@@ -68,6 +68,26 @@ msgstr ""
 msgid "Home"
 msgstr ""
 
+#: templates/help_template.py:30
+msgid "Help menu"
+msgstr ""
+
+#: templates/help_template.py:31
+msgid "Channel:"
+msgstr ""
+
+#: templates/help_template.py:32
+msgid "Our channels:"
+msgstr ""
+
+#: templates/help_template.py:33 templates/welcome_template.py:20
+msgid "Telegram Audio Search Engine"
+msgstr ""
+
+#: templates/help_template.py:34
+msgid "How to reach us:"
+msgstr ""
+
 #: templates/no_results_were_found_template.py:9
 msgid "No results were found for this query!"
 msgstr ""
@@ -94,10 +114,6 @@ msgstr ""
 
 #: templates/welcome_template.py:19
 msgid "Welcome to"
-msgstr ""
-
-#: templates/welcome_template.py:20
-msgid "Telegram Audio Search Engine"
 msgstr ""
 
 #: templates/welcome_template.py:21

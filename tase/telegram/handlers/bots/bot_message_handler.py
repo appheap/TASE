@@ -11,7 +11,8 @@ from pyrogram.enums import ParseMode
 from tase.db import graph_models
 from tase.my_logger import logger
 from tase.telegram.handlers import BaseHandler, HandlerMetadata, exception_handler
-from tase.templates import QueryResultsData, NoResultsWereFoundData, AudioCaptionData, ChooseLanguageData, WelcomeData
+from tase.templates import QueryResultsData, NoResultsWereFoundData, AudioCaptionData, ChooseLanguageData, WelcomeData, \
+    HelpData
 from tase.utils import get_timestamp, _trans, languages_object
 
 
@@ -78,7 +79,7 @@ class BotMessageHandler(BaseHandler):
         if command == 'lang':
             self.choose_language(client, db_from_user, message)
         elif command == 'help':
-            pass
+            self.show_help(client, db_from_user, message)
         elif command == 'home':
             pass
         else:
@@ -258,6 +259,33 @@ class BotMessageHandler(BaseHandler):
         client.send_message(
             chat_id=message.from_user.id,
             text=self.welcome_template.render(data),
+            parse_mode=ParseMode.HTML
+        )
+
+    def show_help(
+            self,
+            client: 'pyrogram.Client',
+            db_from_user: graph_models.vertices.User,
+            message: 'pyrogram.types.Message'
+    ) -> None:
+        """
+        Shows the help menu
+
+        :param client: Telegram client
+        :param db_from_user: User Object from the graph database
+        :param message: Telegram message object
+        :return:
+        """
+        data = HelpData(
+            support_channel_username='searchify',
+            url1='https://github.com',
+            url2='https://github.com',
+            lang_code=db_from_user.chosen_language_code,
+        )
+
+        client.send_message(
+            chat_id=message.from_user.id,
+            text=self.help_template.render(data),
             parse_mode=ParseMode.HTML
         )
 

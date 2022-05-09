@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: tase\n"
-"POT-Creation-Date: 2022-05-10 02:00+0430\n"
-"PO-Revision-Date: 2022-05-10 02:00+0430\n"
+"POT-Creation-Date: 2022-05-10 03:04+0430\n"
+"PO-Revision-Date: 2022-05-10 03:04+0430\n"
 "Last-Translator: \n"
 "Language-Team: Arabic\n"
 "Language: ar\n"
@@ -17,7 +17,7 @@ msgstr ""
 "X-Poedit-KeywordsList: _trans\n"
 "X-Poedit-SearchPath-0: .\n"
 
-#: telegram/handlers/bots/bot_message_handler.py:139
+#: telegram/handlers/bots/bot_message_handler.py:146
 msgid "An Error occurred while processing this audio download url"
 msgstr "حدث خطأ أثناء معالجة عنوان URL لتنزيل الصوت"
 
@@ -69,6 +69,26 @@ msgstr "الذهاب الى"
 msgid "Home"
 msgstr "منزل"
 
+#: templates/help_template.py:30
+msgid "Help menu"
+msgstr "قائمة المساعدة"
+
+#: templates/help_template.py:31
+msgid "Channel:"
+msgstr "قناة:"
+
+#: templates/help_template.py:32
+msgid "Our channels:"
+msgstr "قنواتنا:"
+
+#: templates/help_template.py:33 templates/welcome_template.py:20
+msgid "Telegram Audio Search Engine"
+msgstr "محرك البحث الصوتي تلغرام"
+
+#: templates/help_template.py:34
+msgid "How to reach us:"
+msgstr "كيفية التواصل معنا:"
+
 #: templates/no_results_were_found_template.py:9
 msgid "No results were found for this query!"
 msgstr "لم يتم العثور على نتائج لهذا الاستعلام!"
@@ -96,10 +116,6 @@ msgstr "خذ البحث الصوتي إلى السرعة"
 #: templates/welcome_template.py:19
 msgid "Welcome to"
 msgstr "مرحبا بك في"
-
-#: templates/welcome_template.py:20
-msgid "Telegram Audio Search Engine"
-msgstr "محرك البحث الصوتي تلغرام"
 
 #: templates/welcome_template.py:21
 msgid "It's great to have you!"

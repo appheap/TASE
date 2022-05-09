@@ -13,6 +13,7 @@ class BaseTemplateData(BaseModel):
 
     c_new_line: str = "\n"
     c_dir: str = "&lrm;"
+    c_sep: str = "-" * 34
     c_hidden_char: str = "‏‏‎ ‎"
 
     lang_code: Optional[str] = 'en'
