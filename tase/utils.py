@@ -7,7 +7,9 @@ from typing import Optional
 import arrow
 import tomli
 
+from tase.languages import Language, Languages
 from tase.my_logger import logger
+from tase.static import Emoji
 
 _gt = gettext.gettext
 
@@ -42,6 +44,34 @@ def translate_text(text: str, lang_code: str = 'en') -> str:
     :return: The translated text
     """
     return languages.get(lang_code, languages['en'])(text)
+
+
+emoji: Emoji = Emoji()
+
+english = Language(
+    code='en',
+    flag=emoji._usa_flag,
+    name='English'
+)
+persian = Language(
+    code='fa',
+    flag=emoji._iran_flag,
+    name='فارسی (Persian)'
+)
+arabic = Language(
+    code='ar',
+    flag=emoji._saudi_arabia_flag,
+    name='العربية (Arabic)'
+)
+
+language_mapping: typing.Dict[str, Language] = {
+    'en': english,
+    'fa': persian,
+    'ar': arabic,
+}
+languages_object = Languages(
+    mappings=language_mapping,
+)
 
 
 def _get_config_from_file(file_path: str) -> Optional['dict']:

@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: tase\n"
-"POT-Creation-Date: 2022-05-09 19:26+0430\n"
-"PO-Revision-Date: 2022-05-09 19:26+0430\n"
+"POT-Creation-Date: 2022-05-09 22:02+0430\n"
+"PO-Revision-Date: 2022-05-09 22:02+0430\n"
 "Last-Translator: \n"
 "Language-Team: Arabic\n"
 "Language: ar\n"
@@ -17,9 +17,13 @@ msgstr ""
 "X-Poedit-KeywordsList: _trans\n"
 "X-Poedit-SearchPath-0: .\n"
 
-#: telegram/handlers/bots/bot_message_handler.py:140
+#: telegram/handlers/bots/bot_message_handler.py:136
 msgid "An Error occurred while processing this audio download url"
 msgstr "حدث خطأ أثناء معالجة عنوان URL لتنزيل الصوت"
+
+#: telegram/handlers/bots/callback_query_handler.py:30
+msgid "Language change has been saved"
+msgstr "تم حفظ تغيير اللغة"
 
 #: templates/audio_caption_template.py:25
 msgid "Title:"
@@ -84,3 +88,6 @@ msgstr "تنزيل:"
 #: templates/query_results_template.py:27
 msgid "MB"
 msgstr "ميغابايت"
+
+#~ msgid "You have changed your language"
+#~ msgstr "لقد قمت بتغيير لغتك"

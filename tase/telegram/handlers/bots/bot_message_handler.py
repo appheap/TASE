@@ -8,11 +8,10 @@ from pyrogram import filters
 from pyrogram import handlers
 from pyrogram.enums import ParseMode
 
-from tase.languages import languages_object
 from tase.my_logger import logger
 from tase.telegram.handlers import BaseHandler, HandlerMetadata, exception_handler
 from tase.templates import QueryResultsData, NoResultsWereFoundData, AudioCaptionData, ChooseLanguageData
-from tase.utils import get_timestamp, _trans
+from tase.utils import get_timestamp, _trans, languages_object
 
 
 class BotMessageHandler(BaseHandler):
