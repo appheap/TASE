@@ -12,9 +12,9 @@ from tase.telegram import template_globals
 from tase.db import elasticsearch_models, graph_models
 from tase.my_logger import logger
 from tase.telegram.handlers import BaseHandler, HandlerMetadata, exception_handler
+from tase.telegram.inline_buton_globals import buttons
 from tase.telegram.templates import AudioCaptionData
 from tase.utils import get_timestamp, emoji
-from tase.telegram.inline_buttons import buttons
 
 
 class InlineQueryHandler(BaseHandler):

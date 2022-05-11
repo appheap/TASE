@@ -12,10 +12,10 @@ from pyrogram.types import InlineKeyboardMarkup
 from tase.db import graph_models
 from tase.my_logger import logger
 from tase.telegram.handlers import BaseHandler, HandlerMetadata, exception_handler
+from tase.telegram.inline_buton_globals import buttons
 from tase.telegram.templates import QueryResultsData, NoResultsWereFoundData, AudioCaptionData, ChooseLanguageData, WelcomeData, \
     HelpData
 from tase.utils import get_timestamp, _trans, languages_object
-from tase.telegram.inline_buttons import buttons
 from tase.telegram import template_globals
 
 

@@ -5,7 +5,7 @@ from pyrogram import handlers
 
 from tase.my_logger import logger
 from tase.telegram.handlers import HandlerMetadata, BaseHandler, exception_handler
-from tase.telegram.inline_buttons import buttons
+from tase.telegram.inline_buton_globals import buttons
 from tase.utils import _trans
 
 

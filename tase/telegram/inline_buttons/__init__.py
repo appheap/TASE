@@ -5,22 +5,11 @@ from .download_history_button import DownloadHistoryInlineButton
 from .help_catalog import HelpCatalogInlineButton
 from .my_playlists_button import MyPlaylistsInlineButton
 
-buttons = dict()
-
-objs = [
-    AdvertisementInlineButton(),
-    BackInlineButton(),
-    DownloadHistoryInlineButton(),
-    HelpCatalogInlineButton(),
-    MyPlaylistsInlineButton(),
-]
-
-for obj in objs:
-    buttons[obj.name] = obj
-
 __all__ = [
-    'buttons',
+    'AdvertisementInlineButton',
+    'BackInlineButton',
     'InlineButton',
     'DownloadHistoryInlineButton',
+    'HelpCatalogInlineButton',
     'MyPlaylistsInlineButton',
 ]
