@@ -7,6 +7,7 @@ from jinja2 import Template
 from pyrogram import filters
 from pyrogram import handlers
 from pyrogram.enums import ParseMode
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from tase.db import graph_models
 from tase.my_logger import logger
@@ -14,6 +15,7 @@ from tase.telegram.handlers import BaseHandler, HandlerMetadata, exception_handl
 from tase.templates import QueryResultsData, NoResultsWereFoundData, AudioCaptionData, ChooseLanguageData, WelcomeData, \
     HelpData
 from tase.utils import get_timestamp, _trans, languages_object
+from tase.telegram.inline_buttons import buttons
 
 
 class BotMessageHandler(BaseHandler):
@@ -38,7 +40,7 @@ class BotMessageHandler(BaseHandler):
             HandlerMetadata(
                 cls=handlers.MessageHandler,
                 callback=self.downloads_handler,
-                filters=filters.private & filters.regex("dl_"),
+                filters=filters.private & filters.regex("^/dl_[a-zA-Z0-9_]+$"),
                 group=0,
             ),
             HandlerMetadata(
@@ -277,16 +279,32 @@ class BotMessageHandler(BaseHandler):
         :return:
         """
         data = HelpData(
-            support_channel_username='searchify',
+            support_channel_username='support_channel_username',
             url1='https://github.com',
             url2='https://github.com',
             lang_code=db_from_user.chosen_language_code,
         )
 
+        markup = [
+            [
+                buttons['download_history'].get_inline_keyboard_button(),
+                buttons['my_playlists'].get_inline_keyboard_button(),
+            ],
+            [
+                buttons['back'].get_inline_keyboard_button(),
+            ],
+            [
+                buttons['advertisement'].get_inline_keyboard_button(),
+                buttons['help_catalog'].get_inline_keyboard_button(),
+            ]
+        ]
+        markup = InlineKeyboardMarkup(markup)
+
         client.send_message(
             chat_id=message.from_user.id,
             text=self.help_template.render(data),
-            parse_mode=ParseMode.HTML
+            parse_mode=ParseMode.HTML,
+            reply_markup=markup,
         )
 
     def choose_language(

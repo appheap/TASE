@@ -1,17 +1,19 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import List
+from typing import List, Union, Dict
 
 import pyrogram
+from pyrogram import filters
 from pyrogram import handlers
 from pyrogram.types import InlineQueryResultCachedAudio, InlineQueryResultArticle, InputTextMessageContent
 
-from tase.db import elasticsearch_models
+from tase.db import elasticsearch_models, graph_models
 from tase.my_logger import logger
 from tase.telegram.handlers import BaseHandler, HandlerMetadata, exception_handler
 from tase.templates import AudioCaptionData
-from tase.utils import get_timestamp
+from tase.utils import get_timestamp, emoji
+from tase.telegram.inline_buttons import buttons
 
 
 class InlineQueryHandler(BaseHandler):
@@ -20,7 +22,14 @@ class InlineQueryHandler(BaseHandler):
         return [
             HandlerMetadata(
                 cls=handlers.InlineQueryHandler,
+                callback=self.custom_commands_handler,
+                filters=filters.regex("^#[a-zA-Z0-9_]+"),
+                group=0,
+            ),
+            HandlerMetadata(
+                cls=handlers.InlineQueryHandler,
                 callback=self.on_inline_query,
+                group=0
             )
         ]
 
@@ -29,11 +38,11 @@ class InlineQueryHandler(BaseHandler):
         logger.debug(f"on_inline_query: {inline_query}")
         query_date = get_timestamp()
 
-        # update the user
-        db_from_user = self.db.update_or_create_user(inline_query.from_user)
-
         # todo: fix this
         db_from_user = self.db.get_user_by_user_id(inline_query.from_user.id)
+        if not db_from_user:
+            # update the user
+            db_from_user = self.db.update_or_create_user(inline_query.from_user)
 
         found_any = True
         from_ = 0
@@ -54,54 +63,28 @@ class InlineQueryHandler(BaseHandler):
 
             db_audio_docs: List['elasticsearch_models.Audio'] = db_audio_docs
 
-            chat_msg = defaultdict(list)
-            chats_dict = {}
+            chats_dict = self.update_audio_cache(db_audio_docs)
 
-            for db_audio in db_audio_docs:
-                if not self.db.get_audio_file_from_cache(db_audio, self.telegram_client.telegram_id):
-                    chat_msg[db_audio.chat_id].append(db_audio.message_id)
-
-                if not chats_dict.get(db_audio.chat_id, None):
-                    db_chat = self.db.get_chat_by_chat_id(db_audio.chat_id)
-
-                    chats_dict[db_chat.chat_id] = db_chat
-
-            for chat_id, message_ids in chat_msg.items():
-                db_chat = chats_dict[chat_id]
-
-                # todo: this approach is only for public channels, what about private channels?
-                messages = self.telegram_client.get_messages(chat_id=db_chat.username, message_ids=message_ids)
-
-                for message in messages:
-                    self.db.update_or_create_audio(
-                        message,
-                        self.telegram_client.telegram_id,
-                    )
-
-            db_user = self.db.get_user_by_user_id(inline_query.from_user.id)
-
-            for db_audio in db_audio_docs:
-                db_audio_file_cache = self.db.get_audio_file_from_cache(db_audio, self.telegram_client.telegram_id)
+            for db_audio_doc in db_audio_docs:
+                db_audio_file_cache = self.db.get_audio_file_from_cache(db_audio_doc, self.telegram_client.telegram_id)
 
                 #  todo: Some audios have null titles, solution?
-                if not db_audio_file_cache or not db_audio.title:
+                if not db_audio_file_cache or not db_audio_doc.title:
                     continue
-
-                text = self.audio_caption_template.render(
-                    AudioCaptionData.parse_from_audio_doc(
-                        db_audio,
-                        db_user,
-                        chats_dict[db_audio.chat_id],
-                        bot_url='https://t.me/bot?start',
-                        include_source=True,
-                    )
-                )
 
                 results.append(
                     InlineQueryResultCachedAudio(
                         audio_file_id=db_audio_file_cache.file_id,
-                        id=f'{inline_query.id}->{db_audio.id}',
-                        caption=text,
+                        id=f'{inline_query.id}->{db_audio_doc.id}',
+                        caption=self.audio_caption_template.render(
+                            AudioCaptionData.parse_from_audio_doc(
+                                db_audio_doc,
+                                db_from_user,
+                                chats_dict[db_audio_doc.chat_id],
+                                bot_url='https://t.me/bot?start',
+                                include_source=True,
+                            )
+                        ),
                     )
                 )
 
@@ -132,11 +115,71 @@ class InlineQueryHandler(BaseHandler):
             inline_query.answer(
                 [
                     InlineQueryResultArticle(
-                        title="No Results were found",
-                        description="description",
+                        title="No Results",
+                        description="No Results were found",
                         input_message_content=InputTextMessageContent(
-                            message_text="No Results were found",
+                            message_text=emoji.high_voltage,
                         )
                     )
                 ]
             )
+
+    @exception_handler
+    def custom_commands_handler(self, client: 'pyrogram.Client', inline_query: 'pyrogram.types.InlineQuery'):
+        logger.debug(f"custom_commands_handler: {inline_query}")
+        query_date = get_timestamp()
+
+        # todo: fix this
+        db_from_user = self.db.get_user_by_user_id(inline_query.from_user.id)
+        if not db_from_user:
+            # update the user
+            db_from_user = self.db.update_or_create_user(inline_query.from_user)
+
+        command = inline_query.query.split('#')[1]
+
+        if command in buttons.keys():
+            button = buttons[command]
+            button.on_inline_query(
+                client,
+                inline_query,
+                self,
+                self.db,
+                self.telegram_client,
+                db_from_user,
+            )
+        else:
+            pass
+
+    def update_audio_cache(
+            self,
+            db_audios: Union[List[graph_models.vertices.Audio], List[elasticsearch_models.Audio]]
+    ) -> Dict[int, graph_models.vertices.Chat]:
+        """
+        Update Audio file caches that are not been cached by this telegram client
+
+        :param db_audios: List of audios to be checked
+        :return: A dictionary mapping from `chat_id` to a Chat object
+        """
+        chat_msg = defaultdict(list)
+        chats_dict = {}
+        for db_audio in db_audios:
+            if not self.db.get_audio_file_from_cache(db_audio, self.telegram_client.telegram_id):
+                chat_msg[db_audio.chat_id].append(db_audio.message_id)
+
+            if not chats_dict.get(db_audio.chat_id, None):
+                db_chat = self.db.get_chat_by_chat_id(db_audio.chat_id)
+
+                chats_dict[db_chat.chat_id] = db_chat
+
+        for chat_id, message_ids in chat_msg.items():
+            db_chat = chats_dict[chat_id]
+
+            # todo: this approach is only for public channels, what about private channels?
+            messages = self.telegram_client.get_messages(chat_id=db_chat.username, message_ids=message_ids)
+
+            for message in messages:
+                self.db.update_or_create_audio(
+                    message,
+                    self.telegram_client.telegram_id,
+                )
+        return chats_dict

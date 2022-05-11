@@ -6,6 +6,8 @@ from pyrogram import handlers
 from tase.my_logger import logger
 from tase.telegram.handlers import BaseHandler, HandlerMetadata, exception_handler
 
+import re
+
 
 class ChosenInlineQueryHandler(BaseHandler):
 
@@ -14,6 +16,7 @@ class ChosenInlineQueryHandler(BaseHandler):
             HandlerMetadata(
                 cls=handlers.ChosenInlineResultHandler,
                 callback=self.on_chosen_inline_query,
+                group=0,
             )
         ]
 
@@ -25,7 +28,14 @@ class ChosenInlineQueryHandler(BaseHandler):
     ):
         logger.debug(f"on_chosen_inline_query: {chosen_inline_result}")
 
-        db_download = self.db.get_or_create_download_from_chosen_inline_query(
-            chosen_inline_result,
-            self.telegram_client.telegram_id
-        )
+        if re.search("^#[a-zA-Z0-9_]+", chosen_inline_result.query):
+            # it's a custom command
+            logger.info(chosen_inline_result)
+            pass
+        else:
+            inline_query_id, audio_key = chosen_inline_result.result_id.split("->")
+
+            db_download = self.db.get_or_create_download_from_chosen_inline_query(
+                chosen_inline_result,
+                self.telegram_client.telegram_id
+            )

@@ -199,3 +199,12 @@ class DatabaseClient:
             return None
 
         return self._graph_db.get_audio_from_hit(hit)
+
+    def get_user_download_history(
+            self,
+            db_from_user: graph_models.vertices.User
+    ) -> Optional[List[graph_models.vertices.Audio]]:
+        if db_from_user is None:
+            return None
+
+        return self._graph_db.get_user_download_user_history(db_from_user)

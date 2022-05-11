@@ -113,6 +113,9 @@ class Emoji(BaseModel):
     _smiling_face_with_sunglasses = emoji.EMOJI_ALIAS_UNICODE_ENGLISH[':smiling_face_with_sunglasses:']
     _winking_face = emoji.EMOJI_ALIAS_UNICODE_ENGLISH[':winking_face:']
 
+    # ------------Others-----------------------------------
+    high_voltage = emoji.EMOJI_ALIAS_UNICODE_ENGLISH[':high_voltage:']
+
     # a list to randomly choose from
     fruit_list = [_grapes, _tangerine, _pineapple, _lemon, _cherries, _apple, _candy, _watermelon,
                   _peach, _strawberry, _tea, _cherry_blossom, _maple_leaf, _carrot, _ear_of_corn, _mushroom]

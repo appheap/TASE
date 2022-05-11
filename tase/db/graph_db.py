@@ -1,4 +1,5 @@
 import uuid
+from string import Template
 from typing import Optional, List, Tuple
 
 import pyrogram
@@ -65,6 +66,8 @@ class GraphDatabase:
             username=graph_db_config.get('db_username'),
             password=graph_db_config.get('db_password')
         )
+
+        self.aql = self.db.aql
 
         if not self.db.has_graph(graph_db_config.get('graph_name')):
             self.graph = self.db.create_graph(graph_db_config.get('graph_name'))
@@ -551,3 +554,31 @@ class GraphDatabase:
             return
 
         user.update_chosen_language(self.users, lang_code)
+
+    def get_user_download_user_history(self, db_from_user: User) -> Optional[List[Audio]]:
+        if db_from_user is None:
+            return None
+
+        # todo: fix this
+        query_template = Template(
+            'for v in 1..1 any "$user_id" graph "tase" options {order:"dfs",edgeCollections:["downloaded"], vertexCollections:["downloads"]}'
+            '   sort v.created_at DESC'
+            '   for v_aud in 1..1 any v graph "tase" options {order:"dfs",edgeCollections:["has"], vertexCollections:["audios"]}'
+            '       return distinct v_aud'
+        )
+        query = query_template.substitute(
+            {
+                'user_id': db_from_user.id,
+            }
+        )
+        res = self.aql.execute(
+            query,
+            count=True,
+        )
+        results = []
+        try:
+            while True:
+                results.append(Audio.parse_from_graph(res.pop()))
+        except Exception as e:
+            pass
+        return results
