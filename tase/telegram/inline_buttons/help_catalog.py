@@ -1,13 +1,10 @@
 import pyrogram
-from pyrogram.types import InlineQueryResultCachedAudio, InlineQueryResultArticle, InputTextMessageContent
 
 from .button import InlineButton
 from ..telegram_client import TelegramClient
 
 from ..handlers import BaseHandler
 from ...db import DatabaseClient, graph_models
-from ...my_logger import logger
-from ...templates import AudioCaptionData
 from ...utils import emoji
 
 

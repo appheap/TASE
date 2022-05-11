@@ -1,4 +1,4 @@
-from tase.templates import QueryResultsTemplate, NoResultsWereFoundTemplate, AudioCaptionTemplate, \
+from tase.telegram.templates import QueryResultsTemplate, NoResultsWereFoundTemplate, AudioCaptionTemplate, \
     ChooseLanguageTemplate, WelcomeTemplate, HelpTemplate
 
 query_results_template: QueryResultsTemplate = QueryResultsTemplate()

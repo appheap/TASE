@@ -2,11 +2,12 @@ import pyrogram
 from pyrogram.types import InlineQueryResultCachedAudio, InlineQueryResultArticle, InputTextMessageContent
 
 from .button import InlineButton
+from .. import template_globals
 from ..telegram_client import TelegramClient
 from ..handlers import BaseHandler
 from ...db import DatabaseClient, graph_models
 from ...my_logger import logger
-from ...templates import AudioCaptionData
+from tase.telegram.templates import AudioCaptionData
 from ...utils import emoji
 
 
@@ -43,7 +44,7 @@ class DownloadHistoryInlineButton(InlineButton):
                 InlineQueryResultCachedAudio(
                     audio_file_id=db_audio_file_cache.file_id,
                     id=f'{inline_query.id}->{db_audio.key}',
-                    caption=handler.audio_caption_template.render(
+                    caption=template_globals.audio_caption_template.render(
                         AudioCaptionData.parse_from_audio_doc(
                             db_audio,
                             db_from_user,

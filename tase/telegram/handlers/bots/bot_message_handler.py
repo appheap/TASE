@@ -7,16 +7,16 @@ from jinja2 import Template
 from pyrogram import filters
 from pyrogram import handlers
 from pyrogram.enums import ParseMode
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from pyrogram.types import InlineKeyboardMarkup
 
 from tase.db import graph_models
 from tase.my_logger import logger
 from tase.telegram.handlers import BaseHandler, HandlerMetadata, exception_handler
-from tase.templates import QueryResultsData, NoResultsWereFoundData, AudioCaptionData, ChooseLanguageData, WelcomeData, \
+from tase.telegram.templates import QueryResultsData, NoResultsWereFoundData, AudioCaptionData, ChooseLanguageData, WelcomeData, \
     HelpData
 from tase.utils import get_timestamp, _trans, languages_object
 from tase.telegram.inline_buttons import buttons
-from tase import template_globals
+from tase.telegram import template_globals
 
 
 class BotMessageHandler(BaseHandler):

@@ -6,8 +6,8 @@ from jinja2 import Template
 
 from tase.static import Emoji
 from .base import BaseTemplate, BaseTemplateData
-from ..db import elasticsearch_models, graph_models
-from ..utils import _trans
+from tase.db import elasticsearch_models, graph_models
+from tase.utils import _trans
 
 
 class AudioCaptionTemplate(BaseTemplate):

@@ -8,11 +8,11 @@ from pyrogram import filters
 from pyrogram import handlers
 from pyrogram.types import InlineQueryResultCachedAudio, InlineQueryResultArticle, InputTextMessageContent
 
-from tase import template_globals
+from tase.telegram import template_globals
 from tase.db import elasticsearch_models, graph_models
 from tase.my_logger import logger
 from tase.telegram.handlers import BaseHandler, HandlerMetadata, exception_handler
-from tase.templates import AudioCaptionData
+from tase.telegram.templates import AudioCaptionData
 from tase.utils import get_timestamp, emoji
 from tase.telegram.inline_buttons import buttons
 

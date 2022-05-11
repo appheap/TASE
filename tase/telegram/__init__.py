@@ -4,6 +4,7 @@ from . import handlers
 from . import inline_buttons
 from . import methods
 from . import tasks
+from . import templates
 
 from .telegram_client import TelegramClient
 from .telegram_client import ClientTypes

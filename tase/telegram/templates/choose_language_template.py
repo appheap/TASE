@@ -1,7 +1,7 @@
 from jinja2 import Template
 
 from .base import BaseTemplate, BaseTemplateData
-from ..utils import _trans
+from tase.utils import _trans
 
 
 class ChooseLanguageTemplate(BaseTemplate):
