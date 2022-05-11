@@ -24,7 +24,7 @@ def client_task(task: BaseTask, target_queue: 'Queue'):
         producer.publish(body=task,
                          exchange=tase_telegram_exchange,
                          routing_key=target_queue.name,
-                         declare=[target_queue,],
+                         declare=[target_queue, ],
                          retry=True,
                          retry_policy={
                              'interval_start': 0,

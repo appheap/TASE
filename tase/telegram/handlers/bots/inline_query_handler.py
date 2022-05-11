@@ -8,6 +8,7 @@ from pyrogram import filters
 from pyrogram import handlers
 from pyrogram.types import InlineQueryResultCachedAudio, InlineQueryResultArticle, InputTextMessageContent
 
+from tase import template_globals
 from tase.db import elasticsearch_models, graph_models
 from tase.my_logger import logger
 from tase.telegram.handlers import BaseHandler, HandlerMetadata, exception_handler
@@ -76,7 +77,7 @@ class InlineQueryHandler(BaseHandler):
                     InlineQueryResultCachedAudio(
                         audio_file_id=db_audio_file_cache.file_id,
                         id=f'{inline_query.id}->{db_audio_doc.id}',
-                        caption=self.audio_caption_template.render(
+                        caption=template_globals.audio_caption_template.render(
                             AudioCaptionData.parse_from_audio_doc(
                                 db_audio_doc,
                                 db_from_user,

@@ -16,6 +16,7 @@ from tase.templates import QueryResultsData, NoResultsWereFoundData, AudioCaptio
     HelpData
 from tase.utils import get_timestamp, _trans, languages_object
 from tase.telegram.inline_buttons import buttons
+from tase import template_globals
 
 
 class BotMessageHandler(BaseHandler):
@@ -121,7 +122,7 @@ class BotMessageHandler(BaseHandler):
             else:
                 file_id = audio_file_cache.file_id
 
-            text = self.audio_caption_template.render(
+            text = template_globals.audio_caption_template.render(
                 AudioCaptionData.parse_from_audio_doc(
                     db_audio_doc,
                     db_user,
@@ -218,9 +219,9 @@ class BotMessageHandler(BaseHandler):
                 lang_code=db_from_user.chosen_language_code,
             )
 
-            text = self.query_results_template.render(data)
+            text = template_globals.query_results_template.render(data)
         else:
-            text = self.no_results_were_found_template.render(
+            text = template_globals.no_results_were_found_template.render(
                 NoResultsWereFoundData(
                     query=query,
                     lang_code=db_from_user.chosen_language_code,
@@ -260,7 +261,7 @@ class BotMessageHandler(BaseHandler):
 
         client.send_message(
             chat_id=message.from_user.id,
-            text=self.welcome_template.render(data),
+            text=template_globals.welcome_template.render(data),
             parse_mode=ParseMode.HTML
         )
 
@@ -302,7 +303,7 @@ class BotMessageHandler(BaseHandler):
 
         client.send_message(
             chat_id=message.from_user.id,
-            text=self.help_template.render(data),
+            text=template_globals.help_template.render(data),
             parse_mode=ParseMode.HTML,
             reply_markup=markup,
         )
@@ -328,7 +329,7 @@ class BotMessageHandler(BaseHandler):
 
         client.send_message(
             chat_id=message.from_user.id,
-            text=self.choose_language_template.render(data),
+            text=template_globals.choose_language_template.render(data),
             reply_markup=languages_object.get_choose_language_markup(),
             parse_mode=ParseMode.HTML
         )
