@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: tase\n"
 "POT-Creation-Date: 2022-05-16 00:33+0430\n"
-"PO-Revision-Date: 2022-05-16 00:33+0430\n"
+"PO-Revision-Date: 2022-05-16 00:37+0430\n"
 "Last-Translator: \n"
 "Language-Team: Kurdish\n"
 "Language: ku\n"
@@ -77,7 +77,7 @@ msgstr "ناو:"
 
 #: tase/telegram/templates/audio_caption_template.py:32
 msgid "Performer:"
-msgstr "پیشکەشکار:"
+msgstr "پێشکەشکار:"
 
 #: tase/telegram/templates/audio_caption_template.py:33
 msgid "File name:"
