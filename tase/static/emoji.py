@@ -19,6 +19,8 @@ from pydantic import BaseModel
 class Emoji(BaseModel):
     # -------------Country Flags--------------------
     _usa_flag = emoji.EMOJI_ALIAS_UNICODE_ENGLISH[':United_States:']
+    _tajikistan_flag = emoji.EMOJI_ALIAS_UNICODE_ENGLISH[':Tajikistan:']
+    _lithuania_flag = emoji.EMOJI_ALIAS_UNICODE_ENGLISH[':Lithuania:']
     _iran_flag = emoji.EMOJI_ALIAS_UNICODE_ENGLISH[':Iran:']
     _saudi_arabia_flag = emoji.EMOJI_ALIAS_UNICODE_ENGLISH[':Saudi_Arabia:']
     _india_flag = emoji.EMOJI_ALIAS_UNICODE_ENGLISH[':India:']

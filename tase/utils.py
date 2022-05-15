@@ -64,7 +64,7 @@ arabic = Language(
 
 kurdish_sorani = Language(
     code='ku',
-    flag=emoji._saudi_arabia_flag,
+    flag=emoji._tajikistan_flag,
     name='کوردی سۆرانی (Kurdish Sorani)'
 )
 
