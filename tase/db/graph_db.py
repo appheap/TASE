@@ -11,7 +11,8 @@ from arango.graph import Graph
 from . import elasticsearch_db
 from .graph_models.edges import FileRef, SentBy, LinkedChat, IsCreatorOf, IsMemberOf, edges, HasMade, ToBot, Has, \
     Downloaded, FromBot, FromHit
-from .graph_models.vertices import Audio, Chat, File, User, InlineQuery, vertices, Query, QueryKeyword, Hit, Download
+from .graph_models.vertices import Audio, Chat, File, User, InlineQuery, vertices, Query, QueryKeyword, Hit, Download, \
+    Playlist
 
 
 class GraphDatabase:
@@ -589,6 +590,41 @@ class GraphDatabase:
         try:
             while True:
                 results.append(Audio.parse_from_graph(res.pop()))
+        except Exception as e:
+            pass
+        return results
+
+    def get_user_playlists(
+            self,
+            db_from_user: User,
+            offset: int = 0,
+            limit: int = 20,
+    ) -> Optional[List[Playlist]]:
+        if db_from_user is None:
+            return None
+
+        # todo: fix this
+        query_template = Template(
+            'for v in 1..1 any "$user_id" graph "tase" options {order : "dfs", edgeCollections : ["has"], vertexCollections : ["playlists"]}'
+            '   sort v.created_at DESC'
+            '   limit $offset, $limit'
+            '   return v'
+        )
+        query = query_template.substitute(
+            {
+                'offset': offset,
+                'limit': limit,
+                'user_id': db_from_user.id,
+            }
+        )
+        res = self.aql.execute(
+            query,
+            count=True,
+        )
+        results = []
+        try:
+            while True:
+                results.append(Playlist.parse_from_graph(res.pop()))
         except Exception as e:
             pass
         return results

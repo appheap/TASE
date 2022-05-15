@@ -210,3 +210,14 @@ class DatabaseClient:
             return None
 
         return self._graph_db.get_user_download_user_history(db_from_user, offset, limit)
+
+    def get_user_playlists(
+            self,
+            db_from_user: graph_models.vertices.User,
+            offset: int = 0,
+            limit: int = 20,
+    ) -> Optional[List[graph_models.vertices.Playlist]]:
+        if db_from_user is None:
+            return None
+
+        return self._graph_db.get_user_playlists(db_from_user, offset, limit)

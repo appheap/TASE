@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: tase\n"
-"POT-Creation-Date: 2022-05-15 16:25+0430\n"
-"PO-Revision-Date: 2022-05-15 16:25+0430\n"
+"POT-Creation-Date: 2022-05-15 19:20+0430\n"
+"PO-Revision-Date: 2022-05-15 19:20+0430\n"
 "Last-Translator: \n"
 "Language-Team: Arabic\n"
 "Language: ar\n"
@@ -26,7 +26,8 @@ msgid "Language change has been saved"
 msgstr "تم حفظ تغيير اللغة"
 
 #: telegram/handlers/bots/inline_query_handler.py:119
-#: telegram/inline_buttons/download_history_button.py:82
+#: telegram/inline_buttons/download_history_button.py:81
+#: telegram/inline_buttons/my_playlists_button.py:65
 msgid "No Results Were Found"
 msgstr "لا توجد نتائج"
 
@@ -46,7 +47,7 @@ msgstr "وراء"
 msgid "My Downloads"
 msgstr "التنزيلات الخاصة بي"
 
-#: telegram/inline_buttons/download_history_button.py:84
+#: telegram/inline_buttons/download_history_button.py:83
 msgid "You haven't downloaded any audios yet"
 msgstr "لم تقم بتنزيل أي صوتيات حتى الآن"
 
@@ -54,9 +55,13 @@ msgstr "لم تقم بتنزيل أي صوتيات حتى الآن"
 msgid "Help"
 msgstr "المساعدة"
 
-#: telegram/inline_buttons/my_playlists_button.py:13
+#: telegram/inline_buttons/my_playlists_button.py:15
 msgid "My Playlists"
 msgstr "قوائم التشغيل الخاصة بي"
+
+#: telegram/inline_buttons/my_playlists_button.py:67
+msgid "You haven't created any playlist yet"
+msgstr "لم تقم بإنشاء أي قائمة تشغيل حتى الآن"
 
 #: telegram/templates/audio_caption_template.py:31
 msgid "Title:"
