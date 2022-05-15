@@ -2,7 +2,7 @@ import pyrogram
 from pyrogram.types import InlineQueryResultArticle, InputTextMessageContent
 
 from .button import InlineButton
-from ..handlers import BaseHandler
+# from ..handlers import BaseHandler
 from ..telegram_client import TelegramClient
 from ...db import DatabaseClient, graph_models
 from ...my_logger import logger

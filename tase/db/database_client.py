@@ -101,7 +101,7 @@ class DatabaseClient:
             query_metadata: dict,
             audio_docs: List[elasticsearch_models.Audio],
             next_offset: Optional[str],
-    ) -> Optional[graph_models.vertices.InlineQuery]:
+    ) -> Optional[Tuple[graph_models.vertices.InlineQuery, List[graph_models.vertices.Hit]]]:
         if bot_id is None or inline_query is None or query_date is None or query_metadata is None or audio_docs is None:
             return None
 

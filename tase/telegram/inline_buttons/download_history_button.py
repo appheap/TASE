@@ -1,10 +1,13 @@
 import pyrogram
-from pyrogram.types import InlineQueryResultCachedAudio, InlineQueryResultArticle, InputTextMessageContent
+from pyrogram.enums import ChatType
+from pyrogram.types import InlineQueryResultCachedAudio, InlineQueryResultArticle, InputTextMessageContent, \
+    InlineKeyboardMarkup
 
 from tase.telegram.templates import AudioCaptionData
 from .button import InlineButton
 from .. import template_globals
-from ..handlers import BaseHandler
+# from ..handlers import BaseHandler
+# from ..inline_buton_globals import buttons
 from ..telegram_client import TelegramClient
 from ...db import DatabaseClient, graph_models
 from ...my_logger import logger
@@ -28,6 +31,7 @@ class DownloadHistoryInlineButton(InlineButton):
             telegram_client: 'TelegramClient',
             db_from_user: graph_models.vertices.User,
     ):
+        from ..inline_buton_globals import buttons  # todo: fix me
 
         from_ = 0
 
@@ -48,6 +52,24 @@ class DownloadHistoryInlineButton(InlineButton):
             if not db_audio_file_cache or not db_audio.title:
                 continue
 
+            # todo: fix me
+
+            markup = [
+                [
+                    buttons['add_to_playlist'].get_inline_keyboard_button(
+                        db_from_user.chosen_language_code,
+                        "db_hit.download_url"
+                    ),
+                ],
+
+            ]
+            if inline_query.chat_type == ChatType.BOT:
+                markup.append(
+                    [
+                        buttons['home'].get_inline_keyboard_button(db_from_user.chosen_language_code),
+                    ]
+                )
+
             results.append(
                 InlineQueryResultCachedAudio(
                     audio_file_id=db_audio_file_cache.file_id,
@@ -61,14 +83,13 @@ class DownloadHistoryInlineButton(InlineButton):
                             include_source=True,
                         )
                     ),
+                    reply_markup=InlineKeyboardMarkup(markup),
                 )
             )
 
         if len(results):
             try:
-                # todo: `1` works, but why?
-                plus = 1 if inline_query.offset is None or not len(inline_query.offset) else 0
-                next_offset = str(from_ + len(results) + plus) if len(results) else None
+                next_offset = str(from_ + len(results) + 1) if len(results) else None
 
                 inline_query.answer(results, cache_time=1, next_offset=next_offset)
             except Exception as e:

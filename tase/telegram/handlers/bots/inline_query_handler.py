@@ -1,16 +1,17 @@
 from __future__ import annotations
 
-from collections import defaultdict
-from typing import List, Union, Dict
+from typing import List
 
 import pyrogram
 from pyrogram import filters
 from pyrogram import handlers
-from pyrogram.types import InlineQueryResultCachedAudio, InlineQueryResultArticle, InputTextMessageContent
+from pyrogram.enums import ChatType
+from pyrogram.types import InlineQueryResultCachedAudio, InlineQueryResultArticle, InputTextMessageContent, \
+    InlineKeyboardMarkup
 
-from tase.telegram import template_globals
-from tase.db import elasticsearch_models, graph_models
+from tase.db import elasticsearch_models
 from tase.my_logger import logger
+from tase.telegram import template_globals
 from tase.telegram.handlers import BaseHandler, HandlerMetadata, exception_handler
 from tase.telegram.inline_buton_globals import buttons
 from tase.telegram.templates import AudioCaptionData
@@ -92,7 +93,7 @@ class InlineQueryHandler(BaseHandler):
             # todo: `2` works, but why?
             plus = 2 if inline_query.offset is None or not len(inline_query.offset) else 0
             next_offset = str(from_ + len(results) + plus) if len(results) else None
-            db_inline_query = self.db.get_or_create_inline_query(
+            db_inline_query, db_hits = self.db.get_or_create_inline_query(
                 self.telegram_client.telegram_id,
                 inline_query,
                 query_date=query_date,
@@ -100,6 +101,26 @@ class InlineQueryHandler(BaseHandler):
                 audio_docs=db_audio_docs,
                 next_offset=next_offset
             )
+
+            if db_inline_query and db_hits:
+                for res, db_hit in zip(results, db_hits):
+                    markup = [
+                        [
+                            buttons['add_to_playlist'].get_inline_keyboard_button(
+                                db_from_user.chosen_language_code,
+                                db_hit.download_url
+                            ),
+                        ],
+
+                    ]
+                    if inline_query.chat_type == ChatType.BOT:
+                        markup.append(
+                            [
+                                buttons['home'].get_inline_keyboard_button(db_from_user.chosen_language_code),
+                            ]
+                        )
+
+                    res.reply_markup = InlineKeyboardMarkup(markup)
 
             # ids = [result.audio_file_id for result in results]
             logger.info(
@@ -113,18 +134,19 @@ class InlineQueryHandler(BaseHandler):
                 logger.exception(e)
         else:
             # todo: No results matching the query found, what now?
-            inline_query.answer(
-                [
-                    InlineQueryResultArticle(
-                        title=_trans("No Results Were Found", db_from_user.chosen_language_code),
-                        description=_trans("No results were found", db_from_user.chosen_language_code),
-                        input_message_content=InputTextMessageContent(
-                            message_text=emoji.high_voltage,
+            if from_ is None or from_ == 0:
+                inline_query.answer(
+                    [
+                        InlineQueryResultArticle(
+                            title=_trans("No Results Were Found", db_from_user.chosen_language_code),
+                            description=_trans("No results were found", db_from_user.chosen_language_code),
+                            input_message_content=InputTextMessageContent(
+                                message_text=emoji.high_voltage,
+                            )
                         )
-                    )
-                ],
-                cache_time=1,
-            )
+                    ],
+                    cache_time=1,
+                )
 
     @exception_handler
     def custom_commands_handler(self, client: 'pyrogram.Client', inline_query: 'pyrogram.types.InlineQuery'):
@@ -151,37 +173,3 @@ class InlineQueryHandler(BaseHandler):
             )
         else:
             pass
-
-    def update_audio_cache(
-            self,
-            db_audios: Union[List[graph_models.vertices.Audio], List[elasticsearch_models.Audio]]
-    ) -> Dict[int, graph_models.vertices.Chat]:
-        """
-        Update Audio file caches that are not been cached by this telegram client
-
-        :param db_audios: List of audios to be checked
-        :return: A dictionary mapping from `chat_id` to a Chat object
-        """
-        chat_msg = defaultdict(list)
-        chats_dict = {}
-        for db_audio in db_audios:
-            if not self.db.get_audio_file_from_cache(db_audio, self.telegram_client.telegram_id):
-                chat_msg[db_audio.chat_id].append(db_audio.message_id)
-
-            if not chats_dict.get(db_audio.chat_id, None):
-                db_chat = self.db.get_chat_by_chat_id(db_audio.chat_id)
-
-                chats_dict[db_chat.chat_id] = db_chat
-
-        for chat_id, message_ids in chat_msg.items():
-            db_chat = chats_dict[chat_id]
-
-            # todo: this approach is only for public channels, what about private channels?
-            messages = self.telegram_client.get_messages(chat_id=db_chat.username, message_ids=message_ids)
-
-            for message in messages:
-                self.db.update_or_create_audio(
-                    message,
-                    self.telegram_client.telegram_id,
-                )
-        return chats_dict
