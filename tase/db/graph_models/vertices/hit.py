@@ -67,11 +67,13 @@ class Hit(BaseVertex):
             return None
 
         key = Hit.get_key(inline_query, audio)
+        download_url = Hit.generate_download_url()
         return Hit(
             key=key,
             rank=search_metadata.rank,
             score=search_metadata.score,
             query_date=inline_query.query_date,
+            download_url=download_url,
         )
 
     @classmethod

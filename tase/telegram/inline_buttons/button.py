@@ -6,7 +6,7 @@ from pyrogram.types import InlineKeyboardButton
 
 from tase.db import DatabaseClient, graph_models
 # from ..telegram_client import TelegramClient
-from tase.telegram.handlers import BaseHandler
+# from tase.telegram.handlers import BaseHandler
 from tase.utils import translate_text
 
 
@@ -42,15 +42,15 @@ class InlineButton(BaseModel):
     def get_callback_data(self) -> Optional[str]:
         return self.callback_data
 
-    def get_switch_inline_query_current_chat(self) -> Optional[str]:
-        return self.switch_inline_query_current_chat
+    def get_switch_inline_query_current_chat(self, arg=None) -> Optional[str]:
+        return f"{self.switch_inline_query_current_chat} {arg}" if arg else self.switch_inline_query_current_chat
 
-    def get_inline_keyboard_button(self, lang_code: str = 'en'):
+    def get_inline_keyboard_button(self, lang_code: str = 'en', arg=None):
         return InlineKeyboardButton(
             text=self.get_text(lang_code),
             callback_data=self.get_callback_data(),
             url=self.get_url(),
-            switch_inline_query_current_chat=self.get_switch_inline_query_current_chat()
+            switch_inline_query_current_chat=self.get_switch_inline_query_current_chat(arg)
         )
 
     ############################################################

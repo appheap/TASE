@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: tase\n"
-"POT-Creation-Date: 2022-05-15 23:24+0430\n"
-"PO-Revision-Date: 2022-05-15 23:24+0430\n"
+"POT-Creation-Date: 2022-05-15 23:23+0430\n"
+"PO-Revision-Date: 2022-05-15 23:23+0430\n"
 "Last-Translator: \n"
 "Language-Team: English (United States)\n"
 "Language: en_US\n"
@@ -16,7 +16,7 @@ msgstr ""
 "X-Poedit-KeywordsList: _trans\n"
 "X-Poedit-SearchPath-0: .\n"
 
-#: telegram/handlers/bots/bot_message_handler.py:150
+#: telegram/handlers/bots/bot_message_handler.py:161
 msgid "An Error occurred while processing this audio download url"
 msgstr ""
 
@@ -24,14 +24,18 @@ msgstr ""
 msgid "Language change has been saved"
 msgstr ""
 
-#: telegram/handlers/bots/inline_query_handler.py:119
-#: telegram/inline_buttons/download_history_button.py:81
+#: telegram/handlers/bots/inline_query_handler.py:141
+#: telegram/inline_buttons/download_history_button.py:102
 #: telegram/inline_buttons/my_playlists_button.py:67
 msgid "No Results Were Found"
 msgstr ""
 
-#: telegram/handlers/bots/inline_query_handler.py:120
+#: telegram/handlers/bots/inline_query_handler.py:142
 msgid "No results were found"
+msgstr ""
+
+#: telegram/inline_buttons/add_to_playlist_button.py:14
+msgid "Add To Playlist"
 msgstr ""
 
 #: telegram/inline_buttons/advertisement_button.py:9
@@ -42,16 +46,21 @@ msgstr ""
 msgid "Back"
 msgstr ""
 
-#: telegram/inline_buttons/download_history_button.py:17
+#: telegram/inline_buttons/download_history_button.py:20
 msgid "My Downloads"
 msgstr ""
 
-#: telegram/inline_buttons/download_history_button.py:83
+#: telegram/inline_buttons/download_history_button.py:104
 msgid "You haven't downloaded any audios yet"
 msgstr ""
 
 #: telegram/inline_buttons/help_catalog.py:14
 msgid "Help"
+msgstr ""
+
+#: telegram/inline_buttons/home_button.py:13
+#: telegram/templates/choose_language_template.py:27
+msgid "Home"
 msgstr ""
 
 #: telegram/inline_buttons/my_playlists_button.py:15
@@ -100,10 +109,6 @@ msgstr ""
 
 #: telegram/templates/choose_language_template.py:26
 msgid "Going to"
-msgstr ""
-
-#: telegram/templates/choose_language_template.py:27
-msgid "Home"
 msgstr ""
 
 #: telegram/templates/help_template.py:32

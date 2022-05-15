@@ -286,12 +286,15 @@ class GraphDatabase:
             query_metadata: dict,
             audio_docs: List['elasticsearch_db.Audio'],
             next_offset: Optional[str],
-    ) -> Optional['InlineQuery']:
+    ) -> Optional[Tuple[InlineQuery, List[Hit]]]:
         if bot_id is None or inline_query is None or query_date is None or query_metadata is None or audio_docs is None:
             return None
         db_bot = self.get_user_by_user_id(bot_id)
         db_from_user = self.get_user_by_user_id(inline_query.from_user.id)
         db_inline_query = None
+
+        # todo: this is a temporary solution
+        hits = []
 
         if db_bot and db_from_user:
             db_inline_query = InlineQuery.find_by_key(self.inline_queries, InlineQuery.get_key(db_bot, inline_query))
@@ -331,6 +334,10 @@ class GraphDatabase:
                                 audio_doc.search_metadata,
                             )
                         )
+
+                        if db_hit and successful:
+                            hits.append(db_hit)
+
                         db_has_hit, successful = Has.create(
                             self.has,
                             Has.parse_from_inline_query_and_hit(db_inline_query, db_hit)
@@ -339,7 +346,7 @@ class GraphDatabase:
                             self.has,
                             Has.parse_from_hit_and_audio(db_hit, db_audio),
                         )
-        return db_inline_query
+        return db_inline_query, hits
 
     def get_or_create_query(
             self,
