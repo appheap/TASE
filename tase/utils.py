@@ -65,7 +65,13 @@ arabic = Language(
 kurdish_sorani = Language(
     code='ku',
     flag=emoji._tajikistan_flag,
-    name='کوردی سۆرانی (Kurdish Sorani)'
+    name='کوردی (سۆرانی) (Sorani Kurdish)'
+)
+
+kurdish_kurmanji = Language(
+    code='ku_kr',
+    flag=emoji._tajikistan_flag,
+    name='(Kurmanji Kurdish) Kurdî (kurmancî)'
 )
 
 language_mapping: typing.Dict[str, Language] = {
@@ -73,7 +79,9 @@ language_mapping: typing.Dict[str, Language] = {
     'fa': persian,
     'ar': arabic,
     'ku': kurdish_sorani
+    'ku_kr': kurdish_kurmanji
 }
+
 languages_object = Languages(
     mappings=language_mapping,
 )

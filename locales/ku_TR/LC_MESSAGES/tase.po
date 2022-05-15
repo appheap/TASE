@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: tase\n"
 "POT-Creation-Date: 2022-05-15 20:22+0430\n"
-"PO-Revision-Date: 2022-05-16 00:44+0430\n"
+"PO-Revision-Date: 2022-05-16 00:48+0430\n"
 "Last-Translator: \n"
 "Language-Team: kurdish\n"
 "Language: ku_TR\n"
@@ -44,11 +44,11 @@ msgstr "Reklam"
 
 #: telegram/inline_buttons/back_button.py:13
 msgid "Back"
-msgstr "vegerr"
+msgstr "Vegerr"
 
 #: telegram/inline_buttons/download_history_button.py:17
 msgid "My Downloads"
-msgstr "dakêşanên min"
+msgstr "Dakêşanên min"
 
 #: telegram/inline_buttons/download_history_button.py:83
 msgid "You haven't downloaded any audios yet"
@@ -89,7 +89,7 @@ msgstr "Çavkanî:"
 
 #: telegram/templates/audio_caption_template.py:35
 msgid "Audio Search Engine"
-msgstr "Motora Lêgerînê ya Dengê "
+msgstr "Motora Lêgerînê ya Dengê"
 
 #: telegram/templates/audio_caption_template.py:36
 msgid "Sent by Telegram Audio Search Engine Users"
@@ -162,7 +162,7 @@ msgstr "MB"
 
 #: telegram/templates/welcome_template.py:26
 msgid "Take your audio searching to the speed"
-msgstr "lêgerîna dengê xwe bilezînin"
+msgstr "Lêgerîna dengê xwe bilezînin"
 
 #: telegram/templates/welcome_template.py:27
 msgid "Welcome to"
