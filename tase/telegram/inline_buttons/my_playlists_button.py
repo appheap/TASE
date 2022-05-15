@@ -3,7 +3,9 @@ from pyrogram.types import InlineQueryResultArticle, InputTextMessageContent
 
 from .button import InlineButton
 # from ..handlers import BaseHandler
+from .. import template_globals
 from ..telegram_client import TelegramClient
+from ..templates import PlaylistData
 from ...db import DatabaseClient, graph_models
 from ...my_logger import logger
 from ...utils import emoji, _trans
@@ -38,6 +40,11 @@ class MyPlaylistsInlineButton(InlineButton):
         results = []
 
         for db_playlist in db_playlists:
+            data = PlaylistData(
+                title=db_playlist.name,
+                description=db_playlist.description,
+                lang_code=db_from_user.chosen_language_code,
+            )
             results.append(
                 InlineQueryResultArticle(
                     title=db_playlist.name,
@@ -45,8 +52,9 @@ class MyPlaylistsInlineButton(InlineButton):
                     id=f'{inline_query.id}->{db_playlist.id}',
                     thumb_url="https://telegra.ph/file/ac2d210b9b0e5741470a1.jpg",
                     input_message_content=InputTextMessageContent(
-                        message_text="test",
+                        message_text=template_globals.playlist_template.render(data),
                     ),
+                    reply_markup=None,
                 )
             )
 

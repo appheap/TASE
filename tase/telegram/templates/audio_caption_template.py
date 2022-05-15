@@ -12,13 +12,13 @@ from tase.utils import _trans
 
 class AudioCaptionTemplate(BaseTemplate):
     template = Template(
-        "{{c_dir}}<b>{{s_title}}</b> {{title}}"
+        "{{c_dir}}<b>{{s_title}}:</b> {{title}}"
         "{{c_new_line}}"
-        "{{c_dir}}<b>{{s_performer}}</b> {{performer}}"
+        "{{c_dir}}<b>{{s_performer}}:</b> {{performer}}"
         "{{c_new_line}}"
-        "{{c_dir}}<b>{{s_file_name}}</b> {{file_name}}"
+        "{{c_dir}}<b>{{s_file_name}}:</b> {{file_name}}"
         "{{c_new_line}}"
-        "{{c_dir}}{{emoji._round_pushpin}}{{s_source}} {% if include_source %}{{source}}{%else%}{{s_sent_by_users}}{% endif %}"
+        "{{c_dir}}{{emoji._round_pushpin}}{{s_source}}: {% if include_source %}{{source}}{%else%}{{s_sent_by_users}}{% endif %}"
         "{{c_new_line}}"
         "{{c_new_line}}"
         "{{c_dir}}{{emoji._search_emoji}} | <a href='{{bot_url}}'><b>TASE Bot:</b> {{s_audio_search_engine}}</a>"
@@ -28,10 +28,10 @@ class AudioCaptionTemplate(BaseTemplate):
 
 
 class AudioCaptionData(BaseTemplateData):
-    s_title: str = _trans("Title:")
-    s_performer: str = _trans("Performer:")
-    s_file_name: str = _trans("File name:")
-    s_source: str = _trans("Source:")
+    s_title: str = _trans("Title")
+    s_performer: str = _trans("Performer")
+    s_file_name: str = _trans("File name")
+    s_source: str = _trans("Source")
     s_audio_search_engine: str = _trans("Audio Search Engine")
     s_sent_by_users: str = _trans('Sent by Telegram Audio Search Engine Users')
 

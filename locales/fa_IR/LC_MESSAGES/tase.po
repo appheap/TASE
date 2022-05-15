@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: tase\n"
-"POT-Creation-Date: 2022-05-16 00:33+0430\n"
-"PO-Revision-Date: 2022-05-16 00:33+0430\n"
+"POT-Creation-Date: 2022-05-16 01:27+0430\n"
+"PO-Revision-Date: 2022-05-16 01:27+0430\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: fa_IR\n"
@@ -26,7 +26,7 @@ msgstr "تغییر زبان ذخیره شد"
 
 #: telegram/handlers/bots/inline_query_handler.py:141
 #: telegram/inline_buttons/download_history_button.py:104
-#: telegram/inline_buttons/my_playlists_button.py:67
+#: telegram/inline_buttons/my_playlists_button.py:75
 msgid "No Results Were Found"
 msgstr "هیچ نتیجه‌ای پیدا نشد"
 
@@ -63,29 +63,30 @@ msgstr "راهنما"
 msgid "Home"
 msgstr "خانه"
 
-#: telegram/inline_buttons/my_playlists_button.py:15
+#: telegram/inline_buttons/my_playlists_button.py:17
 msgid "My Playlists"
 msgstr "پلی لیست‌های من"
 
-#: telegram/inline_buttons/my_playlists_button.py:69
+#: telegram/inline_buttons/my_playlists_button.py:77
 msgid "You haven't created any playlist yet"
 msgstr "شما هنوز پلی‌لیستی ایجاد نکرده‌اید"
 
 #: telegram/templates/audio_caption_template.py:31
-msgid "Title:"
-msgstr "عنوان:"
+#: telegram/templates/playlist_template.py:26
+msgid "Title"
+msgstr "عنوان"
 
 #: telegram/templates/audio_caption_template.py:32
-msgid "Performer:"
-msgstr "اجرا کنندە:"
+msgid "Performer"
+msgstr "اجرا کنندە"
 
 #: telegram/templates/audio_caption_template.py:33
-msgid "File name:"
-msgstr "نام فایل:"
+msgid "File name"
+msgstr "نام فایل"
 
 #: telegram/templates/audio_caption_template.py:34
-msgid "Source:"
-msgstr "منبع:"
+msgid "Source"
+msgstr "منبع"
 
 #: telegram/templates/audio_caption_template.py:35
 msgid "Audio Search Engine"
@@ -144,6 +145,14 @@ msgstr "منوی اصلی"
 msgid "No results were found for this query!"
 msgstr "هیچ نتیجه‌ای برای این عبارت پیدا نشد!"
 
+#: telegram/templates/playlist_template.py:25
+msgid "Playlist Menu"
+msgstr "منوی پلی لیست‌"
+
+#: telegram/templates/playlist_template.py:27
+msgid "Description"
+msgstr "توضیحات"
+
 #: telegram/templates/query_results_template.py:33
 msgid "Search results for:"
 msgstr "نتایج جستجو برای:"
@@ -195,6 +204,9 @@ msgstr "سوالی دارید؟ بزن رو"
 #: telegram/templates/welcome_template.py:35
 msgid "milliseconds"
 msgstr "میلی ثانیه"
+
+#~ msgid "Title:"
+#~ msgstr "عنوان:"
 
 #~ msgid "You have changed your language"
 #~ msgstr "شما زبان خود رو تغییر دادەاید"
