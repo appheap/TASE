@@ -11,8 +11,6 @@ from tase.languages import Language, Languages
 from tase.my_logger import logger
 from tase.static import Emoji
 
-_gt = gettext.gettext
-
 # todo: it's not a good practice to hardcode like this, fix it
 languages = dict()
 # lang_codes = ['en', 'fa', 'ku_KU', 'ku_TR', 'tr']
