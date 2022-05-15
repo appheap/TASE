@@ -58,6 +58,7 @@ class MyPlaylistsInlineButton(InlineButton):
                         db_from_user.chosen_language_code,
                         db_playlist.key,
                     ),
+                    # todo: add a button to get the top 10 audios from this playlist as a message
                 ],
                 [
                     buttons['edit_playlist'].get_inline_keyboard_button(
