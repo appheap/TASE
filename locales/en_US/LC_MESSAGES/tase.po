@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: tase\n"
-"POT-Creation-Date: 2022-05-15 13:20+0430\n"
-"PO-Revision-Date: 2022-05-15 13:20+0430\n"
+"POT-Creation-Date: 2022-05-15 16:24+0430\n"
+"PO-Revision-Date: 2022-05-15 16:24+0430\n"
 "Last-Translator: \n"
 "Language-Team: English (United States)\n"
 "Language: en_US\n"
@@ -24,6 +24,15 @@ msgstr ""
 msgid "Language change has been saved"
 msgstr ""
 
+#: telegram/handlers/bots/inline_query_handler.py:119
+#: telegram/inline_buttons/download_history_button.py:82
+msgid "No Results Were Found"
+msgstr ""
+
+#: telegram/handlers/bots/inline_query_handler.py:120
+msgid "No results were found"
+msgstr ""
+
 #: telegram/inline_buttons/advertisement_button.py:9
 msgid "Advertisement"
 msgstr ""
@@ -34,6 +43,10 @@ msgstr ""
 
 #: telegram/inline_buttons/download_history_button.py:17
 msgid "My Downloads"
+msgstr ""
+
+#: telegram/inline_buttons/download_history_button.py:84
+msgid "You haven't downloaded any audios yet"
 msgstr ""
 
 #: telegram/inline_buttons/help_catalog.py:14

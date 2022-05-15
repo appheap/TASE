@@ -1,13 +1,13 @@
 import pyrogram
 from pyrogram.types import InlineQueryResultCachedAudio, InlineQueryResultArticle, InputTextMessageContent
 
+from tase.telegram.templates import AudioCaptionData
 from .button import InlineButton
 from .. import template_globals
-from ..telegram_client import TelegramClient
 from ..handlers import BaseHandler
+from ..telegram_client import TelegramClient
 from ...db import DatabaseClient, graph_models
 from ...my_logger import logger
-from tase.telegram.templates import AudioCaptionData
 from ...utils import emoji, _trans
 
 
@@ -28,7 +28,13 @@ class DownloadHistoryInlineButton(InlineButton):
             telegram_client: 'TelegramClient',
             db_from_user: graph_models.vertices.User,
     ):
-        db_audios = db.get_user_download_history(db_from_user)
+
+        from_ = 0
+
+        if inline_query.offset is not None and len(inline_query.offset):
+            from_ = int(inline_query.offset)
+
+        db_audios = db.get_user_download_history(db_from_user, offset=from_)
 
         results = []
 
@@ -60,19 +66,27 @@ class DownloadHistoryInlineButton(InlineButton):
 
         if len(results):
             try:
-                # inline_query.answer(results, cache_time=1, next_offset=next_offset)
-                inline_query.answer(results, cache_time=1)
+                # todo: `1` works, but why?
+                plus = 1 if inline_query.offset is None or not len(inline_query.offset) else 0
+                next_offset = str(from_ + len(results) + plus) if len(results) else None
+
+                inline_query.answer(results, cache_time=1, next_offset=next_offset)
             except Exception as e:
                 logger.exception(e)
         else:
-            inline_query.answer(
-                [
-                    InlineQueryResultArticle(
-                        title="No Results",
-                        description="You haven't downloaded any audios yet",
-                        input_message_content=InputTextMessageContent(
-                            message_text=emoji.high_voltage,
+            if from_ is None or from_ == 0:
+                inline_query.answer(
+                    [
+                        InlineQueryResultArticle(
+                            title=_trans("No Results Were Found", db_from_user.chosen_language_code),
+                            description=_trans(
+                                "You haven't downloaded any audios yet",
+                                db_from_user.chosen_language_code
+                            ),
+                            input_message_content=InputTextMessageContent(
+                                message_text=emoji.high_voltage,
+                            )
                         )
-                    )
-                ]
-            )
+                    ],
+                    cache_time=1,
+                )

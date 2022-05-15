@@ -14,7 +14,7 @@ from tase.my_logger import logger
 from tase.telegram.handlers import BaseHandler, HandlerMetadata, exception_handler
 from tase.telegram.inline_buton_globals import buttons
 from tase.telegram.templates import AudioCaptionData
-from tase.utils import get_timestamp, emoji
+from tase.utils import get_timestamp, emoji, _trans
 
 
 class InlineQueryHandler(BaseHandler):
@@ -116,13 +116,14 @@ class InlineQueryHandler(BaseHandler):
             inline_query.answer(
                 [
                     InlineQueryResultArticle(
-                        title="No Results",
-                        description="No Results were found",
+                        title=_trans("No Results Were Found", db_from_user.chosen_language_code),
+                        description=_trans("No results were found", db_from_user.chosen_language_code),
                         input_message_content=InputTextMessageContent(
                             message_text=emoji.high_voltage,
                         )
                     )
-                ]
+                ],
+                cache_time=1,
             )
 
     @exception_handler

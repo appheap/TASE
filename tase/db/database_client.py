@@ -202,9 +202,11 @@ class DatabaseClient:
 
     def get_user_download_history(
             self,
-            db_from_user: graph_models.vertices.User
+            db_from_user: graph_models.vertices.User,
+            offset: int = 0,
+            limit: int = 20,
     ) -> Optional[List[graph_models.vertices.Audio]]:
         if db_from_user is None:
             return None
 
-        return self._graph_db.get_user_download_user_history(db_from_user)
+        return self._graph_db.get_user_download_user_history(db_from_user, offset, limit)

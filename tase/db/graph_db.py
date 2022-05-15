@@ -555,7 +555,12 @@ class GraphDatabase:
 
         user.update_chosen_language(self.users, lang_code)
 
-    def get_user_download_user_history(self, db_from_user: User) -> Optional[List[Audio]]:
+    def get_user_download_user_history(
+            self,
+            db_from_user: User,
+            offset: int = 0,
+            limit: int = 20,
+    ) -> Optional[List[Audio]]:
         if db_from_user is None:
             return None
 
@@ -564,10 +569,14 @@ class GraphDatabase:
             'for v in 1..1 any "$user_id" graph "tase" options {order:"dfs",edgeCollections:["downloaded"], vertexCollections:["downloads"]}'
             '   sort v.created_at DESC'
             '   for v_aud in 1..1 any v graph "tase" options {order:"dfs",edgeCollections:["has"], vertexCollections:["audios"]}'
-            '       return distinct v_aud'
+            '       collect v_=v_aud'
+            '       limit $offset, $limit'
+            '       return v_'
         )
         query = query_template.substitute(
             {
+                'offset': offset,
+                'limit': limit,
                 'user_id': db_from_user.id,
             }
         )
