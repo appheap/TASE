@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: tase\n"
-"POT-Creation-Date: 2022-05-15 23:24+0430\n"
-"PO-Revision-Date: 2022-05-15 23:57+0430\n"
+"POT-Creation-Date: 2022-05-16 00:16+0430\n"
+"PO-Revision-Date: 2022-05-16 00:16+0430\n"
 "Last-Translator: \n"
 "Language-Team: Kurdish\n"
 "Language: ku\n"
@@ -16,7 +16,7 @@ msgstr ""
 "X-Poedit-KeywordsList: _trans\n"
 "X-Poedit-SearchPath-0: .\n"
 
-#: tase/telegram/handlers/bots/bot_message_handler.py:150
+#: tase/telegram/handlers/bots/bot_message_handler.py:161
 msgid "An Error occurred while processing this audio download url"
 msgstr "لە کاتی پرۆسێسکردنی URLی دابەزاندنی ئەم دەنگەدا هەڵەیەک ڕوویدا"
 
@@ -24,35 +24,44 @@ msgstr "لە کاتی پرۆسێسکردنی URLی دابەزاندنی ئەم �
 msgid "Language change has been saved"
 msgstr "زمانەکە پاشکەوت کرا"
 
-#: tase/telegram/handlers/bots/inline_query_handler.py:119
-#: tase/telegram/inline_buttons/download_history_button.py:81
+#: tase/telegram/handlers/bots/inline_query_handler.py:141
+#: tase/telegram/inline_buttons/download_history_button.py:104
 #: tase/telegram/inline_buttons/my_playlists_button.py:67
 msgid "No Results Were Found"
 msgstr "هیچ ئەنجامێک نەدۆزرایەوە"
 
-#: tase/telegram/handlers/bots/inline_query_handler.py:120
+#: tase/telegram/handlers/bots/inline_query_handler.py:142
 msgid "No results were found"
 msgstr "هیچ ئەنجامێک نەدۆزرایەوە"
 
+#: tase/telegram/inline_buttons/add_to_playlist_button.py:14
+msgid "Add To Playlist"
+msgstr "زیاو کردن به پلەی لیست"
+
 #: tase/telegram/inline_buttons/advertisement_button.py:9
 msgid "Advertisement"
-msgstr ""
+msgstr "ڕێکلام"
 
 #: tase/telegram/inline_buttons/back_button.py:13
 msgid "Back"
 msgstr "گەڕانەوە"
 
-#: tase/telegram/inline_buttons/download_history_button.py:17
+#: tase/telegram/inline_buttons/download_history_button.py:20
 msgid "My Downloads"
 msgstr "دابەزاندنەکانم"
 
-#: tase/telegram/inline_buttons/download_history_button.py:83
+#: tase/telegram/inline_buttons/download_history_button.py:106
 msgid "You haven't downloaded any audios yet"
 msgstr "تا ئێستا هیچ دەنگێکت دانەبەزاندووە"
 
 #: tase/telegram/inline_buttons/help_catalog.py:14
 msgid "Help"
 msgstr "یارمەتی"
+
+#: tase/telegram/inline_buttons/home_button.py:13
+#: tase/telegram/templates/choose_language_template.py:27
+msgid "Home"
+msgstr "ماڵەوە"
 
 #: tase/telegram/inline_buttons/my_playlists_button.py:15
 msgid "My Playlists"
@@ -101,10 +110,6 @@ msgstr "خەریکی ناردن"
 #: tase/telegram/templates/choose_language_template.py:26
 msgid "Going to"
 msgstr "ڕۆشتن بۆ"
-
-#: tase/telegram/templates/choose_language_template.py:27
-msgid "Home"
-msgstr "ماڵەوە"
 
 #: tase/telegram/templates/help_template.py:32
 msgid "Help menu"
