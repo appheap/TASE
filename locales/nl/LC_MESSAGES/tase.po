@@ -1,12 +1,11 @@
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: tase\n"
 "POT-Creation-Date: 2022-05-16 01:25+0430\n"
-"PO-Revision-Date: 2022-05-03 02:40+0430\n"
+"PO-Revision-Date: 2022-05-16 03:09+0430\n"
 "Last-Translator: \n"
 "Language-Team: \n"
-"Language: en_US\n"
+"Language: nl_NL\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -18,190 +17,190 @@ msgstr ""
 "X-Poedit-SearchPath-0: .\n"
 
 #: telegram/handlers/bots/bot_message_handler.py:161
-msgid "An error occurred while processing the download URL for this audio"
-msgstr ""
+msgid "An Error occurred while processing this audio download url"
+msgstr "Er is een fout opgetreden bij het verwerken van deze audio -download -URL"
 
 #: telegram/handlers/bots/callback_query_handler.py:33
 msgid "Language change has been saved"
-msgstr ""
+msgstr "Taalverandering is opgeslagen"
 
 #: telegram/handlers/bots/inline_query_handler.py:141
 #: telegram/inline_buttons/download_history_button.py:104
 #: telegram/inline_buttons/my_playlists_button.py:75
 msgid "No Results Were Found"
-msgstr ""
+msgstr "Er zijn geen resultaten gevonden"
 
 #: telegram/handlers/bots/inline_query_handler.py:142
 msgid "No results were found"
-msgstr ""
+msgstr "Er zijn geen resultaten gevonden"
 
 #: telegram/inline_buttons/add_to_playlist_button.py:14
 msgid "Add To Playlist"
-msgstr ""
+msgstr "Toevoegen aan afspeellijst"
 
 #: telegram/inline_buttons/advertisement_button.py:9
 msgid "Advertisement"
-msgstr ""
+msgstr "Advertentie"
 
 #: telegram/inline_buttons/back_button.py:13
 msgid "Back"
-msgstr ""
+msgstr "Rug"
 
 #: telegram/inline_buttons/download_history_button.py:20
 msgid "My Downloads"
-msgstr ""
+msgstr "Mijn downloads"
 
 #: telegram/inline_buttons/download_history_button.py:106
 msgid "You haven't downloaded any audios yet"
-msgstr ""
+msgstr "Je hebt nog geen audio gedownload"
 
 #: telegram/inline_buttons/help_catalog.py:14
 msgid "Help"
-msgstr ""
+msgstr "Helpen"
 
 #: telegram/inline_buttons/home_button.py:13
 #: telegram/templates/choose_language_template.py:27
 msgid "Home"
-msgstr ""
+msgstr "Thuis"
 
 #: telegram/inline_buttons/my_playlists_button.py:17
 msgid "My Playlists"
-msgstr ""
+msgstr "Mijn afspeellijsten"
 
 #: telegram/inline_buttons/my_playlists_button.py:77
 msgid "You haven't created any playlist yet"
-msgstr ""
+msgstr "Je hebt nog geen afspeellijst gemaakt"
 
 #: telegram/templates/audio_caption_template.py:31
 #: telegram/templates/playlist_template.py:26
 msgid "Title"
-msgstr ""
+msgstr "Titel"
 
 #: telegram/templates/audio_caption_template.py:32
 msgid "Performer"
-msgstr ""
+msgstr "Uitvoerder"
 
 #: telegram/templates/audio_caption_template.py:33
 msgid "File name"
-msgstr ""
+msgstr "Bestandsnaam"
 
 #: telegram/templates/audio_caption_template.py:34
 msgid "Source"
-msgstr ""
+msgstr "Bron"
 
 #: telegram/templates/audio_caption_template.py:35
 msgid "Audio Search Engine"
-msgstr ""
+msgstr "Audio -zoekmachine"
 
 #: telegram/templates/audio_caption_template.py:36
-msgid "Submitted by Telegram Audio Search Engine Users"
-msgstr ""
+msgid "Sent by Telegram Audio Search Engine Users"
+msgstr "Verzonden door gebruikers van Telegram Audio Search Engine"
 
 #: telegram/templates/choose_language_template.py:23
 msgid "Please choose your language"
-msgstr ""
+msgstr "Kies uw taal"
 
 #: telegram/templates/choose_language_template.py:24
 msgid "You can change this later by:"
-msgstr ""
+msgstr "Je kunt dit later veranderen door:"
 
 #: telegram/templates/choose_language_template.py:25
 msgid "Sending"
-msgstr ""
+msgstr "Bezig met verzenden"
 
 #: telegram/templates/choose_language_template.py:26
 msgid "Going to"
-msgstr ""
+msgstr "Gaan naar"
 
 #: telegram/templates/help_template.py:32
 msgid "Help menu"
-msgstr ""
+msgstr "Help menu"
 
 #: telegram/templates/help_template.py:33
 #: telegram/templates/home_template.py:33
 msgid "Channel:"
-msgstr ""
+msgstr "Kanaal:"
 
 #: telegram/templates/help_template.py:34
 #: telegram/templates/home_template.py:34
 msgid "Our channels:"
-msgstr ""
+msgstr "Onze kanalen:"
 
 #: telegram/templates/help_template.py:35
 #: telegram/templates/home_template.py:35
 #: telegram/templates/welcome_template.py:28
 msgid "Telegram Audio Search Engine"
-msgstr ""
+msgstr "Telegram Audio Search Engine"
 
 #: telegram/templates/help_template.py:36
 #: telegram/templates/home_template.py:36
 msgid "How to reach us:"
-msgstr ""
+msgstr "Hoe bereik je ons:"
 
 #: telegram/templates/home_template.py:32
 msgid "Main menu"
-msgstr ""
+msgstr "Hoofdmenu"
 
 #: telegram/templates/no_results_were_found_template.py:9
 msgid "No results were found for this query!"
-msgstr ""
+msgstr "Er zijn geen resultaten gevonden voor deze vraag!"
 
 #: telegram/templates/playlist_template.py:25
 msgid "Playlist Menu"
-msgstr ""
+msgstr "Afspeellijstmenu"
 
 #: telegram/templates/playlist_template.py:27
 msgid "Description"
-msgstr ""
+msgstr "Beschrijving"
 
 #: telegram/templates/query_results_template.py:33
 msgid "Search results for:"
-msgstr ""
+msgstr "Zoekresultaten voor:"
 
 #: telegram/templates/query_results_template.py:34
 msgid "Better results are at the bottom of the list"
-msgstr ""
+msgstr "Betere resultaten staan onderaan de lijst"
 
 #: telegram/templates/query_results_template.py:35
 msgid "Download:"
-msgstr ""
+msgstr "Downloaden:"
 
 #: telegram/templates/query_results_template.py:36
 msgid "MB"
-msgstr ""
+msgstr "MB"
 
 #: telegram/templates/welcome_template.py:26
 msgid "Take your audio searching to the speed"
-msgstr ""
+msgstr "Neem uw audio op zoek naar de snelheid"
 
 #: telegram/templates/welcome_template.py:27
 msgid "Welcome to"
-msgstr ""
+msgstr "Welkom bij"
 
 #: telegram/templates/welcome_template.py:29
 msgid "It's great to have you!"
-msgstr ""
+msgstr "Het is geweldig om je te hebben!"
 
 #: telegram/templates/welcome_template.py:30
 msgid "Here are a bunch of features that will get your searching up to"
-msgstr ""
+msgstr "Hier zijn een heleboel functies die uw zoekopdracht naartoe brengen"
 
 #: telegram/templates/welcome_template.py:31
 msgid "speed"
-msgstr ""
+msgstr "snelheid"
 
 #: telegram/templates/welcome_template.py:32
 msgid "Find"
-msgstr ""
+msgstr "Vind"
 
 #: telegram/templates/welcome_template.py:33
 msgid "your audio (music, podcast, etc.) in"
-msgstr ""
+msgstr "uw audio (muziek, podcast, etc.) in"
 
 #: telegram/templates/welcome_template.py:34
 msgid "Any question? then press"
-msgstr ""
+msgstr "Enige vraag?Druk vervolgens op"
 
 #: telegram/templates/welcome_template.py:35
 msgid "milliseconds"
-msgstr ""
+msgstr "milliseconden"

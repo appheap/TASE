@@ -33,7 +33,7 @@ class AudioCaptionData(BaseTemplateData):
     s_file_name: str = _trans("File name")
     s_source: str = _trans("Source")
     s_audio_search_engine: str = _trans("Audio Search Engine")
-    s_sent_by_users: str = _trans('Sent by Telegram Audio Search Engine Users')
+    s_sent_by_users: str = _trans('Submitted by Telegram Audio Search Engine Users')
 
     title: str
     performer: str
