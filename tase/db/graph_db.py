@@ -566,12 +566,13 @@ class GraphDatabase:
 
         # todo: fix this
         query_template = Template(
-            'for v in 1..1 any "$user_id" graph "tase" options {order:"dfs",edgeCollections:["downloaded"], vertexCollections:["downloads"]}'
+            'for v in 1..1 any "$user_id" graph "tase" options {order : "dfs", edgeCollections : ["downloaded"], vertexCollections : ["downloads"]}'
             '   sort v.created_at DESC'
-            '   for v_aud in 1..1 any v graph "tase" options {order:"dfs",edgeCollections:["has"], vertexCollections:["audios"]}'
-            '       collect v_=v_aud'
-            '       limit $offset, $limit'
-            '       return v_'
+            '   for v_aud in 1..1 any v graph "tase" options {order : "dfs", edgeCollections : ["has"], vertexCollections : ["audios"]}'
+            '       collect aggregate audios = unique(v_aud)'
+            '       for aud in audios'
+            '           limit $offset, $limit'
+            '           return aud'
         )
         query = query_template.substitute(
             {
