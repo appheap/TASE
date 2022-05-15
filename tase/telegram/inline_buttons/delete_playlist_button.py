@@ -1,18 +1,18 @@
 import pyrogram
 
-from ..telegram_client import TelegramClient
 from .button import InlineButton
+from ..telegram_client import TelegramClient
 # from ..handlers import BaseHandler
 from ...db import DatabaseClient, graph_models
 from ...utils import emoji, _trans
 
 
-class BackInlineButton(InlineButton):
-    name = "back"
+class DeletePlaylistInlineButton(InlineButton):
+    name = "delete_playlist"
 
-    s_back = _trans("Back")
-    text = f"{s_back} | {emoji._BACK_arrow}"
-    callback_data = "back->back"
+    s_delete = _trans("Delete")
+    text = f"{s_delete} | {emoji._cross_mark}"
+    callback_data = "delete_playlist->delete_playlist"
 
     def on_callback_query(
             self,
@@ -23,8 +23,4 @@ class BackInlineButton(InlineButton):
             telegram_client: 'TelegramClient',
             db_from_user: graph_models.vertices.User
     ):
-        # todo: what to do when the `callback_query.message` is None?
-        if callback_query.message:
-            callback_query.message.delete()
-        else:
-            callback_query.answer("")
+        callback_query.answer("")

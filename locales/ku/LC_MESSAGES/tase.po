@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: tase\n"
-"POT-Creation-Date: 2022-05-16 01:27+0430\n"
-"PO-Revision-Date: 2022-05-16 01:27+0430\n"
+"POT-Creation-Date: 2022-05-16 02:42+0430\n"
+"PO-Revision-Date: 2022-05-16 02:42+0430\n"
 "Last-Translator: \n"
 "Language-Team: Kurdish\n"
 "Language: ku\n"
@@ -26,7 +26,7 @@ msgstr "زمانەکە پاشکەوت کرا"
 
 #: tase/telegram/handlers/bots/inline_query_handler.py:141
 #: tase/telegram/inline_buttons/download_history_button.py:104
-#: tase/telegram/inline_buttons/my_playlists_button.py:75
+#: tase/telegram/inline_buttons/my_playlists_button.py:104
 msgid "No Results Were Found"
 msgstr "هیچ ئەنجامێک نەدۆزرایەوە"
 
@@ -46,6 +46,10 @@ msgstr "ڕێکلام"
 msgid "Back"
 msgstr "گەڕانەوە"
 
+#: tase/telegram/inline_buttons/delete_playlist_button.py:13
+msgid "Delete"
+msgstr "سڕینەوە"
+
 #: tase/telegram/inline_buttons/download_history_button.py:20
 msgid "My Downloads"
 msgstr "دابەزاندنەکانم"
@@ -53,6 +57,14 @@ msgstr "دابەزاندنەکانم"
 #: tase/telegram/inline_buttons/download_history_button.py:106
 msgid "You haven't downloaded any audios yet"
 msgstr "تا ئێستا هیچ دەنگێکت دانەبەزاندووە"
+
+#: tase/telegram/inline_buttons/edit_playlist_button.py:13
+msgid "Edit"
+msgstr "بژارکردن"
+
+#: tase/telegram/inline_buttons/get_playlist_audios_button.py:14
+msgid "Audios"
+msgstr "دەنگەکان"
 
 #: tase/telegram/inline_buttons/help_catalog.py:14
 msgid "Help"
@@ -67,7 +79,7 @@ msgstr "ماڵەوە"
 msgid "My Playlists"
 msgstr "پلەی لیستەکانم"
 
-#: tase/telegram/inline_buttons/my_playlists_button.py:77
+#: tase/telegram/inline_buttons/my_playlists_button.py:106
 msgid "You haven't created any playlist yet"
 msgstr "تا ئێستا هیچ پلەی لیستێکت دروست نەکردووە"
 

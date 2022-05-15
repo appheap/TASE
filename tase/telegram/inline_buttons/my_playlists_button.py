@@ -1,5 +1,5 @@
 import pyrogram
-from pyrogram.types import InlineQueryResultArticle, InputTextMessageContent
+from pyrogram.types import InlineQueryResultArticle, InputTextMessageContent, InlineKeyboardMarkup
 
 from .button import InlineButton
 # from ..handlers import BaseHandler
@@ -28,6 +28,8 @@ class MyPlaylistsInlineButton(InlineButton):
             telegram_client: 'TelegramClient',
             db_from_user: graph_models.vertices.User,
     ):
+        from ..inline_buton_globals import buttons
+
         from_ = 0
 
         # todo: add `new playlist` button when
@@ -45,6 +47,33 @@ class MyPlaylistsInlineButton(InlineButton):
                 description=db_playlist.description,
                 lang_code=db_from_user.chosen_language_code,
             )
+
+            markup = [
+                [
+                    buttons['home'].get_inline_keyboard_button(db_from_user.chosen_language_code),
+                    buttons['back'].get_inline_keyboard_button(db_from_user.chosen_language_code),
+                ],
+                [
+                    buttons['get_playlist_audios'].get_inline_keyboard_button(
+                        db_from_user.chosen_language_code,
+                        db_playlist.key,
+                    ),
+                ],
+                [
+                    buttons['edit_playlist'].get_inline_keyboard_button(
+                        db_from_user.chosen_language_code,
+                        db_playlist.key,
+                    ),
+                    buttons['delete_playlist'].get_inline_keyboard_button(
+                        db_from_user.chosen_language_code,
+                        db_playlist.key,
+                    ),
+                ],
+
+            ]
+
+            markup = InlineKeyboardMarkup(markup)
+
             results.append(
                 InlineQueryResultArticle(
                     title=db_playlist.name,
@@ -54,7 +83,7 @@ class MyPlaylistsInlineButton(InlineButton):
                     input_message_content=InputTextMessageContent(
                         message_text=template_globals.playlist_template.render(data),
                     ),
-                    reply_markup=None,
+                    reply_markup=markup,
                 )
             )
 
