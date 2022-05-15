@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: tase\n"
-"POT-Creation-Date: 2022-05-16 02:42+0430\n"
-"PO-Revision-Date: 2022-05-16 02:42+0430\n"
+"POT-Creation-Date: 2022-05-16 02:59+0430\n"
+"PO-Revision-Date: 2022-05-16 02:59+0430\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: fa_IR\n"
@@ -25,8 +25,9 @@ msgid "Language change has been saved"
 msgstr "تغییر زبان ذخیره شد"
 
 #: telegram/handlers/bots/inline_query_handler.py:141
+#: telegram/inline_buttons/back_to_playlists_button.py:106
 #: telegram/inline_buttons/download_history_button.py:104
-#: telegram/inline_buttons/my_playlists_button.py:104
+#: telegram/inline_buttons/my_playlists_button.py:105
 msgid "No Results Were Found"
 msgstr "هیچ نتیجه‌ای پیدا نشد"
 
@@ -43,8 +44,14 @@ msgid "Advertisement"
 msgstr "تبلیغ"
 
 #: telegram/inline_buttons/back_button.py:13
+#: telegram/inline_buttons/back_to_playlists_button.py:18
 msgid "Back"
 msgstr "بازگشت"
+
+#: telegram/inline_buttons/back_to_playlists_button.py:108
+#: telegram/inline_buttons/my_playlists_button.py:107
+msgid "You haven't created any playlist yet"
+msgstr "شما هنوز پلی‌لیستی ایجاد نکرده‌اید"
 
 #: telegram/inline_buttons/delete_playlist_button.py:13
 msgid "Delete"
@@ -78,10 +85,6 @@ msgstr "خانه"
 #: telegram/inline_buttons/my_playlists_button.py:17
 msgid "My Playlists"
 msgstr "پلی لیست‌های من"
-
-#: telegram/inline_buttons/my_playlists_button.py:106
-msgid "You haven't created any playlist yet"
-msgstr "شما هنوز پلی‌لیستی ایجاد نکرده‌اید"
 
 #: telegram/templates/audio_caption_template.py:31
 #: telegram/templates/playlist_template.py:26

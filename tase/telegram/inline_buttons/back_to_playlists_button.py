@@ -11,11 +11,12 @@ from ...my_logger import logger
 from ...utils import emoji, _trans
 
 
-class MyPlaylistsInlineButton(InlineButton):
-    name = "my_playlists"
+# todo: this class is the same as `MyPlaylistsInlineButton`, any solutions to fix?
+class BackToPlaylistsInlineButton(InlineButton):
+    name = "back_to_playlists"
 
-    s_my_playlists = _trans("My Playlists")
-    text = f"{s_my_playlists} | {emoji._headphone}"
+    s_back = _trans("Back")
+    text = f"{s_back} | {emoji._BACK_arrow}"
 
     switch_inline_query_current_chat = f"#my_playlists"
 
@@ -51,7 +52,7 @@ class MyPlaylistsInlineButton(InlineButton):
             markup = [
                 [
                     buttons['home'].get_inline_keyboard_button(db_from_user.chosen_language_code),
-                    buttons['back_to_playlists'].get_inline_keyboard_button(db_from_user.chosen_language_code),
+                    buttons['back'].get_inline_keyboard_button(db_from_user.chosen_language_code),
                 ],
                 [
                     buttons['get_playlist_audios'].get_inline_keyboard_button(

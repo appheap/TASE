@@ -2,7 +2,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: tase\n"
-"POT-Creation-Date: 2022-05-16 02:29+0430\n"
+"POT-Creation-Date: 2022-05-16 02:59+0430\n"
 "PO-Revision-Date: 2022-05-03 02:40+0430\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -26,8 +26,9 @@ msgid "Language change has been saved"
 msgstr ""
 
 #: telegram/handlers/bots/inline_query_handler.py:141
+#: telegram/inline_buttons/back_to_playlists_button.py:106
 #: telegram/inline_buttons/download_history_button.py:104
-#: telegram/inline_buttons/my_playlists_button.py:94
+#: telegram/inline_buttons/my_playlists_button.py:105
 msgid "No Results Were Found"
 msgstr ""
 
@@ -44,7 +45,17 @@ msgid "Advertisement"
 msgstr ""
 
 #: telegram/inline_buttons/back_button.py:13
+#: telegram/inline_buttons/back_to_playlists_button.py:18
 msgid "Back"
+msgstr ""
+
+#: telegram/inline_buttons/back_to_playlists_button.py:108
+#: telegram/inline_buttons/my_playlists_button.py:107
+msgid "You haven't created any playlist yet"
+msgstr ""
+
+#: telegram/inline_buttons/delete_playlist_button.py:13
+msgid "Delete"
 msgstr ""
 
 #: telegram/inline_buttons/download_history_button.py:20
@@ -53,6 +64,10 @@ msgstr ""
 
 #: telegram/inline_buttons/download_history_button.py:106
 msgid "You haven't downloaded any audios yet"
+msgstr ""
+
+#: telegram/inline_buttons/edit_playlist_button.py:13
+msgid "Edit"
 msgstr ""
 
 #: telegram/inline_buttons/get_playlist_audios_button.py:14
@@ -70,10 +85,6 @@ msgstr ""
 
 #: telegram/inline_buttons/my_playlists_button.py:17
 msgid "My Playlists"
-msgstr ""
-
-#: telegram/inline_buttons/my_playlists_button.py:96
-msgid "You haven't created any playlist yet"
 msgstr ""
 
 #: telegram/templates/audio_caption_template.py:31
