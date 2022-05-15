@@ -5,12 +5,14 @@ from ..telegram_client import TelegramClient
 
 from ..handlers import BaseHandler
 from ...db import DatabaseClient, graph_models
-from ...utils import emoji
+from ...utils import emoji, _trans
 
 
 class HelpCatalogInlineButton(InlineButton):
     name = "help_catalog"
-    text = f"Help | {emoji._exclamation_question_mark}"
+
+    s_help = _trans("Help")
+    text = f"{s_help} | {emoji._exclamation_question_mark}"
 
     switch_inline_query_current_chat = f"#help_catalog"
 

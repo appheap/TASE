@@ -1,5 +1,5 @@
 from tase.telegram.templates import QueryResultsTemplate, NoResultsWereFoundTemplate, AudioCaptionTemplate, \
-    ChooseLanguageTemplate, WelcomeTemplate, HelpTemplate
+    ChooseLanguageTemplate, WelcomeTemplate, HelpTemplate, HomeTemplate
 
 query_results_template: QueryResultsTemplate = QueryResultsTemplate()
 no_results_were_found_template: NoResultsWereFoundTemplate = NoResultsWereFoundTemplate()
@@ -7,6 +7,7 @@ audio_caption_template: AudioCaptionTemplate = AudioCaptionTemplate()
 choose_language_template: ChooseLanguageTemplate = ChooseLanguageTemplate()
 welcome_template: WelcomeTemplate = WelcomeTemplate()
 help_template: HelpTemplate = HelpTemplate()
+home_template: HomeTemplate = HomeTemplate()
 
 __all__ = [
     'query_results_template',
@@ -15,4 +16,6 @@ __all__ = [
     'choose_language_template',
     'welcome_template',
     'help_template',
+    'home_template',
+
 ]

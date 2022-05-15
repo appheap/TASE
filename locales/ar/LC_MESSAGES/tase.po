@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: tase\n"
-"POT-Creation-Date: 2022-05-10 03:04+0430\n"
-"PO-Revision-Date: 2022-05-10 03:04+0430\n"
+"POT-Creation-Date: 2022-05-15 13:20+0430\n"
+"PO-Revision-Date: 2022-05-15 13:20+0430\n"
 "Last-Translator: \n"
 "Language-Team: Arabic\n"
 "Language: ar\n"
@@ -17,131 +17,160 @@ msgstr ""
 "X-Poedit-KeywordsList: _trans\n"
 "X-Poedit-SearchPath-0: .\n"
 
-#: telegram/handlers/bots/bot_message_handler.py:146
+#: telegram/handlers/bots/bot_message_handler.py:150
 msgid "An Error occurred while processing this audio download url"
 msgstr "حدث خطأ أثناء معالجة عنوان URL لتنزيل الصوت"
 
-#: telegram/handlers/bots/callback_query_handler.py:30
+#: telegram/handlers/bots/callback_query_handler.py:33
 msgid "Language change has been saved"
 msgstr "تم حفظ تغيير اللغة"
 
-#: templates/audio_caption_template.py:25
+#: telegram/inline_buttons/advertisement_button.py:9
+msgid "Advertisement"
+msgstr "إعلان"
+
+#: telegram/inline_buttons/back_button.py:13
+msgid "Back"
+msgstr "وراء"
+
+#: telegram/inline_buttons/download_history_button.py:17
+msgid "My Downloads"
+msgstr "التنزيلات الخاصة بي"
+
+#: telegram/inline_buttons/help_catalog.py:14
+msgid "Help"
+msgstr "المساعدة"
+
+#: telegram/inline_buttons/my_playlists_button.py:13
+msgid "My Playlists"
+msgstr "قوائم التشغيل الخاصة بي"
+
+#: telegram/templates/audio_caption_template.py:31
 msgid "Title:"
 msgstr "عنوان:"
 
-#: templates/audio_caption_template.py:26
+#: telegram/templates/audio_caption_template.py:32
 msgid "Performer:"
 msgstr "المؤدي:"
 
-#: templates/audio_caption_template.py:27
+#: telegram/templates/audio_caption_template.py:33
 msgid "File name:"
 msgstr "اسم الملف:"
 
-#: templates/audio_caption_template.py:28
+#: telegram/templates/audio_caption_template.py:34
 msgid "Source:"
 msgstr "مصدر:"
 
-#: templates/audio_caption_template.py:29
+#: telegram/templates/audio_caption_template.py:35
 msgid "Audio Search Engine"
 msgstr "محرك البحث الصوتي"
 
-#: templates/audio_caption_template.py:30
+#: telegram/templates/audio_caption_template.py:36
 msgid "Sent by Telegram Audio Search Engine Users"
 msgstr "أرسلها مستخدمو محرك البحث الصوتي تلغرام"
 
-#: templates/choose_language_template.py:17
+#: telegram/templates/choose_language_template.py:23
 msgid "Please choose your language"
 msgstr "الرجاء اختيار لغتك"
 
-#: templates/choose_language_template.py:18
+#: telegram/templates/choose_language_template.py:24
 msgid "You can change this later by:"
 msgstr "يمكنك تغيير هذا لاحقًا عن طريق:"
 
-#: templates/choose_language_template.py:19
+#: telegram/templates/choose_language_template.py:25
 msgid "Sending"
 msgstr "إرسال"
 
-#: templates/choose_language_template.py:20
+#: telegram/templates/choose_language_template.py:26
 msgid "Going to"
 msgstr "الذهاب الى"
 
-#: templates/choose_language_template.py:21
+#: telegram/templates/choose_language_template.py:27
 msgid "Home"
 msgstr "منزل"
 
-#: templates/help_template.py:30
+#: telegram/templates/help_template.py:32
 msgid "Help menu"
 msgstr "قائمة المساعدة"
 
-#: templates/help_template.py:31
+#: telegram/templates/help_template.py:33
+#: telegram/templates/home_template.py:33
 msgid "Channel:"
 msgstr "قناة:"
 
-#: templates/help_template.py:32
+#: telegram/templates/help_template.py:34
+#: telegram/templates/home_template.py:34
 msgid "Our channels:"
 msgstr "قنواتنا:"
 
-#: templates/help_template.py:33 templates/welcome_template.py:20
+#: telegram/templates/help_template.py:35
+#: telegram/templates/home_template.py:35
+#: telegram/templates/welcome_template.py:28
 msgid "Telegram Audio Search Engine"
 msgstr "محرك البحث الصوتي تلغرام"
 
-#: templates/help_template.py:34
+#: telegram/templates/help_template.py:36
+#: telegram/templates/home_template.py:36
 msgid "How to reach us:"
 msgstr "كيفية التواصل معنا:"
 
-#: templates/no_results_were_found_template.py:9
+#: telegram/templates/home_template.py:32
+msgid "Main menu"
+msgstr "القائمة الرئيسية"
+
+#: telegram/templates/no_results_were_found_template.py:9
 msgid "No results were found for this query!"
 msgstr "لم يتم العثور على نتائج لهذا الاستعلام!"
 
-#: templates/query_results_template.py:24
+#: telegram/templates/query_results_template.py:33
 msgid "Search results for:"
 msgstr "نتائج البحث عن:"
 
-#: templates/query_results_template.py:25
+#: telegram/templates/query_results_template.py:34
 msgid "Better results are at the bottom of the list"
 msgstr "أفضل النتائج في أسفل القائمة"
 
-#: templates/query_results_template.py:26
+#: telegram/templates/query_results_template.py:35
 msgid "Download:"
 msgstr "تنزيل:"
 
-#: templates/query_results_template.py:27
+#: telegram/templates/query_results_template.py:36
 msgid "MB"
 msgstr "ميغابايت"
 
-#: templates/welcome_template.py:18
+#: telegram/templates/welcome_template.py:26
 msgid "Take your audio searching to the speed"
 msgstr "خذ البحث الصوتي إلى السرعة"
 
-#: templates/welcome_template.py:19
+#: telegram/templates/welcome_template.py:27
 msgid "Welcome to"
 msgstr "مرحبا بك في"
 
-#: templates/welcome_template.py:21
+#: telegram/templates/welcome_template.py:29
 msgid "It's great to have you!"
 msgstr "إنه لشيء رائع أن يكون لديك!"
 
-#: templates/welcome_template.py:22
+#: telegram/templates/welcome_template.py:30
 msgid "Here are a bunch of features that will get your searching up to"
 msgstr "إليك مجموعة من الميزات التي ستجعل بحثك يصل إلى"
 
-#: templates/welcome_template.py:23
+#: telegram/templates/welcome_template.py:31
 msgid "speed"
 msgstr "السرعة"
 
-#: templates/welcome_template.py:24
+#: telegram/templates/welcome_template.py:32
 msgid "Find"
 msgstr "ابحث"
 
-#: templates/welcome_template.py:25
+#: telegram/templates/welcome_template.py:33
 msgid "your audio (music, podcast, etc.) in"
 msgstr "عن الصوت (موسيقى ، بودكاست ، وما إلى ذلك) في"
 
-#: templates/welcome_template.py:26
+#: telegram/templates/welcome_template.py:34
 msgid "Any question? then press"
 msgstr "اي سؤال؟ ثم اضغط على"
 
-#: templates/welcome_template.py:27
+#: telegram/templates/welcome_template.py:35
 msgid "milliseconds"
 msgstr "مللي ثانية"
 

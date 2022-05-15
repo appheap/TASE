@@ -4,9 +4,9 @@ from .base import BaseTemplate, BaseTemplateData
 from tase.utils import _trans
 
 
-class HelpTemplate(BaseTemplate):
+class HomeTemplate(BaseTemplate):
     template = Template(
-        "{{c_dir}}<b>{{s_help_menu}} | {{emoji._exclamation_question_mark}}</b>"
+        "{{c_dir}}<b>{{s_main_menu}} | {{emoji._house}}</b>"
         "{{c_new_line}}"
         "{{c_dir}}{{c_sep}}"
         "{{c_new_line}}"
@@ -28,8 +28,8 @@ class HelpTemplate(BaseTemplate):
     )
 
 
-class HelpData(BaseTemplateData):
-    s_help_menu: str = _trans("Help menu")
+class HomeData(BaseTemplateData):
+    s_main_menu: str = _trans("Main menu")
     s_channel: str = _trans("Channel:")
     s_our_channels: str = _trans("Our channels:")
     s_tase: str = _trans("Telegram Audio Search Engine")

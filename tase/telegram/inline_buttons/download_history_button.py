@@ -8,12 +8,14 @@ from ..handlers import BaseHandler
 from ...db import DatabaseClient, graph_models
 from ...my_logger import logger
 from tase.telegram.templates import AudioCaptionData
-from ...utils import emoji
+from ...utils import emoji, _trans
 
 
 class DownloadHistoryInlineButton(InlineButton):
     name = "download_history"
-    text = f"My Downloads | {emoji._mobile_phone_with_arrow}"
+
+    s_my_downloads = _trans("My Downloads")
+    text = f"{s_my_downloads} | {emoji._mobile_phone_with_arrow}"
 
     switch_inline_query_current_chat = f"#download_history"
 

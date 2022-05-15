@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: tase\n"
-"POT-Creation-Date: 2022-05-10 03:04+0430\n"
-"PO-Revision-Date: 2022-05-10 03:04+0430\n"
+"POT-Creation-Date: 2022-05-15 13:20+0430\n"
+"PO-Revision-Date: 2022-05-15 13:20+0430\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: fa_IR\n"
@@ -16,131 +16,160 @@ msgstr ""
 "X-Poedit-KeywordsList: _trans\n"
 "X-Poedit-SearchPath-0: .\n"
 
-#: telegram/handlers/bots/bot_message_handler.py:146
+#: telegram/handlers/bots/bot_message_handler.py:150
 msgid "An Error occurred while processing this audio download url"
 msgstr "حین پردازش لینک دانلود این موزیک خطایی به وجود آمد"
 
-#: telegram/handlers/bots/callback_query_handler.py:30
+#: telegram/handlers/bots/callback_query_handler.py:33
 msgid "Language change has been saved"
 msgstr "تغییر زبان ذخیره شد"
 
-#: templates/audio_caption_template.py:25
+#: telegram/inline_buttons/advertisement_button.py:9
+msgid "Advertisement"
+msgstr "تبلیغ"
+
+#: telegram/inline_buttons/back_button.py:13
+msgid "Back"
+msgstr "بازگشت"
+
+#: telegram/inline_buttons/download_history_button.py:17
+msgid "My Downloads"
+msgstr "دانلودهای من"
+
+#: telegram/inline_buttons/help_catalog.py:14
+msgid "Help"
+msgstr "راهنما"
+
+#: telegram/inline_buttons/my_playlists_button.py:13
+msgid "My Playlists"
+msgstr "پلی لیست‌های من"
+
+#: telegram/templates/audio_caption_template.py:31
 msgid "Title:"
 msgstr "عنوان:"
 
-#: templates/audio_caption_template.py:26
+#: telegram/templates/audio_caption_template.py:32
 msgid "Performer:"
 msgstr "اجرا کنندە:"
 
-#: templates/audio_caption_template.py:27
+#: telegram/templates/audio_caption_template.py:33
 msgid "File name:"
 msgstr "نام فایل:"
 
-#: templates/audio_caption_template.py:28
+#: telegram/templates/audio_caption_template.py:34
 msgid "Source:"
 msgstr "منبع:"
 
-#: templates/audio_caption_template.py:29
+#: telegram/templates/audio_caption_template.py:35
 msgid "Audio Search Engine"
 msgstr "موتور جستجوی آهنگ"
 
-#: templates/audio_caption_template.py:30
+#: telegram/templates/audio_caption_template.py:36
 msgid "Sent by Telegram Audio Search Engine Users"
 msgstr "ارسال شده توسط کاربران موتور جستجوی صوتی تلگرام"
 
-#: templates/choose_language_template.py:17
+#: telegram/templates/choose_language_template.py:23
 msgid "Please choose your language"
 msgstr "لطفا زبان خود را انتخاب کنید"
 
-#: templates/choose_language_template.py:18
+#: telegram/templates/choose_language_template.py:24
 msgid "You can change this later by:"
 msgstr "بعداً می توانید این مورد را تغییر دهید با:"
 
-#: templates/choose_language_template.py:19
+#: telegram/templates/choose_language_template.py:25
 msgid "Sending"
 msgstr "فرستادن"
 
-#: templates/choose_language_template.py:20
+#: telegram/templates/choose_language_template.py:26
 msgid "Going to"
 msgstr "رفتن به"
 
-#: templates/choose_language_template.py:21
+#: telegram/templates/choose_language_template.py:27
 msgid "Home"
 msgstr "خانه"
 
-#: templates/help_template.py:30
+#: telegram/templates/help_template.py:32
 msgid "Help menu"
 msgstr "منوی راهنما"
 
-#: templates/help_template.py:31
+#: telegram/templates/help_template.py:33
+#: telegram/templates/home_template.py:33
 msgid "Channel:"
 msgstr "کانال:"
 
-#: templates/help_template.py:32
+#: telegram/templates/help_template.py:34
+#: telegram/templates/home_template.py:34
 msgid "Our channels:"
 msgstr "کانال‌های ما:"
 
-#: templates/help_template.py:33 templates/welcome_template.py:20
+#: telegram/templates/help_template.py:35
+#: telegram/templates/home_template.py:35
+#: telegram/templates/welcome_template.py:28
 msgid "Telegram Audio Search Engine"
 msgstr "موتور جستجوی آهنگ تلگرام"
 
-#: templates/help_template.py:34
+#: telegram/templates/help_template.py:36
+#: telegram/templates/home_template.py:36
 msgid "How to reach us:"
 msgstr "تماس با ما:"
 
-#: templates/no_results_were_found_template.py:9
+#: telegram/templates/home_template.py:32
+msgid "Main menu"
+msgstr "منوی اصلی"
+
+#: telegram/templates/no_results_were_found_template.py:9
 msgid "No results were found for this query!"
 msgstr "هیچ نتیجه‌ای برای این عبارت پیدا نشد!"
 
-#: templates/query_results_template.py:24
+#: telegram/templates/query_results_template.py:33
 msgid "Search results for:"
 msgstr "نتایج جستجو برای:"
 
-#: templates/query_results_template.py:25
+#: telegram/templates/query_results_template.py:34
 msgid "Better results are at the bottom of the list"
 msgstr "نتایج بهتر پایین لیست هستند"
 
-#: templates/query_results_template.py:26
+#: telegram/templates/query_results_template.py:35
 msgid "Download:"
 msgstr "دانلود:"
 
-#: templates/query_results_template.py:27
+#: telegram/templates/query_results_template.py:36
 msgid "MB"
 msgstr "مگابایت"
 
-#: templates/welcome_template.py:18
+#: telegram/templates/welcome_template.py:26
 msgid "Take your audio searching to the speed"
 msgstr "جستجوی صوتی خود را به سرعت بالا ببرید"
 
-#: templates/welcome_template.py:19
+#: telegram/templates/welcome_template.py:27
 msgid "Welcome to"
 msgstr "خوش آمدید به"
 
-#: templates/welcome_template.py:21
+#: telegram/templates/welcome_template.py:29
 msgid "It's great to have you!"
 msgstr "خوشحالم که اینجایی!"
 
-#: templates/welcome_template.py:22
+#: telegram/templates/welcome_template.py:30
 msgid "Here are a bunch of features that will get your searching up to"
 msgstr "در اینجا مجموعه ای از ویژگی‌ها وجود دارد که جستجوی شما را بالا می‌برد"
 
-#: templates/welcome_template.py:23
+#: telegram/templates/welcome_template.py:31
 msgid "speed"
 msgstr "سرعت"
 
-#: templates/welcome_template.py:24
+#: telegram/templates/welcome_template.py:32
 msgid "Find"
 msgstr "پیدا کردن"
 
-#: templates/welcome_template.py:25
+#: telegram/templates/welcome_template.py:33
 msgid "your audio (music, podcast, etc.) in"
 msgstr "آهنگ مورد نظر خود (موسیقی، پادکست و غیره) را در"
 
-#: templates/welcome_template.py:26
+#: telegram/templates/welcome_template.py:34
 msgid "Any question? then press"
 msgstr "سوالی دارید؟ بزن رو"
 
-#: templates/welcome_template.py:27
+#: telegram/templates/welcome_template.py:35
 msgid "milliseconds"
 msgstr "میلی ثانیه"
 

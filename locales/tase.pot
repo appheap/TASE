@@ -2,7 +2,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: tase\n"
-"POT-Creation-Date: 2022-05-10 02:59+0430\n"
+"POT-Creation-Date: 2022-05-15 12:52+0430\n"
 "PO-Revision-Date: 2022-05-03 02:40+0430\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -17,130 +17,139 @@ msgstr ""
 "X-Poedit-KeywordsList: _trans\n"
 "X-Poedit-SearchPath-0: .\n"
 
-#: telegram/handlers/bots/bot_message_handler.py:146
+#: telegram/handlers/bots/bot_message_handler.py:150
 msgid "An Error occurred while processing this audio download url"
 msgstr ""
 
-#: telegram/handlers/bots/callback_query_handler.py:30
+#: telegram/handlers/bots/callback_query_handler.py:33
 msgid "Language change has been saved"
 msgstr ""
 
-#: templates/audio_caption_template.py:25
+#: telegram/templates/audio_caption_template.py:31
 msgid "Title:"
 msgstr ""
 
-#: templates/audio_caption_template.py:26
+#: telegram/templates/audio_caption_template.py:32
 msgid "Performer:"
 msgstr ""
 
-#: templates/audio_caption_template.py:27
+#: telegram/templates/audio_caption_template.py:33
 msgid "File name:"
 msgstr ""
 
-#: templates/audio_caption_template.py:28
+#: telegram/templates/audio_caption_template.py:34
 msgid "Source:"
 msgstr ""
 
-#: templates/audio_caption_template.py:29
+#: telegram/templates/audio_caption_template.py:35
 msgid "Audio Search Engine"
 msgstr ""
 
-#: templates/audio_caption_template.py:30
+#: telegram/templates/audio_caption_template.py:36
 msgid "Sent by Telegram Audio Search Engine Users"
 msgstr ""
 
-#: templates/choose_language_template.py:17
+#: telegram/templates/choose_language_template.py:23
 msgid "Please choose your language"
 msgstr ""
 
-#: templates/choose_language_template.py:18
+#: telegram/templates/choose_language_template.py:24
 msgid "You can change this later by:"
 msgstr ""
 
-#: templates/choose_language_template.py:19
+#: telegram/templates/choose_language_template.py:25
 msgid "Sending"
 msgstr ""
 
-#: templates/choose_language_template.py:20
+#: telegram/templates/choose_language_template.py:26
 msgid "Going to"
 msgstr ""
 
-#: templates/choose_language_template.py:21
+#: telegram/templates/choose_language_template.py:27
 msgid "Home"
 msgstr ""
 
-#: templates/help_template.py:30
+#: telegram/templates/help_template.py:32
 msgid "Help menu"
 msgstr ""
 
-#: templates/help_template.py:31
+#: telegram/templates/help_template.py:33
+#: telegram/templates/home_template.py:33
 msgid "Channel:"
 msgstr ""
 
-#: templates/help_template.py:32
+#: telegram/templates/help_template.py:34
+#: telegram/templates/home_template.py:34
 msgid "Our channels:"
 msgstr ""
 
-#: templates/help_template.py:33 templates/welcome_template.py:20
+#: telegram/templates/help_template.py:35
+#: telegram/templates/home_template.py:35
+#: telegram/templates/welcome_template.py:28
 msgid "Telegram Audio Search Engine"
 msgstr ""
 
-#: templates/help_template.py:34
+#: telegram/templates/help_template.py:36
+#: telegram/templates/home_template.py:36
 msgid "How to reach us:"
 msgstr ""
 
-#: templates/no_results_were_found_template.py:9
+#: telegram/templates/home_template.py:32
+msgid "Main menu"
+msgstr ""
+
+#: telegram/templates/no_results_were_found_template.py:9
 msgid "No results were found for this query!"
 msgstr ""
 
-#: templates/query_results_template.py:24
+#: telegram/templates/query_results_template.py:33
 msgid "Search results for:"
 msgstr ""
 
-#: templates/query_results_template.py:25
+#: telegram/templates/query_results_template.py:34
 msgid "Better results are at the bottom of the list"
 msgstr ""
 
-#: templates/query_results_template.py:26
+#: telegram/templates/query_results_template.py:35
 msgid "Download:"
 msgstr ""
 
-#: templates/query_results_template.py:27
+#: telegram/templates/query_results_template.py:36
 msgid "MB"
 msgstr ""
 
-#: templates/welcome_template.py:18
+#: telegram/templates/welcome_template.py:26
 msgid "Take your audio searching to the speed"
 msgstr ""
 
-#: templates/welcome_template.py:19
+#: telegram/templates/welcome_template.py:27
 msgid "Welcome to"
 msgstr ""
 
-#: templates/welcome_template.py:21
+#: telegram/templates/welcome_template.py:29
 msgid "It's great to have you!"
 msgstr ""
 
-#: templates/welcome_template.py:22
+#: telegram/templates/welcome_template.py:30
 msgid "Here are a bunch of features that will get your searching up to"
 msgstr ""
 
-#: templates/welcome_template.py:23
+#: telegram/templates/welcome_template.py:31
 msgid "speed"
 msgstr ""
 
-#: templates/welcome_template.py:24
+#: telegram/templates/welcome_template.py:32
 msgid "Find"
 msgstr ""
 
-#: templates/welcome_template.py:25
+#: telegram/templates/welcome_template.py:33
 msgid "your audio (music, podcast, etc.) in"
 msgstr ""
 
-#: templates/welcome_template.py:26
+#: telegram/templates/welcome_template.py:34
 msgid "Any question? then press"
 msgstr ""
 
-#: templates/welcome_template.py:27
+#: telegram/templates/welcome_template.py:35
 msgid "milliseconds"
 msgstr ""

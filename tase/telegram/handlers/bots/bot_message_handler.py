@@ -13,8 +13,9 @@ from tase.db import graph_models
 from tase.my_logger import logger
 from tase.telegram.handlers import BaseHandler, HandlerMetadata, exception_handler
 from tase.telegram.inline_buton_globals import buttons
-from tase.telegram.templates import QueryResultsData, NoResultsWereFoundData, AudioCaptionData, ChooseLanguageData, WelcomeData, \
-    HelpData
+from tase.telegram.templates import QueryResultsData, NoResultsWereFoundData, AudioCaptionData, ChooseLanguageData, \
+    WelcomeData, \
+    HelpData, HomeData
 from tase.utils import get_timestamp, _trans, languages_object
 from tase.telegram import template_globals
 
@@ -84,7 +85,7 @@ class BotMessageHandler(BaseHandler):
         elif command == 'help':
             self.show_help(client, db_from_user, message)
         elif command == 'home':
-            pass
+            self.show_home(client, db_from_user, message)
         else:
             pass
 
@@ -265,6 +266,46 @@ class BotMessageHandler(BaseHandler):
             parse_mode=ParseMode.HTML
         )
 
+    def show_home(
+            self,
+            client: 'pyrogram.Client',
+            db_from_user: graph_models.vertices.User,
+            message: 'pyrogram.types.Message'
+    ) -> None:
+        """
+        Shows the Home menu
+
+        :param client: Telegram client
+        :param db_from_user: User Object from the graph database
+        :param message: Telegram message object
+        :return:
+        """
+        data = HomeData(
+            support_channel_username='support_channel_username',
+            url1='https://github.com/appheap/TASE',
+            url2='https://github.com/appheap/TASE',
+            lang_code=db_from_user.chosen_language_code,
+        )
+
+        markup = [
+            [
+                buttons['download_history'].get_inline_keyboard_button(db_from_user.chosen_language_code),
+                buttons['my_playlists'].get_inline_keyboard_button(db_from_user.chosen_language_code),
+            ],
+            [
+                buttons['advertisement'].get_inline_keyboard_button(db_from_user.chosen_language_code),
+                buttons['help_catalog'].get_inline_keyboard_button(db_from_user.chosen_language_code),
+            ]
+        ]
+        markup = InlineKeyboardMarkup(markup)
+
+        client.send_message(
+            chat_id=message.from_user.id,
+            text=template_globals.home_template.render(data),
+            parse_mode=ParseMode.HTML,
+            reply_markup=markup,
+        )
+
     def show_help(
             self,
             client: 'pyrogram.Client',
@@ -281,22 +322,22 @@ class BotMessageHandler(BaseHandler):
         """
         data = HelpData(
             support_channel_username='support_channel_username',
-            url1='https://github.com',
-            url2='https://github.com',
+            url1='https://github.com/appheap/TASE',
+            url2='https://github.com/appheap/TASE',
             lang_code=db_from_user.chosen_language_code,
         )
 
         markup = [
             [
-                buttons['download_history'].get_inline_keyboard_button(),
-                buttons['my_playlists'].get_inline_keyboard_button(),
+                buttons['download_history'].get_inline_keyboard_button(db_from_user.chosen_language_code),
+                buttons['my_playlists'].get_inline_keyboard_button(db_from_user.chosen_language_code),
             ],
             [
-                buttons['back'].get_inline_keyboard_button(),
+                buttons['back'].get_inline_keyboard_button(db_from_user.chosen_language_code),
             ],
             [
-                buttons['advertisement'].get_inline_keyboard_button(),
-                buttons['help_catalog'].get_inline_keyboard_button(),
+                buttons['advertisement'].get_inline_keyboard_button(db_from_user.chosen_language_code),
+                buttons['help_catalog'].get_inline_keyboard_button(db_from_user.chosen_language_code),
             ]
         ]
         markup = InlineKeyboardMarkup(markup)

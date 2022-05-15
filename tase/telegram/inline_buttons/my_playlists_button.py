@@ -4,12 +4,14 @@ from .button import InlineButton
 from ..telegram_client import TelegramClient
 from ..handlers import BaseHandler
 from ...db import DatabaseClient, graph_models
-from ...utils import emoji
+from ...utils import emoji, _trans
 
 
 class MyPlaylistsInlineButton(InlineButton):
     name = "my_playlists"
-    text = f"My Playlists | {emoji._headphone}"
+
+    s_my_playlists = _trans("My Playlists")
+    text = f"{s_my_playlists} | {emoji._headphone}"
 
     switch_inline_query_current_chat = f"#my_playlists"
 

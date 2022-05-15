@@ -7,6 +7,7 @@ from pyrogram.types import InlineKeyboardButton
 from tase.db import DatabaseClient, graph_models
 # from ..telegram_client import TelegramClient
 from tase.telegram.handlers import BaseHandler
+from tase.utils import translate_text
 
 
 class InlineButton(BaseModel):
@@ -17,8 +18,23 @@ class InlineButton(BaseModel):
     switch_inline_query_current_chat: Optional[str]
     url: Optional[str]
 
-    def get_text(self) -> str:
-        return self.text
+    def get_translated_text(self, lang_code: str = 'en') -> str:
+        temp_dict = self.dict()
+
+        temp = ""
+
+        if not lang_code or lang_code != 'en':
+            for attr_name, attr_value in temp_dict.items():
+                if attr_name.startswith('s_'):
+                    if not len(temp):
+                        temp = self.text.replace(attr_value, translate_text(attr_value, lang_code))
+                    else:
+                        temp = temp.replace(attr_value, translate_text(attr_value, lang_code))
+
+        return temp if len(temp) else self.text
+
+    def get_text(self, lang_code: str = 'en') -> str:
+        return self.get_translated_text(lang_code)
 
     def get_url(self) -> str:
         return self.url
@@ -29,9 +45,9 @@ class InlineButton(BaseModel):
     def get_switch_inline_query_current_chat(self) -> Optional[str]:
         return self.switch_inline_query_current_chat
 
-    def get_inline_keyboard_button(self):
+    def get_inline_keyboard_button(self, lang_code: str = 'en'):
         return InlineKeyboardButton(
-            text=self.get_text(),
+            text=self.get_text(lang_code),
             callback_data=self.get_callback_data(),
             url=self.get_url(),
             switch_inline_query_current_chat=self.get_switch_inline_query_current_chat()

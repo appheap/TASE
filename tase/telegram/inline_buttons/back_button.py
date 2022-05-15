@@ -4,13 +4,14 @@ from ..telegram_client import TelegramClient
 from .button import InlineButton
 from ..handlers import BaseHandler
 from ...db import DatabaseClient, graph_models
-from ...utils import emoji
+from ...utils import emoji, _trans
 
 
 class BackInlineButton(InlineButton):
     name = "back"
 
-    text = f"Back | {emoji._BACK_arrow}"
+    s_back = _trans("Back")
+    text = f"{s_back} | {emoji._BACK_arrow}"
     callback_data = "back->back"
 
     def on_callback_query(
