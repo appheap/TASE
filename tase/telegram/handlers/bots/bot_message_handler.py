@@ -156,9 +156,9 @@ class BotMessageHandler(BaseHandler):
             )
         else:
             # todo: An Error occurred while processing this audio download url, why?
-            logger.error(f"An Error occurred while processing this audio download url: {download_url}")
+            logger.error(f"An error occurred while processing the download URL for this audio: {download_url}")
             message.reply_text(
-                _trans("An Error occurred while processing this audio download url", db_user.chosen_language_code)
+                _trans("An error occurred while processing the download URL for this audio", db_user.chosen_language_code)
             )
 
     @exception_handler
