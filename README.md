@@ -163,8 +163,9 @@ results that lead to relevant information on high-quality websites.</p>
 
 <h2>License</h3>
 <p>Released under the MIT License</p>
-<div class="footer"><pre>Copyright &copy; 2020-2022
+<div class="footer"><pre>Copyright &copy; 2020-2022</pre>
 Soran Ghaderi (soran.gdr.cs@gmail.com)
 Personal website: <a href="https://soran-ghaderi.github.io/">soran-ghaderi.github.io</a>
 Linkedin: <a href="https://www.linkedin.com/in/soran-ghaderi/">Soran-Ghaderi</a>
-Twitter: <a href="https://twitter.com/soranghadri">SoranGhadri</a></div> 
+Twitter: <a href="https://twitter.com/soranghadri">SoranGhadri</a>
+</div> 

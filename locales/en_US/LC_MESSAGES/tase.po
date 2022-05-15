@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: tase\n"
-"POT-Creation-Date: 2022-05-15 19:20+0430\n"
-"PO-Revision-Date: 2022-05-15 19:20+0430\n"
+"POT-Creation-Date: 2022-05-15 23:24+0430\n"
+"PO-Revision-Date: 2022-05-15 23:24+0430\n"
 "Last-Translator: \n"
 "Language-Team: English (United States)\n"
 "Language: en_US\n"
@@ -26,7 +26,7 @@ msgstr ""
 
 #: telegram/handlers/bots/inline_query_handler.py:119
 #: telegram/inline_buttons/download_history_button.py:81
-#: telegram/inline_buttons/my_playlists_button.py:65
+#: telegram/inline_buttons/my_playlists_button.py:67
 msgid "No Results Were Found"
 msgstr ""
 
@@ -58,7 +58,7 @@ msgstr ""
 msgid "My Playlists"
 msgstr ""
 
-#: telegram/inline_buttons/my_playlists_button.py:67
+#: telegram/inline_buttons/my_playlists_button.py:69
 msgid "You haven't created any playlist yet"
 msgstr ""
 

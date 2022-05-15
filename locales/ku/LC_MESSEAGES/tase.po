@@ -1,0 +1,192 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: tase\n"
+"POT-Creation-Date: 2022-05-15 23:24+0430\n"
+"PO-Revision-Date: 2022-05-15 23:57+0430\n"
+"Last-Translator: \n"
+"Language-Team: Kurdish\n"
+"Language: ku\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 3.0.1\n"
+"X-Poedit-Basepath: ../../..\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Poedit-KeywordsList: _trans\n"
+"X-Poedit-SearchPath-0: .\n"
+
+#: tase/telegram/handlers/bots/bot_message_handler.py:150
+msgid "An Error occurred while processing this audio download url"
+msgstr "لە کاتی پرۆسێسکردنی URLی دابەزاندنی ئەم دەنگەدا هەڵەیەک ڕوویدا"
+
+#: tase/telegram/handlers/bots/callback_query_handler.py:33
+msgid "Language change has been saved"
+msgstr "زمانەکە پاشکەوت کرا"
+
+#: tase/telegram/handlers/bots/inline_query_handler.py:119
+#: tase/telegram/inline_buttons/download_history_button.py:81
+#: tase/telegram/inline_buttons/my_playlists_button.py:67
+msgid "No Results Were Found"
+msgstr "هیچ ئەنجامێک نەدۆزرایەوە"
+
+#: tase/telegram/handlers/bots/inline_query_handler.py:120
+msgid "No results were found"
+msgstr "هیچ ئەنجامێک نەدۆزرایەوە"
+
+#: tase/telegram/inline_buttons/advertisement_button.py:9
+msgid "Advertisement"
+msgstr ""
+
+#: tase/telegram/inline_buttons/back_button.py:13
+msgid "Back"
+msgstr "گەڕانەوە"
+
+#: tase/telegram/inline_buttons/download_history_button.py:17
+msgid "My Downloads"
+msgstr "دابەزاندنەکانم"
+
+#: tase/telegram/inline_buttons/download_history_button.py:83
+msgid "You haven't downloaded any audios yet"
+msgstr "تا ئێستا هیچ دەنگێکت دانەبەزاندووە"
+
+#: tase/telegram/inline_buttons/help_catalog.py:14
+msgid "Help"
+msgstr "یارمەتی"
+
+#: tase/telegram/inline_buttons/my_playlists_button.py:15
+msgid "My Playlists"
+msgstr "پلەی لیستەکانم"
+
+#: tase/telegram/inline_buttons/my_playlists_button.py:69
+msgid "You haven't created any playlist yet"
+msgstr "تا ئێستا هیچ پلەی لیستێکت دروست نەکردووە"
+
+#: tase/telegram/templates/audio_caption_template.py:31
+msgid "Title:"
+msgstr "ناو:"
+
+#: tase/telegram/templates/audio_caption_template.py:32
+msgid "Performer:"
+msgstr "پیشکەشکار:"
+
+#: tase/telegram/templates/audio_caption_template.py:33
+msgid "File name:"
+msgstr "ناوی فایل:"
+
+#: tase/telegram/templates/audio_caption_template.py:34
+msgid "Source:"
+msgstr "سەرچاوە:"
+
+#: tase/telegram/templates/audio_caption_template.py:35
+msgid "Audio Search Engine"
+msgstr "بزوێنەری گەڕانی دەنگ"
+
+#: tase/telegram/templates/audio_caption_template.py:36
+msgid "Sent by Telegram Audio Search Engine Users"
+msgstr "لەلایەن بەکارهێنەرانی \"بزوێنەری گەڕانی دەنگی تێلێگرام\"ەوە نێردراوە"
+
+#: tase/telegram/templates/choose_language_template.py:23
+msgid "Please choose your language"
+msgstr "تکایە زمانەکەت هەڵبژێرە"
+
+#: tase/telegram/templates/choose_language_template.py:24
+msgid "You can change this later by:"
+msgstr "دواتر دەتوانیت ئەمە بگۆڕیت:"
+
+#: tase/telegram/templates/choose_language_template.py:25
+msgid "Sending"
+msgstr "خەریکی ناردن"
+
+#: tase/telegram/templates/choose_language_template.py:26
+msgid "Going to"
+msgstr "ڕۆشتن بۆ"
+
+#: tase/telegram/templates/choose_language_template.py:27
+msgid "Home"
+msgstr "ماڵەوە"
+
+#: tase/telegram/templates/help_template.py:32
+msgid "Help menu"
+msgstr "مێنۆی یارمەتی"
+
+#: tase/telegram/templates/help_template.py:33
+#: tase/telegram/templates/home_template.py:33
+msgid "Channel:"
+msgstr "کەناڵ:"
+
+#: tase/telegram/templates/help_template.py:34
+#: tase/telegram/templates/home_template.py:34
+msgid "Our channels:"
+msgstr "کەناڵەکانی ئێمە:"
+
+#: tase/telegram/templates/help_template.py:35
+#: tase/telegram/templates/home_template.py:35
+#: tase/telegram/templates/welcome_template.py:28
+msgid "Telegram Audio Search Engine"
+msgstr "بزوێنەری گەڕانی دەنگی تێلێگرام"
+
+#: tase/telegram/templates/help_template.py:36
+#: tase/telegram/templates/home_template.py:36
+msgid "How to reach us:"
+msgstr "چۆن بگەین بە ئێمە:"
+
+#: tase/telegram/templates/home_template.py:32
+msgid "Main menu"
+msgstr "مێنۆی سەرەکی"
+
+#: tase/telegram/templates/no_results_were_found_template.py:9
+msgid "No results were found for this query!"
+msgstr "هیچ ئەنجامێک بۆ ئەم دەستەواژە نەدۆزرایەوە!"
+
+#: tase/telegram/templates/query_results_template.py:33
+msgid "Search results for:"
+msgstr "ئامانجەکانی گەڕان بۆ:"
+
+#: tase/telegram/templates/query_results_template.py:34
+msgid "Better results are at the bottom of the list"
+msgstr "ئەنجامی باشتر لە خوارەوەی لیستەکەدایە"
+
+#: tase/telegram/templates/query_results_template.py:35
+msgid "Download:"
+msgstr "دابەزاندن:"
+
+#: tase/telegram/templates/query_results_template.py:36
+msgid "MB"
+msgstr "مێگابایت"
+
+#: tase/telegram/templates/welcome_template.py:26
+msgid "Take your audio searching to the speed"
+msgstr "\"گەڕان بۆ دەنگ\"ەکانت ببە بۆ ئاستێکی تر لە خێرایی"
+
+#: tase/telegram/templates/welcome_template.py:27
+msgid "Welcome to"
+msgstr "بەخێربێیت بۆ"
+
+#: tase/telegram/templates/welcome_template.py:29
+msgid "It's great to have you!"
+msgstr "زۆر خۆشحاڵین کە تۆ لێرەیت!"
+
+#: tase/telegram/templates/welcome_template.py:30
+msgid "Here are a bunch of features that will get your searching up to"
+msgstr "لێرەدا کۆمەڵێک تایبەتمەندی دەخەینەڕوو کە گەڕانەکەت خێراتر دەکات"
+
+#: tase/telegram/templates/welcome_template.py:31
+msgid "speed"
+msgstr "خێرایی"
+
+#: tase/telegram/templates/welcome_template.py:32
+msgid "Find"
+msgstr "دۆزینەوە"
+
+#: tase/telegram/templates/welcome_template.py:33
+msgid "your audio (music, podcast, etc.) in"
+msgstr "دەنگەکەت (مۆسیقا، پۆدکاست و هتد) لە"
+
+#: tase/telegram/templates/welcome_template.py:34
+msgid "Any question? then press"
+msgstr "پرسیارێکت هەیە؟ زۆرباشە دەستی پێدا بنێ"
+
+#: tase/telegram/templates/welcome_template.py:35
+msgid "milliseconds"
+msgstr "میلی چرکە"

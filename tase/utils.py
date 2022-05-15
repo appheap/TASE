@@ -16,7 +16,7 @@ _gt = gettext.gettext
 # todo: it's not a good practice to hardcode like this, fix it
 languages = dict()
 # lang_codes = ['en', 'fa', 'ku_KU', 'ku_TR', 'tr']
-lang_codes = ['en', 'fa', 'ar', ]
+lang_codes = ['en', 'fa', 'ar', 'ku']
 if not len(languages):
     for lang_code in lang_codes:
         lang = gettext.translation('tase', localedir='../locales', languages=[lang_code])
@@ -64,10 +64,17 @@ arabic = Language(
     name='العربية (Arabic)'
 )
 
+kurdish_sorani = Language(
+    code='ku',
+    flag=emoji._saudi_arabia_flag,
+    name='کوردی سۆرانی (Kurdish Sorani)'
+)
+
 language_mapping: typing.Dict[str, Language] = {
     'en': english,
     'fa': persian,
     'ar': arabic,
+    'ku': kurdish_sorani
 }
 languages_object = Languages(
     mappings=language_mapping,
