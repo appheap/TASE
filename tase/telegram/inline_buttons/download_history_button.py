@@ -70,6 +70,8 @@ class DownloadHistoryInlineButton(InlineButton):
                     ]
                 )
 
+            markup = InlineKeyboardMarkup(markup)
+
             results.append(
                 InlineQueryResultCachedAudio(
                     audio_file_id=db_audio_file_cache.file_id,
@@ -83,7 +85,7 @@ class DownloadHistoryInlineButton(InlineButton):
                             include_source=True,
                         )
                     ),
-                    reply_markup=InlineKeyboardMarkup(markup),
+                    reply_markup=markup,
                 )
             )
 
