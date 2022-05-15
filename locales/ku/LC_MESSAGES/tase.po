@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: tase\n"
-"POT-Creation-Date: 2022-05-16 00:33+0430\n"
-"PO-Revision-Date: 2022-05-16 00:37+0430\n"
+"POT-Creation-Date: 2022-05-16 01:27+0430\n"
+"PO-Revision-Date: 2022-05-16 01:27+0430\n"
 "Last-Translator: \n"
 "Language-Team: Kurdish\n"
 "Language: ku\n"
@@ -26,7 +26,7 @@ msgstr "زمانەکە پاشکەوت کرا"
 
 #: tase/telegram/handlers/bots/inline_query_handler.py:141
 #: tase/telegram/inline_buttons/download_history_button.py:104
-#: tase/telegram/inline_buttons/my_playlists_button.py:67
+#: tase/telegram/inline_buttons/my_playlists_button.py:75
 msgid "No Results Were Found"
 msgstr "هیچ ئەنجامێک نەدۆزرایەوە"
 
@@ -63,29 +63,30 @@ msgstr "یارمەتی"
 msgid "Home"
 msgstr "ماڵەوە"
 
-#: tase/telegram/inline_buttons/my_playlists_button.py:15
+#: tase/telegram/inline_buttons/my_playlists_button.py:17
 msgid "My Playlists"
 msgstr "پلەی لیستەکانم"
 
-#: tase/telegram/inline_buttons/my_playlists_button.py:69
+#: tase/telegram/inline_buttons/my_playlists_button.py:77
 msgid "You haven't created any playlist yet"
 msgstr "تا ئێستا هیچ پلەی لیستێکت دروست نەکردووە"
 
 #: tase/telegram/templates/audio_caption_template.py:31
-msgid "Title:"
-msgstr "ناو:"
+#: tase/telegram/templates/playlist_template.py:26
+msgid "Title"
+msgstr "ناو"
 
 #: tase/telegram/templates/audio_caption_template.py:32
-msgid "Performer:"
-msgstr "پێشکەشکار:"
+msgid "Performer"
+msgstr "پێشکەشکار"
 
 #: tase/telegram/templates/audio_caption_template.py:33
-msgid "File name:"
-msgstr "ناوی فایل:"
+msgid "File name"
+msgstr "ناوی فایل"
 
 #: tase/telegram/templates/audio_caption_template.py:34
-msgid "Source:"
-msgstr "سەرچاوە:"
+msgid "Source"
+msgstr "سەرچاوە"
 
 #: tase/telegram/templates/audio_caption_template.py:35
 msgid "Audio Search Engine"
@@ -144,6 +145,14 @@ msgstr "مێنۆی سەرەکی"
 msgid "No results were found for this query!"
 msgstr "هیچ ئەنجامێک بۆ ئەم دەستەواژە نەدۆزرایەوە!"
 
+#: tase/telegram/templates/playlist_template.py:25
+msgid "Playlist Menu"
+msgstr "مێنۆی پلەی لیست"
+
+#: tase/telegram/templates/playlist_template.py:27
+msgid "Description"
+msgstr "وەسف"
+
 #: tase/telegram/templates/query_results_template.py:33
 msgid "Search results for:"
 msgstr "ئامانجەکانی گەڕان بۆ:"
@@ -195,3 +204,6 @@ msgstr "پرسیارێکت هەیە؟ زۆرباشە دەستی پێدا بنێ"
 #: tase/telegram/templates/welcome_template.py:35
 msgid "milliseconds"
 msgstr "میلی چرکە"
+
+#~ msgid "Title:"
+#~ msgstr "ناو:"

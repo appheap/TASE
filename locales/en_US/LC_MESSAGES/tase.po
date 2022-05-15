@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: tase\n"
-"POT-Creation-Date: 2022-05-16 00:33+0430\n"
-"PO-Revision-Date: 2022-05-16 00:33+0430\n"
+"POT-Creation-Date: 2022-05-16 01:27+0430\n"
+"PO-Revision-Date: 2022-05-16 01:27+0430\n"
 "Last-Translator: \n"
 "Language-Team: English (United States)\n"
 "Language: en_US\n"
@@ -26,7 +26,7 @@ msgstr ""
 
 #: telegram/handlers/bots/inline_query_handler.py:141
 #: telegram/inline_buttons/download_history_button.py:104
-#: telegram/inline_buttons/my_playlists_button.py:67
+#: telegram/inline_buttons/my_playlists_button.py:75
 msgid "No Results Were Found"
 msgstr ""
 
@@ -63,28 +63,29 @@ msgstr ""
 msgid "Home"
 msgstr ""
 
-#: telegram/inline_buttons/my_playlists_button.py:15
+#: telegram/inline_buttons/my_playlists_button.py:17
 msgid "My Playlists"
 msgstr ""
 
-#: telegram/inline_buttons/my_playlists_button.py:69
+#: telegram/inline_buttons/my_playlists_button.py:77
 msgid "You haven't created any playlist yet"
 msgstr ""
 
 #: telegram/templates/audio_caption_template.py:31
-msgid "Title:"
+#: telegram/templates/playlist_template.py:26
+msgid "Title"
 msgstr ""
 
 #: telegram/templates/audio_caption_template.py:32
-msgid "Performer:"
+msgid "Performer"
 msgstr ""
 
 #: telegram/templates/audio_caption_template.py:33
-msgid "File name:"
+msgid "File name"
 msgstr ""
 
 #: telegram/templates/audio_caption_template.py:34
-msgid "Source:"
+msgid "Source"
 msgstr ""
 
 #: telegram/templates/audio_caption_template.py:35
@@ -142,6 +143,14 @@ msgstr ""
 
 #: telegram/templates/no_results_were_found_template.py:9
 msgid "No results were found for this query!"
+msgstr ""
+
+#: telegram/templates/playlist_template.py:25
+msgid "Playlist Menu"
+msgstr ""
+
+#: telegram/templates/playlist_template.py:27
+msgid "Description"
 msgstr ""
 
 #: telegram/templates/query_results_template.py:33
