@@ -30,6 +30,7 @@ class ChosenInlineQueryHandler(BaseHandler):
 
         if re.search("^#[a-zA-Z0-9_]+", chosen_inline_result.query):
             # it's a custom command
+            # todo: handle downloads from commands like `#download_history` in non-private chats
             logger.info(chosen_inline_result)
             pass
         else:
