@@ -1,13 +1,78 @@
 <h1>Telegram audio search engine (TASE)</h1>
-<p>A lightening-fast audio search engine on top of the Telegram messenger platform.</p>
+<p>A lightning-fast audio full-text search engine on top of the Telegram messenger platform.</p>
 
 <p>This search engine allows users to quickly and easily find information that is of 
 genuine interest or value, without the need to wade through numerous 
-irrelevant Telegram channels. It provides users with search 
-results that lead to relevant information on high-quality websites.</p>
+irrelevant channels. It provides users with search 
+results that lead to relevant information on high-quality audio files.</p>
+
+<div>
+<h2>TASE in a glance</h2>
+
+<ol>
+<li>A powerful full-text search engine for audio files</li>
+<li>Extremely fast audio file indexer (benchmark: minimum 4 million songs per day per client)</li>
+<li>Support for multiple parallel clients as indexer</li>
+<li>Support for distributed parallel clusters on multiple servers (searching and indexing) (all audio files, graph and document models)</li>
+<li>Graph of users and items</li>
+<li>Dynamic URLs</li>
+<li>Asynchronous</li>
+<li>Reach admin tools</li>
+<li>Multilingual</li>
+<li>Audio file caching</li>
+<li>Easy configuration and customization</li>
+<li>Friendly look and feel</li>
+<li></li>
+</ol>
+</div>
+
+<div>
+<h2>Technology stack</h2>
+<h3>Tools & technologies</h3>
+<ul>
+<li>Elasticsearch &emsp; <img src="https://img.shields.io/badge/-Elasticsearch-005571?style=plastic&logo=elasticsearch">
+<li>ArangoDB &emsp;&emsp;&ensp; <img src="https://img.shields.io/badge/ArangoDB-Database-green?style=plastic&logo=apache-cassandra&logoColor=white">
+<li>Pyrogram &emsp;&emsp;&ensp;&ensp;<img src="https://img.shields.io/badge/Pyrogram-2CA5E0?style=plastic&logo=telegram&logoColor=white">
+<li>Python get_text&ensp; <img src="https://img.shields.io/badge/Python-_Get_text_translations-3670A0?style=plastic&logo=python&logoColor=ffdd54">
+<li>Celery &emsp;&emsp;&emsp;&emsp;&ensp;<img src="https://img.shields.io/badge/Celery-Task%20Queue-orange">
+<li>Pydantic &emsp;&emsp;&emsp;&ensp;<img src="https://img.shields.io/badge/Pydantic-Data%20validation-yellowgreen">
+<li>Jinja &emsp;&emsp;&emsp;&emsp;&emsp; <img src="https://img.shields.io/badge/Jinja-Templating%20engine-red">
+
+</ul>
+</div>
+
+<div>
+<h2>Features for developers</h2>
+<ol>
+<li>Add new languages in locales (we recommend using <a href="https://poedit.net/">Poedit</a>)</li>
+<li>Easily add new buttons and functionalities (query and inline) by implementing the abstract methods in the base button class</li>
+<li>Realtime visualizations for graph models and audio files (Kibana, ArangoDB)</li>
+<li></li>
+<li></li>
+<li>Abstraction and facade design pattern</li>
+</ol>
+</div>
+
+<div>
+<h2>How to install and run</h2>
+<h3>There are two different ways to use TASE</h3>
+<p>1. Manually install the dependencies</p>
+<ol>
+<li>Clone the repository</li>
+<li>Create an environment to isolate the project</li>
+<li>Install Elasticsearch (v?) (instructions)</li>
+<li>Install ArangoDB (v?) (instructions)</li>
+<li><pre>pip install .pyproject.toml</pre></li>
+<li></li>
+
+</ol>
+
+<p>2. Install using docker-compose which is the easier method (recommended)</p>
+<pre>docker-compose up</pre>
+</div>
 
 
-<h2>Features :bulb:</h2>
+<h2>Wide Range of Features :bulb:</h2>
 <ol>
 <li><h4>Search engine</h4></li>
 <ul>
@@ -155,16 +220,20 @@ results that lead to relevant information on high-quality websites.</p>
 <h3>Future work</h3>
 
 - [x] Modulate the functions
-- [ ] Make it more dynamic
+- [x] Make it more dynamic
 - [ ] Search based on lyrics
-- [ ] Unify and reconstruct the architecture and eliminate redundancy
+- [ ] 
+- [ ] 
+- [x] Unify and reconstruct the architecture and eliminate redundancy
 
 <h2>If you found it helpful, please give us a <span>:star:</span></h2>
 
 <h2>License</h3>
-<p>Released under the MIT License</p>
+<p>TASE is licensed under the Apache License, Version 2.0. See <a href="./LICENSE">LICENSE</a>  for the full license text.</p>
 <div class="footer"><pre>Copyright &copy; 2020-2022</pre>
+Use icons instead<br>
 Soran Ghaderi (soran.gdr.cs@gmail.com)
+
 Personal website: <a href="https://soran-ghaderi.github.io/">soran-ghaderi.github.io</a>
 Linkedin: <a href="https://www.linkedin.com/in/soran-ghaderi/">Soran-Ghaderi</a>
 Twitter: <a href="https://twitter.com/soranghadri">SoranGhadri</a>

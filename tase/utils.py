@@ -78,7 +78,7 @@ language_mapping: typing.Dict[str, Language] = {
     'en': english,
     'fa': persian,
     'ar': arabic,
-    'ku': kurdish_sorani
+    'ku': kurdish_sorani,
     'ku_kr': kurdish_kurmanji
 }
 
