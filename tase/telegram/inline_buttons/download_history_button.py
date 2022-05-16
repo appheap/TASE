@@ -10,6 +10,7 @@ from .button import InlineButton
 from .. import template_globals
 # from ..handlers import BaseHandler
 # from ..inline_buton_globals import buttons
+from ..inline_items import AudioItem
 from ..telegram_client import TelegramClient
 from ...db import DatabaseClient, graph_models
 from ...my_logger import logger
@@ -34,8 +35,6 @@ class DownloadHistoryInlineButton(InlineButton):
             db_from_user: graph_models.vertices.User,
             reg: Match,
     ):
-        from ..inline_buton_globals import buttons  # todo: fix me
-
         from_ = 0
 
         if inline_query.offset is not None and len(inline_query.offset):
@@ -55,47 +54,19 @@ class DownloadHistoryInlineButton(InlineButton):
             if not db_audio_file_cache or not db_audio.title:
                 continue
 
-            # todo: fix me
-
-            markup = [
-                [
-                    buttons['add_to_playlist'].get_inline_keyboard_button(
-                        db_from_user.chosen_language_code,
-                        "db_hit.download_url"
-                    ),
-                ],
-
-            ]
-            if inline_query.chat_type == ChatType.BOT:
-                markup.append(
-                    [
-                        buttons['home'].get_inline_keyboard_button(db_from_user.chosen_language_code),
-                    ]
-                )
-
-            markup = InlineKeyboardMarkup(markup)
-
             results.append(
-                InlineQueryResultCachedAudio(
-                    audio_file_id=db_audio_file_cache.file_id,
-                    id=f'{inline_query.id}->{db_audio.key}',
-                    caption=template_globals.audio_caption_template.render(
-                        AudioCaptionData.parse_from_audio_doc(
-                            db_audio,
-                            db_from_user,
-                            chats_dict[db_audio.chat_id],
-                            bot_url='https://t.me/bot?start',
-                            include_source=True,
-                        )
-                    ),
-                    reply_markup=markup,
+                AudioItem.get_item(
+                    db_audio_file_cache,
+                    db_from_user,
+                    db_audio,
+                    inline_query,
+                    chats_dict,
                 )
             )
 
         if len(results):
             try:
                 next_offset = str(from_ + len(results) + 1) if len(results) else None
-
                 inline_query.answer(results, cache_time=1, next_offset=next_offset)
             except Exception as e:
                 logger.exception(e)

@@ -1,13 +1,11 @@
 from typing import Match
 
 import pyrogram
-from pyrogram.types import InlineQueryResultArticle, InputTextMessageContent, InlineKeyboardMarkup
 
 from .button import InlineButton
 # from ..handlers import BaseHandler
-from .. import template_globals
+from ..inline_items import PlaylistItem, CreateNewPlaylistItem, NoPlaylistItem
 from ..telegram_client import TelegramClient
-from ..templates import PlaylistData
 from ...db import DatabaseClient, graph_models
 from ...my_logger import logger
 from ...utils import emoji, _trans
@@ -31,12 +29,7 @@ class MyPlaylistsInlineButton(InlineButton):
             db_from_user: graph_models.vertices.User,
             reg: Match,
     ):
-        from ..inline_buton_globals import buttons
-
         from_ = 0
-
-        # todo: add `new playlist` button when
-
         if inline_query.offset is not None and len(inline_query.offset):
             from_ = int(inline_query.offset)
 
@@ -45,90 +38,20 @@ class MyPlaylistsInlineButton(InlineButton):
         results = []
 
         if from_ == 0:
-            results.append(
-                InlineQueryResultArticle(
-                    title=_trans("Create A New Playlist", db_from_user.chosen_language_code),
-                    description=_trans("Create a new playlist", db_from_user.chosen_language_code),
-                    id=f'{inline_query.id}->add_a_new_playlist',
-                    thumb_url="https://telegra.ph/file/aaafdf705c6745e1a32ee.png",
-                    input_message_content=InputTextMessageContent(message_text=emoji._clock_emoji),
-                )
-            )
+            results.append(CreateNewPlaylistItem.get_item(db_from_user, inline_query))
 
         for db_playlist in db_playlists:
-            data = PlaylistData(
-                title=db_playlist.title,
-                description=db_playlist.description,
-                lang_code=db_from_user.chosen_language_code,
-            )
-
-            markup = [
-                [
-                    buttons['home'].get_inline_keyboard_button(db_from_user.chosen_language_code),
-                    buttons['back_to_playlists'].get_inline_keyboard_button(db_from_user.chosen_language_code),
-                ],
-                [
-                    buttons['get_playlist_audios'].get_inline_keyboard_button(
-                        db_from_user.chosen_language_code,
-                        db_playlist.key,
-                    ),
-                    # todo: add a button to get the top 10 audios from this playlist as a message
-                ],
-                [
-                    buttons['edit_playlist'].get_inline_keyboard_button(
-                        db_from_user.chosen_language_code,
-                        db_playlist.key,
-                    ),
-                    buttons['delete_playlist'].get_inline_keyboard_button(
-                        db_from_user.chosen_language_code,
-                        db_playlist.key,
-                    ),
-                ],
-
-            ]
-
-            markup = InlineKeyboardMarkup(markup)
-
-            results.append(
-                InlineQueryResultArticle(
-                    title=db_playlist.title,
-                    description=f"{db_playlist.description}",
-                    id=f'{inline_query.id}->{db_playlist.key}',
-                    thumb_url="https://telegra.ph/file/ac2d210b9b0e5741470a1.jpg",
-                    input_message_content=InputTextMessageContent(
-                        message_text=template_globals.playlist_template.render(data),
-                    ),
-                    reply_markup=markup,
-                )
-            )
+            results.append(PlaylistItem.get_item(db_playlist, db_from_user, inline_query))
 
         if len(results):
             try:
-                if len(results) > 1:
-                    next_offset = str(from_ + len(results) + 1) if len(results) else None
-                else:
-                    next_offset = None
-
+                next_offset = str(from_ + len(results) + 1) if len(results) > 1 else None
                 inline_query.answer(results, cache_time=1, next_offset=next_offset)
             except Exception as e:
                 logger.exception(e)
         else:
             if from_ is None or from_ == 0:
-                inline_query.answer(
-                    [
-                        InlineQueryResultArticle(
-                            title=_trans("No Results Were Found", db_from_user.chosen_language_code),
-                            description=_trans(
-                                "You haven't created any playlist yet",
-                                db_from_user.chosen_language_code
-                            ),
-                            input_message_content=InputTextMessageContent(
-                                message_text=emoji.high_voltage,
-                            )
-                        )
-                    ],
-                    cache_time=1,
-                )
+                inline_query.answer([NoPlaylistItem.get_item(db_from_user)], cache_time=1)
 
     def on_chosen_inline_query(
             self,

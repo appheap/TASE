@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from . import handlers
 from . import inline_buttons
+from . import inline_items
 from . import methods
 from . import tasks
 from . import templates
