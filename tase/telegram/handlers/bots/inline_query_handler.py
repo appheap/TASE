@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from typing import List
 
 import pyrogram
@@ -25,7 +26,7 @@ class InlineQueryHandler(BaseHandler):
             HandlerMetadata(
                 cls=handlers.InlineQueryHandler,
                 callback=self.custom_commands_handler,
-                filters=filters.regex("^#[a-zA-Z0-9_]+"),
+                filters=filters.regex("^#(?P<command>[a-zA-Z0-9_]+)(\s(?P<arg1>[a-zA-Z0-9_]+))?"),
                 group=0,
             ),
             HandlerMetadata(
@@ -161,12 +162,9 @@ class InlineQueryHandler(BaseHandler):
 
         command = inline_query.query.split('#')[1]
 
-        try:
-            command=command.split(" ")[0]
-        except:
-            pass
-        if command in buttons.keys():
-            button = buttons[command]
+        reg = re.search("^#(?P<command>[a-zA-Z0-9_]+)(\s(?P<arg1>[a-zA-Z0-9_]+))?", inline_query.query)
+        button = buttons.get(reg.group("command"), None)
+        if button:
             button.on_inline_query(
                 client,
                 inline_query,
@@ -174,6 +172,7 @@ class InlineQueryHandler(BaseHandler):
                 self.db,
                 self.telegram_client,
                 db_from_user,
+                reg,
             )
         else:
             pass

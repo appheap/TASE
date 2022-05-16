@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Match
 
 import pyrogram
 from pydantic import BaseModel
@@ -63,6 +63,7 @@ class InlineButton(BaseModel):
             db: 'DatabaseClient',
             telegram_client: 'TelegramClient',
             db_from_user: graph_models.vertices.User,
+            reg: Match,
     ):
         raise NotImplementedError
 
@@ -74,6 +75,7 @@ class InlineButton(BaseModel):
             db: 'DatabaseClient',
             telegram_client: 'TelegramClient',
             db_from_user: graph_models.vertices.User,
+            reg: Match,
     ):
         raise NotImplementedError
 

@@ -1,3 +1,5 @@
+from typing import Match
+
 import pyrogram
 from pyrogram.enums import ChatType
 from pyrogram.types import InlineQueryResultArticle, InputTextMessageContent, InlineKeyboardMarkup, \
@@ -29,16 +31,11 @@ class GetPlaylistAudioInlineButton(InlineButton):
             db: 'DatabaseClient',
             telegram_client: 'TelegramClient',
             db_from_user: graph_models.vertices.User,
+            reg: Match,
     ):
         from ..inline_buton_globals import buttons  # todo: fix me
 
-        res = inline_query.query.split('#')[1]
-        try:
-            res = res.split(" ")
-            command = res[0]
-            playlist_key = res[1]
-        except:
-            playlist_key = None
+        playlist_key = reg.group("arg1")
 
         from_ = 0
         if inline_query.offset is not None and len(inline_query.offset):

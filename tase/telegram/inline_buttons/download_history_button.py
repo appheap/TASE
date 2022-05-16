@@ -1,3 +1,5 @@
+from typing import Match
+
 import pyrogram
 from pyrogram.enums import ChatType
 from pyrogram.types import InlineQueryResultCachedAudio, InlineQueryResultArticle, InputTextMessageContent, \
@@ -30,6 +32,7 @@ class DownloadHistoryInlineButton(InlineButton):
             db: 'DatabaseClient',
             telegram_client: 'TelegramClient',
             db_from_user: graph_models.vertices.User,
+            reg: Match,
     ):
         from ..inline_buton_globals import buttons  # todo: fix me
 

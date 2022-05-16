@@ -1,3 +1,5 @@
+from typing import Match
+
 import pyrogram
 
 from .button import InlineButton
@@ -24,5 +26,6 @@ class HelpCatalogInlineButton(InlineButton):
             db: 'DatabaseClient',
             telegram_client: 'TelegramClient',
             db_from_user: graph_models.vertices.User,
+            reg: Match,
     ):
         pass

@@ -1,3 +1,5 @@
+from typing import Match
+
 import pyrogram
 from pyrogram.types import InlineQueryResultArticle, InputTextMessageContent, InlineKeyboardMarkup
 
@@ -27,6 +29,7 @@ class MyPlaylistsInlineButton(InlineButton):
             db: 'DatabaseClient',
             telegram_client: 'TelegramClient',
             db_from_user: graph_models.vertices.User,
+            reg: Match,
     ):
         from ..inline_buton_globals import buttons
 
@@ -134,13 +137,10 @@ class MyPlaylistsInlineButton(InlineButton):
             handler: 'BaseHandler',
             db: 'DatabaseClient',
             telegram_client: 'TelegramClient',
-            db_from_user: graph_models.vertices.User
+            db_from_user: graph_models.vertices.User,
+            reg: Match,
     ):
-        res = chosen_inline_result.query.split(" ")
-        try:
-            hit_download_url = res[1]
-        except:
-            hit_download_url = None
+        hit_download_url = reg.group("arg1")
 
         result_id_list = chosen_inline_result.result_id.split("->")
         inline_query_id = result_id_list[0]
