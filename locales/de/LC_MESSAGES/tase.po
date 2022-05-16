@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: tase\n"
 "POT-Creation-Date: 2022-05-16 01:25+0430\n"
-"PO-Revision-Date: 2022-05-16 04:19+0430\n"
+"PO-Revision-Date: 2022-05-16 17:03+0430\n"
 "Last-Translator: \n"
 "Language-Team: German\n"
 "Language: de\n"
@@ -167,7 +167,7 @@ msgstr "Download:"
 
 #: telegram/templates/query_results_template.py:36
 msgid "MB"
-msgstr "Mb"
+msgstr "MB"
 
 #: telegram/templates/welcome_template.py:26
 msgid "Take your audio searching to the speed"

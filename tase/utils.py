@@ -13,10 +13,98 @@ from tase.static import Emoji
 
 # todo: it's not a good practice to hardcode like this, fix it
 languages = dict()
-# lang_codes = ['en', 'fa', 'ku_KU', 'ku_TR', 'tr']
-lang_codes = ['en', 'fa', 'ar', 'ku']
+
+emoji: Emoji = Emoji()
+
+english = Language(
+    code='en',
+    flag=emoji._usa_flag,
+    name='English'
+)
+
+russian = Language(
+    code='ru',
+    flag=emoji._russia_flag,
+    name='русский (Russian)'
+)
+
+indian = Language(
+    code='hi',
+    flag=emoji._india_flag,
+    name='िन्दी (Hindi)'
+)
+
+german = Language(
+    code='de',
+    flag=emoji._germany_flag,
+    name='Deutsch (German)'
+)
+
+dutch = Language(
+    code='nl',
+    flag=emoji._netherlands_flag,
+    name='Dutch (Nederlands)'
+)
+
+portugues = Language(
+    code='pt_BR',
+    flag=emoji._portugal_flag,
+    name='Português (Portuguese)'
+)
+
+persian = Language(
+    code='fa',
+    flag=emoji._iran_flag,
+    name='فارسی (Persian)'
+)
+arabic = Language(
+    code='ar',
+    flag=emoji._saudi_arabia_flag,
+    name='العربية (Arabic)'
+)
+
+kurdish_sorani = Language(
+    code='ku',
+    flag=emoji._tajikistan_flag,
+    name='کوردی سۆرانی (Sorani Kurdish)'
+)
+
+kurdish_kurmanji = Language(
+    code='ku_TR',
+    flag=emoji._lithuania_flag,
+    name='(Kurmanji Kurdish) Kurdî Kurmancî'
+)
+
+italian = Language(
+    code='it',
+    flag=emoji._italy_flag,
+    name='Italiana (Italian)'
+)
+
+spanish = Language(
+    code='es',
+    flag=emoji._spain_flag,
+    name='Español (Spanish)'
+)
+
+language_mapping: typing.Dict[str, Language] = {
+    'en': english,
+    'ru': russian,
+    'hi': indian,
+    'de': german,
+    'nl': dutch,
+    'pt_BR': portugues,
+    'it': italian,
+    'es': spanish,
+    'fa': persian,
+    'ar': arabic,
+    'ku': kurdish_sorani,
+    'ku_TR': kurdish_kurmanji,
+}
+
 if not len(languages):
-    for lang_code in lang_codes:
+    for lang_code in language_mapping.keys():
+        logger.debug(f"lang_code: {lang_code}")
         lang = gettext.translation('tase', localedir='../locales', languages=[lang_code])
         lang.install()
         languages[lang_code] = lang.gettext
@@ -43,44 +131,6 @@ def translate_text(text: str, lang_code: str = 'en') -> str:
     """
     return languages.get(lang_code, languages['en'])(text)
 
-
-emoji: Emoji = Emoji()
-
-english = Language(
-    code='en',
-    flag=emoji._usa_flag,
-    name='English'
-)
-persian = Language(
-    code='fa',
-    flag=emoji._iran_flag,
-    name='فارسی (Persian)'
-)
-arabic = Language(
-    code='ar',
-    flag=emoji._saudi_arabia_flag,
-    name='العربية (Arabic)'
-)
-
-kurdish_sorani = Language(
-    code='ku',
-    flag=emoji._tajikistan_flag,
-    name='کوردی (سۆرانی) (Sorani Kurdish)'
-)
-
-kurdish_kurmanji = Language(
-    code='ku_kr',
-    flag=emoji._tajikistan_flag,
-    name='(Kurmanji Kurdish) Kurdî (kurmancî)'
-)
-
-language_mapping: typing.Dict[str, Language] = {
-    'en': english,
-    'fa': persian,
-    'ar': arabic,
-    'ku': kurdish_sorani
-    'ku_kr': kurdish_kurmanji
-}
 
 languages_object = Languages(
     mappings=language_mapping,

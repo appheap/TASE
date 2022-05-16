@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: tase\n"
-"POT-Creation-Date: 2022-05-16 15:27+0430\n"
-"PO-Revision-Date: 2022-05-16 15:27+0430\n"
+"POT-Creation-Date: 2022-05-16 17:04+0430\n"
+"PO-Revision-Date: 2022-05-16 17:04+0430\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: fa_IR\n"
@@ -17,7 +17,7 @@ msgstr ""
 "X-Poedit-SearchPath-0: .\n"
 
 #: telegram/handlers/bots/bot_message_handler.py:161
-msgid "An Error occurred while processing this audio download url"
+msgid "An error occurred while processing the download URL for this audio"
 msgstr "حین پردازش لینک دانلود این موزیک خطایی به وجود آمد"
 
 #: telegram/handlers/bots/callback_query_handler.py:33
@@ -118,7 +118,7 @@ msgid "Audio Search Engine"
 msgstr "موتور جستجوی آهنگ"
 
 #: telegram/templates/audio_caption_template.py:36
-msgid "Sent by Telegram Audio Search Engine Users"
+msgid "Submitted by Telegram Audio Search Engine Users"
 msgstr "ارسال شده توسط کاربران موتور جستجوی صوتی تلگرام"
 
 #: telegram/templates/choose_language_template.py:23
