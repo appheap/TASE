@@ -679,7 +679,7 @@ class GraphDatabase:
 
         # todo: fix this
         query_template = Template(
-            'for v,e in 1..1 any "$playlist_id" graph "tase" options {order : "dfs", edgeCollections : ["has"], vertexCollections : ["audios"]}'
+            'for v,e in 1..1 outbound "$playlist_id" graph "tase" options {order : "dfs", edgeCollections : ["has"], vertexCollections : ["audios"]}'
             '   sort e.created_at DESC'
             '   limit $offset, $limit'
             '   return v'
