@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: tase\n"
-"POT-Creation-Date: 2022-05-16 14:17+0430\n"
-"PO-Revision-Date: 2022-05-16 14:17+0430\n"
+"POT-Creation-Date: 2022-05-16 15:27+0430\n"
+"PO-Revision-Date: 2022-05-16 15:27+0430\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: fa_IR\n"
@@ -26,7 +26,8 @@ msgstr "تغییر زبان ذخیره شد"
 
 #: telegram/handlers/bots/inline_query_handler.py:141
 #: telegram/inline_buttons/download_history_button.py:104
-#: telegram/inline_buttons/my_playlists_button.py:105
+#: telegram/inline_buttons/get_playlist_audios_button.py:159
+#: telegram/inline_buttons/my_playlists_button.py:117
 msgid "No Results Were Found"
 msgstr "هیچ نتیجه‌ای پیدا نشد"
 
@@ -38,11 +39,13 @@ msgstr "هیچ نتیجه‌ای پیدا نشد"
 msgid "Add To Playlist"
 msgstr "اضافه کردن به پلی‌لیست"
 
-#: telegram/inline_buttons/add_to_playlist_button.py:42
+#: telegram/inline_buttons/add_to_playlist_button.py:40
+#: telegram/inline_buttons/my_playlists_button.py:47
 msgid "Create A New Playlist"
 msgstr "ایجاد کردن پلی‌لیست جدید"
 
-#: telegram/inline_buttons/add_to_playlist_button.py:43
+#: telegram/inline_buttons/add_to_playlist_button.py:41
+#: telegram/inline_buttons/my_playlists_button.py:48
 msgid "Create a new playlist"
 msgstr "ایجاد کردن پلی‌لیست جدید"
 
@@ -64,6 +67,7 @@ msgid "My Downloads"
 msgstr "دانلودهای من"
 
 #: telegram/inline_buttons/download_history_button.py:106
+#: telegram/inline_buttons/get_playlist_audios_button.py:161
 msgid "You haven't downloaded any audios yet"
 msgstr "شما هنوز آهنگی دانلود نکرده‌اید"
 
@@ -71,7 +75,7 @@ msgstr "شما هنوز آهنگی دانلود نکرده‌اید"
 msgid "Edit"
 msgstr "ویرایش"
 
-#: telegram/inline_buttons/get_playlist_audios_button.py:14
+#: telegram/inline_buttons/get_playlist_audios_button.py:19
 msgid "Audios"
 msgstr "آهنگ‌ها"
 
@@ -88,7 +92,7 @@ msgstr "خانه"
 msgid "My Playlists"
 msgstr "پلی لیست‌های من"
 
-#: telegram/inline_buttons/my_playlists_button.py:107
+#: telegram/inline_buttons/my_playlists_button.py:119
 msgid "You haven't created any playlist yet"
 msgstr "شما هنوز پلی‌لیستی ایجاد نکرده‌اید"
 

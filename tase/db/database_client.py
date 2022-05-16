@@ -227,3 +227,21 @@ class DatabaseClient:
             return False, False
 
         return self._graph_db.add_audio_to_playlist(playlist_key, hit_download_url)
+
+    def get_playlist_audios(
+            self,
+            db_from_user: graph_models.vertices.User,
+            playlist_key: str,
+            offset: int = 0,
+            limit: int = 20,
+    ) -> Optional[List[graph_models.vertices.Audio]]:
+        if db_from_user is None or playlist_key is None or offset is None or limit is None:
+            return None
+
+        return self._graph_db.get_playlist_audios(db_from_user, playlist_key, offset, limit)
+
+    def get_playlist_by_key(self, key: str) -> Optional[graph_models.vertices.Playlist]:
+        if key is None:
+            return None
+
+        return self._graph_db.get_playlist_by_key(key)
