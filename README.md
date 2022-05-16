@@ -1,7 +1,7 @@
 <h1>Telegram audio search engine (TASE)</h1>
 <p>A lightning-fast audio full-text search engine on top of the Telegram messenger platform.</p>
 
-<p>This search engine allows users to quickly and easily find information that is of 
+<p>It allows users to quickly and easily find information that is of 
 genuine interest or value, without the need to wade through numerous 
 irrelevant channels. It provides users with search 
 results that lead to relevant information on high-quality audio files.</p>
@@ -22,56 +22,55 @@ results that lead to relevant information on high-quality audio files.</p>
 <li>Audio file caching</li>
 <li>Easy configuration and customization</li>
 <li>Friendly look and feel</li>
-<li></li>
 </ol>
 </div>
 
-<div>
-<h2>Technology stack</h2>
-<h3>Tools & technologies</h3>
-<ul>
-<li>Elasticsearch &emsp; <img src="https://img.shields.io/badge/-Elasticsearch-005571?style=plastic&logo=elasticsearch">
-<li>ArangoDB &emsp;&emsp;&ensp; <img src="https://img.shields.io/badge/ArangoDB-Database-green?style=plastic&logo=apache-cassandra&logoColor=white">
-<li>Pyrogram &emsp;&emsp;&ensp;&ensp;<img src="https://img.shields.io/badge/Pyrogram-2CA5E0?style=plastic&logo=telegram&logoColor=white">
-<li>Python get_text&ensp; <img src="https://img.shields.io/badge/Python-_Get_text_translations-3670A0?style=plastic&logo=python&logoColor=ffdd54">
-<li>Celery &emsp;&emsp;&emsp;&emsp;&ensp;<img src="https://img.shields.io/badge/Celery-Task%20Queue-orange">
-<li>Pydantic &emsp;&emsp;&emsp;&ensp;<img src="https://img.shields.io/badge/Pydantic-Data%20validation-yellowgreen">
-<li>Jinja &emsp;&emsp;&emsp;&emsp;&emsp; <img src="https://img.shields.io/badge/Jinja-Templating%20engine-red">
 
-</ul>
+
+
+<div>
+<h2>How to install and run</h2>
+<i>* Note: please make sure to read the configuration and customization section before you run the project</i>
+<h3>There are two different ways to use TASE</h3>
+<div>
+<ol>
+<li><h4>Manually install the dependencies</h4>
+    <ol>
+    <li>Clone the repository</li>
+    <li>Install Elasticsearch (v8.3) (<a href="">instructions</a>)</li>
+    <li>Install ArangoDB (v3.9.1) (<a href="">instructions</a>)</li>
+    <li><pre>poetry install</pre><i>* install <b>poetry</b> if you haven't already</i> (<a href="">instructions</a>)</li>
+    <li>Run the <a href="./tase/tase_client.py">tase_client</a> file located in the <a href="./tase">tase</a> package 
+    <i>(*note: before running the project make sure to configure the <a href="./tase.toml">tase.toml</a> file)</i></li>
+    </ol>
+</li>
+
+<li><h4>Install using docker-compose</h4> The easier method (recommended) <i>(*note: before running the project make
+sure to configure the <a href="./tase.toml">tase.toml</a> file)</i>
+    <pre>docker-compose up</pre><i>* install <b>docker-compose</b> if you haven't already</i> (<a href="">instructions</a>)
+</li>
+</ol>
+</div>
 </div>
 
+<div>
+<h3>Configuration and customization</h3>
+<p>Before you run your project you need to customize the <a href="./tase.toml"><b>tase.toml</b></a> file in the root directory which is used as 
+the config file by TASE</p>
+
+<p>In order to run the project you have to provide basic information which the bot works with.
+For instance you must provide telegram bot token and your Telegram client authentication information 
+to run your own clients.</p>
+</div>
 <div>
 <h2>Features for developers</h2>
 <ol>
 <li>Add new languages in locales (we recommend using <a href="https://poedit.net/">Poedit</a>)</li>
 <li>Easily add new buttons and functionalities (query and inline) by implementing the abstract methods in the base button class</li>
 <li>Realtime visualizations for graph models and audio files (Kibana, ArangoDB)</li>
-<li></li>
-<li></li>
 <li>Abstraction and facade design pattern</li>
 </ol>
 </div>
-
-<div>
-<h2>How to install and run</h2>
-<h3>There are two different ways to use TASE</h3>
-<p>1. Manually install the dependencies</p>
-<ol>
-<li>Clone the repository</li>
-<li>Create an environment to isolate the project</li>
-<li>Install Elasticsearch (v?) (instructions)</li>
-<li>Install ArangoDB (v?) (instructions)</li>
-<li><pre>pip install .pyproject.toml</pre></li>
-<li></li>
-
-</ol>
-
-<p>2. Install using docker-compose which is the easier method (recommended)</p>
-<pre>docker-compose up</pre>
-</div>
-
-
 <h2>Wide Range of Features :bulb:</h2>
 <ol>
 <li><h4>Search engine</h4></li>
@@ -197,6 +196,22 @@ results that lead to relevant information on high-quality audio files.</p>
 </ol>
 
 <div>
+
+<div>
+<h2>Technology stack</h2>
+<p>Main tools & technologies used in developing TASE are as following:</p>
+<ul>
+<li>Elasticsearch &emsp; <img src="https://img.shields.io/badge/-Elasticsearch-005571?style=plastic&logo=elasticsearch">
+<li>ArangoDB &emsp;&emsp;&ensp; <img src="https://img.shields.io/badge/ArangoDB-Database-green?style=plastic&logo=apache-cassandra&logoColor=white">
+<li>Pyrogram &emsp;&emsp;&ensp;&ensp;<img src="https://img.shields.io/badge/Pyrogram-2CA5E0?style=plastic&logo=telegram&logoColor=white">
+<li>Python get_text&ensp; <img src="https://img.shields.io/badge/Python-_Get_text_translations-3670A0?style=plastic&logo=python&logoColor=ffdd54">
+<li>Celery &emsp;&emsp;&emsp;&emsp;&ensp;<img src="https://img.shields.io/badge/Celery-Task%20Queue-orange">
+<li>Pydantic &emsp;&emsp;&emsp;&ensp;<img src="https://img.shields.io/badge/Pydantic-Data%20validation-yellowgreen">
+<li>Jinja &emsp;&emsp;&emsp;&emsp;&emsp; <img src="https://img.shields.io/badge/Jinja-Templating%20engine-red">
+
+</ul>
+</div>
+
 <h2>Call for Contributions</h2>
 <p>The Telegram audio search engine project welcomes your expertise and enthusiasm!</p>
 
@@ -217,24 +232,34 @@ results that lead to relevant information on high-quality audio files.</p>
 
 </div>
 
-<h3>Future work</h3>
+<h2>Future work</h2>
 
-- [x] Modulate the functions
-- [x] Make it more dynamic
-- [ ] Search based on lyrics
+- [ ] Voice search
+- [ ] Add artist support
 - [ ] 
-- [ ] 
-- [x] Unify and reconstruct the architecture and eliminate redundancy
 
 <h2>If you found it helpful, please give us a <span>:star:</span></h2>
 
 <h2>License</h3>
-<p>TASE is licensed under the Apache License, Version 2.0. See <a href="./LICENSE">LICENSE</a>  for the full license text.</p>
+<p><b>TASE is licensed under the Apache License, Version 2.0. See <a href="./LICENSE">LICENSE</a>  for the full license text.</b></p>
 <div class="footer"><pre>Copyright &copy; 2020-2022</pre>
-Use icons instead<br>
-Soran Ghaderi (soran.gdr.cs@gmail.com)
 
-Personal website: <a href="https://soran-ghaderi.github.io/">soran-ghaderi.github.io</a>
-Linkedin: <a href="https://www.linkedin.com/in/soran-ghaderi/">Soran-Ghaderi</a>
-Twitter: <a href="https://twitter.com/soranghadri">SoranGhadri</a>
+<ul>
+<li>
+    <b>Soran Ghaderi</b> (soran.gdr.cs@gmail.com)<br>
+    <ul>
+        <li>Personal website: <a href="https://soran-ghaderi.github.io/">soran-ghaderi.github.io</a></li>
+        <li>Linkedin: <a href="https://www.linkedin.com/in/soran-ghaderi/">Soran-Ghaderi</a></li>
+        <li>Twitter: <a href="https://twitter.com/soranghadri">SoranGhadri</a></li>
+    </ul>
+</li>
+<li>
+    <b>Taleb Zarhesh</b> (taleb.zarhesh@gmail.com)<br>
+    <ul>
+        <li>Personal website: <a href="https://about.me/taleb_zarhesh/"></a></li>
+        <li>Linkedin: <a href="https://www.linkedin.com/in/taleb-zarhesh/">Taleb Zarhesh</a></li>
+        <li>Twitter: <a href="https://twitter.com/talebzarhesh">Taleb Zarhesh</a></li>
+    </ul>
+</li>
+</ul>
 </div> 

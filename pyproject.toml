@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "tase"
 version = "0.1.0"
-description = "Telegram Audio Search Engine (lightening fast)"
+description = "Telegram Audio Search Engine (lightning fast)"
 homepage = "https://github.com/appheap/TASE"
 repository = "https://github.com/appheap/TASE"
 authors = [
