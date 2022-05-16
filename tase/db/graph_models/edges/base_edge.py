@@ -176,3 +176,14 @@ class BaseEdge(BaseModel):
         except Exception as e:
             logger.exception(f"{cls.__name__} : {e}")
         return edge, successful
+
+    @classmethod
+    def find_by_key(cls, db: 'EdgeCollection', key: str):
+        if db is None or key is None:
+            return None
+
+        cursor = db.find({'_key': key})
+        if cursor and len(cursor):
+            return cls.parse_from_graph(cursor.pop())
+        else:
+            return None

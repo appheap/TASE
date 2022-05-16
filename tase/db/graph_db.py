@@ -430,6 +430,12 @@ class GraphDatabase:
 
         return Audio.find_by_key(self.audios, id)
 
+    def get_playlist_by_key(self, key: str) -> Optional[Playlist]:
+        if key is None:
+            return None
+
+        return Playlist.find_by_key(self.playlists, key)
+
     def get_or_create_download_from_chosen_inline_query(
             self,
             chosen_inline_result: 'pyrogram.types.ChosenInlineResult',
@@ -632,6 +638,67 @@ class GraphDatabase:
         try:
             while True:
                 results.append(Playlist.parse_from_graph(res.pop()))
+        except Exception as e:
+            pass
+        return results
+
+    def add_audio_to_playlist(self, playlist_key: str, hit_download_url: str) -> Tuple[bool, bool]:
+        if playlist_key is None or hit_download_url is None:
+            return False, False
+
+        created = False
+        successful = False
+
+        db_hit = self.get_hit_by_download_url(hit_download_url)
+        db_audio = self.get_audio_from_hit(db_hit)
+        db_playlist = self.get_playlist_by_key(playlist_key)
+
+        if db_hit and db_audio and db_playlist:
+            edge = Has.parse_from_playlist_and_audio(db_playlist, db_audio)
+            if edge is not None and not Has.find_by_key(self.has, edge.key):
+                has_edge = Has.create(self.has, edge)
+                created = True
+                successful = True
+            else:
+                created = False
+                successful = True
+
+        return created, successful
+
+    def get_playlist_audios(
+            self,
+            db_from_user: User,
+            playlist_key: str,
+            offset: int = 0,
+            limit: int = 20,
+    ) -> Optional[List[Audio]]:
+        if db_from_user is None or playlist_key is None or offset is None or limit is None:
+            return None
+
+        db_playlist = Playlist.find_by_key(self.playlists, playlist_key)
+
+        # todo: fix this
+        query_template = Template(
+            'for v,e in 1..1 outbound "$playlist_id" graph "tase" options {order : "dfs", edgeCollections : ["has"], vertexCollections : ["audios"]}'
+            '   sort e.created_at DESC'
+            '   limit $offset, $limit'
+            '   return v'
+        )
+        query = query_template.substitute(
+            {
+                'playlist_id': db_playlist.id,
+                'offset': offset,
+                'limit': limit,
+            }
+        )
+        res = self.aql.execute(
+            query,
+            count=True,
+        )
+        results = []
+        try:
+            while True:
+                results.append(Audio.parse_from_graph(res.pop()))
         except Exception as e:
             pass
         return results

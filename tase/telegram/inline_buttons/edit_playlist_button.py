@@ -7,12 +7,12 @@ from ...db import DatabaseClient, graph_models
 from ...utils import emoji, _trans
 
 
-class BackInlineButton(InlineButton):
-    name = "back"
+class EditPlaylistInlineButton(InlineButton):
+    name = "edit_playlist"
 
-    s_back = _trans("Back")
-    text = f"{s_back} | {emoji._BACK_arrow}"
-    callback_data = "back->back"
+    s_edit = _trans("Edit")
+    text = f"{s_edit} | {emoji._gear}"
+    callback_data = "edit_playlist->edit_playlist"
 
     def on_callback_query(
             self,
@@ -23,8 +23,4 @@ class BackInlineButton(InlineButton):
             telegram_client: 'TelegramClient',
             db_from_user: graph_models.vertices.User
     ):
-        # todo: what to do when the `callback_query.message` is None?
-        if callback_query.message:
-            callback_query.message.delete()
-        else:
-            callback_query.answer("")
+        callback_query.answer("")

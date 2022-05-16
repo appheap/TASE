@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: tase\n"
-"POT-Creation-Date: 2022-05-16 01:27+0430\n"
-"PO-Revision-Date: 2022-05-16 04:25+0430\n"
+"POT-Creation-Date: 2022-05-16 15:27+0430\n"
+"PO-Revision-Date: 2022-05-16 15:27+0430\n"
 "Last-Translator: \n"
 "Language-Team: Arabic\n"
 "Language: ar\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Plural-Forms: nplurals=6; plural=(n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
 "&& n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5);\n"
 "X-Generator: Poedit 3.0.1\n"
-"X-Poedit-Basepath: ../../..\n"
+"X-Poedit-Basepath: ../../../tase\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 "X-Poedit-KeywordsList: _trans\n"
 "X-Poedit-SearchPath-0: .\n"
@@ -27,7 +27,8 @@ msgstr "تم حفظ تغيير اللغة"
 
 #: telegram/handlers/bots/inline_query_handler.py:141
 #: telegram/inline_buttons/download_history_button.py:104
-#: telegram/inline_buttons/my_playlists_button.py:75
+#: telegram/inline_buttons/get_playlist_audios_button.py:159
+#: telegram/inline_buttons/my_playlists_button.py:117
 msgid "No Results Were Found"
 msgstr "لا توجد نتائج"
 
@@ -35,25 +36,49 @@ msgstr "لا توجد نتائج"
 msgid "No results were found"
 msgstr "لا توجد نتائج"
 
-#: telegram/inline_buttons/add_to_playlist_button.py:14
+#: telegram/inline_buttons/add_to_playlist_button.py:15
 msgid "Add To Playlist"
 msgstr "إضافة إلى قائمة التشغيل"
+
+#: telegram/inline_buttons/add_to_playlist_button.py:40
+#: telegram/inline_buttons/my_playlists_button.py:47
+msgid "Create A New Playlist"
+msgstr "قم بإنشاء قائمة تشغيل جديدة"
+
+#: telegram/inline_buttons/add_to_playlist_button.py:41
+#: telegram/inline_buttons/my_playlists_button.py:48
+msgid "Create a new playlist"
+msgstr "قم بإنشاء قائمة تشغيل جديدة"
 
 #: telegram/inline_buttons/advertisement_button.py:9
 msgid "Advertisement"
 msgstr "إعلان"
 
 #: telegram/inline_buttons/back_button.py:13
+#: telegram/inline_buttons/back_to_playlists_button.py:9
 msgid "Back"
 msgstr "وراء"
+
+#: telegram/inline_buttons/delete_playlist_button.py:13
+msgid "Delete"
+msgstr "حذف"
 
 #: telegram/inline_buttons/download_history_button.py:20
 msgid "My Downloads"
 msgstr "التنزيلات الخاصة بي"
 
 #: telegram/inline_buttons/download_history_button.py:106
+#: telegram/inline_buttons/get_playlist_audios_button.py:161
 msgid "You haven't downloaded any audios yet"
 msgstr "لم تقم بتنزيل أي صوتيات حتى الآن"
+
+#: telegram/inline_buttons/edit_playlist_button.py:13
+msgid "Edit"
+msgstr "تعديل"
+
+#: telegram/inline_buttons/get_playlist_audios_button.py:19
+msgid "Audios"
+msgstr "صوتيات"
 
 #: telegram/inline_buttons/help_catalog.py:14
 msgid "Help"
@@ -68,7 +93,7 @@ msgstr "منزل"
 msgid "My Playlists"
 msgstr "قوائم التشغيل الخاصة بي"
 
-#: telegram/inline_buttons/my_playlists_button.py:77
+#: telegram/inline_buttons/my_playlists_button.py:119
 msgid "You haven't created any playlist yet"
 msgstr "لم تقم بإنشاء أي قائمة تشغيل حتى الآن"
 

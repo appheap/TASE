@@ -1,5 +1,6 @@
 from tase.telegram.inline_buttons import AdvertisementInlineButton, BackInlineButton, DownloadHistoryInlineButton, \
-    HelpCatalogInlineButton, MyPlaylistsInlineButton, HomeInlineButton, AddToPlaylistInlineButton
+    HelpCatalogInlineButton, MyPlaylistsInlineButton, HomeInlineButton, AddToPlaylistInlineButton, \
+    GetPlaylistAudioInlineButton, DeletePlaylistInlineButton, EditPlaylistInlineButton, BackToPlaylistsInlineButton
 
 objs = [
     AdvertisementInlineButton(),
@@ -9,6 +10,10 @@ objs = [
     MyPlaylistsInlineButton(),
     HomeInlineButton(),
     AddToPlaylistInlineButton(),
+    GetPlaylistAudioInlineButton(),
+    DeletePlaylistInlineButton(),
+    EditPlaylistInlineButton(),
+    BackToPlaylistsInlineButton(),
 ]
 
 buttons = dict()

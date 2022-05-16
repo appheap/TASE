@@ -1,23 +1,25 @@
 import pyrogram
-from pyrogram.types import InlineQueryResultArticle, InputTextMessageContent, InlineKeyboardMarkup
+from pyrogram.enums import ChatType
+from pyrogram.types import InlineQueryResultArticle, InputTextMessageContent, InlineKeyboardMarkup, \
+    InlineQueryResultCachedAudio
 
 from .button import InlineButton
-# from ..handlers import BaseHandler
 from .. import template_globals
 from ..telegram_client import TelegramClient
-from ..templates import PlaylistData
+# from ..handlers import BaseHandler
+from ..templates import AudioCaptionData, PlaylistData
 from ...db import DatabaseClient, graph_models
 from ...my_logger import logger
 from ...utils import emoji, _trans
 
 
-class MyPlaylistsInlineButton(InlineButton):
-    name = "my_playlists"
+class GetPlaylistAudioInlineButton(InlineButton):
+    name = "get_playlist_audios"
 
-    s_my_playlists = _trans("My Playlists")
-    text = f"{s_my_playlists} | {emoji._headphone}"
+    s_audios = _trans("Audios")
+    text = f"{s_audios} | {emoji._headphone}"
 
-    switch_inline_query_current_chat = f"#my_playlists"
+    switch_inline_query_current_chat = f"#get_playlist_audios"
 
     def on_inline_query(
             self,
@@ -28,37 +30,29 @@ class MyPlaylistsInlineButton(InlineButton):
             telegram_client: 'TelegramClient',
             db_from_user: graph_models.vertices.User,
     ):
-        from ..inline_buton_globals import buttons
+        from ..inline_buton_globals import buttons  # todo: fix me
+
+        res = inline_query.query.split('#')[1]
+        try:
+            res = res.split(" ")
+            command = res[0]
+            playlist_key = res[1]
+        except:
+            playlist_key = None
 
         from_ = 0
-
-        # todo: add `new playlist` button when
-
         if inline_query.offset is not None and len(inline_query.offset):
             from_ = int(inline_query.offset)
-
-        db_playlists = db.get_user_playlists(db_from_user, offset=from_)
 
         results = []
 
         if from_ == 0:
-            results.append(
-                InlineQueryResultArticle(
-                    title=_trans("Create A New Playlist", db_from_user.chosen_language_code),
-                    description=_trans("Create a new playlist", db_from_user.chosen_language_code),
-                    id=f'{inline_query.id}->add_a_new_playlist',
-                    thumb_url="https://telegra.ph/file/aaafdf705c6745e1a32ee.png",
-                    input_message_content=InputTextMessageContent(message_text=emoji._clock_emoji),
-                )
-            )
-
-        for db_playlist in db_playlists:
+            db_playlist = db.get_playlist_by_key(playlist_key)
             data = PlaylistData(
                 title=db_playlist.title,
                 description=db_playlist.description,
                 lang_code=db_from_user.chosen_language_code,
             )
-
             markup = [
                 [
                     buttons['home'].get_inline_keyboard_button(db_from_user.chosen_language_code),
@@ -85,15 +79,63 @@ class MyPlaylistsInlineButton(InlineButton):
             ]
 
             markup = InlineKeyboardMarkup(markup)
-
             results.append(
                 InlineQueryResultArticle(
                     title=db_playlist.title,
                     description=f"{db_playlist.description}",
-                    id=f'{inline_query.id}->{db_playlist.key}',
+                    id=f'{inline_query.id}->{db_playlist.id}',
                     thumb_url="https://telegra.ph/file/ac2d210b9b0e5741470a1.jpg",
                     input_message_content=InputTextMessageContent(
                         message_text=template_globals.playlist_template.render(data),
+                    ),
+                    reply_markup=markup,
+                )
+            )
+
+        db_audios = db.get_playlist_audios(db_from_user, playlist_key, offset=from_)
+
+        # todo: fix this
+        chats_dict = handler.update_audio_cache(db_audios)
+
+        for db_audio in db_audios:
+            db_audio_file_cache = db.get_audio_file_from_cache(db_audio, telegram_client.telegram_id)
+
+            #  todo: Some audios have null titles, solution?
+            if not db_audio_file_cache or not db_audio.title:
+                continue
+
+            # todo: fix me
+
+            markup = [
+                [
+                    buttons['add_to_playlist'].get_inline_keyboard_button(
+                        db_from_user.chosen_language_code,
+                        "db_hit.download_url"
+                    ),
+                ],
+
+            ]
+            if inline_query.chat_type == ChatType.BOT:
+                markup.append(
+                    [
+                        buttons['home'].get_inline_keyboard_button(db_from_user.chosen_language_code),
+                    ]
+                )
+
+            markup = InlineKeyboardMarkup(markup)
+
+            results.append(
+                InlineQueryResultCachedAudio(
+                    audio_file_id=db_audio_file_cache.file_id,
+                    id=f'{inline_query.id}->{db_audio.key}',
+                    caption=template_globals.audio_caption_template.render(
+                        AudioCaptionData.parse_from_audio_doc(
+                            db_audio,
+                            db_from_user,
+                            chats_dict[db_audio.chat_id],
+                            bot_url='https://t.me/bot?start',
+                            include_source=True,
+                        )
                     ),
                     reply_markup=markup,
                 )
@@ -116,7 +158,7 @@ class MyPlaylistsInlineButton(InlineButton):
                         InlineQueryResultArticle(
                             title=_trans("No Results Were Found", db_from_user.chosen_language_code),
                             description=_trans(
-                                "You haven't created any playlist yet",
+                                "You haven't downloaded any audios yet",
                                 db_from_user.chosen_language_code
                             ),
                             input_message_content=InputTextMessageContent(
@@ -126,29 +168,3 @@ class MyPlaylistsInlineButton(InlineButton):
                     ],
                     cache_time=1,
                 )
-
-    def on_chosen_inline_query(
-            self,
-            client: 'pyrogram.Client',
-            chosen_inline_result: 'pyrogram.types.ChosenInlineResult',
-            handler: 'BaseHandler',
-            db: 'DatabaseClient',
-            telegram_client: 'TelegramClient',
-            db_from_user: graph_models.vertices.User
-    ):
-        res = chosen_inline_result.query.split(" ")
-        try:
-            hit_download_url = res[1]
-        except:
-            hit_download_url = None
-
-        result_id_list = chosen_inline_result.result_id.split("->")
-        inline_query_id = result_id_list[0]
-        playlist_key = result_id_list[1]
-
-        # db_hit = db.get_hit_by_download_url(hit_download_url)
-        # db_audio = db.get_audio_from_hit(db_hit)
-
-        if playlist_key == "add_a_new_playlist":
-            # start creating a new playlist
-            pass

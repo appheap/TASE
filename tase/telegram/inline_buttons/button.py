@@ -66,6 +66,17 @@ class InlineButton(BaseModel):
     ):
         raise NotImplementedError
 
+    def on_chosen_inline_query(
+            self,
+            client: 'pyrogram.Client',
+            chosen_inline_result: 'pyrogram.types.ChosenInlineResult',
+            handler: 'BaseHandler',
+            db: 'DatabaseClient',
+            telegram_client: 'TelegramClient',
+            db_from_user: graph_models.vertices.User,
+    ):
+        raise NotImplementedError
+
     def on_callback_query(
             self,
             client: 'pyrogram.Client',
