@@ -430,6 +430,12 @@ class GraphDatabase:
 
         return Audio.find_by_key(self.audios, id)
 
+    def get_playlist_by_key(self, key: str) -> Optional[Playlist]:
+        if key is None:
+            return None
+
+        return Playlist.find_by_key(self.playlists, key)
+
     def get_or_create_download_from_chosen_inline_query(
             self,
             chosen_inline_result: 'pyrogram.types.ChosenInlineResult',
@@ -635,3 +641,25 @@ class GraphDatabase:
         except Exception as e:
             pass
         return results
+
+    def add_audio_to_playlist(self, playlist_key: str, hit_download_url: str) -> Tuple[bool, bool]:
+        if playlist_key is None or hit_download_url is None:
+            return False, False
+
+        created = False
+        successful = False
+
+        db_hit = self.get_hit_by_download_url(hit_download_url)
+        db_audio = self.get_audio_from_hit(db_hit)
+        db_playlist = self.get_playlist_by_key(playlist_key)
+
+        edge = Has.parse_from_playlist_and_audio(db_playlist, db_audio)
+        if not Has.find_by_key(self.has, edge.key):
+            has_edge = Has.create(self.has, edge)
+            created = True
+            successful = True
+        else:
+            created = False
+            successful = True
+
+        return created, successful

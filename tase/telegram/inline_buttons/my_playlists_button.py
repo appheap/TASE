@@ -43,7 +43,7 @@ class MyPlaylistsInlineButton(InlineButton):
 
         for db_playlist in db_playlists:
             data = PlaylistData(
-                title=db_playlist.name,
+                title=db_playlist.title,
                 description=db_playlist.description,
                 lang_code=db_from_user.chosen_language_code,
             )
@@ -77,7 +77,7 @@ class MyPlaylistsInlineButton(InlineButton):
 
             results.append(
                 InlineQueryResultArticle(
-                    title=db_playlist.name,
+                    title=db_playlist.title,
                     description=f"\n\n{db_playlist.description}",
                     id=f'{inline_query.id}->{db_playlist.id}',
                     thumb_url="https://telegra.ph/file/ac2d210b9b0e5741470a1.jpg",

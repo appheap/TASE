@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: tase\n"
-"POT-Creation-Date: 2022-05-16 02:59+0430\n"
-"PO-Revision-Date: 2022-05-16 02:59+0430\n"
+"POT-Creation-Date: 2022-05-16 14:17+0430\n"
+"PO-Revision-Date: 2022-05-16 14:17+0430\n"
 "Last-Translator: \n"
 "Language-Team: Arabic\n"
 "Language: ar\n"
@@ -26,7 +26,6 @@ msgid "Language change has been saved"
 msgstr "تم حفظ تغيير اللغة"
 
 #: telegram/handlers/bots/inline_query_handler.py:141
-#: telegram/inline_buttons/back_to_playlists_button.py:106
 #: telegram/inline_buttons/download_history_button.py:104
 #: telegram/inline_buttons/my_playlists_button.py:105
 msgid "No Results Were Found"
@@ -36,23 +35,26 @@ msgstr "لا توجد نتائج"
 msgid "No results were found"
 msgstr "لا توجد نتائج"
 
-#: telegram/inline_buttons/add_to_playlist_button.py:14
+#: telegram/inline_buttons/add_to_playlist_button.py:15
 msgid "Add To Playlist"
 msgstr "إضافة إلى قائمة التشغيل"
+
+#: telegram/inline_buttons/add_to_playlist_button.py:42
+msgid "Create A New Playlist"
+msgstr "قم بإنشاء قائمة تشغيل جديدة"
+
+#: telegram/inline_buttons/add_to_playlist_button.py:43
+msgid "Create a new playlist"
+msgstr "قم بإنشاء قائمة تشغيل جديدة"
 
 #: telegram/inline_buttons/advertisement_button.py:9
 msgid "Advertisement"
 msgstr "إعلان"
 
 #: telegram/inline_buttons/back_button.py:13
-#: telegram/inline_buttons/back_to_playlists_button.py:18
+#: telegram/inline_buttons/back_to_playlists_button.py:9
 msgid "Back"
 msgstr "وراء"
-
-#: telegram/inline_buttons/back_to_playlists_button.py:108
-#: telegram/inline_buttons/my_playlists_button.py:107
-msgid "You haven't created any playlist yet"
-msgstr "لم تقم بإنشاء أي قائمة تشغيل حتى الآن"
 
 #: telegram/inline_buttons/delete_playlist_button.py:13
 msgid "Delete"
@@ -86,6 +88,10 @@ msgstr "منزل"
 #: telegram/inline_buttons/my_playlists_button.py:17
 msgid "My Playlists"
 msgstr "قوائم التشغيل الخاصة بي"
+
+#: telegram/inline_buttons/my_playlists_button.py:107
+msgid "You haven't created any playlist yet"
+msgstr "لم تقم بإنشاء أي قائمة تشغيل حتى الآن"
 
 #: telegram/templates/audio_caption_template.py:31
 #: telegram/templates/playlist_template.py:26

@@ -161,6 +161,10 @@ class InlineQueryHandler(BaseHandler):
 
         command = inline_query.query.split('#')[1]
 
+        try:
+            command=command.split(" ")[0]
+        except:
+            pass
         if command in buttons.keys():
             button = buttons[command]
             button.on_inline_query(

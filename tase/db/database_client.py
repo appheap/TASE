@@ -221,3 +221,9 @@ class DatabaseClient:
             return None
 
         return self._graph_db.get_user_playlists(db_from_user, offset, limit)
+
+    def add_audio_to_playlist(self, playlist_key: str, hit_download_url: str) -> Tuple[bool, bool]:
+        if playlist_key is None or hit_download_url is None:
+            return False, False
+
+        return self._graph_db.add_audio_to_playlist(playlist_key, hit_download_url)

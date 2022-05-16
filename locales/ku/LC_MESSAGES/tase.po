@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: tase\n"
-"POT-Creation-Date: 2022-05-16 02:59+0430\n"
-"PO-Revision-Date: 2022-05-16 02:59+0430\n"
+"POT-Creation-Date: 2022-05-16 14:17+0430\n"
+"PO-Revision-Date: 2022-05-16 14:17+0430\n"
 "Last-Translator: \n"
 "Language-Team: Kurdish\n"
 "Language: ku\n"
@@ -25,7 +25,6 @@ msgid "Language change has been saved"
 msgstr "زمانەکە پاشکەوت کرا"
 
 #: tase/telegram/handlers/bots/inline_query_handler.py:141
-#: tase/telegram/inline_buttons/back_to_playlists_button.py:106
 #: tase/telegram/inline_buttons/download_history_button.py:104
 #: tase/telegram/inline_buttons/my_playlists_button.py:105
 msgid "No Results Were Found"
@@ -35,23 +34,26 @@ msgstr "هیچ ئەنجامێک نەدۆزرایەوە"
 msgid "No results were found"
 msgstr "هیچ ئەنجامێک نەدۆزرایەوە"
 
-#: tase/telegram/inline_buttons/add_to_playlist_button.py:14
+#: tase/telegram/inline_buttons/add_to_playlist_button.py:15
 msgid "Add To Playlist"
 msgstr "زیاو کردن به پلەی لیست"
+
+#: tase/telegram/inline_buttons/add_to_playlist_button.py:42
+msgid "Create A New Playlist"
+msgstr "دروستکردنی پلەی لیستێکی نوێ"
+
+#: tase/telegram/inline_buttons/add_to_playlist_button.py:43
+msgid "Create a new playlist"
+msgstr "دروستکردنی پلەی لیستێکی نوێ"
 
 #: tase/telegram/inline_buttons/advertisement_button.py:9
 msgid "Advertisement"
 msgstr "ڕێکلام"
 
 #: tase/telegram/inline_buttons/back_button.py:13
-#: tase/telegram/inline_buttons/back_to_playlists_button.py:18
+#: tase/telegram/inline_buttons/back_to_playlists_button.py:9
 msgid "Back"
 msgstr "گەڕانەوە"
-
-#: tase/telegram/inline_buttons/back_to_playlists_button.py:108
-#: tase/telegram/inline_buttons/my_playlists_button.py:107
-msgid "You haven't created any playlist yet"
-msgstr "تا ئێستا هیچ پلەی لیستێکت دروست نەکردووە"
 
 #: tase/telegram/inline_buttons/delete_playlist_button.py:13
 msgid "Delete"
@@ -85,6 +87,10 @@ msgstr "ماڵەوە"
 #: tase/telegram/inline_buttons/my_playlists_button.py:17
 msgid "My Playlists"
 msgstr "پلەی لیستەکانم"
+
+#: tase/telegram/inline_buttons/my_playlists_button.py:107
+msgid "You haven't created any playlist yet"
+msgstr "تا ئێستا هیچ پلەی لیستێکت دروست نەکردووە"
 
 #: tase/telegram/templates/audio_caption_template.py:31
 #: tase/telegram/templates/playlist_template.py:26
