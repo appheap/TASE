@@ -1,194 +1,206 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: \n"
-"POT-Creation-Date: 2022-05-15 20:22+0430\n"
-"PO-Revision-Date: 2022-05-16 02:08+0430\n"
+"Project-Id-Version: tase\n"
+"POT-Creation-Date: 2022-05-16 04:51+0430\n"
+"PO-Revision-Date: 2022-05-16 04:51+0430\n"
 "Last-Translator: \n"
-"Language-Team: \n"
+"Language-Team: Hindi\n"
 "Language: hi_IN\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n==0 || n==1);\n"
 "X-Generator: Poedit 3.0.1\n"
-"X-Poedit-Basepath: .\n"
+"X-Poedit-Basepath: ../../..\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Poedit-KeywordsList: _trans\n"
+"X-Poedit-SearchPath-0: .\n"
 
-#: telegram/handlers/bots/bot_message_handler.py:163
-msgid "An Error occurred while processing this audio download url"
-msgstr "इस ऑडियो डाउनलोड URL को संसाधित करते समय एक त्रुटि हुई"
+#: tase/telegram/handlers/bots/bot_message_handler.py:161
+msgid "An error occurred while processing the download URL for this audio"
+msgstr "इस ऑडियो के लिए डाउनलोड URL को संसाधित करते समय एक त्रुटि हुई"
 
-#: telegram/handlers/bots/callback_query_handler.py:33
+#: tase/telegram/handlers/bots/callback_query_handler.py:33
 msgid "Language change has been saved"
-msgstr "भाषा परिवर्तन सहेज लिया गया है"
+msgstr "भाषा परिवर्तन बच गया है"
 
-#: telegram/handlers/bots/inline_query_handler.py:119
-#: telegram/inline_buttons/download_history_button.py:81
-#: telegram/inline_buttons/my_playlists_button.py:67
+#: tase/telegram/handlers/bots/inline_query_handler.py:141
+#: tase/telegram/inline_buttons/download_history_button.py:104
+#: tase/telegram/inline_buttons/my_playlists_button.py:75
 msgid "No Results Were Found"
 msgstr "कोई परिणाम नहीं मिला"
 
-#: telegram/handlers/bots/inline_query_handler.py:120
+#: tase/telegram/handlers/bots/inline_query_handler.py:142
 msgid "No results were found"
-msgstr "कोई परिणाम नहीं मिला"
+msgstr "कोई परिणाम नहीं मिले थे"
 
-#: telegram/inline_buttons/add_to_playlist_button.py:14
+#: tase/telegram/inline_buttons/add_to_playlist_button.py:14
 msgid "Add To Playlist"
 msgstr "प्लेलिस्ट में जोड़ें"
 
-#: telegram/inline_buttons/advertisement_button.py:9
+#: tase/telegram/inline_buttons/advertisement_button.py:9
 msgid "Advertisement"
 msgstr "विज्ञापन"
 
-#: telegram/inline_buttons/back_button.py:13
+#: tase/telegram/inline_buttons/back_button.py:13
 msgid "Back"
 msgstr "वापस"
 
-#: telegram/inline_buttons/download_history_button.py:17
+#: tase/telegram/inline_buttons/download_history_button.py:20
 msgid "My Downloads"
 msgstr "मेरे डाउनलोड"
 
-#: telegram/inline_buttons/download_history_button.py:83
+#: tase/telegram/inline_buttons/download_history_button.py:106
 msgid "You haven't downloaded any audios yet"
 msgstr "आपने अभी तक कोई ऑडियो डाउनलोड नहीं किया है"
 
-#: telegram/inline_buttons/help_catalog.py:14
+#: tase/telegram/inline_buttons/help_catalog.py:14
 msgid "Help"
 msgstr "मदद"
 
-#: telegram/inline_buttons/home_button.py:13
-#: telegram/templates/choose_language_template.py:27
+#: tase/telegram/inline_buttons/home_button.py:13
+#: tase/telegram/templates/choose_language_template.py:27
 msgid "Home"
 msgstr "घर"
 
-#: telegram/inline_buttons/my_playlists_button.py:15
+#: tase/telegram/inline_buttons/my_playlists_button.py:17
 msgid "My Playlists"
 msgstr "मेरी प्लेलिस्ट"
 
-#: telegram/inline_buttons/my_playlists_button.py:69
+#: tase/telegram/inline_buttons/my_playlists_button.py:77
 msgid "You haven't created any playlist yet"
 msgstr "आपने अभी तक कोई प्लेलिस्ट नहीं बनाई है"
 
-#: telegram/templates/audio_caption_template.py:31
-msgid "Title:"
-msgstr "शीर्षक:"
+#: tase/telegram/templates/audio_caption_template.py:31
+#: tase/telegram/templates/playlist_template.py:26
+msgid "Title"
+msgstr "शीर्षक"
 
-#: telegram/templates/audio_caption_template.py:32
-msgid "Performer:"
-msgstr "कलाकार:"
+#: tase/telegram/templates/audio_caption_template.py:32
+msgid "Performer"
+msgstr "अभिनेता"
 
-#: telegram/templates/audio_caption_template.py:33
-msgid "File name:"
-msgstr "फ़ाइल का नाम:"
+#: tase/telegram/templates/audio_caption_template.py:33
+msgid "File name"
+msgstr "फ़ाइल का नाम"
 
-#: telegram/templates/audio_caption_template.py:34
-msgid "Source:"
-msgstr "स्रोत:"
+#: tase/telegram/templates/audio_caption_template.py:34
+msgid "Source"
+msgstr "स्रोत"
 
-#: telegram/templates/audio_caption_template.py:35
+#: tase/telegram/templates/audio_caption_template.py:35
 msgid "Audio Search Engine"
 msgstr "श्रव्य खोज इंजन"
 
-#: telegram/templates/audio_caption_template.py:36
-msgid "Sent by Telegram Audio Search Engine Users"
-msgstr "टेलीग्राम ऑडियो खोज इंजन उपयोगकर्ताओं द्वारा भेजा गया"
+#: tase/telegram/templates/audio_caption_template.py:36
+msgid "Submitted by Telegram Audio Search Engine Users"
+msgstr "टेलीग्राम ऑडियो खोज इंजन उपयोगकर्ताओं द्वारा प्रस्तुत किया गया"
 
-#: telegram/templates/choose_language_template.py:23
+#: tase/telegram/templates/choose_language_template.py:23
 msgid "Please choose your language"
 msgstr "कृपया अपनी भाषा चुनें"
 
-#: telegram/templates/choose_language_template.py:24
+#: tase/telegram/templates/choose_language_template.py:24
 msgid "You can change this later by:"
 msgstr "आप इसे बाद में बदल सकते हैं:"
 
-#: telegram/templates/choose_language_template.py:25
+#: tase/telegram/templates/choose_language_template.py:25
 msgid "Sending"
 msgstr "भेजना"
 
-#: telegram/templates/choose_language_template.py:26
+#: tase/telegram/templates/choose_language_template.py:26
 msgid "Going to"
 msgstr "जा रहा हूँ"
 
-#: telegram/templates/help_template.py:32
+#: tase/telegram/templates/help_template.py:32
 msgid "Help menu"
 msgstr "सहायता मेनू"
 
-#: telegram/templates/help_template.py:33
-#: telegram/templates/home_template.py:33
+#: tase/telegram/templates/help_template.py:33
+#: tase/telegram/templates/home_template.py:33
 msgid "Channel:"
 msgstr "चैनल:"
 
-#: telegram/templates/help_template.py:34
-#: telegram/templates/home_template.py:34
+#: tase/telegram/templates/help_template.py:34
+#: tase/telegram/templates/home_template.py:34
 msgid "Our channels:"
 msgstr "हमारे चैनल:"
 
-#: telegram/templates/help_template.py:35
-#: telegram/templates/home_template.py:35
-#: telegram/templates/welcome_template.py:28
+#: tase/telegram/templates/help_template.py:35
+#: tase/telegram/templates/home_template.py:35
+#: tase/telegram/templates/welcome_template.py:28
 msgid "Telegram Audio Search Engine"
-msgstr "Telegram Audio Search Engine"
+msgstr "तार ऑडियो खोज इंजन"
 
-#: telegram/templates/help_template.py:36
-#: telegram/templates/home_template.py:36
+#: tase/telegram/templates/help_template.py:36
+#: tase/telegram/templates/home_template.py:36
 msgid "How to reach us:"
 msgstr "हम तक कैसे पहुंचे:"
 
-#: telegram/templates/home_template.py:32
+#: tase/telegram/templates/home_template.py:32
 msgid "Main menu"
 msgstr "मुख्य मेन्यू"
 
-#: telegram/templates/no_results_were_found_template.py:9
+#: tase/telegram/templates/no_results_were_found_template.py:9
 msgid "No results were found for this query!"
 msgstr "इस क्वेरी के लिए कोई परिणाम नहीं मिला!"
 
-#: telegram/templates/query_results_template.py:33
+#: tase/telegram/templates/playlist_template.py:25
+msgid "Playlist Menu"
+msgstr "प्लेलिस्ट मेनू"
+
+#: tase/telegram/templates/playlist_template.py:27
+msgid "Description"
+msgstr "विवरण"
+
+#: tase/telegram/templates/query_results_template.py:33
 msgid "Search results for:"
 msgstr "के लिए खोज परिणाम:"
 
-#: telegram/templates/query_results_template.py:34
+#: tase/telegram/templates/query_results_template.py:34
 msgid "Better results are at the bottom of the list"
 msgstr "बेहतर परिणाम सूची के निचले भाग में हैं"
 
-#: telegram/templates/query_results_template.py:35
+#: tase/telegram/templates/query_results_template.py:35
 msgid "Download:"
 msgstr "डाउनलोड:"
 
-#: telegram/templates/query_results_template.py:36
+#: tase/telegram/templates/query_results_template.py:36
 msgid "MB"
-msgstr "MB"
+msgstr "एमबी"
 
-#: telegram/templates/welcome_template.py:26
+#: tase/telegram/templates/welcome_template.py:26
 msgid "Take your audio searching to the speed"
 msgstr "अपने ऑडियो को गति तक खोजें"
 
-#: telegram/templates/welcome_template.py:27
+#: tase/telegram/templates/welcome_template.py:27
 msgid "Welcome to"
 msgstr "आपका स्वागत है"
 
-#: telegram/templates/welcome_template.py:29
+#: tase/telegram/templates/welcome_template.py:29
 msgid "It's great to have you!"
-msgstr "आपके पास होना बहुत अच्छा है!"
+msgstr "यह आपके लिए बहुत अच्छा है!"
 
-#: telegram/templates/welcome_template.py:30
+#: tase/telegram/templates/welcome_template.py:30
 msgid "Here are a bunch of features that will get your searching up to"
 msgstr "यहां उन सुविधाओं का एक समूह है जो आपकी खोज को प्राप्त करेंगे"
 
-#: telegram/templates/welcome_template.py:31
+#: tase/telegram/templates/welcome_template.py:31
 msgid "speed"
 msgstr "रफ़्तार"
 
-#: telegram/templates/welcome_template.py:32
+#: tase/telegram/templates/welcome_template.py:32
 msgid "Find"
 msgstr "पाना"
 
-#: telegram/templates/welcome_template.py:33
+#: tase/telegram/templates/welcome_template.py:33
 msgid "your audio (music, podcast, etc.) in"
 msgstr "आपका ऑडियो (संगीत, पॉडकास्ट, आदि)"
 
-#: telegram/templates/welcome_template.py:34
+#: tase/telegram/templates/welcome_template.py:34
 msgid "Any question? then press"
 msgstr "कोई प्रश्न?फिर दबायें"
 
-#: telegram/templates/welcome_template.py:35
+#: tase/telegram/templates/welcome_template.py:35
 msgid "milliseconds"
 msgstr "मिलीसेकेंड"

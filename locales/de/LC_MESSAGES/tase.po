@@ -1,122 +1,120 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: tase\n"
-"POT-Creation-Date: 2022-05-15 20:22+0430\n"
-"PO-Revision-Date: 2022-05-16 04:45+0430\n"
+"POT-Creation-Date: 2022-05-16 01:25+0430\n"
+"PO-Revision-Date: 2022-05-16 04:19+0430\n"
 "Last-Translator: \n"
-"Language-Team: kurdish\n"
-"Language: ku_TR\n"
+"Language-Team: German\n"
+"Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 3.0.1\n"
-"X-Poedit-Basepath: ../../..\n"
+"X-Poedit-Basepath: ../tase\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 "X-Poedit-KeywordsList: _trans\n"
 "X-Poedit-SearchPath-0: .\n"
 
-#: telegram/handlers/bots/bot_message_handler.py:163
-#, fuzzy
+#: telegram/handlers/bots/bot_message_handler.py:161
 msgid "An Error occurred while processing this audio download url"
-msgstr "Di dema ku ev URL-ya dakêşanê ya dengî tê xebitandin xeletiyek derket"
+msgstr "Bei der Verarbeitung dieser Audio-Download-URL trat ein Fehler auf"
 
 #: telegram/handlers/bots/callback_query_handler.py:33
-#, fuzzy
 msgid "Language change has been saved"
-msgstr "Guhertina ziman hate tomarkirin"
+msgstr "Sprachänderung wurde gerettet"
 
-#: telegram/handlers/bots/inline_query_handler.py:119
-#: telegram/inline_buttons/download_history_button.py:81
-#: telegram/inline_buttons/my_playlists_button.py:67
-#, fuzzy
+#: telegram/handlers/bots/inline_query_handler.py:141
+#: telegram/inline_buttons/download_history_button.py:104
+#: telegram/inline_buttons/my_playlists_button.py:75
 msgid "No Results Were Found"
-msgstr "Encam nehat dîtin"
+msgstr "Es wurden keine Ergebnisse gefunden"
 
-#: telegram/handlers/bots/inline_query_handler.py:120
+#: telegram/handlers/bots/inline_query_handler.py:142
 msgid "No results were found"
-msgstr "Encam nehat dîtin"
+msgstr "Es wurden keine Ergebnisse gefunden"
 
 #: telegram/inline_buttons/add_to_playlist_button.py:14
 msgid "Add To Playlist"
-msgstr "Têxe Lîsteya Play"
+msgstr "Zur Wiedergabeliste hinzufügen"
 
 #: telegram/inline_buttons/advertisement_button.py:9
 msgid "Advertisement"
-msgstr "Reklam"
+msgstr "Anzeige"
 
 #: telegram/inline_buttons/back_button.py:13
 msgid "Back"
-msgstr "Vegerr"
+msgstr "Zurück"
 
-#: telegram/inline_buttons/download_history_button.py:17
+#: telegram/inline_buttons/download_history_button.py:20
 msgid "My Downloads"
-msgstr "Dakêşanên min"
+msgstr "Meine Downloads"
 
-#: telegram/inline_buttons/download_history_button.py:83
+#: telegram/inline_buttons/download_history_button.py:106
 msgid "You haven't downloaded any audios yet"
-msgstr "Te hê tu dengek ne daxistiye"
+msgstr "Sie haben noch keine Audios heruntergeladen"
 
 #: telegram/inline_buttons/help_catalog.py:14
 msgid "Help"
-msgstr "Alîkarî"
+msgstr "Hilfe"
 
 #: telegram/inline_buttons/home_button.py:13
 #: telegram/templates/choose_language_template.py:27
 msgid "Home"
-msgstr "Mal"
+msgstr "Heim"
 
-#: telegram/inline_buttons/my_playlists_button.py:15
+#: telegram/inline_buttons/my_playlists_button.py:17
 msgid "My Playlists"
-msgstr "Playlistên min"
+msgstr "Meine Wiedergabelisten"
 
-#: telegram/inline_buttons/my_playlists_button.py:69
+#: telegram/inline_buttons/my_playlists_button.py:77
 msgid "You haven't created any playlist yet"
-msgstr "Te hîn Playlistên çênekiriye"
+msgstr "Sie haben noch keine Wiedergabeliste erstellt"
 
 #: telegram/templates/audio_caption_template.py:31
-msgid "Title:"
-msgstr "Nav:"
+#: telegram/templates/playlist_template.py:26
+msgid "Title"
+msgstr "Titel"
 
 #: telegram/templates/audio_caption_template.py:32
-msgid "Performer:"
-msgstr "Hunermend:"
+msgid "Performer"
+msgstr "Künstleri"
 
 #: telegram/templates/audio_caption_template.py:33
-msgid "File name:"
-msgstr "Navê pelê:"
+msgid "File name"
+msgstr "Dateinamen"
 
 #: telegram/templates/audio_caption_template.py:34
-msgid "Source:"
-msgstr "Çavkanî:"
+msgid "Source"
+msgstr "Quelle"
 
 #: telegram/templates/audio_caption_template.py:35
 msgid "Audio Search Engine"
-msgstr "Motora Lêgerînê ya Dengê"
+msgstr "Audio-Suchmaschine"
 
 #: telegram/templates/audio_caption_template.py:36
 msgid "Sent by Telegram Audio Search Engine Users"
-msgstr "Ji hêla bikarhênerên \"Telegram Audio Search Engine\" ve hatî şandin"
+msgstr "Gesendet von Telegram Audio Suchmaschinenbenutzern"
 
 #: telegram/templates/choose_language_template.py:23
 msgid "Please choose your language"
-msgstr "Zimanê xwe hilbijêrin"
+msgstr "Bitte wählen Sie Ihre Sprache"
 
 #: telegram/templates/choose_language_template.py:24
 msgid "You can change this later by:"
-msgstr "Hûn dikarin vê paşê biguherînin:"
+msgstr "Sie können dies später ändern durch:"
 
 #: telegram/templates/choose_language_template.py:25
 msgid "Sending"
-msgstr "Dişîne"
+msgstr "Senden"
 
 #: telegram/templates/choose_language_template.py:26
 msgid "Going to"
-msgstr "Diçûn"
+msgstr "Gehen zu"
 
 #: telegram/templates/help_template.py:32
 msgid "Help menu"
-msgstr "Menuya alîkariyê"
+msgstr "Hilfemenü"
 
 #: telegram/templates/help_template.py:33
 #: telegram/templates/home_template.py:33
@@ -126,75 +124,83 @@ msgstr "Kanal:"
 #: telegram/templates/help_template.py:34
 #: telegram/templates/home_template.py:34
 msgid "Our channels:"
-msgstr "Kanalên me:"
+msgstr "Unsere Kanäle:"
 
 #: telegram/templates/help_template.py:35
 #: telegram/templates/home_template.py:35
 #: telegram/templates/welcome_template.py:28
 msgid "Telegram Audio Search Engine"
-msgstr "Motora Lêgerînê ya Dengê Telegram"
+msgstr "Telegramm-Audio-Suchmaschine"
 
 #: telegram/templates/help_template.py:36
 #: telegram/templates/home_template.py:36
 msgid "How to reach us:"
-msgstr "Meriv çawa xwe bigihîne me:"
+msgstr "Wie man uns erreicht:"
 
 #: telegram/templates/home_template.py:32
 msgid "Main menu"
-msgstr "Menuya sereke"
+msgstr "Hauptmenü"
 
 #: telegram/templates/no_results_were_found_template.py:9
 msgid "No results were found for this query!"
-msgstr "Ji bo vê hevokê tu encam nehat dîtin!"
+msgstr "Für diese Frage wurden keine Ergebnisse gefunden!"
+
+#: telegram/templates/playlist_template.py:25
+msgid "Playlist Menu"
+msgstr "Playlist-Menü"
+
+#: telegram/templates/playlist_template.py:27
+msgid "Description"
+msgstr "Beschreibung"
 
 #: telegram/templates/query_results_template.py:33
 msgid "Search results for:"
-msgstr "Encamên lêgerînê ji bo:"
+msgstr "Suchergebnisse für:"
 
 #: telegram/templates/query_results_template.py:34
 msgid "Better results are at the bottom of the list"
-msgstr "Encamên çêtir di binê lîsteyê de ne"
+msgstr "Bessere Ergebnisse stehen am Ende der Liste"
 
 #: telegram/templates/query_results_template.py:35
 msgid "Download:"
-msgstr "Daxistin:"
+msgstr "Download:"
 
 #: telegram/templates/query_results_template.py:36
 msgid "MB"
-msgstr "MB"
+msgstr "Mb"
 
 #: telegram/templates/welcome_template.py:26
 msgid "Take your audio searching to the speed"
-msgstr "Lêgerîna dengê xwe bilezînin"
+msgstr "Nehmen Sie Ihre Audio-Suche auf die Geschwindigkeit"
 
 #: telegram/templates/welcome_template.py:27
 msgid "Welcome to"
-msgstr "Bi xêr hatî"
+msgstr "Willkommen zu"
 
 #: telegram/templates/welcome_template.py:29
 msgid "It's great to have you!"
-msgstr "Pir xweş e ku hûn li vir in!"
+msgstr "Es ist toll, dich zu haben!"
 
 #: telegram/templates/welcome_template.py:30
 msgid "Here are a bunch of features that will get your searching up to"
-msgstr "Li vir komek taybetmendî hene ku dê lêgerîna we bigire ber xwe"
+msgstr "Hier sind eine Reihe von Funktionen, mit denen Sie suchen können"
 
 #: telegram/templates/welcome_template.py:31
 msgid "speed"
-msgstr "leza"
+msgstr "Geschwindigkeit"
 
 #: telegram/templates/welcome_template.py:32
 msgid "Find"
-msgstr "Dîtin"
+msgstr "Finden"
 
 #: telegram/templates/welcome_template.py:33
 msgid "your audio (music, podcast, etc.) in"
-msgstr "dengê we (muzîk, podcast, hwd.) tê de"
+msgstr "Ihr Audio (Musik, Podcast usw.) in"
 
 #: telegram/templates/welcome_template.py:34
 msgid "Any question? then press"
-msgstr "Pirs? paşê pêl bikin"
+msgstr "Irgendeine Frage? dann drücken"
 
 #: telegram/templates/welcome_template.py:35
 msgid "milliseconds"
-msgstr "milliseconds"
+msgstr "Millisekunden"
