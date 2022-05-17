@@ -217,6 +217,40 @@ services:
       timeout: 10s
       retries: 120
 
+  arangodb:
+    image: arangodb:${ARANGODB_VERSION}
+    volumes:
+      - arangodb_data_container:/var/lib/arangodb3
+      - arangodb_apps_data_container:/var/lib/arangodb3-app
+    environment:
+      - ARANGO_NO_AUTH=1 # do not use this in production mode
+    ports:
+      - ${ARANGODB_PORT}
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    volumes:
+      - arangodb_data_container:/var/lib/arangodb3
+      - arangodb_apps_data_container:/var/lib/arangodb3-app
+    environment:
+      - ARANGO_NO_AUTH=${ARANGODB_NO_AUTH}
+      - ARANGO_ROOT_PASSWORD=${ARANGODB_ROOT_PASSWORD}
+    ports:
+      # The standard AMQP protocol port
+      - ${RABBITMQ_AMQP_PORT}
+      # HTTP management UI
+      - ${RABBITMQ_HTTP_UI_PORT}
+    networks:
+      - network
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+
 volumes:
   certs:
     driver: local
@@ -228,3 +262,12 @@ volumes:
     driver: local
   kibanadata:
     driver: local
+  arangodb_data_container:
+    driver: local
+  arangodb_apps_data_container:
+    driver: local
+
+networks:
+  # Declare our private network.  We must declare one for the magic
+  # Docker DNS to work, but otherwise its default settings are fine.
+  network: { }
