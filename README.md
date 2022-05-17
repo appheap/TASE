@@ -1,4 +1,3 @@
-
 <div class="Intro" align="center">
 <h1>Telegram audio search engine (TASE)</h1>
 <hr class="dashed">
@@ -57,7 +56,7 @@ on different servers located in different parts of the world.</p>
 <li>Friendly look and feel</li>
 </ol>
 
-<h3>TASE is free and always will be. Help us out… If you love free stuff and great software, give us a star! 
+<h3>TASE is free and always will be. Help us out… If you love free stuff and great software, give us a star!
 :star::star2:</h3>
 </div>
 
@@ -238,12 +237,14 @@ to run your own clients.</p>
 <p>Main tools & technologies used in developing TASE are as following:</p>
 <ul>
 <li>Elasticsearch &emsp; <img src="https://img.shields.io/badge/-Elasticsearch-005571?style=plastic&logo=elasticsearch">
-<li>ArangoDB &emsp;&emsp;&ensp; <img src="https://img.shields.io/badge/ArangoDB-Database-green?style=plastic&logo=apache-cassandra&logoColor=white">
+<li>ArangoDB &emsp;&emsp;&ensp; <img src="https://img.shields.io/badge/ArangoDB-Database-green?style=flat-square&logo=arangodb&logoColor=white">
 <li>Pyrogram &emsp;&emsp;&ensp;&ensp;<img src="https://img.shields.io/badge/Pyrogram-2CA5E0?style=plastic&logo=telegram&logoColor=white">
 <li>Python get_text&ensp; <img src="https://img.shields.io/badge/Python-_Get_text_translations-3670A0?style=plastic&logo=python&logoColor=ffdd54">
-<li>Celery &emsp;&emsp;&emsp;&emsp;&ensp;<img src="https://img.shields.io/badge/Celery-Task%20Queue-orange">
+<li>Celery &emsp;&emsp;&emsp;&emsp;&ensp;<img src="https://img.shields.io/badge/Celery-Task%20Queue-orange?logo=celery">
+<li>RabbitMQ &emsp;&emsp;&emsp;<img src="https://img.shields.io/badge/RabbitMQ-Message%20Broker-red?logo=rabbitmq">
+<li>Redis &emsp;&emsp;&emsp;&emsp;&ensp;<img src="https://img.shields.io/badge/Redis-Message%20Broker-red?logo=redis">
 <li>Pydantic &emsp;&emsp;&emsp;&ensp;<img src="https://img.shields.io/badge/Pydantic-Data%20validation-yellowgreen">
-<li>Jinja &emsp;&emsp;&emsp;&emsp;&emsp; <img src="https://img.shields.io/badge/Jinja-Templating%20engine-red">
+<li>Jinja &emsp;&emsp;&emsp;&emsp;&emsp;<img src="https://img.shields.io/badge/Jinja-Templating%20engine-red?logo=jinja">
 
 </ul>
 </div>
@@ -298,9 +299,8 @@ issue to tackle, take a look at <a href="https://github.com/soran-ghaderi/tase/i
 <li>
     <b>Taleb Zarhesh</b> (taleb.zarhesh@gmail.com)<br>
     <ul>
-        <li>Personal website: <a href="https://about.me/taleb_zarhesh/"></a></li>
         <li>Linkedin: <a href="https://www.linkedin.com/in/taleb-zarhesh/">Taleb Zarhesh</a></li>
-        <li>Twitter: <a href="https://twitter.com/talebzarhesh">Taleb Zarhesh</a></li>
+        <li>Twitter: <a href="https://twitter.com/taleb__z">Taleb Zarhesh</a></li>
     </ul>
 </li>
 </ul>
