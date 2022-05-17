@@ -1,8 +1,10 @@
+from typing import Match
+
 import pyrogram
-from pyrogram.types import InlineQueryResultArticle, InputTextMessageContent
 
 from .button import InlineButton
 # from ..handlers import BaseHandler
+from ..inline_items import PlaylistItem, CreateNewPlaylistItem
 from ..telegram_client import TelegramClient
 from ...db import DatabaseClient, graph_models
 from ...my_logger import logger
@@ -25,6 +27,7 @@ class AddToPlaylistInlineButton(InlineButton):
             db: 'DatabaseClient',
             telegram_client: 'TelegramClient',
             db_from_user: graph_models.vertices.User,
+            reg: Match,
     ):
         from_ = 0
         if inline_query.offset is not None and len(inline_query.offset):
@@ -35,34 +38,14 @@ class AddToPlaylistInlineButton(InlineButton):
         results = []
 
         if from_ == 0:
-            results.append(
-                InlineQueryResultArticle(
-                    title=_trans("Create A New Playlist", db_from_user.chosen_language_code),
-                    description=_trans("Create a new playlist", db_from_user.chosen_language_code),
-                    id=f'{inline_query.id}->add_a_new_playlist',
-                    thumb_url="https://telegra.ph/file/aaafdf705c6745e1a32ee.png",
-                    input_message_content=InputTextMessageContent(message_text=emoji._clock_emoji),
-                )
-            )
+            results.append(CreateNewPlaylistItem.get_item(db_from_user, inline_query))
 
         for db_playlist in db_playlists:
-            results.append(
-                InlineQueryResultArticle(
-                    title=db_playlist.title,
-                    description=f"{db_playlist.description}",
-                    id=f'{inline_query.id}->{db_playlist.key}',
-                    thumb_url="https://telegra.ph/file/ac2d210b9b0e5741470a1.jpg",
-                    input_message_content=InputTextMessageContent(message_text=emoji._clock_emoji),
-                )
-            )
+            results.append(PlaylistItem.get_item(db_playlist, db_from_user, inline_query))
 
         if len(results):
             try:
-                if len(results) > 1:
-                    next_offset = str(from_ + len(results) + 1) if len(results) else None
-                else:
-                    next_offset = None
-
+                next_offset = str(from_ + len(results) + 1) if len(results) > 1 else None
                 inline_query.answer(results, cache_time=1, next_offset=next_offset)
             except Exception as e:
                 logger.exception(e)
@@ -74,13 +57,10 @@ class AddToPlaylistInlineButton(InlineButton):
             handler: 'BaseHandler',
             db: 'DatabaseClient',
             telegram_client: 'TelegramClient',
-            db_from_user: graph_models.vertices.User
+            db_from_user: graph_models.vertices.User,
+            reg: Match,
     ):
-        res = chosen_inline_result.query.split(" ")
-        try:
-            hit_download_url = res[1]
-        except:
-            hit_download_url = None
+        hit_download_url = reg.group("arg1")
 
         result_id_list = chosen_inline_result.result_id.split("->")
         inline_query_id = result_id_list[0]

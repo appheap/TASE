@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: tase\n"
-"POT-Creation-Date: 2022-05-16 01:25+0430\n"
-"PO-Revision-Date: 2022-05-16 05:11+0430\n"
+"POT-Creation-Date: 2022-05-17 02:32+0430\n"
+"PO-Revision-Date: 2022-05-17 02:32+0430\n"
 "Last-Translator: \n"
 "Language-Team: Dutch\n"
 "Language: nl_NL\n"
@@ -16,191 +16,214 @@ msgstr ""
 "X-Poedit-KeywordsList: _trans\n"
 "X-Poedit-SearchPath-0: .\n"
 
-#: telegram/handlers/bots/bot_message_handler.py:161
-msgid "An Error occurred while processing this audio download url"
+#: tase/telegram/handlers/bots/bot_message_handler.py:161
+msgid "An error occurred while processing the download URL for this audio"
 msgstr "Er is een fout opgetreden bij het verwerken van deze audio -download -URL"
 
-#: telegram/handlers/bots/callback_query_handler.py:33
+#: tase/telegram/handlers/bots/callback_query_handler.py:33
 msgid "Language change has been saved"
 msgstr "Taalverandering is opgeslagen"
 
-#: telegram/handlers/bots/inline_query_handler.py:141
-#: telegram/inline_buttons/download_history_button.py:104
-#: telegram/inline_buttons/my_playlists_button.py:75
-msgid "No Results Were Found"
-msgstr "Er zijn geen resultaten gevonden"
-
-#: telegram/handlers/bots/inline_query_handler.py:142
-msgid "No results were found"
-msgstr "Er zijn geen resultaten gevonden"
-
-#: telegram/inline_buttons/add_to_playlist_button.py:14
+#: tase/telegram/inline_buttons/add_to_playlist_button.py:17
 msgid "Add To Playlist"
 msgstr "Toevoegen aan afspeellijst"
 
-#: telegram/inline_buttons/advertisement_button.py:9
+#: tase/telegram/inline_buttons/advertisement_button.py:9
 msgid "Advertisement"
 msgstr "Advertentie"
 
-#: telegram/inline_buttons/back_button.py:13
+#: tase/telegram/inline_buttons/back_button.py:13
+#: tase/telegram/inline_buttons/back_to_playlists_button.py:9
 msgid "Back"
 msgstr "Rug"
 
-#: telegram/inline_buttons/download_history_button.py:20
+#: tase/telegram/inline_buttons/delete_playlist_button.py:13
+msgid "Delete"
+msgstr "Verwijderen"
+
+#: tase/telegram/inline_buttons/download_history_button.py:23
 msgid "My Downloads"
 msgstr "Mijn downloads"
 
-#: telegram/inline_buttons/download_history_button.py:106
+#: tase/telegram/inline_buttons/download_history_button.py:78
+#: tase/telegram/inline_items/no_download_item.py:22
+#: tase/telegram/inline_items/no_playlist_item.py:22
+#: tase/telegram/inline_items/no_result_item.py:22
+msgid "No Results Were Found"
+msgstr "Er zijn geen resultaten gevonden"
+
+#: tase/telegram/inline_buttons/download_history_button.py:80
+#: tase/telegram/inline_items/no_download_item.py:24
 msgid "You haven't downloaded any audios yet"
 msgstr "Je hebt nog geen audio gedownload"
 
-#: telegram/inline_buttons/help_catalog.py:14
+#: tase/telegram/inline_buttons/edit_playlist_button.py:13
+msgid "Edit"
+msgstr "Bewerk"
+
+#: tase/telegram/inline_buttons/get_playlist_audios_button.py:17
+msgid "Audios"
+msgstr "Audio"
+
+#: tase/telegram/inline_buttons/help_catalog.py:18
 msgid "Help"
 msgstr "Helpen"
 
-#: telegram/inline_buttons/home_button.py:13
-#: telegram/templates/choose_language_template.py:27
+#: tase/telegram/inline_buttons/home_button.py:13
+#: tase/telegram/templates/choose_language_template.py:27
 msgid "Home"
 msgstr "Thuis"
 
-#: telegram/inline_buttons/my_playlists_button.py:17
+#: tase/telegram/inline_buttons/my_playlists_button.py:17
 msgid "My Playlists"
 msgstr "Mijn afspeellijsten"
 
-#: telegram/inline_buttons/my_playlists_button.py:77
+#: tase/telegram/inline_items/create_new_playlist_item.py:23
+msgid "Create A New Playlist"
+msgstr "Een nieuwe afspeellijst maken"
+
+#: tase/telegram/inline_items/create_new_playlist_item.py:24
+msgid "Create a new playlist"
+msgstr "Een nieuwe afspeellijst maken"
+
+#: tase/telegram/inline_items/no_playlist_item.py:24
 msgid "You haven't created any playlist yet"
 msgstr "Je hebt nog geen afspeellijst gemaakt"
 
-#: telegram/templates/audio_caption_template.py:31
-#: telegram/templates/playlist_template.py:26
+#: tase/telegram/inline_items/no_result_item.py:23
+msgid "No results were found"
+msgstr "Er zijn geen resultaten gevonden"
+
+#: tase/telegram/templates/audio_caption_template.py:31
+#: tase/telegram/templates/playlist_template.py:26
 msgid "Title"
 msgstr "Titel"
 
-#: telegram/templates/audio_caption_template.py:32
+#: tase/telegram/templates/audio_caption_template.py:32
 msgid "Performer"
 msgstr "Uitvoerder"
 
-#: telegram/templates/audio_caption_template.py:33
+#: tase/telegram/templates/audio_caption_template.py:33
 msgid "File name"
 msgstr "Bestandsnaam"
 
-#: telegram/templates/audio_caption_template.py:34
+#: tase/telegram/templates/audio_caption_template.py:34
 msgid "Source"
 msgstr "Bron"
 
-#: telegram/templates/audio_caption_template.py:35
+#: tase/telegram/templates/audio_caption_template.py:35
 msgid "Audio Search Engine"
 msgstr "Audio -zoekmachine"
 
-#: telegram/templates/audio_caption_template.py:36
-msgid "Sent by Telegram Audio Search Engine Users"
+#: tase/telegram/templates/audio_caption_template.py:36
+msgid "Submitted by Telegram Audio Search Engine Users"
 msgstr "Verzonden door gebruikers van Telegram Audio Search Engine"
 
-#: telegram/templates/choose_language_template.py:23
+#: tase/telegram/templates/choose_language_template.py:23
 msgid "Please choose your language"
 msgstr "Kies uw taal"
 
-#: telegram/templates/choose_language_template.py:24
+#: tase/telegram/templates/choose_language_template.py:24
 msgid "You can change this later by:"
 msgstr "Je kunt dit later veranderen door:"
 
-#: telegram/templates/choose_language_template.py:25
+#: tase/telegram/templates/choose_language_template.py:25
 msgid "Sending"
 msgstr "Bezig met verzenden"
 
-#: telegram/templates/choose_language_template.py:26
+#: tase/telegram/templates/choose_language_template.py:26
 msgid "Going to"
 msgstr "Gaan naar"
 
-#: telegram/templates/help_template.py:32
+#: tase/telegram/templates/help_template.py:32
 msgid "Help menu"
 msgstr "Help menu"
 
-#: telegram/templates/help_template.py:33
-#: telegram/templates/home_template.py:33
+#: tase/telegram/templates/help_template.py:33
+#: tase/telegram/templates/home_template.py:33
 msgid "Channel:"
 msgstr "Kanaal:"
 
-#: telegram/templates/help_template.py:34
-#: telegram/templates/home_template.py:34
+#: tase/telegram/templates/help_template.py:34
+#: tase/telegram/templates/home_template.py:34
 msgid "Our channels:"
 msgstr "Onze kanalen:"
 
-#: telegram/templates/help_template.py:35
-#: telegram/templates/home_template.py:35
-#: telegram/templates/welcome_template.py:28
+#: tase/telegram/templates/help_template.py:35
+#: tase/telegram/templates/home_template.py:35
+#: tase/telegram/templates/welcome_template.py:28
 msgid "Telegram Audio Search Engine"
 msgstr "Telegram Audio Search Engine"
 
-#: telegram/templates/help_template.py:36
-#: telegram/templates/home_template.py:36
+#: tase/telegram/templates/help_template.py:36
+#: tase/telegram/templates/home_template.py:36
 msgid "How to reach us:"
 msgstr "Hoe bereik je ons:"
 
-#: telegram/templates/home_template.py:32
+#: tase/telegram/templates/home_template.py:32
 msgid "Main menu"
 msgstr "Hoofdmenu"
 
-#: telegram/templates/no_results_were_found_template.py:9
+#: tase/telegram/templates/no_results_were_found_template.py:9
 msgid "No results were found for this query!"
 msgstr "Er zijn geen resultaten gevonden voor deze vraag!"
 
-#: telegram/templates/playlist_template.py:25
+#: tase/telegram/templates/playlist_template.py:25
 msgid "Playlist Menu"
 msgstr "Afspeellijstmenu"
 
-#: telegram/templates/playlist_template.py:27
+#: tase/telegram/templates/playlist_template.py:27
 msgid "Description"
 msgstr "Beschrijving"
 
-#: telegram/templates/query_results_template.py:33
+#: tase/telegram/templates/query_results_template.py:33
 msgid "Search results for:"
 msgstr "Zoekresultaten voor:"
 
-#: telegram/templates/query_results_template.py:34
+#: tase/telegram/templates/query_results_template.py:34
 msgid "Better results are at the bottom of the list"
 msgstr "Betere resultaten staan onderaan de lijst"
 
-#: telegram/templates/query_results_template.py:35
+#: tase/telegram/templates/query_results_template.py:35
 msgid "Download:"
 msgstr "Downloaden:"
 
-#: telegram/templates/query_results_template.py:36
+#: tase/telegram/templates/query_results_template.py:36
 msgid "MB"
 msgstr "MB"
 
-#: telegram/templates/welcome_template.py:26
+#: tase/telegram/templates/welcome_template.py:26
 msgid "Take your audio searching to the speed"
 msgstr "Neem uw audio op zoek naar de snelheid"
 
-#: telegram/templates/welcome_template.py:27
+#: tase/telegram/templates/welcome_template.py:27
 msgid "Welcome to"
 msgstr "Welkom bij"
 
-#: telegram/templates/welcome_template.py:29
+#: tase/telegram/templates/welcome_template.py:29
 msgid "It's great to have you!"
 msgstr "Het is geweldig om je te hebben!"
 
-#: telegram/templates/welcome_template.py:30
+#: tase/telegram/templates/welcome_template.py:30
 msgid "Here are a bunch of features that will get your searching up to"
 msgstr "Hier zijn een heleboel functies die uw zoekopdracht naartoe brengen"
 
-#: telegram/templates/welcome_template.py:31
+#: tase/telegram/templates/welcome_template.py:31
 msgid "speed"
 msgstr "snelheid"
 
-#: telegram/templates/welcome_template.py:32
+#: tase/telegram/templates/welcome_template.py:32
 msgid "Find"
 msgstr "Vind"
 
-#: telegram/templates/welcome_template.py:33
+#: tase/telegram/templates/welcome_template.py:33
 msgid "your audio (music, podcast, etc.) in"
 msgstr "uw audio (muziek, podcast, etc.) in"
 
-#: telegram/templates/welcome_template.py:34
+#: tase/telegram/templates/welcome_template.py:34
 msgid "Any question? then press"
 msgstr "Enige vraag?Druk vervolgens op"
 
-#: telegram/templates/welcome_template.py:35
+#: tase/telegram/templates/welcome_template.py:35
 msgid "milliseconds"
 msgstr "milliseconden"

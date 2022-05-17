@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: tase\n"
-"POT-Creation-Date: 2022-05-15 20:22+0430\n"
-"PO-Revision-Date: 2022-05-16 04:45+0430\n"
+"POT-Creation-Date: 2022-05-17 02:32+0430\n"
+"PO-Revision-Date: 2022-05-17 02:32+0430\n"
 "Last-Translator: \n"
 "Language-Team: kurdish\n"
 "Language: ku_TR\n"
@@ -16,185 +16,214 @@ msgstr ""
 "X-Poedit-KeywordsList: _trans\n"
 "X-Poedit-SearchPath-0: .\n"
 
-#: telegram/handlers/bots/bot_message_handler.py:163
-#, fuzzy
-msgid "An Error occurred while processing this audio download url"
+#: tase/telegram/handlers/bots/bot_message_handler.py:161
+msgid "An error occurred while processing the download URL for this audio"
 msgstr "Di dema ku ev URL-ya dakêşanê ya dengî tê xebitandin xeletiyek derket"
 
-#: telegram/handlers/bots/callback_query_handler.py:33
-#, fuzzy
+#: tase/telegram/handlers/bots/callback_query_handler.py:33
 msgid "Language change has been saved"
 msgstr "Guhertina ziman hate tomarkirin"
 
-#: telegram/handlers/bots/inline_query_handler.py:119
-#: telegram/inline_buttons/download_history_button.py:81
-#: telegram/inline_buttons/my_playlists_button.py:67
-#, fuzzy
-msgid "No Results Were Found"
-msgstr "Encam nehat dîtin"
-
-#: telegram/handlers/bots/inline_query_handler.py:120
-msgid "No results were found"
-msgstr "Encam nehat dîtin"
-
-#: telegram/inline_buttons/add_to_playlist_button.py:14
+#: tase/telegram/inline_buttons/add_to_playlist_button.py:17
 msgid "Add To Playlist"
 msgstr "Têxe Lîsteya Play"
 
-#: telegram/inline_buttons/advertisement_button.py:9
+#: tase/telegram/inline_buttons/advertisement_button.py:9
 msgid "Advertisement"
 msgstr "Reklam"
 
-#: telegram/inline_buttons/back_button.py:13
+#: tase/telegram/inline_buttons/back_button.py:13
+#: tase/telegram/inline_buttons/back_to_playlists_button.py:9
 msgid "Back"
 msgstr "Vegerr"
 
-#: telegram/inline_buttons/download_history_button.py:17
+#: tase/telegram/inline_buttons/delete_playlist_button.py:13
+msgid "Delete"
+msgstr "Jêbirin"
+
+#: tase/telegram/inline_buttons/download_history_button.py:23
 msgid "My Downloads"
 msgstr "Dakêşanên min"
 
-#: telegram/inline_buttons/download_history_button.py:83
+#: tase/telegram/inline_buttons/download_history_button.py:78
+#: tase/telegram/inline_items/no_download_item.py:22
+#: tase/telegram/inline_items/no_playlist_item.py:22
+#: tase/telegram/inline_items/no_result_item.py:22
+msgid "No Results Were Found"
+msgstr "Encam nehat dîtin"
+
+#: tase/telegram/inline_buttons/download_history_button.py:80
+#: tase/telegram/inline_items/no_download_item.py:24
 msgid "You haven't downloaded any audios yet"
 msgstr "Te hê tu dengek ne daxistiye"
 
-#: telegram/inline_buttons/help_catalog.py:14
+#: tase/telegram/inline_buttons/edit_playlist_button.py:13
+msgid "Edit"
+msgstr "Weşandin"
+
+#: tase/telegram/inline_buttons/get_playlist_audios_button.py:17
+msgid "Audios"
+msgstr "Dengekan"
+
+#: tase/telegram/inline_buttons/help_catalog.py:18
 msgid "Help"
 msgstr "Alîkarî"
 
-#: telegram/inline_buttons/home_button.py:13
-#: telegram/templates/choose_language_template.py:27
+#: tase/telegram/inline_buttons/home_button.py:13
+#: tase/telegram/templates/choose_language_template.py:27
 msgid "Home"
 msgstr "Mal"
 
-#: telegram/inline_buttons/my_playlists_button.py:15
+#: tase/telegram/inline_buttons/my_playlists_button.py:17
 msgid "My Playlists"
 msgstr "Playlistên min"
 
-#: telegram/inline_buttons/my_playlists_button.py:69
+#: tase/telegram/inline_items/create_new_playlist_item.py:23
+msgid "Create A New Playlist"
+msgstr "Lîsteya Lîstikek Nû Biafirînin"
+
+#: tase/telegram/inline_items/create_new_playlist_item.py:24
+msgid "Create a new playlist"
+msgstr "Lîsteya Lîstikek Nû Biafirînin"
+
+#: tase/telegram/inline_items/no_playlist_item.py:24
 msgid "You haven't created any playlist yet"
 msgstr "Te hîn Playlistên çênekiriye"
 
-#: telegram/templates/audio_caption_template.py:31
-msgid "Title:"
-msgstr "Nav:"
+#: tase/telegram/inline_items/no_result_item.py:23
+msgid "No results were found"
+msgstr "Encam nehat dîtin"
 
-#: telegram/templates/audio_caption_template.py:32
-msgid "Performer:"
-msgstr "Hunermend:"
+#: tase/telegram/templates/audio_caption_template.py:31
+#: tase/telegram/templates/playlist_template.py:26
+msgid "Title"
+msgstr "Nav"
 
-#: telegram/templates/audio_caption_template.py:33
-msgid "File name:"
-msgstr "Navê pelê:"
+#: tase/telegram/templates/audio_caption_template.py:32
+msgid "Performer"
+msgstr "Hunermend"
 
-#: telegram/templates/audio_caption_template.py:34
-msgid "Source:"
-msgstr "Çavkanî:"
+#: tase/telegram/templates/audio_caption_template.py:33
+msgid "File name"
+msgstr "Navê pelê"
 
-#: telegram/templates/audio_caption_template.py:35
+#: tase/telegram/templates/audio_caption_template.py:34
+msgid "Source"
+msgstr "Çavkanî"
+
+#: tase/telegram/templates/audio_caption_template.py:35
 msgid "Audio Search Engine"
 msgstr "Motora Lêgerînê ya Dengê"
 
-#: telegram/templates/audio_caption_template.py:36
-msgid "Sent by Telegram Audio Search Engine Users"
+#: tase/telegram/templates/audio_caption_template.py:36
+msgid "Submitted by Telegram Audio Search Engine Users"
 msgstr "Ji hêla bikarhênerên \"Telegram Audio Search Engine\" ve hatî şandin"
 
-#: telegram/templates/choose_language_template.py:23
+#: tase/telegram/templates/choose_language_template.py:23
 msgid "Please choose your language"
 msgstr "Zimanê xwe hilbijêrin"
 
-#: telegram/templates/choose_language_template.py:24
+#: tase/telegram/templates/choose_language_template.py:24
 msgid "You can change this later by:"
 msgstr "Hûn dikarin vê paşê biguherînin:"
 
-#: telegram/templates/choose_language_template.py:25
+#: tase/telegram/templates/choose_language_template.py:25
 msgid "Sending"
 msgstr "Dişîne"
 
-#: telegram/templates/choose_language_template.py:26
+#: tase/telegram/templates/choose_language_template.py:26
 msgid "Going to"
 msgstr "Diçûn"
 
-#: telegram/templates/help_template.py:32
+#: tase/telegram/templates/help_template.py:32
 msgid "Help menu"
 msgstr "Menuya alîkariyê"
 
-#: telegram/templates/help_template.py:33
-#: telegram/templates/home_template.py:33
+#: tase/telegram/templates/help_template.py:33
+#: tase/telegram/templates/home_template.py:33
 msgid "Channel:"
 msgstr "Kanal:"
 
-#: telegram/templates/help_template.py:34
-#: telegram/templates/home_template.py:34
+#: tase/telegram/templates/help_template.py:34
+#: tase/telegram/templates/home_template.py:34
 msgid "Our channels:"
 msgstr "Kanalên me:"
 
-#: telegram/templates/help_template.py:35
-#: telegram/templates/home_template.py:35
-#: telegram/templates/welcome_template.py:28
+#: tase/telegram/templates/help_template.py:35
+#: tase/telegram/templates/home_template.py:35
+#: tase/telegram/templates/welcome_template.py:28
 msgid "Telegram Audio Search Engine"
 msgstr "Motora Lêgerînê ya Dengê Telegram"
 
-#: telegram/templates/help_template.py:36
-#: telegram/templates/home_template.py:36
+#: tase/telegram/templates/help_template.py:36
+#: tase/telegram/templates/home_template.py:36
 msgid "How to reach us:"
 msgstr "Meriv çawa xwe bigihîne me:"
 
-#: telegram/templates/home_template.py:32
+#: tase/telegram/templates/home_template.py:32
 msgid "Main menu"
 msgstr "Menuya sereke"
 
-#: telegram/templates/no_results_were_found_template.py:9
+#: tase/telegram/templates/no_results_were_found_template.py:9
 msgid "No results were found for this query!"
 msgstr "Ji bo vê hevokê tu encam nehat dîtin!"
 
-#: telegram/templates/query_results_template.py:33
+#: tase/telegram/templates/playlist_template.py:25
+msgid "Playlist Menu"
+msgstr "Llîsteya Playlistên"
+
+#: tase/telegram/templates/playlist_template.py:27
+msgid "Description"
+msgstr "Terîf"
+
+#: tase/telegram/templates/query_results_template.py:33
 msgid "Search results for:"
 msgstr "Encamên lêgerînê ji bo:"
 
-#: telegram/templates/query_results_template.py:34
+#: tase/telegram/templates/query_results_template.py:34
 msgid "Better results are at the bottom of the list"
 msgstr "Encamên çêtir di binê lîsteyê de ne"
 
-#: telegram/templates/query_results_template.py:35
+#: tase/telegram/templates/query_results_template.py:35
 msgid "Download:"
 msgstr "Daxistin:"
 
-#: telegram/templates/query_results_template.py:36
+#: tase/telegram/templates/query_results_template.py:36
 msgid "MB"
 msgstr "MB"
 
-#: telegram/templates/welcome_template.py:26
+#: tase/telegram/templates/welcome_template.py:26
 msgid "Take your audio searching to the speed"
 msgstr "Lêgerîna dengê xwe bilezînin"
 
-#: telegram/templates/welcome_template.py:27
+#: tase/telegram/templates/welcome_template.py:27
 msgid "Welcome to"
 msgstr "Bi xêr hatî"
 
-#: telegram/templates/welcome_template.py:29
+#: tase/telegram/templates/welcome_template.py:29
 msgid "It's great to have you!"
 msgstr "Pir xweş e ku hûn li vir in!"
 
-#: telegram/templates/welcome_template.py:30
+#: tase/telegram/templates/welcome_template.py:30
 msgid "Here are a bunch of features that will get your searching up to"
 msgstr "Li vir komek taybetmendî hene ku dê lêgerîna we bigire ber xwe"
 
-#: telegram/templates/welcome_template.py:31
+#: tase/telegram/templates/welcome_template.py:31
 msgid "speed"
 msgstr "leza"
 
-#: telegram/templates/welcome_template.py:32
+#: tase/telegram/templates/welcome_template.py:32
 msgid "Find"
 msgstr "Dîtin"
 
-#: telegram/templates/welcome_template.py:33
+#: tase/telegram/templates/welcome_template.py:33
 msgid "your audio (music, podcast, etc.) in"
 msgstr "dengê we (muzîk, podcast, hwd.) tê de"
 
-#: telegram/templates/welcome_template.py:34
+#: tase/telegram/templates/welcome_template.py:34
 msgid "Any question? then press"
 msgstr "Pirs? paşê pêl bikin"
 
-#: telegram/templates/welcome_template.py:35
+#: tase/telegram/templates/welcome_template.py:35
 msgid "milliseconds"
 msgstr "milliseconds"

@@ -34,19 +34,14 @@ class ChosenInlineQueryHandler(BaseHandler):
             # update the user
             db_from_user = self.db.update_or_create_user(chosen_inline_result.from_user)
 
-        if re.search("^#[a-zA-Z0-9_]+", chosen_inline_result.query):
+        reg = re.search("^#(?P<command>[a-zA-Z0-9_]+)(\s(?P<arg1>[a-zA-Z0-9_]+))?", chosen_inline_result.query)
+        if reg:
             # it's a custom command
             # todo: handle downloads from commands like `#download_history` in non-private chats
             logger.info(chosen_inline_result)
 
-            command = chosen_inline_result.query.split('#')[1]
-
-            try:
-                command = command.split(" ")[0]
-            except:
-                pass
-            if command in buttons.keys():
-                button = buttons[command]
+            button = buttons.get(reg.group("command"), None)
+            if button:
                 button.on_chosen_inline_query(
                     client,
                     chosen_inline_result,
@@ -54,6 +49,7 @@ class ChosenInlineQueryHandler(BaseHandler):
                     self.db,
                     self.telegram_client,
                     db_from_user,
+                    reg,
                 )
 
         else:

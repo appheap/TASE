@@ -654,14 +654,18 @@ class GraphDatabase:
         db_playlist = self.get_playlist_by_key(playlist_key)
 
         if db_hit and db_audio and db_playlist:
-            edge = Has.parse_from_playlist_and_audio(db_playlist, db_audio)
-            if edge is not None and not Has.find_by_key(self.has, edge.key):
-                has_edge = Has.create(self.has, edge)
-                created = True
-                successful = True
-            else:
-                created = False
-                successful = True
+            if db_audio.title is not None:
+                # todo: fix me
+                # if title is empty, audio cannot be used in inline mode
+
+                edge = Has.parse_from_playlist_and_audio(db_playlist, db_audio)
+                if edge is not None and not Has.find_by_key(self.has, edge.key):
+                    has_edge = Has.create(self.has, edge)
+                    created = True
+                    successful = True
+                else:
+                    created = False
+                    successful = True
 
         return created, successful
 

@@ -1,21 +1,37 @@
 from __future__ import annotations
 
+import re
 from typing import List
 
 import pyrogram
 from pyrogram import filters
 from pyrogram import handlers
-from pyrogram.enums import ChatType
-from pyrogram.types import InlineQueryResultCachedAudio, InlineQueryResultArticle, InputTextMessageContent, \
-    InlineKeyboardMarkup
 
 from tase.db import elasticsearch_models
 from tase.my_logger import logger
-from tase.telegram import template_globals
 from tase.telegram.handlers import BaseHandler, HandlerMetadata, exception_handler
 from tase.telegram.inline_buton_globals import buttons
-from tase.telegram.templates import AudioCaptionData
-from tase.utils import get_timestamp, emoji, _trans
+from tase.telegram.inline_items import NoResultItem, AudioItem
+from tase.utils import get_timestamp, prettify
+
+known_mime_types = (
+    "audio/mpeg",
+    "audio/mp3",
+    "audio/mp4",
+    "audio/m4a",
+    "audio/mpeg3",
+    "audio/flac",
+    "audio/ogg",
+    "audio/MP3",
+    "audio/x-vorbis+ogg",
+    "audio/x-opus+ogg"
+)
+
+forbidden_mime_types = (
+    "audio/ogg",
+    "audio/x-vorbis+ogg",
+    "audio/x-opus+ogg"
+)
 
 
 class InlineQueryHandler(BaseHandler):
@@ -25,7 +41,7 @@ class InlineQueryHandler(BaseHandler):
             HandlerMetadata(
                 cls=handlers.InlineQueryHandler,
                 callback=self.custom_commands_handler,
-                filters=filters.regex("^#[a-zA-Z0-9_]+"),
+                filters=filters.regex("^#(?P<command>[a-zA-Z0-9_]+)(\s(?P<arg1>[a-zA-Z0-9_]+))?"),
                 group=0,
             ),
             HandlerMetadata(
@@ -49,6 +65,7 @@ class InlineQueryHandler(BaseHandler):
         found_any = True
         from_ = 0
         results = []
+        temp_res = []
         next_offset = None
 
         if inline_query.query is None or not len(inline_query.query):
@@ -74,25 +91,13 @@ class InlineQueryHandler(BaseHandler):
                 if not db_audio_file_cache or not db_audio_doc.title:
                     continue
 
-                results.append(
-                    InlineQueryResultCachedAudio(
-                        audio_file_id=db_audio_file_cache.file_id,
-                        id=f'{inline_query.id}->{db_audio_doc.id}',
-                        caption=template_globals.audio_caption_template.render(
-                            AudioCaptionData.parse_from_audio_doc(
-                                db_audio_doc,
-                                db_from_user,
-                                chats_dict[db_audio_doc.chat_id],
-                                bot_url='https://t.me/bot?start',
-                                include_source=True,
-                            )
-                        ),
-                    )
-                )
+                # todo: telegram cannot handle these mime types, any alternative?
+                if db_audio_doc.mime_type in forbidden_mime_types:
+                    continue
 
-            # todo: `2` works, but why?
-            plus = 2 if inline_query.offset is None or not len(inline_query.offset) else 0
-            next_offset = str(from_ + len(results) + plus) if len(results) else None
+                temp_res.append((db_audio_file_cache, db_audio_doc))
+
+            next_offset = str(from_ + len(temp_res) + 1) if len(temp_res) else None
             db_inline_query, db_hits = self.db.get_or_create_inline_query(
                 self.telegram_client.telegram_id,
                 inline_query,
@@ -103,31 +108,22 @@ class InlineQueryHandler(BaseHandler):
             )
 
             if db_inline_query and db_hits:
-                for res, db_hit in zip(results, db_hits):
-                    markup = [
-                        [
-                            buttons['add_to_playlist'].get_inline_keyboard_button(
-                                db_from_user.chosen_language_code,
-                                db_hit.download_url
-                            ),
-                        ],
-
-                    ]
-                    if inline_query.chat_type == ChatType.BOT:
-                        markup.append(
-                            [
-                                buttons['home'].get_inline_keyboard_button(db_from_user.chosen_language_code),
-                            ]
+                for (db_audio_file_cache, db_audio_doc), db_hit in zip(temp_res, db_hits):
+                    results.append(
+                        AudioItem.get_item(
+                            db_audio_file_cache,
+                            db_from_user,
+                            db_audio_doc,
+                            inline_query,
+                            chats_dict,
+                            db_hit,
                         )
+                    )
 
-                    res.reply_markup = InlineKeyboardMarkup(markup)
+            # logger.info(
+            #     f"{inline_query.id} : {inline_query.query} ({len(results)}) => {inline_query.offset} : {next_offset}")
 
-            # ids = [result.audio_file_id for result in results]
-            logger.info(
-                f"{inline_query.id} : {inline_query.query} ({len(results)}) => {inline_query.offset} : {next_offset}")
-            # logger.info(ids)
-
-        if found_any:
+        if found_any and len(results):
             try:
                 inline_query.answer(results, cache_time=1, next_offset=next_offset)
             except Exception as e:
@@ -135,18 +131,7 @@ class InlineQueryHandler(BaseHandler):
         else:
             # todo: No results matching the query found, what now?
             if from_ is None or from_ == 0:
-                inline_query.answer(
-                    [
-                        InlineQueryResultArticle(
-                            title=_trans("No Results Were Found", db_from_user.chosen_language_code),
-                            description=_trans("No results were found", db_from_user.chosen_language_code),
-                            input_message_content=InputTextMessageContent(
-                                message_text=emoji.high_voltage,
-                            )
-                        )
-                    ],
-                    cache_time=1,
-                )
+                inline_query.answer([NoResultItem.get_item(db_from_user)], cache_time=1)
 
     @exception_handler
     def custom_commands_handler(self, client: 'pyrogram.Client', inline_query: 'pyrogram.types.InlineQuery'):
@@ -159,14 +144,9 @@ class InlineQueryHandler(BaseHandler):
             # update the user
             db_from_user = self.db.update_or_create_user(inline_query.from_user)
 
-        command = inline_query.query.split('#')[1]
-
-        try:
-            command=command.split(" ")[0]
-        except:
-            pass
-        if command in buttons.keys():
-            button = buttons[command]
+        reg = re.search("^#(?P<command>[a-zA-Z0-9_]+)(\s(?P<arg1>[a-zA-Z0-9_]+))?", inline_query.query)
+        button = buttons.get(reg.group("command"), None)
+        if button:
             button.on_inline_query(
                 client,
                 inline_query,
@@ -174,6 +154,7 @@ class InlineQueryHandler(BaseHandler):
                 self.db,
                 self.telegram_client,
                 db_from_user,
+                reg,
             )
         else:
             pass

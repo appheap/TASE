@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: tase\n"
-"POT-Creation-Date: 2022-05-16 05:09+0430\n"
-"PO-Revision-Date: 2022-05-16 05:18+0430\n"
+"POT-Creation-Date: 2022-05-17 02:32+0430\n"
+"PO-Revision-Date: 2022-05-17 02:32+0430\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese\n"
 "Language: pt_BR\n"
@@ -24,17 +24,7 @@ msgstr "Ocorreu um erro ao processar o URL de download para este áudio"
 msgid "Language change has been saved"
 msgstr "A mudança de idioma foi salva"
 
-#: tase/telegram/handlers/bots/inline_query_handler.py:141
-#: tase/telegram/inline_buttons/download_history_button.py:104
-#: tase/telegram/inline_buttons/my_playlists_button.py:75
-msgid "No Results Were Found"
-msgstr "Nenhum resultado foi encontrado"
-
-#: tase/telegram/handlers/bots/inline_query_handler.py:142
-msgid "No results were found"
-msgstr "Nenhum resultado foi encontrado"
-
-#: tase/telegram/inline_buttons/add_to_playlist_button.py:14
+#: tase/telegram/inline_buttons/add_to_playlist_button.py:17
 msgid "Add To Playlist"
 msgstr "Adicionar à Playlist"
 
@@ -43,18 +33,39 @@ msgid "Advertisement"
 msgstr "Propaganda"
 
 #: tase/telegram/inline_buttons/back_button.py:13
+#: tase/telegram/inline_buttons/back_to_playlists_button.py:9
 msgid "Back"
 msgstr "Costas"
 
-#: tase/telegram/inline_buttons/download_history_button.py:20
+#: tase/telegram/inline_buttons/delete_playlist_button.py:13
+msgid "Delete"
+msgstr "Excluir"
+
+#: tase/telegram/inline_buttons/download_history_button.py:23
 msgid "My Downloads"
 msgstr "Meus Downloads"
 
-#: tase/telegram/inline_buttons/download_history_button.py:106
+#: tase/telegram/inline_buttons/download_history_button.py:78
+#: tase/telegram/inline_items/no_download_item.py:22
+#: tase/telegram/inline_items/no_playlist_item.py:22
+#: tase/telegram/inline_items/no_result_item.py:22
+msgid "No Results Were Found"
+msgstr "Nenhum resultado foi encontrado"
+
+#: tase/telegram/inline_buttons/download_history_button.py:80
+#: tase/telegram/inline_items/no_download_item.py:24
 msgid "You haven't downloaded any audios yet"
 msgstr "Você ainda não baixou nenhum áudio"
 
-#: tase/telegram/inline_buttons/help_catalog.py:14
+#: tase/telegram/inline_buttons/edit_playlist_button.py:13
+msgid "Edit"
+msgstr "Editar"
+
+#: tase/telegram/inline_buttons/get_playlist_audios_button.py:17
+msgid "Audios"
+msgstr "Áudios"
+
+#: tase/telegram/inline_buttons/help_catalog.py:18
 msgid "Help"
 msgstr "Ajuda"
 
@@ -67,9 +78,21 @@ msgstr "Casa"
 msgid "My Playlists"
 msgstr "Minhas listas de reprodução"
 
-#: tase/telegram/inline_buttons/my_playlists_button.py:77
+#: tase/telegram/inline_items/create_new_playlist_item.py:23
+msgid "Create A New Playlist"
+msgstr "Criar uma nova lista de reprodução"
+
+#: tase/telegram/inline_items/create_new_playlist_item.py:24
+msgid "Create a new playlist"
+msgstr "Criar uma nova lista de reprodução"
+
+#: tase/telegram/inline_items/no_playlist_item.py:24
 msgid "You haven't created any playlist yet"
 msgstr "Você ainda não criou nenhuma lista de reprodução"
+
+#: tase/telegram/inline_items/no_result_item.py:23
+msgid "No results were found"
+msgstr "Nenhum resultado foi encontrado"
 
 #: tase/telegram/templates/audio_caption_template.py:31
 #: tase/telegram/templates/playlist_template.py:26
@@ -167,7 +190,7 @@ msgstr "Download:"
 
 #: tase/telegram/templates/query_results_template.py:36
 msgid "MB"
-msgstr "Mb"
+msgstr "MB"
 
 #: tase/telegram/templates/welcome_template.py:26
 msgid "Take your audio searching to the speed"
@@ -195,7 +218,7 @@ msgstr "Encontrar"
 
 #: tase/telegram/templates/welcome_template.py:33
 msgid "your audio (music, podcast, etc.) in"
-msgstr "Seu áudio (música, podcast, etc.) em"
+msgstr "seu áudio (música, podcast, etc.) em"
 
 #: tase/telegram/templates/welcome_template.py:34
 msgid "Any question? then press"
