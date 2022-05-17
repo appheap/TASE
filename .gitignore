@@ -133,3 +133,4 @@ workdir
 tase.toml
 /tase.json
 /tase/unknown_errors.txt
+/.idea/

@@ -1,0 +1,35 @@
+{
+  "arango_db_config": {
+    "db_host_url": "http://localhost:8529",
+    "db_name": "tase",
+    "db_username": "simple_user",
+    "db_password": "password",
+    "graph_name": "tase"
+  },
+  "elastic_config": {
+    "cluster_url": "https://localhost:9200",
+    "https_certs_url": "../ca.crt",
+    "basic_auth_username": "elastic",
+    "basic_auth_password": "abcdef"
+  },
+  "pyrogram_config": {
+    "workdir": "../workdir"
+  },
+  "clients_config": [
+    {
+      "type": "user",
+      "name": "client_name",
+      "role": "INDEXER",
+      "api_hash": "api_hash",
+      "api_id": 123456
+    },
+    {
+      "type": "bot",
+      "name": "bot_name",
+      "role": "MAIN",
+      "bot_token": "bot_token",
+      "api_hash": "api_hash",
+      "api_id": 123456
+    }
+  ]
+}
