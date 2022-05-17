@@ -2,7 +2,7 @@ from typing import Match
 
 import pyrogram
 
-from .button import InlineButton
+from .inline_button import InlineButton
 # from ..handlers import BaseHandler
 from ..inline_items import PlaylistItem, CreateNewPlaylistItem, NoPlaylistItem
 from ..telegram_client import TelegramClient

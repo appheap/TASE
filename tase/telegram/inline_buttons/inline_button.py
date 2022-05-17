@@ -11,12 +11,24 @@ from tase.utils import translate_text
 
 
 class InlineButton(BaseModel):
+    _registry = dict()
     name: str
 
     text: Optional[str]
     callback_data: Optional[str]
     switch_inline_query_current_chat: Optional[str]
     url: Optional[str]
+
+    @classmethod
+    def __init_subclass__(cls) -> None:
+        temp = cls()
+        InlineButton._registry[temp.name] = temp
+
+    @classmethod
+    def get_button(cls, name: str) -> Optional['InlineButton']:
+        if name is None:
+            return None
+        return cls._registry.get(name, None)
 
     def get_translated_text(self, lang_code: str = 'en') -> str:
         temp_dict = self.dict()

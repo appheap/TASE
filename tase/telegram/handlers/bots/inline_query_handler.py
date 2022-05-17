@@ -10,9 +10,9 @@ from pyrogram import handlers
 from tase.db import elasticsearch_models
 from tase.my_logger import logger
 from tase.telegram.handlers import BaseHandler, HandlerMetadata, exception_handler
-from tase.telegram.inline_buton_globals import buttons
+from tase.telegram.inline_buttons import InlineButton
 from tase.telegram.inline_items import NoResultItem, AudioItem
-from tase.utils import get_timestamp, prettify
+from tase.utils import get_timestamp
 
 known_mime_types = (
     "audio/mpeg",
@@ -145,7 +145,7 @@ class InlineQueryHandler(BaseHandler):
             db_from_user = self.db.update_or_create_user(inline_query.from_user)
 
         reg = re.search("^#(?P<command>[a-zA-Z0-9_]+)(\s(?P<arg1>[a-zA-Z0-9_]+))?", inline_query.query)
-        button = buttons.get(reg.group("command"), None)
+        button = InlineButton.get_button(reg.group("command"))
         if button:
             button.on_inline_query(
                 client,

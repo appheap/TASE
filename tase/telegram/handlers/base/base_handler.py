@@ -15,7 +15,7 @@ from tase.my_logger import logger
 from tase.utils import languages_object
 from .handler_metadata import HandlerMetadata
 from ... import template_globals
-from ...inline_buton_globals import buttons
+from ...inline_buttons import InlineButton
 from ...telegram_client import TelegramClient
 from ...templates import HomeData, ChooseLanguageData, WelcomeData, HelpData
 
@@ -123,15 +123,16 @@ class BaseHandler(BaseModel):
 
         markup = [
             [
-                buttons['download_history'].get_inline_keyboard_button(db_from_user.chosen_language_code),
-                buttons['my_playlists'].get_inline_keyboard_button(db_from_user.chosen_language_code),
+                InlineButton.get_button('download_history').get_inline_keyboard_button(
+                    db_from_user.chosen_language_code),
+                InlineButton.get_button('my_playlists').get_inline_keyboard_button(db_from_user.chosen_language_code),
             ],
             [
-                buttons['back'].get_inline_keyboard_button(db_from_user.chosen_language_code),
+                InlineButton.get_button('back').get_inline_keyboard_button(db_from_user.chosen_language_code),
             ],
             [
-                buttons['advertisement'].get_inline_keyboard_button(db_from_user.chosen_language_code),
-                buttons['help_catalog'].get_inline_keyboard_button(db_from_user.chosen_language_code),
+                InlineButton.get_button('advertisement').get_inline_keyboard_button(db_from_user.chosen_language_code),
+                InlineButton.get_button('help_catalog').get_inline_keyboard_button(db_from_user.chosen_language_code),
             ]
         ]
         markup = InlineKeyboardMarkup(markup)
@@ -190,15 +191,17 @@ class BaseHandler(BaseModel):
 
         markup = [
             [
-                buttons['download_history'].get_inline_keyboard_button(db_from_user.chosen_language_code),
-                buttons['my_playlists'].get_inline_keyboard_button(db_from_user.chosen_language_code),
+                InlineButton.get_button('download_history').get_inline_keyboard_button(
+                    db_from_user.chosen_language_code),
+                InlineButton.get_button('my_playlists').get_inline_keyboard_button(db_from_user.chosen_language_code),
             ],
             [
-                buttons['show_language_menu'].get_inline_keyboard_button(db_from_user.chosen_language_code),
+                InlineButton.get_button('show_language_menu').get_inline_keyboard_button(
+                    db_from_user.chosen_language_code),
             ],
             [
-                buttons['advertisement'].get_inline_keyboard_button(db_from_user.chosen_language_code),
-                buttons['help_catalog'].get_inline_keyboard_button(db_from_user.chosen_language_code),
+                InlineButton.get_button('advertisement').get_inline_keyboard_button(db_from_user.chosen_language_code),
+                InlineButton.get_button('help_catalog').get_inline_keyboard_button(db_from_user.chosen_language_code),
             ]
         ]
         markup = InlineKeyboardMarkup(markup)

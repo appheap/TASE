@@ -20,8 +20,7 @@ class PlaylistItem(BaseInlineItem):
     ) -> Optional['pyrogram.types.InlineQueryResult']:
         if db_playlist is None or db_from_user is None:
             return None
-
-        from ..inline_buton_globals import buttons
+        from ..inline_buttons import InlineButton
 
         data = PlaylistData(
             title=db_playlist.title,
@@ -30,22 +29,23 @@ class PlaylistItem(BaseInlineItem):
         )
         markup = [
             [
-                buttons['home'].get_inline_keyboard_button(db_from_user.chosen_language_code),
-                buttons['back_to_playlists'].get_inline_keyboard_button(db_from_user.chosen_language_code),
+                InlineButton.get_button('home').get_inline_keyboard_button(db_from_user.chosen_language_code),
+                InlineButton.get_button('back_to_playlists').get_inline_keyboard_button(
+                    db_from_user.chosen_language_code),
             ],
             [
-                buttons['get_playlist_audios'].get_inline_keyboard_button(
+                InlineButton.get_button('get_playlist_audios').get_inline_keyboard_button(
                     db_from_user.chosen_language_code,
                     db_playlist.key,
                 ),
                 # todo: add a button to get the top 10 audios from this playlist as a message
             ],
             [
-                buttons['edit_playlist'].get_inline_keyboard_button(
+                InlineButton.get_button('edit_playlist').get_inline_keyboard_button(
                     db_from_user.chosen_language_code,
                     db_playlist.key,
                 ),
-                buttons['delete_playlist'].get_inline_keyboard_button(
+                InlineButton.get_button('delete_playlist').get_inline_keyboard_button(
                     db_from_user.chosen_language_code,
                     db_playlist.key,
                 ),

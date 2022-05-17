@@ -12,7 +12,7 @@ from pyrogram.types import InlineKeyboardMarkup
 from tase.my_logger import logger
 from tase.telegram import template_globals
 from tase.telegram.handlers import BaseHandler, HandlerMetadata, exception_handler
-from tase.telegram.inline_buton_globals import buttons
+from tase.telegram.inline_buttons import InlineButton
 from tase.telegram.templates import QueryResultsData, NoResultsWereFoundData, AudioCaptionData
 from tase.utils import get_timestamp, _trans
 
@@ -132,13 +132,13 @@ class BotMessageHandler(BaseHandler):
 
             markup = [
                 [
-                    buttons['add_to_playlist'].get_inline_keyboard_button(
+                    InlineButton.get_button('add_to_playlist').get_inline_keyboard_button(
                         db_user.chosen_language_code,
                         db_hit.download_url
                     ),
                 ],
                 [
-                    buttons['home'].get_inline_keyboard_button(db_user.chosen_language_code),
+                    InlineButton.get_button('home').get_inline_keyboard_button(db_user.chosen_language_code),
                 ]
             ]
             markup = InlineKeyboardMarkup(markup)
@@ -158,7 +158,8 @@ class BotMessageHandler(BaseHandler):
             # todo: An Error occurred while processing this audio download url, why?
             logger.error(f"An error occurred while processing the download URL for this audio: {download_url}")
             message.reply_text(
-                _trans("An error occurred while processing the download URL for this audio", db_user.chosen_language_code)
+                _trans("An error occurred while processing the download URL for this audio",
+                       db_user.chosen_language_code)
             )
 
     @exception_handler

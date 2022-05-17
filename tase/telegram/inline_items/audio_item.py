@@ -24,12 +24,11 @@ class AudioItem(BaseInlineItem):
     ) -> Optional['pyrogram.types.InlineQueryResult']:
         if db_audio_file_cache is None or db_from_user is None:
             return None
-
-        from ..inline_buton_globals import buttons
+        from ..inline_buttons import InlineButton
 
         markup = [
             [
-                buttons['add_to_playlist'].get_inline_keyboard_button(
+                InlineButton.get_button('add_to_playlist').get_inline_keyboard_button(
                     db_from_user.chosen_language_code,
                     db_hit.download_url if db_hit else "download_url"  # todo: fix me
                 ),
@@ -39,7 +38,7 @@ class AudioItem(BaseInlineItem):
         if inline_query.chat_type == ChatType.BOT:
             markup.append(
                 [
-                    buttons['home'].get_inline_keyboard_button(db_from_user.chosen_language_code),
+                    InlineButton.get_button('home').get_inline_keyboard_button(db_from_user.chosen_language_code),
                 ]
             )
 

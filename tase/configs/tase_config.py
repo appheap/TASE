@@ -1,9 +1,9 @@
-from typing import List, Union
+from typing import List
 
+from .arangodb_config import ArangoDBConfig
 from .base_config import BaseConfig
 from .client_config import ClientConfig
 from .elastic_config import ElasticConfig
-from .arangodb_config import ArangoDBConfig
 from .pyrogram_config import PyrogramConfig
 
 

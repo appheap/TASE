@@ -1,4 +1,4 @@
-from .button import InlineButton
+from .inline_button import InlineButton
 
 from ...utils import emoji, _trans
 
