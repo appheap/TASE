@@ -65,7 +65,7 @@ class BotMessageHandler(BaseHandler):
         self.say_welcome(client, db_from_user, message)
 
         if db_from_user.chosen_language_code is None:
-            self.choose_language(client, db_from_user, message)
+            self.choose_language(client, db_from_user)
 
     @exception_handler
     def base_commands_handler(self, client: 'pyrogram.Client', message: 'pyrogram.types.Message'):
@@ -78,7 +78,7 @@ class BotMessageHandler(BaseHandler):
             return
 
         if command == 'lang':
-            self.choose_language(client, db_from_user, message)
+            self.choose_language(client, db_from_user)
         elif command == 'help':
             self.show_help(client, db_from_user, message)
         elif command == 'home':

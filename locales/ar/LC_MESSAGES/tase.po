@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: tase\n"
-"POT-Creation-Date: 2022-05-17 02:32+0430\n"
-"PO-Revision-Date: 2022-05-17 02:32+0430\n"
+"POT-Creation-Date: 2022-05-17 15:11+0430\n"
+"PO-Revision-Date: 2022-05-17 15:11+0430\n"
 "Last-Translator: \n"
 "Language-Team: Arabic\n"
 "Language: ar\n"
@@ -21,10 +21,6 @@ msgstr ""
 msgid "An error occurred while processing the download URL for this audio"
 msgstr "حدث خطأ أثناء معالجة عنوان URL لتنزيل الصوت"
 
-#: telegram/handlers/bots/callback_query_handler.py:33
-msgid "Language change has been saved"
-msgstr "تم حفظ تغيير اللغة"
-
 #: telegram/inline_buttons/add_to_playlist_button.py:17
 msgid "Add To Playlist"
 msgstr "إضافة إلى قائمة التشغيل"
@@ -37,6 +33,10 @@ msgstr "إعلان"
 #: telegram/inline_buttons/back_to_playlists_button.py:9
 msgid "Back"
 msgstr "وراء"
+
+#: telegram/inline_buttons/choose_language_button.py:24
+msgid "Language change has been saved"
+msgstr "تم حفظ تغيير اللغة"
 
 #: telegram/inline_buttons/delete_playlist_button.py:13
 msgid "Delete"
@@ -78,6 +78,10 @@ msgstr "منزل"
 #: telegram/inline_buttons/my_playlists_button.py:17
 msgid "My Playlists"
 msgstr "قوائم التشغيل الخاصة بي"
+
+#: telegram/inline_buttons/show_language_menu_button.py:13
+msgid "Language"
+msgstr "لغة"
 
 #: telegram/inline_items/create_new_playlist_item.py:23
 msgid "Create A New Playlist"

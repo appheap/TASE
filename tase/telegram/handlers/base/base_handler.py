@@ -147,23 +147,21 @@ class BaseHandler(BaseModel):
             self,
             client: 'pyrogram.Client',
             db_from_user: graph_models.vertices.User,
-            message: 'pyrogram.types.Message'
     ) -> None:
         """
         Ask users to choose a language among a menu shows a list of available languages.
 
         :param client: Telegram client
         :param db_from_user: User Object from the graph database
-        :param message: Telegram message object
         :return:
         """
         data = ChooseLanguageData(
-            name=message.from_user.first_name or message.from_user.last_name,
+            name=db_from_user.first_name or db_from_user.last_name,
             lang_code=db_from_user.chosen_language_code,
         )
 
         client.send_message(
-            chat_id=message.from_user.id,
+            chat_id=db_from_user.user_id,
             text=template_globals.choose_language_template.render(data),
             reply_markup=languages_object.get_choose_language_markup(),
             parse_mode=ParseMode.HTML
@@ -194,6 +192,9 @@ class BaseHandler(BaseModel):
             [
                 buttons['download_history'].get_inline_keyboard_button(db_from_user.chosen_language_code),
                 buttons['my_playlists'].get_inline_keyboard_button(db_from_user.chosen_language_code),
+            ],
+            [
+                buttons['show_language_menu'].get_inline_keyboard_button(db_from_user.chosen_language_code),
             ],
             [
                 buttons['advertisement'].get_inline_keyboard_button(db_from_user.chosen_language_code),

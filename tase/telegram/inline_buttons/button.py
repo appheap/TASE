@@ -13,7 +13,7 @@ from tase.utils import translate_text
 class InlineButton(BaseModel):
     name: str
 
-    text: str
+    text: Optional[str]
     callback_data: Optional[str]
     switch_inline_query_current_chat: Optional[str]
     url: Optional[str]
