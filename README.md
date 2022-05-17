@@ -1,5 +1,5 @@
 <div class="Intro" align="center">
-<h1>Telegram audio search engine (TASE)</h1>
+<h1>Telegram Audio Search Engine (TASE)</h1>
 <hr class="dashed">
 <h3>A lightning fast audio full-text search engine on top of Telegram</h3>
 
