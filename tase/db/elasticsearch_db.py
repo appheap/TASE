@@ -3,6 +3,7 @@ from typing import Optional, List, Tuple
 import pyrogram
 from elasticsearch import Elasticsearch
 
+from tase.configs import ElasticConfig
 from tase.db.elasticsearch_models import Audio
 
 
@@ -11,14 +12,15 @@ class ElasticsearchDatabase:
 
     def __init__(
             self,
-            elasticsearch_config: 'dict',
+            elasticsearch_config: ElasticConfig,
     ):
         self.es = Elasticsearch(
-            elasticsearch_config.get('cluster_url'),
-            ca_certs=elasticsearch_config.get('https_certs_url'),
+            elasticsearch_config.cluster_url,
+            ca_certs=elasticsearch_config.https_certs_url,
             basic_auth=(
-                elasticsearch_config.get('basic_auth_username'),
-                elasticsearch_config.get('basic_auth_password'))
+                elasticsearch_config.basic_auth_username,
+                elasticsearch_config.basic_auth_password
+            )
         )
         if not Audio.has_index(self.es):
             Audio.create_index(self.es)

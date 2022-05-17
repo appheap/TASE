@@ -5,6 +5,7 @@ from arango import ArangoClient
 from arango.collection import StandardCollection
 from arango.database import StandardDatabase
 
+from tase.configs import ArangoDBConfig
 from tase.db.document_models import Audio, docs
 
 
@@ -16,25 +17,25 @@ class DocumentDatabase:
 
     def __init__(
             self,
-            doc_db_config: dict,
+            doc_db_config: ArangoDBConfig,
     ):
         # Initialize the client for ArangoDB.
-        self.arango_client = ArangoClient(hosts=doc_db_config.get('db_host_url'))
+        self.arango_client = ArangoClient(hosts=doc_db_config.db_host_url)
         sys_db = self.arango_client.db(
             '_system',
-            username=doc_db_config.get('db_username'),
-            password=doc_db_config.get('db_password')
+            username=doc_db_config.db_username,
+            password=doc_db_config.db_password
         )
 
-        if not sys_db.has_database(doc_db_config.get('db_name')):
+        if not sys_db.has_database(doc_db_config.db_name):
             sys_db.create_database(
-                doc_db_config.get('db_name'),
+                doc_db_config.db_name,
             )
 
         self.db = self.arango_client.db(
-            doc_db_config.get('db_name'),
-            username=doc_db_config.get('db_username'),
-            password=doc_db_config.get('db_password')
+            doc_db_config.db_name,
+            username=doc_db_config.db_username,
+            password=doc_db_config.db_password
         )
 
         for doc in docs:

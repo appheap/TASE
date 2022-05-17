@@ -7,6 +7,7 @@ from . import graph_models, elasticsearch_models, document_models
 from .document_db import DocumentDatabase
 from .elasticsearch_db import ElasticsearchDatabase
 from .graph_db import GraphDatabase
+from ..configs import ElasticConfig, ArangoDBConfig
 
 
 class DatabaseClient:
@@ -16,8 +17,8 @@ class DatabaseClient:
 
     def __init__(
             self,
-            elasticsearch_config: dict,
-            graph_db_config: dict,
+            elasticsearch_config: ElasticConfig,
+            arangodb_config: ArangoDBConfig,
     ):
 
         self._es_db = ElasticsearchDatabase(
@@ -25,11 +26,11 @@ class DatabaseClient:
         )
 
         self._graph_db = GraphDatabase(
-            graph_db_config=graph_db_config,
+            arangodb_config=arangodb_config,
         )
 
         self._document_db = DocumentDatabase(
-            doc_db_config=graph_db_config,
+            doc_db_config=arangodb_config,
         )
 
     def update_user_chosen_language(self, user: graph_models.vertices.User, lang_code: str):

@@ -7,6 +7,7 @@ from pyrogram.handlers.handler import Handler
 from tase.my_logger import logger
 from tase.telegram import handlers
 from .methods.search_messages import search_messages
+from ..configs import ClientConfig, ClientTypes
 
 
 class UserClientRoles(Enum):
@@ -33,12 +34,6 @@ class BotClientRoles(Enum):
                 return item
         else:
             return BotClientRoles.UNKNOWN
-
-
-class ClientTypes(Enum):
-    UNKNOWN = 0
-    USER = 1
-    BOT = 2
 
 
 class TelegramClient:
@@ -113,15 +108,17 @@ class TelegramClient:
             yield message
 
     @staticmethod
-    def _parse(client_type: 'ClientTypes', client_configs: dict, workdir: str) -> Optional['TelegramClient']:
-        if client_type == ClientTypes.USER:
-            return UserTelegramClient(client_configs, workdir)
-        elif client_type == ClientTypes.BOT:
-            return BotTelegramClient(client_configs, workdir)
+    def _parse(
+            client_config: 'ClientConfig',
+            workdir: str
+    ) -> Optional['TelegramClient']:
+        if client_config.type == ClientTypes.USER:
+            return UserTelegramClient(client_config, workdir)
+        elif client_config.type == ClientTypes.BOT:
+            return BotTelegramClient(client_config, workdir)
         else:
             # todo: raise error (unknown client type)
             logger.error("Unknown TelegramClient Type")
-            pass
 
     def get_messages(
             self,
@@ -138,13 +135,13 @@ class TelegramClient:
 class UserTelegramClient(TelegramClient):
     role: 'UserClientRoles'
 
-    def __init__(self, client_configs: dict, workdir: str):
+    def __init__(self, client_config: 'ClientConfig', workdir: str):
         self.client_type = ClientTypes.USER
         self.workdir = workdir
-        self.name = client_configs.get('name')
-        self.api_id = client_configs.get('api_id')
-        self.api_hash = client_configs.get('api_hash')
-        self.role = UserClientRoles._parse(client_configs.get('role'))  # todo: check for unknown roles
+        self.name = client_config.name
+        self.api_id = client_config.api_id
+        self.api_hash = client_config.api_hash
+        self.role = UserClientRoles._parse(client_config.role)  # todo: check for unknown roles
 
     def init_client(self):
         self._client = pyrogram.Client(
@@ -159,14 +156,14 @@ class BotTelegramClient(TelegramClient):
     role: 'BotClientRoles'
     token: 'str'
 
-    def __init__(self, client_configs: dict, workdir: str):
+    def __init__(self, client_config: 'ClientConfig', workdir: str):
         self.client_type = ClientTypes.BOT
         self.workdir = workdir
-        self.name = client_configs.get('name')
-        self.api_id = client_configs.get('api_id')
-        self.api_hash = client_configs.get('api_hash')
-        self.token = client_configs.get('bot_token')
-        self.role = BotClientRoles._parse(client_configs.get('role'))  # todo: check for unknown roles
+        self.name = client_config.name
+        self.api_id = client_config.api_id
+        self.api_hash = client_config.api_hash
+        self.token = client_config.bot_token
+        self.role = BotClientRoles._parse(client_config.role)  # todo: check for unknown roles
 
     def init_client(self):
         self._client = pyrogram.Client(

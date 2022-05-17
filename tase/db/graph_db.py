@@ -13,6 +13,7 @@ from .graph_models.edges import FileRef, SentBy, LinkedChat, IsCreatorOf, IsMemb
     Downloaded, FromBot, FromHit
 from .graph_models.vertices import Audio, Chat, File, User, InlineQuery, vertices, Query, QueryKeyword, Hit, Download, \
     Playlist
+from ..configs import ArangoDBConfig
 
 
 class GraphDatabase:
@@ -47,33 +48,33 @@ class GraphDatabase:
 
     def __init__(
             self,
-            graph_db_config: dict,
+            arangodb_config: ArangoDBConfig,
     ):
         # Initialize the client for ArangoDB.
-        self.arango_client = ArangoClient(hosts=graph_db_config.get('db_host_url'))
+        self.arango_client = ArangoClient(hosts=arangodb_config.db_host_url)
         sys_db = self.arango_client.db(
             '_system',
-            username=graph_db_config.get('db_username'),
-            password=graph_db_config.get('db_password')
+            username=arangodb_config.db_username,
+            password=arangodb_config.db_password
         )
 
-        if not sys_db.has_database(graph_db_config.get('db_name')):
+        if not sys_db.has_database(arangodb_config.db_name):
             sys_db.create_database(
-                graph_db_config.get('db_name'),
+                arangodb_config.db_name,
             )
 
         self.db = self.arango_client.db(
-            graph_db_config.get('db_name'),
-            username=graph_db_config.get('db_username'),
-            password=graph_db_config.get('db_password')
+            arangodb_config.db_name,
+            username=arangodb_config.db_username,
+            password=arangodb_config.db_password
         )
 
         self.aql = self.db.aql
 
-        if not self.db.has_graph(graph_db_config.get('graph_name')):
-            self.graph = self.db.create_graph(graph_db_config.get('graph_name'))
+        if not self.db.has_graph(arangodb_config.graph_name):
+            self.graph = self.db.create_graph(arangodb_config.graph_name)
         else:
-            self.graph = self.db.graph(graph_db_config.get('graph_name'))
+            self.graph = self.db.graph(arangodb_config.graph_name)
 
         for v_class in vertices:
             if not self.graph.has_vertex_collection(v_class._vertex_name):

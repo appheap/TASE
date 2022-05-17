@@ -131,4 +131,5 @@ dmypy.json
 /poetry.lock
 workdir
 tase.toml
+/tase.json
 /tase/unknown_errors.txt
