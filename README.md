@@ -8,6 +8,13 @@
 genuine interest or value, without the need to wade through numerous 
 irrelevant channels. It provides users with search 
 results that lead to relevant information on high-quality audio files.</p>
+
+<img src="https://img.shields.io/github/workflow/status/dwyl/auth_plug/Elixir%20CI?label=build&style=plastic">
+<img src="https://img.shields.io/github/stars/appheap/TASE?style=social">
+<img src="https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=plastic">
+<img src="https://hits.dwyl.com/appheap/TASE.svg?style=flat&show=unique">
+<img src="https://img.shields.io/github/downloads/appheap/tase/total">
+
 </div>
 <hr class="dotted">
 
@@ -15,12 +22,12 @@ results that lead to relevant information on high-quality audio files.</p>
 <h2>Contents</h2>
 <ul>
 <h4>
-<li><a href="intro">What makes TASE special?</a></li>
-<li><a href="">How to install and run</a></li>
-<li><a href="">Features</a></li>
-<li><a href="">Technology stack</a></li>
-<li><a href="">Call for Contributions</a></li>
-<li><a href="">License and people</a></li>
+<li><a href="#intro">What makes TASE special?</a></li>
+<li><a href="#installation">How to install and run</a></li>
+<li><a href="#features">Features</a></li>
+<li><a href="#techstack">Technology stack</a></li>
+<li><a href="#contribution">Call for Contributions</a></li>
+<li><a href="#license">License and people</a></li>
 </h4>
 </ul>
 </div>
@@ -57,7 +64,7 @@ on different servers located in different parts of the world.</p>
 <hr class="dotted">
 
 <div>
-<h2>How to install and run</h2>
+<h2 id="installation">How to install and run</h2>
 <ul>
 <i>* Note: please make sure to read the configuration and customization section before you run the project</i>
 <h3>There are two different ways to use TASE</h3><div>
@@ -95,7 +102,7 @@ to run your own clients.</p>
 <hr class="dotted">
 
 <div>
-<h2>Features</h2>
+<h2 id="features">Features</h2>
 <h3>Features for developers</h3>
 <ol>
 <li>Add new languages in locales (we recommend using <a href="https://poedit.net/">Poedit</a>)</li>
@@ -227,7 +234,7 @@ to run your own clients.</p>
 
 <div>
 <div>
-<h2>Technology stack</h2>
+<h2 id="techstack">Technology stack</h2>
 <p>Main tools & technologies used in developing TASE are as following:</p>
 <ul>
 <li>Elasticsearch &emsp; <img src="https://img.shields.io/badge/-Elasticsearch-005571?style=plastic&logo=elasticsearch">
@@ -274,8 +281,8 @@ issue to tackle, take a look at <a href="https://github.com/soran-ghaderi/tase/i
 <h2>If you found it helpful, please give us a <span>:star:</span></h2>
 </div>
 <hr class="dotted">
-
-<h2>License</h3>
+<div id="license">
+<h2>License</h2>
 <p><b>TASE is licensed under the Apache License, Version 2.0. See <a href="./LICENSE">LICENSE</a>  for the full license text.</b></p>
 <div class="footer"> <pre>Copyright &copy; 2020-2022</pre>
 
@@ -298,3 +305,4 @@ issue to tackle, take a look at <a href="https://github.com/soran-ghaderi/tase/i
 </li>
 </ul>
 </div> 
+</div>
