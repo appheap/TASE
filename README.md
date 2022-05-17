@@ -81,7 +81,7 @@ on different servers located in different parts of the world.</p>
 </li>
 
 <li><h4>Run using docker compose</h4> The easier method (recommended) <i>(*note: before running the project make
-sure to configure the <a href="./tase.toml">tase.toml</a> file)</i>
+sure to configure the <a href="./tase.json">tase.json</a> file)</i>
     <pre>docker compose up -d</pre><i>* install <b>docker compose</b> if you haven't already</i> (<a href="">instructions</a>)
 </li>
 </ol>
@@ -95,7 +95,7 @@ sure to configure the <a href="./tase.toml">tase.toml</a> file)</i>
 
 <div>
 <h3>Configuration and customization</h3>
-<p>Before you run your project you need to customize the <a href="./tase.toml"><b>tase.toml</b></a> file in the root directory which is used as 
+<p>Before you run your project you need to customize the <a href="./tase.json"><b>tase.json</b></a> file in the root directory which is used as 
 the config file by TASE</p>
 
 <p>In order to run the project you have to provide basic information which the bot works with.
