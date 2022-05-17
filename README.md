@@ -1,5 +1,5 @@
 <div class="Intro" align="center">
-<h1>Telegram Audio Search Engine (TASE)</h1>
+<h1>TASE (Telegram Audio Search Engine)</h1>
 <hr class="dashed">
 <h3>A lightning fast audio full-text search engine on top of Telegram</h3>
 
@@ -12,7 +12,6 @@ results that lead to relevant information on high-quality audio files.</p>
 <img src="https://img.shields.io/github/stars/appheap/TASE?style=social">
 <img src="https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=plastic">
 <img src="https://hits.dwyl.com/appheap/TASE.svg?style=flat&show=unique">
-<img src="https://img.shields.io/github/downloads/appheap/tase/total">
 
 </div>
 <hr class="dotted">
@@ -73,6 +72,8 @@ on different servers located in different parts of the world.</p>
     <li>Clone the repository</li>
     <li>Install Elasticsearch (v8.3) (<a href="">instructions</a>)</li>
     <li>Install ArangoDB (v3.9.1) (<a href="">instructions</a>)</li>
+    <li>Install RabbitMQ (<a href="">instructions</a>)</li>
+    <li>Install Redis (<a href="">instructions</a>)</li>
     <li><pre>poetry install</pre><i>* install <b>poetry</b> if you haven't already</i> (<a href="">instructions</a>)</li>
     <li>Run the <a href="./tase/tase_client.py">tase_client</a> file located in the <a href="./tase">tase</a> package 
     <i>(*note: before running the project make sure to configure the <a href="./tase.toml">tase.toml</a> file)</i></li>
@@ -81,7 +82,7 @@ on different servers located in different parts of the world.</p>
 
 <li><h4>Install using docker-compose</h4> The easier method (recommended) <i>(*note: before running the project make
 sure to configure the <a href="./tase.toml">tase.toml</a> file)</i>
-    <pre>docker-compose up</pre><i>* install <b>docker-compose</b> if you haven't already</i> (<a href="">instructions</a>)
+    <pre>docker compose up -d</pre><i>* install <b>docker compose</b> if you haven't already</i> (<a href="">instructions</a>)
 </li>
 </ol>
 </div>

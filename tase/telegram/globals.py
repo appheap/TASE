@@ -9,8 +9,6 @@ tase_telegram_exchange = Exchange('tase_telegram_exchange', 'direct', durable=Tr
 tase_telegram_queue = Queue('tase_telegram_queue', exchange=tase_telegram_exchange, routing_key='tase_telegram_queue')
 callback_queue = Queue(uuid(), auto_delete=True)
 
-number_of_telegram_workers = 5
-
 kombu.enable_insecure_serializers()
 
 
