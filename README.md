@@ -66,24 +66,30 @@ on different servers located in different parts of the world.</p>
 <ul>
 <i>* Note: please make sure to read the configuration and customization section before you run the project</i>
 <h3>There are two different ways to use TASE</h3><div>
+<i>(*note: before running the project make sure to configure the <a href="./tase.json">tase.json</a> and <a href="./.env">.env</a> files)</i>
+<ol>
+<li><h4>Clone the repository</h4></li>
+<li><h4>Setting up services:</h4>
 <ol>
 <li><h4>Manually install the dependencies</h4>
     <ol>
-    <li>Clone the repository</li>
     <li>Install Elasticsearch (v8.3) (<a href="">instructions</a>)</li>
     <li>Install ArangoDB (v3.9.1) (<a href="">instructions</a>)</li>
     <li>Install RabbitMQ (<a href="">instructions</a>)</li>
     <li>Install Redis (<a href="">instructions</a>)</li>
-    <li><pre>poetry install</pre><i>* install <b>poetry</b> if you haven't already</i> (<a href="">instructions</a>)</li>
-    <li>Run the <a href="./tase/tase_client.py">tase_client</a> file located in the <a href="./tase">tase</a> package 
-    <i>(*note: before running the project make sure to configure the <a href="./tase.toml">tase.toml</a> file)</i></li>
     </ol>
 </li>
 
-<li><h4>Install using docker-compose</h4> The easier method (recommended) <i>(*note: before running the project make
+<li><h4>Run using docker compose</h4> The easier method (recommended) <i>(*note: before running the project make
 sure to configure the <a href="./tase.toml">tase.toml</a> file)</i>
     <pre>docker compose up -d</pre><i>* install <b>docker compose</b> if you haven't already</i> (<a href="">instructions</a>)
 </li>
+</ol>
+</li>
+
+<li><h4><pre>poetry install</pre></h4><i>* install <b>poetry</b> if you haven't already</i> (<a href="">instructions</a>)</li>
+    <li>Run the <a href="./tase/tase_client.py">tase_client.py</a> file located in the <a href="./tase">tase</a> package</li>
+
 </ol>
 </div>
 
