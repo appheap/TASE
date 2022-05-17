@@ -10,10 +10,9 @@ from pyrogram.enums import ParseMode
 from pyrogram.types import InlineKeyboardMarkup
 
 from tase.my_logger import logger
-from tase.telegram import template_globals
 from tase.telegram.handlers import BaseHandler, HandlerMetadata, exception_handler
 from tase.telegram.inline_buttons import InlineButton
-from tase.telegram.templates import QueryResultsData, NoResultsWereFoundData, AudioCaptionData
+from tase.telegram.templates import QueryResultsData, NoResultsWereFoundData, AudioCaptionData, BaseTemplate
 from tase.utils import get_timestamp, _trans
 
 
@@ -120,7 +119,7 @@ class BotMessageHandler(BaseHandler):
             else:
                 file_id = audio_file_cache.file_id
 
-            text = template_globals.audio_caption_template.render(
+            text = BaseTemplate.registry.audio_caption_template.render(
                 AudioCaptionData.parse_from_audio_doc(
                     db_audio_doc,
                     db_user,
@@ -232,9 +231,9 @@ class BotMessageHandler(BaseHandler):
                 lang_code=db_from_user.chosen_language_code,
             )
 
-            text = template_globals.query_results_template.render(data)
+            text = BaseTemplate.registry.query_results_template.render(data)
         else:
-            text = template_globals.no_results_were_found_template.render(
+            text = BaseTemplate.registry.no_results_were_found_template.render(
                 NoResultsWereFoundData(
                     query=query,
                     lang_code=db_from_user.chosen_language_code,

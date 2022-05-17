@@ -1,10 +1,12 @@
 from jinja2 import Template
 
-from .base import BaseTemplate, BaseTemplateData
+from .base_template import BaseTemplate, BaseTemplateData
 from tase.utils import _trans
 
 
 class HelpTemplate(BaseTemplate):
+    name = "help_template"
+
     template = Template(
         "{{c_dir}}<b>{{s_help_menu}} | {{emoji._exclamation_question_mark}}</b>"
         "{{c_new_line}}"

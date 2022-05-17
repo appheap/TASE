@@ -1,10 +1,12 @@
 from jinja2 import Template
 
-from .base import BaseTemplate, BaseTemplateData
+from .base_template import BaseTemplate, BaseTemplateData
 from tase.utils import _trans
 
 
 class QueryResultsTemplate(BaseTemplate):
+    name = "query_results_template"
+
     template = Template(
         "<b>{{emoji._search_emoji}} {{s_search_results_for}} {{query}}</b>"
         "{{c_new_line}}"

@@ -14,10 +14,9 @@ from tase.db.database_client import DatabaseClient
 from tase.my_logger import logger
 from tase.utils import languages_object
 from .handler_metadata import HandlerMetadata
-from ... import template_globals
 from ...inline_buttons import InlineButton
 from ...telegram_client import TelegramClient
-from ...templates import HomeData, ChooseLanguageData, WelcomeData, HelpData
+from ...templates import HomeData, ChooseLanguageData, WelcomeData, HelpData, BaseTemplate
 
 
 def exception_handler(func: 'Callable'):
@@ -96,7 +95,7 @@ class BaseHandler(BaseModel):
 
         client.send_message(
             chat_id=message.from_user.id,
-            text=template_globals.welcome_template.render(data),
+            text=BaseTemplate.registry.welcome_template.render(data),
             parse_mode=ParseMode.HTML
         )
 
@@ -139,7 +138,7 @@ class BaseHandler(BaseModel):
 
         client.send_message(
             chat_id=message.from_user.id,
-            text=template_globals.help_template.render(data),
+            text=BaseTemplate.registry.help_template.render(data),
             parse_mode=ParseMode.HTML,
             reply_markup=markup,
         )
@@ -163,7 +162,7 @@ class BaseHandler(BaseModel):
 
         client.send_message(
             chat_id=db_from_user.user_id,
-            text=template_globals.choose_language_template.render(data),
+            text=BaseTemplate.registry.choose_language_template.render(data),
             reply_markup=languages_object.get_choose_language_markup(),
             parse_mode=ParseMode.HTML
         )
@@ -217,7 +216,7 @@ class BaseHandler(BaseModel):
 
         client.send_message(
             chat_id=chat_id,
-            text=template_globals.home_template.render(data),
+            text=BaseTemplate.registry.home_template.render(data),
             parse_mode=ParseMode.HTML,
             reply_markup=markup,
         )

@@ -5,8 +5,7 @@ from pyrogram.enums import ChatType
 from pyrogram.types import InlineKeyboardMarkup, InlineQueryResultCachedAudio
 
 from .base_inline_item import BaseInlineItem
-from .. import template_globals
-from ..templates import AudioCaptionData
+from ..templates import AudioCaptionData, BaseTemplate
 from ...db import graph_models, document_models, elasticsearch_models
 
 
@@ -49,7 +48,7 @@ class AudioItem(BaseInlineItem):
         return InlineQueryResultCachedAudio(
             audio_file_id=db_audio_file_cache.file_id,
             id=f'{inline_query.id}->{key}',
-            caption=template_globals.audio_caption_template.render(
+            caption=BaseTemplate.registry.audio_caption_template.render(
                 AudioCaptionData.parse_from_audio_doc(
                     db_audio,
                     db_from_user,

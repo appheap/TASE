@@ -1,10 +1,12 @@
 from jinja2 import Template
 
-from .base import BaseTemplate, BaseTemplateData
+from .base_template import BaseTemplate, BaseTemplateData
 from tase.utils import _trans
 
 
 class WelcomeTemplate(BaseTemplate):
+    name = "welcome_template"
+
     template = Template(
         "{{c_dir}}{{emoji._headphone}}<b>{{s_title1}}</b>{{emoji._headphone}}"
         "{{c_new_line}}"

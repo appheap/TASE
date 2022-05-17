@@ -5,12 +5,14 @@ from typing import Optional
 from jinja2 import Template
 
 from tase.static import Emoji
-from .base import BaseTemplate, BaseTemplateData
+from .base_template import BaseTemplate, BaseTemplateData
 from tase.db import elasticsearch_models, graph_models
 from tase.utils import _trans
 
 
 class AudioCaptionTemplate(BaseTemplate):
+    name = "audio_caption_template"
+
     template = Template(
         "{{c_dir}}<b>{{s_title}}:</b> {{title}}"
         "{{c_new_line}}"

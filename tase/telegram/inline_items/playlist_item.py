@@ -4,8 +4,7 @@ import pyrogram.types
 from pyrogram.types import InlineKeyboardMarkup, InlineQueryResultArticle, InputTextMessageContent
 
 from .base_inline_item import BaseInlineItem
-from .. import template_globals
-from ..templates import PlaylistData
+from ..templates import PlaylistData, BaseTemplate
 from ...db import graph_models
 
 
@@ -60,7 +59,7 @@ class PlaylistItem(BaseInlineItem):
             id=f'{inline_query.id}->{db_playlist.key}',
             thumb_url="https://telegra.ph/file/ac2d210b9b0e5741470a1.jpg",
             input_message_content=InputTextMessageContent(
-                message_text=template_globals.playlist_template.render(data),
+                message_text=BaseTemplate.registry.playlist_template.render(data),
             ),
             reply_markup=markup,
         )

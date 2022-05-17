@@ -1,10 +1,12 @@
 from jinja2 import Template
 
-from .base import BaseTemplate, BaseTemplateData
+from .base_template import BaseTemplate, BaseTemplateData
 from tase.utils import _trans
 
 
 class HomeTemplate(BaseTemplate):
+    name = "home_template"
+
     template = Template(
         "{{c_dir}}<b>{{s_main_menu}} | {{emoji._house}}</b>"
         "{{c_new_line}}"

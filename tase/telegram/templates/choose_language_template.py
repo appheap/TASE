@@ -1,10 +1,12 @@
 from jinja2 import Template
 
-from .base import BaseTemplate, BaseTemplateData
+from .base_template import BaseTemplate, BaseTemplateData
 from tase.utils import _trans
 
 
 class ChooseLanguageTemplate(BaseTemplate):
+    name = "choose_language_template"
+
     template = Template(
         "{{c_dir}}<b>{{s_choose_your_language}} {{name}} |</b> {{emoji._globe_showing_Americas}}"
         "{{c_new_line}}"

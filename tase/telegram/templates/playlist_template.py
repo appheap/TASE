@@ -3,10 +3,12 @@ from typing import Optional
 from jinja2 import Template
 
 from tase.utils import _trans
-from .base import BaseTemplate, BaseTemplateData
+from .base_template import BaseTemplate, BaseTemplateData
 
 
 class PlaylistTemplate(BaseTemplate):
+    name = "playlist_template"
+
     template = Template(
         "{{c_dir}}<b>{{s_playlist_menu}} |</b> {{emoji._headphone}}"
         "{{c_new_line}}"

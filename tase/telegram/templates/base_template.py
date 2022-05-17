@@ -48,8 +48,20 @@ class BaseTemplateData(BaseModel):
         self.c_dir = "&rlm;" if x > 0.5 else '&lrm;'
 
 
+class TemplateRegistry:
+    pass
+
+
 class BaseTemplate:
     template: Template
 
+    name: str = ""
+    registry = TemplateRegistry()
+
     def render(self, data) -> str:
         return self.template.render(data.update_translations())
+
+    @classmethod
+    def __init_subclass__(cls, **kwargs):
+        temp = cls()
+        setattr(BaseTemplate.registry, cls.name, temp)
