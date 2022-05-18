@@ -223,7 +223,8 @@ services:
       - arangodb_data_container:/var/lib/arangodb3
       - arangodb_apps_data_container:/var/lib/arangodb3-app
     environment:
-      - ARANGO_NO_AUTH=1 # do not use this in production mode
+      - ARANGO_NO_AUTH=${ARANGODB_NO_AUTH}
+      - ARANGO_ROOT_PASSWORD=${ARANGODB_ROOT_PASSWORD}
     ports:
       - ${ARANGODB_PORT}
     ulimits:
@@ -233,12 +234,9 @@ services:
 
   rabbitmq:
     image: rabbitmq:3-management
-    volumes:
-      - arangodb_data_container:/var/lib/arangodb3
-      - arangodb_apps_data_container:/var/lib/arangodb3-app
     environment:
-      - ARANGO_NO_AUTH=${ARANGODB_NO_AUTH}
-      - ARANGO_ROOT_PASSWORD=${ARANGODB_ROOT_PASSWORD}
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
     ports:
       # The standard AMQP protocol port
       - ${RABBITMQ_AMQP_PORT}
