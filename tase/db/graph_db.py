@@ -596,16 +596,13 @@ class GraphDatabase:
                 'user_id': db_from_user.id,
             }
         )
-        res = self.aql.execute(
-            query,
-            count=True,
-        )
         results = []
-        try:
-            while True:
-                results.append(Audio.parse_from_graph(res.pop()))
-        except Exception as e:
-            pass
+        for aud in self.aql.execute(
+                query,
+                count=True,
+        ):
+            results.append(Audio.parse_from_graph(aud))
+
         return results
 
     def get_user_playlists(
@@ -631,16 +628,13 @@ class GraphDatabase:
                 'user_id': db_from_user.id,
             }
         )
-        res = self.aql.execute(
-            query,
-            count=True,
-        )
         results = []
-        try:
-            while True:
-                results.append(Playlist.parse_from_graph(res.pop()))
-        except Exception as e:
-            pass
+        for pl in self.aql.execute(
+                query,
+                count=True,
+        ):
+            results.append(Playlist.parse_from_graph(pl))
+
         return results
 
     def add_audio_to_playlist(self, playlist_key: str, hit_download_url: str) -> Tuple[bool, bool]:
@@ -696,14 +690,11 @@ class GraphDatabase:
                 'limit': limit,
             }
         )
-        res = self.aql.execute(
-            query,
-            count=True,
-        )
+
         results = []
-        try:
-            while True:
-                results.append(Audio.parse_from_graph(res.pop()))
-        except Exception as e:
-            pass
+        for aud in self.aql.execute(
+                query,
+                count=True,
+        ):
+            results.append(Audio.parse_from_graph(aud))
         return results
