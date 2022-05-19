@@ -2,6 +2,7 @@ from threading import Thread
 from typing import Dict
 from typing import List
 
+from kombu import Consumer
 from kombu.mixins import ConsumerProducerMixin
 from kombu.transport import pyamqp
 
@@ -9,6 +10,7 @@ from tase.my_logger import logger
 from . import TelegramClient
 from .globals import *
 from ..db.database_client import DatabaseClient
+from decouple import config
 
 
 class ClientTaskConsumer(ConsumerProducerMixin):
@@ -77,7 +79,11 @@ class ClientWorkerThread(Thread):
     def run(self) -> None:
         logger.info(f"Client Worker {self.index} started ....")
         self.consumer = ClientTaskConsumer(
-            connection=Connection('amqp://localhost'),
+            connection=Connection(
+                config('RABBITMQ_URL'),
+                userid=config('RABBITMQ_DEFAULT_USER'),
+                password=config('RABBITMQ_DEFAULT_PASS')
+            ),
             telegram_client=self.telegram_client,
             db=self.db,
             task_queues=self.task_queues,
