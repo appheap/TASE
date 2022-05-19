@@ -1,4 +1,4 @@
-from typing import Optional, Tuple
+from typing import Optional
 
 from arango import DocumentInsertError, DocumentUpdateError, DocumentRevisionError
 from arango.collection import VertexCollection
@@ -10,6 +10,7 @@ from tase.utils import get_timestamp
 
 class BaseVertex(BaseModel):
     _vertex_name = 'base_vertices'
+    _db: Optional[VertexCollection]
     _from_graph_db_mapping = {
         '_id': 'id',
         '_key': 'key',
@@ -27,6 +28,9 @@ class BaseVertex(BaseModel):
     rev: Optional[str]
     created_at: int = Field(default_factory=get_timestamp)
     modified_at: int = Field(default_factory=get_timestamp)
+
+    class Config:
+        arbitrary_types_allowed = True
 
     def _to_graph(self) -> dict:
         temp_dict = self.dict()
@@ -87,25 +91,20 @@ class BaseVertex(BaseModel):
         return self
 
     @classmethod
-    def create(
-            cls,
-            db: 'VertexCollection',
-            vertex: 'BaseVertex'
-    ):
+    def create(cls, vertex: 'BaseVertex'):
         """
         Insert an object into the database
 
-        :param db: The VertexCollection to use for inserting the object
         :param vertex: The vertex to insert into the database
         :return: self, successful
         """
 
-        if db is None or vertex is None:
+        if vertex is None:
             return None, False
 
         successful = False
         try:
-            metadata = db.insert(vertex.parse_for_graph())
+            metadata = cls._db.insert(vertex.parse_for_graph())
             vertex._update_from_metadata(metadata)
             successful = True
         except DocumentInsertError as e:
@@ -116,16 +115,10 @@ class BaseVertex(BaseModel):
         return vertex, successful
 
     @classmethod
-    def update(
-            cls,
-            db: 'VertexCollection',
-            old_vertex: 'BaseVertex',
-            vertex: 'BaseVertex'
-    ):
+    def update(cls, old_vertex: 'BaseVertex', vertex: 'BaseVertex'):
         """
         Update an object in the database
 
-        :param db: The VertexCollection to use for updating the object
         :param old_vertex:  The vertex that is already in the database
         :param vertex: The vertex used for updating the object in the database
         :return: self, successful
@@ -133,12 +126,12 @@ class BaseVertex(BaseModel):
         if not isinstance(vertex, BaseVertex):
             raise Exception(f'`vertex` is not an instance of {BaseVertex.__class__.__name__} class')
 
-        if db is None or old_vertex is None or vertex is None:
+        if old_vertex is None or vertex is None:
             return None, False
 
         successful = False
         try:
-            metadata = db.update(vertex._update_metadata_from_old_vertex(old_vertex).parse_for_graph())
+            metadata = cls._db.update(vertex._update_metadata_from_old_vertex(old_vertex).parse_for_graph())
             vertex._update_from_metadata(metadata)
             successful = True
         except DocumentUpdateError as e:
@@ -152,11 +145,11 @@ class BaseVertex(BaseModel):
         return vertex, successful
 
     @classmethod
-    def find_by_key(cls, db: 'VertexCollection', key: str):
-        if db is None or key is None:
+    def find_by_key(cls, key: str):
+        if key is None:
             return None
 
-        cursor = db.find({'_key': key})
+        cursor = cls._db.find({'_key': key})
         if cursor and len(cursor):
             return cls.parse_from_graph(cursor.pop())
         else:

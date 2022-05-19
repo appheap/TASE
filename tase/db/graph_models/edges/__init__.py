@@ -13,6 +13,22 @@ from .linked_chat import LinkedChat
 from .sent_by import SentBy
 from .to_bot import ToBot
 
+edges = [
+    ArchivedAudio,
+    Downloaded,
+    FileRef,
+    FromBot,
+    FromHit,
+    Has,
+    HasMade,
+    IsContactOf,
+    IsCreatorOf,
+    IsMemberOf,
+    LinkedChat,
+    SentBy,
+    ToBot,
+]
+
 __all__ = [
     'ArchivedAudio',
     'BaseEdge',
@@ -28,20 +44,5 @@ __all__ = [
     'LinkedChat',
     'SentBy',
     'ToBot',
-]
-
-edges = [
-    ArchivedAudio,
-    Downloaded,
-    FileRef,
-    FromBot,
-    FromHit,
-    Has,
-    HasMade,
-    IsContactOf,
-    IsCreatorOf,
-    IsMemberOf,
-    LinkedChat,
-    SentBy,
-    ToBot,
+    'edges',
 ]

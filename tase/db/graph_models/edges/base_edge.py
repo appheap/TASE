@@ -1,4 +1,4 @@
-from typing import Optional, Tuple, List
+from typing import Optional, List
 
 from arango import DocumentInsertError, DocumentUpdateError, DocumentRevisionError
 from arango.collection import EdgeCollection
@@ -11,6 +11,7 @@ from ..vertices import BaseVertex
 
 class BaseEdge(BaseModel):
     _collection_edge_name = 'base_edge_collection'
+    _db: Optional[EdgeCollection]
 
     _from_vertex_collections = [BaseVertex]
     _to_vertex_collections = [BaseVertex]
@@ -43,6 +44,9 @@ class BaseEdge(BaseModel):
     to_node: 'BaseVertex'
     created_at: int = Field(default_factory=get_timestamp)
     modified_at: int = Field(default_factory=get_timestamp)
+
+    class Config:
+        arbitrary_types_allowed = True
 
     @classmethod
     def to_vertex_collections(cls) -> List[str]:
@@ -122,21 +126,20 @@ class BaseEdge(BaseModel):
         return self
 
     @classmethod
-    def create(cls, db: 'EdgeCollection', edge: 'BaseEdge'):
+    def create(cls, edge: 'BaseEdge'):
         """
         Insert an object into the database
 
-        :param db: The EdgeCollection to use for inserting the object
         :param edge: The edge to insert into the database
         :return: self, successful
         """
 
-        if db is None or edge is None:
+        if edge is None:
             return None, False
 
         successful = False
         try:
-            metadata = db.insert(edge.parse_for_graph())
+            metadata = cls._db.insert(edge.parse_for_graph())
             edge._update_from_metadata(metadata)
             successful = True
         except DocumentInsertError as e:
@@ -147,16 +150,15 @@ class BaseEdge(BaseModel):
         return edge, successful
 
     @classmethod
-    def update(cls, db: 'EdgeCollection', old_edge: 'BaseEdge', edge: 'BaseEdge'):
+    def update(cls, old_edge: 'BaseEdge', edge: 'BaseEdge'):
         """
         Update an object in the database
 
-        :param db: The EdgeCollection to use for updating the object
         :param old_edge: The edge that is already in the database
         :param edge: The edge used for updating the object in the database
         :return: self, successful
         """
-        if db is None or old_edge is None or edge is None:
+        if old_edge is None or edge is None:
             return None, False
 
         if not isinstance(edge, BaseEdge):
@@ -164,7 +166,7 @@ class BaseEdge(BaseModel):
 
         successful = False
         try:
-            metadata = db.update(edge._update_metadata_from_old_edge(old_edge).parse_for_graph())
+            metadata = cls._db.update(edge._update_metadata_from_old_edge(old_edge).parse_for_graph())
             edge._update_from_metadata(metadata)
             successful = True
         except DocumentUpdateError as e:
@@ -178,11 +180,11 @@ class BaseEdge(BaseModel):
         return edge, successful
 
     @classmethod
-    def find_by_key(cls, db: 'EdgeCollection', key: str):
-        if db is None or key is None:
+    def find_by_key(cls, key: str):
+        if key is None:
             return None
 
-        cursor = db.find({'_key': key})
+        cursor = cls._db.find({'_key': key})
         if cursor and len(cursor):
             return cls.parse_from_graph(cursor.pop())
         else:

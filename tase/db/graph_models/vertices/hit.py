@@ -1,12 +1,10 @@
 import secrets
 from typing import Optional, Union
 
-from arango.collection import VertexCollection
-
-from .base_vertex import BaseVertex
 from .audio import Audio
-from .query import Query
+from .base_vertex import BaseVertex
 from .inline_query import InlineQuery
+from .query import Query
 from ...elasticsearch_models.base_document import SearchMetaData
 
 
@@ -77,11 +75,11 @@ class Hit(BaseVertex):
         )
 
     @classmethod
-    def find_by_download_url(cls, db: 'VertexCollection', download_url: str) -> Optional['Hit']:
-        if db is None or download_url is None:
+    def find_by_download_url(cls, download_url: str) -> Optional['Hit']:
+        if download_url is None:
             return None
 
-        cursor = db.find({'download_url': download_url})
+        cursor = cls._db.find({'download_url': download_url})
         if cursor and len(cursor):
             return cls.parse_from_graph(cursor.pop())
         else:

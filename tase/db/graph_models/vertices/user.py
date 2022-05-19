@@ -59,11 +59,11 @@ class User(BaseVertex):
             restrictions=Restriction.parse_from_restrictions(user.restrictions)
         )
 
-    def update_chosen_language(self, db: 'VertexCollection', chosen_language_code: str):
-        if db is None or chosen_language_code is None:
+    def update_chosen_language(self, chosen_language_code: str):
+        if chosen_language_code is None:
             return None
 
-        db.update(
+        self._db.update(
             {
                 '_key': self.key,
                 'chosen_language_code': chosen_language_code

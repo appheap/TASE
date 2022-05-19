@@ -11,6 +11,19 @@ from .query_keyword import QueryKeyword
 from .restriction import Restriction
 from .user import User
 
+vertices = [
+    Audio,
+    Chat,
+    Download,
+    File,
+    Hit,
+    InlineQuery,
+    Playlist,
+    Query,
+    QueryKeyword,
+    User,
+]
+
 __all__ = [
     'Audio',
     'BaseVertex',
@@ -24,17 +37,6 @@ __all__ = [
     'QueryKeyword',
     'Restriction',
     'User',
-]
+    'vertices',
 
-vertices = [
-    Audio,
-    Chat,
-    Download,
-    File,
-    Hit,
-    InlineQuery,
-    Playlist,
-    Query,
-    QueryKeyword,
-    User,
 ]
