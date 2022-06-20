@@ -7,7 +7,7 @@ from .restriction import Restriction
 
 
 class Chat(BaseVertex):
-    _vertex_name = 'chats'
+    _vertex_name = "chats"
 
     chat_id: int
     chat_type: str
@@ -33,11 +33,11 @@ class Chat(BaseVertex):
     distance: Optional[int]
 
     @staticmethod
-    def get_key(chat: 'pyrogram.types.Chat'):
-        return f'{chat.id}'
+    def get_key(chat: "pyrogram.types.Chat"):
+        return f"{chat.id}"
 
     @staticmethod
-    def parse_from_chat(chat: 'pyrogram.types.Chat') -> Optional['Chat']:
+    def parse_from_chat(chat: "pyrogram.types.Chat") -> Optional["Chat"]:
         if chat is None:
             return None
 

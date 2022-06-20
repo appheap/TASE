@@ -25,18 +25,17 @@ vertices = [
 ]
 
 __all__ = [
-    'Audio',
-    'BaseVertex',
-    'Chat',
-    'Download',
-    'File',
-    'Hit',
-    'InlineQuery',
-    'Playlist',
-    'Query',
-    'QueryKeyword',
-    'Restriction',
-    'User',
-    'vertices',
-
+    "Audio",
+    "BaseVertex",
+    "Chat",
+    "Download",
+    "File",
+    "Hit",
+    "InlineQuery",
+    "Playlist",
+    "Query",
+    "QueryKeyword",
+    "Restriction",
+    "User",
+    "vertices",
 ]

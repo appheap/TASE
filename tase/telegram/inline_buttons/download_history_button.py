@@ -4,6 +4,7 @@ import pyrogram
 from pyrogram.types import InlineQueryResultArticle, InputTextMessageContent
 
 from .inline_button import InlineButton
+
 # from ..handlers import BaseHandler
 # from ..inline_buton_globals import buttons
 from ..inline_items import AudioItem
@@ -22,14 +23,14 @@ class DownloadHistoryInlineButton(InlineButton):
     switch_inline_query_current_chat = f"#download_history"
 
     def on_inline_query(
-            self,
-            client: 'pyrogram.Client',
-            inline_query: 'pyrogram.types.InlineQuery',
-            handler: 'BaseHandler',
-            db: 'DatabaseClient',
-            telegram_client: 'TelegramClient',
-            db_from_user: graph_models.vertices.User,
-            reg: Match,
+        self,
+        client: "pyrogram.Client",
+        inline_query: "pyrogram.types.InlineQuery",
+        handler: "BaseHandler",
+        db: "DatabaseClient",
+        telegram_client: "TelegramClient",
+        db_from_user: graph_models.vertices.User,
+        reg: Match,
     ):
         from_ = 0
 
@@ -44,7 +45,9 @@ class DownloadHistoryInlineButton(InlineButton):
         chats_dict = handler.update_audio_cache(db_audios)
 
         for db_audio in db_audios:
-            db_audio_file_cache = db.get_audio_file_from_cache(db_audio, telegram_client.telegram_id)
+            db_audio_file_cache = db.get_audio_file_from_cache(
+                db_audio, telegram_client.telegram_id
+            )
 
             #  todo: Some audios have null titles, solution?
             if not db_audio_file_cache or not db_audio.title:
@@ -71,14 +74,17 @@ class DownloadHistoryInlineButton(InlineButton):
                 inline_query.answer(
                     [
                         InlineQueryResultArticle(
-                            title=_trans("No Results Were Found", db_from_user.chosen_language_code),
+                            title=_trans(
+                                "No Results Were Found",
+                                db_from_user.chosen_language_code,
+                            ),
                             description=_trans(
                                 "You haven't downloaded any audios yet",
-                                db_from_user.chosen_language_code
+                                db_from_user.chosen_language_code,
                             ),
                             input_message_content=InputTextMessageContent(
                                 message_text=emoji.high_voltage,
-                            )
+                            ),
                         )
                     ],
                     cache_time=1,

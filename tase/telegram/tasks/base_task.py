@@ -6,11 +6,11 @@ from tase.my_logger import logger
 from tase.telegram.telegram_client import TelegramClient
 
 
-def exception_handler(func: 'Callable'):
+def exception_handler(func: "Callable"):
     def wrap(*args, **kwargs):
         try:
             func(*args, **kwargs)
-            logger.info(f'Task Finished')
+            logger.info(f"Task Finished")
         except Exception as e:
             logger.exception(e)
 
@@ -24,5 +24,5 @@ class BaseTask:
     kwargs: dict = field(default_factory=dict)
 
     @exception_handler
-    def run_task(self, telegram_client: 'TelegramClient', db: 'DatabaseClient'):
+    def run_task(self, telegram_client: "TelegramClient", db: "DatabaseClient"):
         pass

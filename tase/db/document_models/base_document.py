@@ -19,16 +19,16 @@ class BaseDocument(BaseModel):
     modified_at: int = Field(default_factory=get_timestamp)
 
     _from_document_db_mapping = {
-        '_id': 'id',
-        '_key': 'key',
-        '_rev': 'rev',
+        "_id": "id",
+        "_key": "key",
+        "_rev": "rev",
     }
     _to_document_db_mapping = {
-        'id': '_id',
-        'key': '_key',
-        'rev': '_rev',
+        "id": "_id",
+        "key": "_key",
+        "rev": "_rev",
     }
-    _do_not_update = ['created_at']
+    _do_not_update = ["created_at"]
 
     def _to_db(self) -> dict:
         temp_dict = self.dict()
@@ -43,7 +43,7 @@ class BaseDocument(BaseModel):
         return temp_dict
 
     @classmethod
-    def _from_db(cls, document: dict) -> Optional['dict']:
+    def _from_db(cls, document: dict) -> Optional["dict"]:
         if not len(document):
             return None
 
@@ -74,7 +74,7 @@ class BaseDocument(BaseModel):
         for k, v in self._from_document_db_mapping.items():
             setattr(self, v, metadata.get(k, None))
 
-    def _update_metadata_from_old_document(self, old_document: 'BaseDocument'):
+    def _update_metadata_from_old_document(self, old_document: "BaseDocument"):
         """
         Updates the metadata of this document from another document metadata
         :param old_document: The vertex to get the metadata from
@@ -89,11 +89,7 @@ class BaseDocument(BaseModel):
         return self
 
     @classmethod
-    def create(
-            cls,
-            db: 'StandardCollection',
-            doc: 'BaseDocument'
-    ):
+    def create(cls, db: "StandardCollection", doc: "BaseDocument"):
         """
         Insert a document into the database
 
@@ -119,10 +115,7 @@ class BaseDocument(BaseModel):
 
     @classmethod
     def update(
-            cls,
-            db: 'StandardCollection',
-            old_doc: 'BaseDocument',
-            doc: 'BaseDocument'
+        cls, db: "StandardCollection", old_doc: "BaseDocument", doc: "BaseDocument"
     ):
         """
         Update a document in the database
@@ -133,14 +126,18 @@ class BaseDocument(BaseModel):
         :return: self, successful
         """
         if not isinstance(doc, BaseDocument):
-            raise Exception(f'`document` is not an instance of {BaseDocument.__class__.__name__} class')
+            raise Exception(
+                f"`document` is not an instance of {BaseDocument.__class__.__name__} class"
+            )
 
         if db is None or old_doc is None or doc is None:
             return None, False
 
         successful = False
         try:
-            metadata = db.update(doc._update_metadata_from_old_document(old_doc).parse_for_db())
+            metadata = db.update(
+                doc._update_metadata_from_old_document(old_doc).parse_for_db()
+            )
             doc._update_from_metadata(metadata)
             successful = True
         except DocumentUpdateError as e:
@@ -154,11 +151,11 @@ class BaseDocument(BaseModel):
         return doc, successful
 
     @classmethod
-    def find_by_key(cls, db: 'StandardCollection', key: str):
+    def find_by_key(cls, db: "StandardCollection", key: str):
         if db is None or key is None:
             return None
 
-        cursor = db.find({'_key': key})
+        cursor = db.find({"_key": key})
         if cursor and len(cursor):
             return cls.parse_from_db(cursor.pop())
         else:

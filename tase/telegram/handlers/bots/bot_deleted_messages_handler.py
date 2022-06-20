@@ -11,20 +11,21 @@ from tase.telegram.handlers import BaseHandler, HandlerMetadata, exception_handl
 
 
 class BotDeletedMessagesHandler(BaseHandler):
-
-    def init_handlers(self) -> List['HandlerMetadata']:
+    def init_handlers(self) -> List["HandlerMetadata"]:
         return [
             HandlerMetadata(
                 cls=handlers.DeletedMessagesHandler,
                 callback=self.deleted_messages_handler,
                 has_filter=False,
-                group=2
+                group=2,
             )
         ]
 
     @exception_handler
     # todo: not working, why?
-    def deleted_messages_handler(self, client: 'pyrogram.Client', messages: List['pyrogram.types.Message']):
+    def deleted_messages_handler(
+        self, client: "pyrogram.Client", messages: List["pyrogram.types.Message"]
+    ):
         logger.debug(f"bot_deleted_messages_handler: {messages}")
         estimate_date_of_deletion = arrow.utcnow().timestamp()
         for message in messages:

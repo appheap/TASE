@@ -7,7 +7,7 @@ from .user import User
 
 
 class InlineQuery(BaseVertex):
-    _vertex_name = 'inline_queries'
+    _vertex_name = "inline_queries"
 
     query_id: str
     query: str
@@ -25,21 +25,20 @@ class InlineQuery(BaseVertex):
 
     @staticmethod
     def get_key(
-            bot: 'User',
-            inline_query: 'pyrogram.types.InlineQuery'
-    ) -> Optional['str']:
+        bot: "User", inline_query: "pyrogram.types.InlineQuery"
+    ) -> Optional["str"]:
         if bot is None or inline_query is None:
             return None
-        return f'{bot.key}:{inline_query.from_user.id}:{inline_query.id}'
+        return f"{bot.key}:{inline_query.from_user.id}:{inline_query.id}"
 
     @staticmethod
     def parse_from_inline_query(
-            bot: 'User',
-            inline_query: 'pyrogram.types.InlineQuery',
-            query_date: int,
-            query_metadata: dict,
-            next_offset: Optional[str],
-    ) -> Optional['InlineQuery']:
+        bot: "User",
+        inline_query: "pyrogram.types.InlineQuery",
+        query_date: int,
+        query_metadata: dict,
+        next_offset: Optional[str],
+    ) -> Optional["InlineQuery"]:
         if bot is None or inline_query is None:
             return None
 
@@ -54,9 +53,9 @@ class InlineQuery(BaseVertex):
             offset=inline_query.offset,
             chat_type=inline_query.chat_type.name,
             query_date=query_date,
-            duration=query_metadata.get('duration'),
-            max_score=query_metadata.get('max_score') or 0,
-            total_hits=query_metadata.get('total_hits'),
-            total_rel=query_metadata.get('total_rel'),
+            duration=query_metadata.get("duration"),
+            max_score=query_metadata.get("max_score") or 0,
+            total_hits=query_metadata.get("total_hits"),
+            total_rel=query_metadata.get("total_rel"),
             next_offset=next_offset,
         )

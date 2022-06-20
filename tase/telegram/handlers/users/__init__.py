@@ -4,9 +4,8 @@ from .user_message_handler import UserMessageHandler
 from .user_raw_update_handler import UserRawUpdateHandler
 
 __all__ = [
-    'UserChatMemberUpdatedHandler',
-    'UserDeletedMessagesHandler',
-    'UserMessageHandler',
-    'UserRawUpdateHandler',
-
+    "UserChatMemberUpdatedHandler",
+    "UserDeletedMessagesHandler",
+    "UserMessageHandler",
+    "UserRawUpdateHandler",
 ]

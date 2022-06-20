@@ -3,6 +3,7 @@ from typing import Match
 import pyrogram
 
 from .inline_button import InlineButton
+
 # from ..handlers import BaseHandler
 from ..inline_items import PlaylistItem, CreateNewPlaylistItem
 from ..telegram_client import TelegramClient
@@ -20,14 +21,14 @@ class AddToPlaylistInlineButton(InlineButton):
     switch_inline_query_current_chat = f"#add_to_playlist"
 
     def on_inline_query(
-            self,
-            client: 'pyrogram.Client',
-            inline_query: 'pyrogram.types.InlineQuery',
-            handler: 'BaseHandler',
-            db: 'DatabaseClient',
-            telegram_client: 'TelegramClient',
-            db_from_user: graph_models.vertices.User,
-            reg: Match,
+        self,
+        client: "pyrogram.Client",
+        inline_query: "pyrogram.types.InlineQuery",
+        handler: "BaseHandler",
+        db: "DatabaseClient",
+        telegram_client: "TelegramClient",
+        db_from_user: graph_models.vertices.User,
+        reg: Match,
     ):
         from_ = 0
         if inline_query.offset is not None and len(inline_query.offset):
@@ -41,24 +42,28 @@ class AddToPlaylistInlineButton(InlineButton):
             results.append(CreateNewPlaylistItem.get_item(db_from_user, inline_query))
 
         for db_playlist in db_playlists:
-            results.append(PlaylistItem.get_item(db_playlist, db_from_user, inline_query))
+            results.append(
+                PlaylistItem.get_item(db_playlist, db_from_user, inline_query)
+            )
 
         if len(results):
             try:
-                next_offset = str(from_ + len(results) + 1) if len(results) > 1 else None
+                next_offset = (
+                    str(from_ + len(results) + 1) if len(results) > 1 else None
+                )
                 inline_query.answer(results, cache_time=1, next_offset=next_offset)
             except Exception as e:
                 logger.exception(e)
 
     def on_chosen_inline_query(
-            self,
-            client: 'pyrogram.Client',
-            chosen_inline_result: 'pyrogram.types.ChosenInlineResult',
-            handler: 'BaseHandler',
-            db: 'DatabaseClient',
-            telegram_client: 'TelegramClient',
-            db_from_user: graph_models.vertices.User,
-            reg: Match,
+        self,
+        client: "pyrogram.Client",
+        chosen_inline_result: "pyrogram.types.ChosenInlineResult",
+        handler: "BaseHandler",
+        db: "DatabaseClient",
+        telegram_client: "TelegramClient",
+        db_from_user: graph_models.vertices.User,
+        reg: Match,
     ):
         hit_download_url = reg.group("arg1")
 
@@ -74,22 +79,17 @@ class AddToPlaylistInlineButton(InlineButton):
             pass
         else:
             # add the audio to the playlist
-            created, successful = db.add_audio_to_playlist(playlist_key, hit_download_url)
+            created, successful = db.add_audio_to_playlist(
+                playlist_key, hit_download_url
+            )
 
             # todo: update these messages
             if successful:
                 if created:
-                    client.send_message(
-                        db_from_user.user_id,
-                        "Added to the playlist"
-                    )
+                    client.send_message(db_from_user.user_id, "Added to the playlist")
                 else:
                     client.send_message(
-                        db_from_user.user_id,
-                        "It's already on the playlist"
+                        db_from_user.user_id, "It's already on the playlist"
                     )
             else:
-                client.send_message(
-                    db_from_user.user_id,
-                    "Did not add to the playlist"
-                )
+                client.send_message(db_from_user.user_id, "Did not add to the playlist")

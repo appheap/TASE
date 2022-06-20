@@ -8,11 +8,11 @@ from ...my_logger import logger
 
 @dataclass
 class IndexAudiosTask(BaseTask):
-    name: str = field(default='index_audios_task')
+    name: str = field(default="index_audios_task")
 
     @exception_handler
-    def run_task(self, telegram_client: 'TelegramClient', db: 'DatabaseClient'):
-        chat_id = self.kwargs.get('chat_id', None)
+    def run_task(self, telegram_client: "TelegramClient", db: "DatabaseClient"):
+        chat_id = self.kwargs.get("chat_id", None)
         if chat_id is None:
             return
 
@@ -32,9 +32,7 @@ class IndexAudiosTask(BaseTask):
             last_offset_id = 1
 
             for message in telegram_client.iter_audios(
-                    chat_id=chat_id,
-                    offset_id=last_offset_id,
-                    only_newer_messages=True
+                chat_id=chat_id, offset_id=last_offset_id, only_newer_messages=True
             ):
                 db.update_or_create_audio(message, telegram_client.telegram_id)
 

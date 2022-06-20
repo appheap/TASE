@@ -5,6 +5,7 @@ import pyrogram
 from .inline_button import InlineButton
 from ..inline_items import PlaylistItem, AudioItem, NoDownloadItem
 from ..telegram_client import TelegramClient
+
 # from ..handlers import BaseHandler
 from ...db import DatabaseClient, graph_models
 from ...my_logger import logger
@@ -20,14 +21,14 @@ class GetPlaylistAudioInlineButton(InlineButton):
     switch_inline_query_current_chat = f"#get_playlist_audios"
 
     def on_inline_query(
-            self,
-            client: 'pyrogram.Client',
-            inline_query: 'pyrogram.types.InlineQuery',
-            handler: 'BaseHandler',
-            db: 'DatabaseClient',
-            telegram_client: 'TelegramClient',
-            db_from_user: graph_models.vertices.User,
-            reg: Match,
+        self,
+        client: "pyrogram.Client",
+        inline_query: "pyrogram.types.InlineQuery",
+        handler: "BaseHandler",
+        db: "DatabaseClient",
+        telegram_client: "TelegramClient",
+        db_from_user: graph_models.vertices.User,
+        reg: Match,
     ):
         playlist_key = reg.group("arg1")
 
@@ -49,7 +50,9 @@ class GetPlaylistAudioInlineButton(InlineButton):
         chats_dict = handler.update_audio_cache(db_audios)
 
         for db_audio in db_audios:
-            db_audio_file_cache = db.get_audio_file_from_cache(db_audio, telegram_client.telegram_id)
+            db_audio_file_cache = db.get_audio_file_from_cache(
+                db_audio, telegram_client.telegram_id
+            )
 
             #  todo: Some audios have null titles, solution?
             if not db_audio_file_cache or not db_audio.title:
@@ -67,10 +70,14 @@ class GetPlaylistAudioInlineButton(InlineButton):
 
         if len(results):
             try:
-                next_offset = str(from_ + len(results) + 1) if len(results) > 1 else None
+                next_offset = (
+                    str(from_ + len(results) + 1) if len(results) > 1 else None
+                )
                 inline_query.answer(results, cache_time=1, next_offset=next_offset)
             except Exception as e:
                 logger.exception(e)
         else:
             if from_ is None or from_ == 0:
-                inline_query.answer([NoDownloadItem.get_item(db_from_user)], cache_time=1)
+                inline_query.answer(
+                    [NoDownloadItem.get_item(db_from_user)], cache_time=1
+                )

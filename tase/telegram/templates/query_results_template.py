@@ -32,7 +32,7 @@ class QueryResultsData(BaseTemplateData):
     query: str
     items: list[dict]
 
-    s_search_results_for: str = _trans('Search results for:')
+    s_search_results_for: str = _trans("Search results for:")
     s_better_results: str = _trans("Better results are at the bottom of the list")
     s_download: str = _trans("Download:")
     s_MB: str = _trans("MB")

@@ -16,7 +16,7 @@ class Languages(BaseModel):
                 [
                     InlineKeyboardButton(
                         text=language.choose_language_text(),
-                        callback_data=language.get_choose_language_callback_data()
+                        callback_data=language.get_choose_language_callback_data(),
                     )
                 ]
             )

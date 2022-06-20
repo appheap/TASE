@@ -27,27 +27,35 @@ class Filters:
     PINNED = raw.types.InputMessagesFilterPinned()
 
 
-POSSIBLE_VALUES = list(map(lambda x: x.lower(), filter(lambda x: not x.startswith("__"), Filters.__dict__.keys())))
+POSSIBLE_VALUES = list(
+    map(
+        lambda x: x.lower(),
+        filter(lambda x: not x.startswith("__"), Filters.__dict__.keys()),
+    )
+)
 
 
 # noinspection PyShadowingBuiltins
 async def get_chunk(
-        client: 'pyrogram.Client',
-        chat_id: Union[int, str],
-        query: str = "",
-        filter: str = "empty",
-        offset: int = 0,
-        offset_id: int = 0,
-        limit: int = 100,
-        from_user: Union[int, str] = None,
-        only_newer_messages: bool = True,
-        with_id: bool = True,
+    client: "pyrogram.Client",
+    chat_id: Union[int, str],
+    query: str = "",
+    filter: str = "empty",
+    offset: int = 0,
+    offset_id: int = 0,
+    limit: int = 100,
+    from_user: Union[int, str] = None,
+    only_newer_messages: bool = True,
+    with_id: bool = True,
 ) -> List["types.Message"]:
     try:
         filter = Filters.__dict__[filter.upper()]
     except KeyError:
-        raise ValueError('Invalid filter "{}". Possible values are: {}'.format(
-            filter, ", ".join(f'"{v}"' for v in POSSIBLE_VALUES))) from None
+        raise ValueError(
+            'Invalid filter "{}". Possible values are: {}'.format(
+                filter, ", ".join(f'"{v}"' for v in POSSIBLE_VALUES)
+            )
+        ) from None
 
     if with_id:
         add_offset = -limit if only_newer_messages else 0
@@ -66,29 +74,25 @@ async def get_chunk(
             limit=limit,
             min_id=0,
             max_id=0,
-            from_id=(
-                await client.resolve_peer(from_user)
-                if from_user
-                else None
-            ),
-            hash=0
+            from_id=(await client.resolve_peer(from_user) if from_user else None),
+            hash=0,
         ),
-        sleep_threshold=60
+        sleep_threshold=60,
     )
 
     return await utils.parse_messages(client, r)
 
 
 def search_messages(
-        client: 'pyrogram.Client',
-        chat_id: Union[int, str],
-        query: str = "",
-        offset: int = 0,
-        offset_id: int = 0,
-        filter: str = "empty",
-        limit: int = 0,
-        from_user: Union[int, str] = None,
-        only_newer_messages: bool = True,
+    client: "pyrogram.Client",
+    chat_id: Union[int, str],
+    query: str = "",
+    offset: int = 0,
+    offset_id: int = 0,
+    filter: str = "empty",
+    limit: int = 0,
+    from_user: Union[int, str] = None,
+    only_newer_messages: bool = True,
 ):
     """Search for text and media messages inside a specific chat.
     If you want to get the messages count only, see :meth:`~pyrogram.Client.search_messages_count`.
@@ -154,18 +158,20 @@ def search_messages(
     last_offset_id = -1
 
     while True:
-        messages = asyncio.run(get_chunk(
-            client=client,
-            chat_id=chat_id,
-            query=query,
-            filter=filter,
-            offset=offset,
-            offset_id=offset_id,
-            limit=limit,
-            from_user=from_user,
-            only_newer_messages=only_newer_messages,
-            with_id=with_id,
-        ))
+        messages = asyncio.run(
+            get_chunk(
+                client=client,
+                chat_id=chat_id,
+                query=query,
+                filter=filter,
+                offset=offset,
+                offset_id=offset_id,
+                limit=limit,
+                from_user=from_user,
+                only_newer_messages=only_newer_messages,
+                with_id=with_id,
+            )
+        )
 
         if not messages:
             return

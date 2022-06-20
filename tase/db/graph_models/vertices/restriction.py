@@ -5,12 +5,14 @@ from pydantic import BaseModel
 
 
 class Restriction(BaseModel):
-    platform: Optional['str']
-    reason: Optional['str']
-    text: Optional['str']
+    platform: Optional["str"]
+    reason: Optional["str"]
+    text: Optional["str"]
 
     @staticmethod
-    def parse_from_restriction(restriction: 'pyrogram.types.Restriction') -> Optional['Restriction']:
+    def parse_from_restriction(
+        restriction: "pyrogram.types.Restriction",
+    ) -> Optional["Restriction"]:
         if restriction is None:
             return None
 
@@ -21,7 +23,9 @@ class Restriction(BaseModel):
         )
 
     @staticmethod
-    def parse_from_restrictions(restrictions: List['pyrogram.types.Restriction']) -> Optional[List['Restriction']]:
+    def parse_from_restrictions(
+        restrictions: List["pyrogram.types.Restriction"],
+    ) -> Optional[List["Restriction"]]:
         if restrictions is None:
             return None
 

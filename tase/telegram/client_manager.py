@@ -12,23 +12,32 @@ from tase.my_logger import logger
 from tase.telegram import ClientTypes, TelegramClient
 from tase.telegram.client_worker import ClientWorkerThread
 from tase.telegram.handlers.base import ClientDisconnectHandler
-from tase.telegram.handlers.bots import BotDeletedMessagesHandler, BotMessageHandler, CallbackQueryHandler, \
-    ChosenInlineQueryHandler, InlineQueryHandler
-from tase.telegram.handlers.users import UserChatMemberUpdatedHandler, UserDeletedMessagesHandler, UserMessageHandler
+from tase.telegram.handlers.bots import (
+    BotDeletedMessagesHandler,
+    BotMessageHandler,
+    CallbackQueryHandler,
+    ChosenInlineQueryHandler,
+    InlineQueryHandler,
+)
+from tase.telegram.handlers.users import (
+    UserChatMemberUpdatedHandler,
+    UserDeletedMessagesHandler,
+    UserMessageHandler,
+)
 
 
 class ClientManager(mp.Process):
     def __init__(
-            self,
-            *,
-            telegram_client_name: str,
-            telegram_client: 'TelegramClient',
-            task_queues: Dict['str', 'kombu.Queue'],
-            database_client: 'DatabaseClient',
+        self,
+        *,
+        telegram_client_name: str,
+        telegram_client: "TelegramClient",
+        task_queues: Dict["str", "kombu.Queue"],
+        database_client: "DatabaseClient",
     ):
         super().__init__()
         self.name = telegram_client_name
-        self.telegram_client: Optional['TelegramClient'] = telegram_client
+        self.telegram_client: Optional["TelegramClient"] = telegram_client
         self.task_queues = task_queues
         self.db = database_client
 
@@ -62,17 +71,17 @@ class ClientManager(mp.Process):
             UserChatMemberUpdatedHandler(
                 db=self.db,
                 task_queues=self.task_queues,
-                telegram_client=self.telegram_client
+                telegram_client=self.telegram_client,
             ),
             UserDeletedMessagesHandler(
                 db=self.db,
                 task_queues=self.task_queues,
-                telegram_client=self.telegram_client
+                telegram_client=self.telegram_client,
             ),
             UserMessageHandler(
                 db=self.db,
                 task_queues=self.task_queues,
-                telegram_client=self.telegram_client
+                telegram_client=self.telegram_client,
             ),
             # UserRawUpdateHandler(
             #     db=self.db,
@@ -85,12 +94,12 @@ class ClientManager(mp.Process):
             BotDeletedMessagesHandler(
                 db=self.db,
                 task_queues=self.task_queues,
-                telegram_client=self.telegram_client
+                telegram_client=self.telegram_client,
             ),
             BotMessageHandler(
                 db=self.db,
                 task_queues=self.task_queues,
-                telegram_client=self.telegram_client
+                telegram_client=self.telegram_client,
             ),
             # handlers.BotRawUpdateHandler(
             #     db=self.db,
@@ -100,24 +109,24 @@ class ClientManager(mp.Process):
             CallbackQueryHandler(
                 db=self.db,
                 task_queues=self.task_queues,
-                telegram_client=self.telegram_client
+                telegram_client=self.telegram_client,
             ),
             ChosenInlineQueryHandler(
                 db=self.db,
                 task_queues=self.task_queues,
-                telegram_client=self.telegram_client
+                telegram_client=self.telegram_client,
             ),
             InlineQueryHandler(
                 db=self.db,
                 task_queues=self.task_queues,
-                telegram_client=self.telegram_client
+                telegram_client=self.telegram_client,
             ),
         ]
 
         self.disconnect_handler = ClientDisconnectHandler(
             db=self.db,
             task_queues=self.task_queues,
-            telegram_client=self.telegram_client
+            telegram_client=self.telegram_client,
         )
 
     def register_update_handlers(self) -> None:

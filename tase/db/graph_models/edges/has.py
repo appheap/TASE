@@ -1,25 +1,41 @@
 from typing import Optional
 
 from .base_edge import BaseEdge
-from ..vertices import Audio, Playlist, Hit, User, InlineQuery, Query, QueryKeyword, Download
+from ..vertices import (
+    Audio,
+    Playlist,
+    Hit,
+    User,
+    InlineQuery,
+    Query,
+    QueryKeyword,
+    Download,
+)
 
 
 class Has(BaseEdge):
-    """
+    """ """
 
-    """
+    _collection_edge_name = "has"
 
-    _collection_edge_name = 'has'
-
-    _from_vertex_collections = [User, Playlist, Query, InlineQuery, Hit, Download, ]
+    _from_vertex_collections = [
+        User,
+        Playlist,
+        Query,
+        InlineQuery,
+        Hit,
+        Download,
+    ]
     _to_vertex_collections = [Playlist, Audio, Hit, QueryKeyword]
 
     @staticmethod
-    def parse_from_playlist_and_audio(playlist: 'Playlist', audio: 'Audio') -> Optional['Has']:
+    def parse_from_playlist_and_audio(
+        playlist: "Playlist", audio: "Audio"
+    ) -> Optional["Has"]:
         if playlist is None or audio is None:
             return None
 
-        key = f'{playlist.key}@{audio.key}'
+        key = f"{playlist.key}@{audio.key}"
         return Has(
             key=key,
             from_node=playlist,
@@ -27,7 +43,7 @@ class Has(BaseEdge):
         )
 
     @staticmethod
-    def parse_from_hit_and_audio(hit: 'Hit', audio: 'Audio') -> Optional['Has']:
+    def parse_from_hit_and_audio(hit: "Hit", audio: "Audio") -> Optional["Has"]:
         if hit is None or audio is None:
             return None
 
@@ -42,13 +58,13 @@ class Has(BaseEdge):
 
     @staticmethod
     def parse_from_query_and_hit(
-            query: 'Query',
-            hit: 'Hit',
-    ) -> Optional['Has']:
+        query: "Query",
+        hit: "Hit",
+    ) -> Optional["Has"]:
         if query is None or hit is None:
             return None
 
-        key = f'{query.key}:{hit.key}'
+        key = f"{query.key}:{hit.key}"
         return Has(
             key=key,
             from_node=query,
@@ -57,13 +73,13 @@ class Has(BaseEdge):
 
     @staticmethod
     def parse_from_inline_query_and_hit(
-            inline_query: 'InlineQuery',
-            hit: 'Hit',
-    ) -> Optional['Has']:
+        inline_query: "InlineQuery",
+        hit: "Hit",
+    ) -> Optional["Has"]:
         if inline_query is None or hit is None:
             return None
 
-        key = f'{inline_query.key}@{hit.key}'
+        key = f"{inline_query.key}@{hit.key}"
         return Has(
             key=key,
             from_node=inline_query,
@@ -73,11 +89,13 @@ class Has(BaseEdge):
     ########################################################################################
 
     @staticmethod
-    def parse_from_user_and_playlist(user: 'User', playlist: 'Playlist') -> Optional['Has']:
+    def parse_from_user_and_playlist(
+        user: "User", playlist: "Playlist"
+    ) -> Optional["Has"]:
         if user is None or playlist is None:
             return None
 
-        key = f'{user.key}@{playlist.key}'
+        key = f"{user.key}@{playlist.key}"
         return Has(
             key=key,
             from_node=user,
@@ -87,11 +105,13 @@ class Has(BaseEdge):
     ########################################################################################
 
     @staticmethod
-    def parse_from_download_and_audio(download: 'Download', audio: 'Audio') -> Optional['Has']:
+    def parse_from_download_and_audio(
+        download: "Download", audio: "Audio"
+    ) -> Optional["Has"]:
         if download is None or audio is None:
             return None
 
-        key = f'{download.key}@{audio.key}'
+        key = f"{download.key}@{audio.key}"
         return Has(
             key=key,
             from_node=download,
@@ -102,28 +122,23 @@ class Has(BaseEdge):
 
     @staticmethod
     def parse_from_query_and_query_keyword(
-            query: 'Query',
-            query_keyword: 'QueryKeyword',
-    ) -> Optional['Has']:
+        query: "Query",
+        query_keyword: "QueryKeyword",
+    ) -> Optional["Has"]:
         if query is None or query_keyword is None:
             return None
 
-        key = f'{query.key}@{query_keyword.key}'
-        return Has(
-            key=key,
-            from_node=query,
-            to_node=query_keyword
-        )
+        key = f"{query.key}@{query_keyword.key}"
+        return Has(key=key, from_node=query, to_node=query_keyword)
 
     @staticmethod
     def parse_from_inline_query_and_query_keyword(
-            inline_query: 'InlineQuery',
-            query_keyword: 'QueryKeyword'
-    ) -> Optional['Has']:
+        inline_query: "InlineQuery", query_keyword: "QueryKeyword"
+    ) -> Optional["Has"]:
         if inline_query is None or query_keyword is None:
             return None
 
-        key = f'{inline_query.key}@{query_keyword.key}'
+        key = f"{inline_query.key}@{query_keyword.key}"
         return Has(
             key=key,
             from_node=inline_query,

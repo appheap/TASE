@@ -12,7 +12,12 @@ from pyrogram.types import InlineKeyboardMarkup
 from tase.my_logger import logger
 from tase.telegram.handlers import BaseHandler, HandlerMetadata, exception_handler
 from tase.telegram.inline_buttons import InlineButton
-from tase.telegram.templates import QueryResultsData, NoResultsWereFoundData, AudioCaptionData, BaseTemplate
+from tase.telegram.templates import (
+    QueryResultsData,
+    NoResultsWereFoundData,
+    AudioCaptionData,
+    BaseTemplate,
+)
 from tase.utils import get_timestamp, _trans
 
 
@@ -26,13 +31,13 @@ class BotMessageHandler(BaseHandler):
             HandlerMetadata(
                 cls=handlers.MessageHandler,
                 callback=self.start_bot_handler,
-                filters=filters.command(['start']),
+                filters=filters.command(["start"]),
                 group=0,
             ),
             HandlerMetadata(
                 cls=handlers.MessageHandler,
                 callback=self.base_commands_handler,
-                filters=filters.command(['lang', 'help', 'home']),
+                filters=filters.command(["lang", "help", "home"]),
                 group=0,
             ),
             HandlerMetadata(
@@ -44,7 +49,11 @@ class BotMessageHandler(BaseHandler):
             HandlerMetadata(
                 cls=handlers.MessageHandler,
                 callback=self.search_query_handler,
-                filters=filters.private & filters.text & ~filters.bot & ~filters.via_bot & ~filters.media,
+                filters=filters.private
+                & filters.text
+                & ~filters.bot
+                & ~filters.via_bot
+                & ~filters.media,
                 group=0,
             ),
             HandlerMetadata(
@@ -56,7 +65,9 @@ class BotMessageHandler(BaseHandler):
         return handlers_list
 
     @exception_handler
-    def start_bot_handler(self, client: 'pyrogram.Client', message: 'pyrogram.types.Message'):
+    def start_bot_handler(
+        self, client: "pyrogram.Client", message: "pyrogram.types.Message"
+    ):
         logger.debug(f"start_bot_handler: {message.command}")
 
         db_from_user = self.db.get_or_create_user(message.from_user)
@@ -67,7 +78,9 @@ class BotMessageHandler(BaseHandler):
             self.choose_language(client, db_from_user)
 
     @exception_handler
-    def base_commands_handler(self, client: 'pyrogram.Client', message: 'pyrogram.types.Message'):
+    def base_commands_handler(
+        self, client: "pyrogram.Client", message: "pyrogram.types.Message"
+    ):
         logger.debug(f"base_commands_handler: {message.command}")
 
         db_from_user = self.db.get_or_create_user(message.from_user)
@@ -76,17 +89,19 @@ class BotMessageHandler(BaseHandler):
         if not command or command is None:
             return
 
-        if command == 'lang':
+        if command == "lang":
             self.choose_language(client, db_from_user)
-        elif command == 'help':
+        elif command == "help":
             self.show_help(client, db_from_user, message)
-        elif command == 'home':
+        elif command == "home":
             self.show_home(client, db_from_user, message)
         else:
             pass
 
     @exception_handler
-    def downloads_handler(self, client: 'pyrogram.Client', message: 'pyrogram.types.Message'):
+    def downloads_handler(
+        self, client: "pyrogram.Client", message: "pyrogram.types.Message"
+    ):
         """
         Check if the message is coming from a Telegram client and contains "dl_" regex, and then submit
         a thread to retrieve the searched audio file
@@ -102,18 +117,24 @@ class BotMessageHandler(BaseHandler):
             db_user = self.db.update_or_create_user(message.from_user)
 
         # todo: handle errors for invalid messages
-        download_url = message.text.split('/dl_')[1]
+        download_url = message.text.split("/dl_")[1]
         db_hit = self.db.get_hit_by_download_url(download_url)
         db_audio = self.db.get_audio_from_hit(db_hit)
         db_audio_doc = self.db.get_audio_doc_by_key(db_audio.key)
         if db_audio_doc:
-            audio_file_cache = self.db.get_audio_file_from_cache(db_audio_doc, self.telegram_client.telegram_id)
+            audio_file_cache = self.db.get_audio_file_from_cache(
+                db_audio_doc, self.telegram_client.telegram_id
+            )
             db_chat = self.db.get_chat_by_chat_id(db_audio_doc.chat_id)
             if not audio_file_cache:
-                messages = client.get_messages(db_chat.username, [db_audio_doc.message_id])
+                messages = client.get_messages(
+                    db_chat.username, [db_audio_doc.message_id]
+                )
                 if not messages or not len(messages):
                     # todo: could not get the audio from telegram servers, what to do now?
-                    logger.error("could not get the audio from telegram servers, what to do now?")
+                    logger.error(
+                        "could not get the audio from telegram servers, what to do now?"
+                    )
                     return
                 file_id = messages[0].audio.file_id
             else:
@@ -124,21 +145,24 @@ class BotMessageHandler(BaseHandler):
                     db_audio_doc,
                     db_user,
                     db_chat,
-                    bot_url='https://t.me/bot?start',
+                    bot_url="https://t.me/bot?start",
                     include_source=True,
                 )
             )
 
             markup = [
                 [
-                    InlineButton.get_button('add_to_playlist').get_inline_keyboard_button(
-                        db_user.chosen_language_code,
-                        db_hit.download_url
+                    InlineButton.get_button(
+                        "add_to_playlist"
+                    ).get_inline_keyboard_button(
+                        db_user.chosen_language_code, db_hit.download_url
                     ),
                 ],
                 [
-                    InlineButton.get_button('home').get_inline_keyboard_button(db_user.chosen_language_code),
-                ]
+                    InlineButton.get_button("home").get_inline_keyboard_button(
+                        db_user.chosen_language_code
+                    ),
+                ],
             ]
             markup = InlineKeyboardMarkup(markup)
 
@@ -150,19 +174,26 @@ class BotMessageHandler(BaseHandler):
             )
 
             db_download = self.db.get_or_create_download_from_download_url(
-                download_url, db_user,
+                download_url,
+                db_user,
                 self.telegram_client.telegram_id,
             )
         else:
             # todo: An Error occurred while processing this audio download url, why?
-            logger.error(f"An error occurred while processing the download URL for this audio: {download_url}")
+            logger.error(
+                f"An error occurred while processing the download URL for this audio: {download_url}"
+            )
             message.reply_text(
-                _trans("An error occurred while processing the download URL for this audio",
-                       db_user.chosen_language_code)
+                _trans(
+                    "An error occurred while processing the download URL for this audio",
+                    db_user.chosen_language_code,
+                )
             )
 
     @exception_handler
-    def search_query_handler(self, client: 'pyrogram.Client', message: 'pyrogram.types.Message'):
+    def search_query_handler(
+        self, client: "pyrogram.Client", message: "pyrogram.types.Message"
+    ):
         logger.info(f"search_query_handler: {message.text}")
         # todo: fix this
         lang_code = message.from_user.language_code
@@ -198,6 +229,7 @@ class BotMessageHandler(BaseHandler):
             )
 
         if found_any:
+
             def process_item(index, db_audio, db_hit):
                 duration = timedelta(seconds=db_audio.duration)
                 d = datetime(1, 1, 1) + duration
@@ -212,17 +244,19 @@ class BotMessageHandler(BaseHandler):
                     name = _file_name
 
                 return {
-                    'index': f"{index + 1:02}",
-                    'name': textwrap.shorten(name, width=35, placeholder='...'),
-                    'file_size': round(db_audio.file_size / 1000_000, 1),
-                    'time': f"{str(d.hour) + ':' if d.hour > 0 else ''}{d.minute:02}:{d.second:02}",
-                    'url': db_hit.download_url,
-                    'sep': f"{40 * '-' if index != 0 else ''}",
+                    "index": f"{index + 1:02}",
+                    "name": textwrap.shorten(name, width=35, placeholder="..."),
+                    "file_size": round(db_audio.file_size / 1000_000, 1),
+                    "time": f"{str(d.hour) + ':' if d.hour > 0 else ''}{d.minute:02}:{d.second:02}",
+                    "url": db_hit.download_url,
+                    "sep": f"{40 * '-' if index != 0 else ''}",
                 }
 
             items = [
                 process_item(index, db_audio, db_hit)
-                for index, (db_audio, db_hit) in reversed(list(enumerate(zip(db_audio_docs, db_hits))))
+                for index, (db_audio, db_hit) in reversed(
+                    list(enumerate(zip(db_audio_docs, db_hits)))
+                )
             ]
 
             data = QueryResultsData(
@@ -247,7 +281,9 @@ class BotMessageHandler(BaseHandler):
         )
 
     @exception_handler
-    def bot_message_handler(self, client: 'pyrogram.Client', message: 'pyrogram.types.Message'):
+    def bot_message_handler(
+        self, client: "pyrogram.Client", message: "pyrogram.types.Message"
+    ):
         logger.info(f"bot_message_handler: {message}")
 
     #######################################################################################################

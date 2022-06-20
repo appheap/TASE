@@ -35,7 +35,7 @@ class AudioCaptionData(BaseTemplateData):
     s_file_name: str = _trans("File name")
     s_source: str = _trans("Source")
     s_audio_search_engine: str = _trans("Audio Search Engine")
-    s_sent_by_users: str = _trans('Submitted by Telegram Audio Search Engine Users')
+    s_sent_by_users: str = _trans("Submitted by Telegram Audio Search Engine Users")
 
     title: str
     performer: str
@@ -47,29 +47,29 @@ class AudioCaptionData(BaseTemplateData):
 
     @staticmethod
     def parse_from_audio_doc(
-            audio_doc: elasticsearch_models.Audio,
-            user: graph_models.vertices.User,
-            chat: graph_models.vertices.Chat,
-            bot_url: str,  # todo: get bot_url from config
-            include_source: bool = True,  # todo: where to get this variable?
-    ) -> Optional['AudioCaptionData']:
+        audio_doc: elasticsearch_models.Audio,
+        user: graph_models.vertices.User,
+        chat: graph_models.vertices.Chat,
+        bot_url: str,  # todo: get bot_url from config
+        include_source: bool = True,  # todo: where to get this variable?
+    ) -> Optional["AudioCaptionData"]:
         if audio_doc is None or user is None or chat is None or bot_url is None:
             return None
 
         return AudioCaptionData(
             title=audio_doc.title.replace("@", "") if audio_doc.title else "",
-            performer=audio_doc.performer.replace("@", "") if audio_doc.performer else "",
+            performer=audio_doc.performer.replace("@", "")
+            if audio_doc.performer
+            else "",
             file_name=textwrap.shorten(
                 audio_doc.file_name.replace("@", "") if audio_doc.file_name else "",
                 width=40,
-                placeholder='...'
+                placeholder="...",
             ),
             source=f"<a href ='https://t.me/{chat.username}/{audio_doc.message_id}'>{chat.username}</a>",
             include_source=include_source,
             bot_url=bot_url,
-
             # todo: fix this
             plant=random.choice(Emoji().plants_list),
-
             lang_code=user.chosen_language_code,
         )

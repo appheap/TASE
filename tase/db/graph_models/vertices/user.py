@@ -8,8 +8,11 @@ from .restriction import Restriction
 
 
 class User(BaseVertex):
-    _vertex_name = 'users'
-    _do_not_update = ['created_at', 'chosen_language_code', ]
+    _vertex_name = "users"
+    _do_not_update = [
+        "created_at",
+        "chosen_language_code",
+    ]
 
     user_id: int
     # is_contact : contact_of => User
@@ -20,23 +23,23 @@ class User(BaseVertex):
     is_scam: bool
     is_fake: bool
     is_support: bool
-    first_name: Optional['str']
-    last_name: Optional['str']
-    username: Optional['str']
-    language_code: Optional['str']
-    dc_id: Optional['int']
-    phone_number: Optional['str']
+    first_name: Optional["str"]
+    last_name: Optional["str"]
+    username: Optional["str"]
+    language_code: Optional["str"]
+    dc_id: Optional["int"]
+    phone_number: Optional["str"]
     restrictions: Optional[List[Restriction]]
 
     # custom field that are not from telegram
     chosen_language_code: Optional[str]
 
     @staticmethod
-    def get_key(user: 'pyrogram.types.User') -> str:
+    def get_key(user: "pyrogram.types.User") -> str:
         return str(user.id)
 
     @staticmethod
-    def parse_from_user(user: 'pyrogram.types.User') -> Optional['User']:
+    def parse_from_user(user: "pyrogram.types.User") -> Optional["User"]:
         if user is None:
             return None
 
@@ -56,7 +59,7 @@ class User(BaseVertex):
             language_code=user.language_code,
             dc_id=user.dc_id,
             phone_number=user.phone_number,
-            restrictions=Restriction.parse_from_restrictions(user.restrictions)
+            restrictions=Restriction.parse_from_restrictions(user.restrictions),
         )
 
     def update_chosen_language(self, chosen_language_code: str):
@@ -64,9 +67,6 @@ class User(BaseVertex):
             return None
 
         self._db.update(
-            {
-                '_key': self.key,
-                'chosen_language_code': chosen_language_code
-            },
-            silent=True
+            {"_key": self.key, "chosen_language_code": chosen_language_code},
+            silent=True,
         )

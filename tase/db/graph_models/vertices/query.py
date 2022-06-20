@@ -6,7 +6,7 @@ from .user import User
 
 
 class Query(BaseVertex):
-    _vertex_name = 'queries'
+    _vertex_name = "queries"
 
     query: str
     query_date: int
@@ -18,10 +18,10 @@ class Query(BaseVertex):
 
     @staticmethod
     def get_key(
-            bot: 'User',
-            from_user: 'User',
-            query_date: int,
-    ) -> Optional['str']:
+        bot: "User",
+        from_user: "User",
+        query_date: int,
+    ) -> Optional["str"]:
         if bot is None or from_user is None or query_date is None:
             return None
 
@@ -29,13 +29,19 @@ class Query(BaseVertex):
 
     @staticmethod
     def parse_from_query(
-            bot: 'User',
-            from_user: 'User',
-            query: 'str',
-            query_date: int,
-            query_metadata: dict
-    ) -> Optional['Query']:
-        if bot is None or from_user is None or query is None or query_date is None or query_metadata is None:
+        bot: "User",
+        from_user: "User",
+        query: "str",
+        query_date: int,
+        query_metadata: dict,
+    ) -> Optional["Query"]:
+        if (
+            bot is None
+            or from_user is None
+            or query is None
+            or query_date is None
+            or query_metadata is None
+        ):
             return None
 
         key = Query.get_key(bot, from_user, query_date)
@@ -46,8 +52,8 @@ class Query(BaseVertex):
             key=key,
             query_date=query_date,
             query=query,
-            duration=query_metadata.get('duration'),
-            max_score=query_metadata.get('max_score') or 0,
-            total_hits=query_metadata.get('total_hits'),
-            total_rel=query_metadata.get('total_rel'),
+            duration=query_metadata.get("duration"),
+            max_score=query_metadata.get("max_score") or 0,
+            total_hits=query_metadata.get("total_hits"),
+            total_rel=query_metadata.get("total_rel"),
         )

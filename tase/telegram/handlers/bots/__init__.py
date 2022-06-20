@@ -6,10 +6,10 @@ from .chosen_inline_query_handler import ChosenInlineQueryHandler
 from .inline_query_handler import InlineQueryHandler
 
 __all__ = [
-    'BotDeletedMessagesHandler',
-    'BotMessageHandler',
-    'BotRawUpdateHandler',
-    'CallbackQueryHandler',
-    'ChosenInlineQueryHandler',
-    'InlineQueryHandler',
+    "BotDeletedMessagesHandler",
+    "BotMessageHandler",
+    "BotRawUpdateHandler",
+    "CallbackQueryHandler",
+    "ChosenInlineQueryHandler",
+    "InlineQueryHandler",
 ]

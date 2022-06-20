@@ -5,7 +5,7 @@ from pyrogram import filters
 
 
 class HandlerMetadata(BaseModel):
-    cls: 'Type'
+    cls: "Type"
     callback: Callable
     filters: Optional[filters.Filter]
     has_filter: bool = True

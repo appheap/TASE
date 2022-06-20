@@ -9,7 +9,7 @@ from ...elasticsearch_models.base_document import SearchMetaData
 
 
 class Hit(BaseVertex):
-    _vertex_name = 'hits'
+    _vertex_name = "hits"
 
     rank: int
     score: float
@@ -19,29 +19,29 @@ class Hit(BaseVertex):
 
     @staticmethod
     def get_key(
-            q: Union[Query, InlineQuery],
-            audio: Audio,
+        q: Union[Query, InlineQuery],
+        audio: Audio,
     ) -> Optional[str]:
         if q is None or audio is None:
             return None
 
-        return f'{q.key}:{audio.key}:{q.query_date}'
+        return f"{q.key}:{audio.key}:{q.query_date}"
 
     @staticmethod
     def generate_download_url():
         while True:
             # todo: make sure the generated token is unique
             download_url = secrets.token_urlsafe(6)
-            if download_url.find('-') == -1:
+            if download_url.find("-") == -1:
                 break
         return download_url
 
     @staticmethod
     def parse_from_query_and_audio(
-            query: 'Query',
-            audio: 'Audio',
-            search_metadata: 'SearchMetaData',
-    ) -> Optional['Hit']:
+        query: "Query",
+        audio: "Audio",
+        search_metadata: "SearchMetaData",
+    ) -> Optional["Hit"]:
         if query is None or audio is None:
             return None
 
@@ -57,10 +57,10 @@ class Hit(BaseVertex):
 
     @staticmethod
     def parse_from_inline_query_and_audio(
-            inline_query: 'InlineQuery',
-            audio: 'Audio',
-            search_metadata: 'SearchMetaData',
-    ) -> Optional['Hit']:
+        inline_query: "InlineQuery",
+        audio: "Audio",
+        search_metadata: "SearchMetaData",
+    ) -> Optional["Hit"]:
         if inline_query is None or audio is None:
             return None
 
@@ -75,11 +75,11 @@ class Hit(BaseVertex):
         )
 
     @classmethod
-    def find_by_download_url(cls, download_url: str) -> Optional['Hit']:
+    def find_by_download_url(cls, download_url: str) -> Optional["Hit"]:
         if download_url is None:
             return None
 
-        cursor = cls._db.find({'download_url': download_url})
+        cursor = cls._db.find({"download_url": download_url})
         if cursor and len(cursor):
             return cls.parse_from_graph(cursor.pop())
         else:

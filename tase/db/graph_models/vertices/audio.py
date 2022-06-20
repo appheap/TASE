@@ -7,7 +7,7 @@ from .base_vertex import BaseVertex
 
 
 class Audio(BaseVertex):
-    _vertex_name = 'audios'
+    _vertex_name = "audios"
 
     chat_id: int
     message_id: int
@@ -25,11 +25,11 @@ class Audio(BaseVertex):
     date: int
 
     @staticmethod
-    def get_key(message: 'pyrogram.types.Message'):
-        return f'{message.audio.file_unique_id}:{message.chat.id}:{message.id}'
+    def get_key(message: "pyrogram.types.Message"):
+        return f"{message.audio.file_unique_id}:{message.chat.id}:{message.id}"
 
     @staticmethod
-    def parse_from_message(message: 'pyrogram.types.Message') -> Optional['Audio']:
+    def parse_from_message(message: "pyrogram.types.Message") -> Optional["Audio"]:
         if not message or not message.audio:
             return None
 

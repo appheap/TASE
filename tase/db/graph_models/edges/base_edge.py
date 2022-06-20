@@ -10,38 +10,38 @@ from ..vertices import BaseVertex
 
 
 class BaseEdge(BaseModel):
-    _collection_edge_name = 'base_edge_collection'
+    _collection_edge_name = "base_edge_collection"
     _db: Optional[EdgeCollection]
 
     _from_vertex_collections = [BaseVertex]
     _to_vertex_collections = [BaseVertex]
 
     _from_graph_db_mapping = {
-        '_id': 'id',
-        '_key': 'key',
-        '_rev': 'rev',
+        "_id": "id",
+        "_key": "key",
+        "_rev": "rev",
     }
     _from_graph_db_mapping_rel = {
-        '_from': 'from_node',
-        '_to': 'to_node',
+        "_from": "from_node",
+        "_to": "to_node",
     }
 
     _to_graph_db_mapping = {
-        'id': '_id',
-        'key': '_key',
-        'rev': '_rev',
+        "id": "_id",
+        "key": "_key",
+        "rev": "_rev",
     }
     _to_graph_db_mapping_rel = {
-        'from_node': '_from',
-        'to_node': '_to',
+        "from_node": "_from",
+        "to_node": "_to",
     }
-    _do_not_update = ['created_at']
+    _do_not_update = ["created_at"]
 
     id: Optional[str]
     key: Optional[str]
     rev: Optional[str]
-    from_node: 'BaseVertex'
-    to_node: 'BaseVertex'
+    from_node: "BaseVertex"
+    to_node: "BaseVertex"
     created_at: int = Field(default_factory=get_timestamp)
     modified_at: int = Field(default_factory=get_timestamp)
 
@@ -68,7 +68,7 @@ class BaseEdge(BaseModel):
 
         for k, v in self._to_graph_db_mapping_rel.items():
             if temp_dict.get(k, None):
-                temp_dict[v] = temp_dict[k]['id']
+                temp_dict[v] = temp_dict[k]["id"]
                 del temp_dict[k]
             else:
                 del temp_dict[k]
@@ -77,7 +77,7 @@ class BaseEdge(BaseModel):
         return temp_dict
 
     @classmethod
-    def _from_graph(cls, vertex: dict) -> Optional['dict']:
+    def _from_graph(cls, vertex: dict) -> Optional["dict"]:
         if not len(vertex):
             return None
 
@@ -90,7 +90,9 @@ class BaseEdge(BaseModel):
 
         for k, v in BaseEdge._from_graph_db_mapping_rel.items():
             if vertex.get(k, None):
-                vertex[v] = BaseVertex.parse_from_graph({'_id': vertex.get(vertex[k], None)})
+                vertex[v] = BaseVertex.parse_from_graph(
+                    {"_id": vertex.get(vertex[k], None)}
+                )
                 del vertex[k]
             else:
                 vertex[v] = None
@@ -111,7 +113,7 @@ class BaseEdge(BaseModel):
         for k, v in self._from_graph_db_mapping.items():
             setattr(self, v, metadata.get(k, None))
 
-    def _update_metadata_from_old_edge(self, old_edge: 'BaseEdge'):
+    def _update_metadata_from_old_edge(self, old_edge: "BaseEdge"):
         """
         Updates the metadata of this edge from another edge metadata
         :param old_edge: The edge to get the metadata from
@@ -126,7 +128,7 @@ class BaseEdge(BaseModel):
         return self
 
     @classmethod
-    def create(cls, edge: 'BaseEdge'):
+    def create(cls, edge: "BaseEdge"):
         """
         Insert an object into the database
 
@@ -150,7 +152,7 @@ class BaseEdge(BaseModel):
         return edge, successful
 
     @classmethod
-    def update(cls, old_edge: 'BaseEdge', edge: 'BaseEdge'):
+    def update(cls, old_edge: "BaseEdge", edge: "BaseEdge"):
         """
         Update an object in the database
 
@@ -162,11 +164,15 @@ class BaseEdge(BaseModel):
             return None, False
 
         if not isinstance(edge, BaseEdge):
-            raise Exception(f'`edge` is not an instance of {BaseEdge.__class__.__name__} class')
+            raise Exception(
+                f"`edge` is not an instance of {BaseEdge.__class__.__name__} class"
+            )
 
         successful = False
         try:
-            metadata = cls._db.update(edge._update_metadata_from_old_edge(old_edge).parse_for_graph())
+            metadata = cls._db.update(
+                edge._update_metadata_from_old_edge(old_edge).parse_for_graph()
+            )
             edge._update_from_metadata(metadata)
             successful = True
         except DocumentUpdateError as e:
@@ -184,7 +190,7 @@ class BaseEdge(BaseModel):
         if key is None:
             return None
 
-        cursor = cls._db.find({'_key': key})
+        cursor = cls._db.find({"_key": key})
         if cursor and len(cursor):
             return cls.parse_from_graph(cursor.pop())
         else:

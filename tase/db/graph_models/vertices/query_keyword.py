@@ -5,14 +5,14 @@ from .base_vertex import BaseVertex
 
 
 class QueryKeyword(BaseVertex):
-    _vertex_name = 'query_keywords'
+    _vertex_name = "query_keywords"
 
     query: str
 
     @staticmethod
     def get_key(
-            query: 'str',
-    ) -> Optional['str']:
+        query: "str",
+    ) -> Optional["str"]:
         if query is None:
             return None
 
@@ -20,8 +20,8 @@ class QueryKeyword(BaseVertex):
 
     @staticmethod
     def parse_from_query(
-            query: 'str',
-    ) -> Optional['QueryKeyword']:
+        query: "str",
+    ) -> Optional["QueryKeyword"]:
         if query is None:
             return None
 

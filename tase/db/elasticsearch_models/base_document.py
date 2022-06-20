@@ -17,8 +17,8 @@ class BaseDocument(BaseModel):
     _index_name = "base_index_name"
     _mappings = {}
 
-    _to_db_mapping = ['id', 'search_metadata']
-    _do_not_update = ['created_at']
+    _to_db_mapping = ["id", "search_metadata"]
+    _do_not_update = ["created_at"]
     _search_fields = []
 
     id: Optional[str]
@@ -40,24 +40,24 @@ class BaseDocument(BaseModel):
         if response is None or not len(response.body):
             return None
 
-        body = dict(**response.body['_source'])
-        body.update({'id': response.body['_id']})
+        body = dict(**response.body["_source"])
+        body.update({"id": response.body["_id"]})
 
         return cls(**body)
 
     @classmethod
     def parse_from_db_hit(cls, hit: dict, rank: int):
-        if hit is None or not len(hit) or not len(hit['_source']) or rank is None:
+        if hit is None or not len(hit) or not len(hit["_source"]) or rank is None:
             return None
 
-        body = dict(**hit['_source'])
-        body.update({'id': hit['_id']})
+        body = dict(**hit["_source"])
+        body.update({"id": hit["_id"]})
 
         obj = cls(**body)
-        obj.search_metadata = SearchMetaData(rank=rank, score=hit.get('_score', None))
+        obj.search_metadata = SearchMetaData(rank=rank, score=hit.get("_score", None))
         return obj
 
-    def _update_doc_from_old_doc(self, old_doc: 'BaseDocument'):
+    def _update_doc_from_old_doc(self, old_doc: "BaseDocument"):
         for k in self._do_not_update:
             if getattr(self, k, None):
                 setattr(self, k, getattr(old_doc, k, None))
@@ -65,7 +65,7 @@ class BaseDocument(BaseModel):
         return self
 
     @classmethod
-    def has_index(cls, es: 'Elasticsearch') -> bool:
+    def has_index(cls, es: "Elasticsearch") -> bool:
         index_exists = False
         try:
             es.indices.get(index=cls._index_name)
@@ -77,7 +77,7 @@ class BaseDocument(BaseModel):
         return index_exists
 
     @classmethod
-    def create_index(cls, es: 'Elasticsearch'):
+    def create_index(cls, es: "Elasticsearch"):
         try:
             es.indices.create(
                 index=cls._index_name,
@@ -87,7 +87,7 @@ class BaseDocument(BaseModel):
             pass
 
     @classmethod
-    def get(cls, es: 'Elasticsearch', doc_id: str):
+    def get(cls, es: "Elasticsearch", doc_id: str):
         if es is None:
             return None
 
@@ -103,7 +103,7 @@ class BaseDocument(BaseModel):
         return obj
 
     @classmethod
-    def create(cls, es: 'Elasticsearch', document: 'BaseDocument'):
+    def create(cls, es: "Elasticsearch", document: "BaseDocument"):
         """
         Creates a document in the index
 
@@ -115,17 +115,15 @@ class BaseDocument(BaseModel):
             return None, False
 
         if not isinstance(document, BaseDocument):
-            raise Exception(f'`document` is not an instance of {BaseDocument.__class__.__name__} class')
+            raise Exception(
+                f"`document` is not an instance of {BaseDocument.__class__.__name__} class"
+            )
 
         successful = False
         try:
             id, doc = document.parse_for_db()
             if id and doc:
-                response = es.create(
-                    index=cls._index_name,
-                    id=id,
-                    document=doc
-                )
+                response = es.create(index=cls._index_name, id=id, document=doc)
                 successful = True
         except ConflictError as e:
             # Exception representing a 409 status code. Document exists in the index
@@ -136,7 +134,9 @@ class BaseDocument(BaseModel):
         return document, successful
 
     @classmethod
-    def update(cls, es: 'Elasticsearch', old_document: 'BaseDocument', document: 'BaseDocument'):
+    def update(
+        cls, es: "Elasticsearch", old_document: "BaseDocument", document: "BaseDocument"
+    ):
         """
         Updates a document in the index
 
@@ -149,17 +149,15 @@ class BaseDocument(BaseModel):
             return None, False
 
         if not isinstance(document, BaseDocument):
-            raise Exception(f'`document` is not an instance of {BaseDocument.__class__.__name__} class')
+            raise Exception(
+                f"`document` is not an instance of {BaseDocument.__class__.__name__} class"
+            )
 
         successful = False
         try:
             id, doc = document._update_doc_from_old_doc(old_document).parse_for_db()
             if id and doc:
-                response = es.update(
-                    index=cls._index_name,
-                    id=id,
-                    doc=doc
-                )
+                response = es.update(index=cls._index_name, id=id, doc=doc)
                 successful = True
         except Exception as e:
             logger.exception(e)
@@ -168,50 +166,51 @@ class BaseDocument(BaseModel):
 
     @classmethod
     def search(
-            cls,
-            es: 'Elasticsearch',
-            query: str,
-            from_: int = 0,
-            size: int = 50,
+        cls,
+        es: "Elasticsearch",
+        query: str,
+        from_: int = 0,
+        size: int = 50,
     ):
         if es is None or query is None or from_ is None or size is None:
             return None
 
         db_docs = []
         search_metadata = {
-            'duration': None,
-            'total_hits': None,
-            'total_rel': None,
-            'max_score': None,
+            "duration": None,
+            "total_hits": None,
+            "total_rel": None,
+            "max_score": None,
         }
 
         try:
-            res: 'ObjectApiResponse' = es.search(
+            res: "ObjectApiResponse" = es.search(
                 index=cls._index_name,
                 from_=from_,
                 size=size,
                 query={
                     "multi_match": {
                         "query": query,
-                        "type": 'best_fields',
+                        "fuzziness": "AUTO",
+                        "type": "best_fields",
                         "minimum_should_match": "60%",
                         "fields": cls._search_fields,
                     },
-                }
+                },
             )
 
-            hits = res.body['hits']['hits']
+            hits = res.body["hits"]["hits"]
 
             duration = res.meta.duration
-            total_hits = res.body['hits']['total']['value']
-            total_rel = res.body['hits']['total']['relation']
-            max_score = res.body['hits']['max_score']
+            total_hits = res.body["hits"]["total"]["value"]
+            total_rel = res.body["hits"]["total"]["relation"]
+            max_score = res.body["hits"]["max_score"]
 
             search_metadata = {
-                'duration': duration,
-                'total_hits': total_hits,
-                'total_rel': total_rel,
-                'max_score': max_score,
+                "duration": duration,
+                "total_hits": total_hits,
+                "total_rel": total_rel,
+                "max_score": max_score,
             }
 
             for index, hit in enumerate(hits, start=1):

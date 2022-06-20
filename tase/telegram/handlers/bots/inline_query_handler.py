@@ -24,35 +24,32 @@ known_mime_types = (
     "audio/ogg",
     "audio/MP3",
     "audio/x-vorbis+ogg",
-    "audio/x-opus+ogg"
+    "audio/x-opus+ogg",
 )
 
-forbidden_mime_types = (
-    "audio/ogg",
-    "audio/x-vorbis+ogg",
-    "audio/x-opus+ogg"
-)
+forbidden_mime_types = ("audio/ogg", "audio/x-vorbis+ogg", "audio/x-opus+ogg")
 
 
 class InlineQueryHandler(BaseHandler):
-
     def init_handlers(self) -> List[HandlerMetadata]:
         return [
             HandlerMetadata(
                 cls=handlers.InlineQueryHandler,
                 callback=self.custom_commands_handler,
-                filters=filters.regex("^#(?P<command>[a-zA-Z0-9_]+)(\s(?P<arg1>[a-zA-Z0-9_]+))?"),
+                filters=filters.regex(
+                    "^#(?P<command>[a-zA-Z0-9_]+)(\s(?P<arg1>[a-zA-Z0-9_]+))?"
+                ),
                 group=0,
             ),
             HandlerMetadata(
-                cls=handlers.InlineQueryHandler,
-                callback=self.on_inline_query,
-                group=0
-            )
+                cls=handlers.InlineQueryHandler, callback=self.on_inline_query, group=0
+            ),
         ]
 
     @exception_handler
-    def on_inline_query(self, client: 'pyrogram.Client', inline_query: 'pyrogram.types.InlineQuery'):
+    def on_inline_query(
+        self, client: "pyrogram.Client", inline_query: "pyrogram.types.InlineQuery"
+    ):
         logger.debug(f"on_inline_query: {inline_query}")
         query_date = get_timestamp()
 
@@ -75,17 +72,21 @@ class InlineQueryHandler(BaseHandler):
             if inline_query.offset is not None and len(inline_query.offset):
                 from_ = int(inline_query.offset)
 
-            db_audio_docs, query_metadata = self.db.search_audio(inline_query.query, from_, size=15)
+            db_audio_docs, query_metadata = self.db.search_audio(
+                inline_query.query, from_, size=15
+            )
 
             if not db_audio_docs or not len(db_audio_docs) or not len(query_metadata):
                 found_any = False
 
-            db_audio_docs: List['elasticsearch_models.Audio'] = db_audio_docs
+            db_audio_docs: List["elasticsearch_models.Audio"] = db_audio_docs
 
             chats_dict = self.update_audio_cache(db_audio_docs)
 
             for db_audio_doc in db_audio_docs:
-                db_audio_file_cache = self.db.get_audio_file_from_cache(db_audio_doc, self.telegram_client.telegram_id)
+                db_audio_file_cache = self.db.get_audio_file_from_cache(
+                    db_audio_doc, self.telegram_client.telegram_id
+                )
 
                 #  todo: Some audios have null titles, solution?
                 if not db_audio_file_cache or not db_audio_doc.title:
@@ -104,11 +105,13 @@ class InlineQueryHandler(BaseHandler):
                 query_date=query_date,
                 query_metadata=query_metadata,
                 audio_docs=db_audio_docs,
-                next_offset=next_offset
+                next_offset=next_offset,
             )
 
             if db_inline_query and db_hits:
-                for (db_audio_file_cache, db_audio_doc), db_hit in zip(temp_res, db_hits):
+                for (db_audio_file_cache, db_audio_doc), db_hit in zip(
+                    temp_res, db_hits
+                ):
                     results.append(
                         AudioItem.get_item(
                             db_audio_file_cache,
@@ -134,7 +137,9 @@ class InlineQueryHandler(BaseHandler):
                 inline_query.answer([NoResultItem.get_item(db_from_user)], cache_time=1)
 
     @exception_handler
-    def custom_commands_handler(self, client: 'pyrogram.Client', inline_query: 'pyrogram.types.InlineQuery'):
+    def custom_commands_handler(
+        self, client: "pyrogram.Client", inline_query: "pyrogram.types.InlineQuery"
+    ):
         logger.debug(f"custom_commands_handler: {inline_query}")
         query_date = get_timestamp()
 
@@ -144,7 +149,10 @@ class InlineQueryHandler(BaseHandler):
             # update the user
             db_from_user = self.db.update_or_create_user(inline_query.from_user)
 
-        reg = re.search("^#(?P<command>[a-zA-Z0-9_]+)(\s(?P<arg1>[a-zA-Z0-9_]+))?", inline_query.query)
+        reg = re.search(
+            "^#(?P<command>[a-zA-Z0-9_]+)(\s(?P<arg1>[a-zA-Z0-9_]+))?",
+            inline_query.query,
+        )
         button = InlineButton.get_button(reg.group("command"))
         if button:
             button.on_inline_query(

@@ -3,6 +3,7 @@ from typing import Match
 import pyrogram
 
 from .inline_button import InlineButton
+
 # from ..handlers import BaseHandler
 from ..inline_items import PlaylistItem, CreateNewPlaylistItem, NoPlaylistItem
 from ..telegram_client import TelegramClient
@@ -20,14 +21,14 @@ class MyPlaylistsInlineButton(InlineButton):
     switch_inline_query_current_chat = f"#my_playlists"
 
     def on_inline_query(
-            self,
-            client: 'pyrogram.Client',
-            inline_query: 'pyrogram.types.InlineQuery',
-            handler: 'BaseHandler',
-            db: 'DatabaseClient',
-            telegram_client: 'TelegramClient',
-            db_from_user: graph_models.vertices.User,
-            reg: Match,
+        self,
+        client: "pyrogram.Client",
+        inline_query: "pyrogram.types.InlineQuery",
+        handler: "BaseHandler",
+        db: "DatabaseClient",
+        telegram_client: "TelegramClient",
+        db_from_user: graph_models.vertices.User,
+        reg: Match,
     ):
         from_ = 0
         if inline_query.offset is not None and len(inline_query.offset):
@@ -41,27 +42,33 @@ class MyPlaylistsInlineButton(InlineButton):
             results.append(CreateNewPlaylistItem.get_item(db_from_user, inline_query))
 
         for db_playlist in db_playlists:
-            results.append(PlaylistItem.get_item(db_playlist, db_from_user, inline_query))
+            results.append(
+                PlaylistItem.get_item(db_playlist, db_from_user, inline_query)
+            )
 
         if len(results):
             try:
-                next_offset = str(from_ + len(results) + 1) if len(results) > 1 else None
+                next_offset = (
+                    str(from_ + len(results) + 1) if len(results) > 1 else None
+                )
                 inline_query.answer(results, cache_time=1, next_offset=next_offset)
             except Exception as e:
                 logger.exception(e)
         else:
             if from_ is None or from_ == 0:
-                inline_query.answer([NoPlaylistItem.get_item(db_from_user)], cache_time=1)
+                inline_query.answer(
+                    [NoPlaylistItem.get_item(db_from_user)], cache_time=1
+                )
 
     def on_chosen_inline_query(
-            self,
-            client: 'pyrogram.Client',
-            chosen_inline_result: 'pyrogram.types.ChosenInlineResult',
-            handler: 'BaseHandler',
-            db: 'DatabaseClient',
-            telegram_client: 'TelegramClient',
-            db_from_user: graph_models.vertices.User,
-            reg: Match,
+        self,
+        client: "pyrogram.Client",
+        chosen_inline_result: "pyrogram.types.ChosenInlineResult",
+        handler: "BaseHandler",
+        db: "DatabaseClient",
+        telegram_client: "TelegramClient",
+        db_from_user: graph_models.vertices.User,
+        reg: Match,
     ):
         hit_download_url = reg.group("arg1")
 
