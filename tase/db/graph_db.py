@@ -1,6 +1,6 @@
 import uuid
 from string import Template
-from typing import Optional, List, Tuple
+from typing import List, Optional, Tuple
 
 import pyrogram
 from arango import ArangoClient
@@ -9,31 +9,31 @@ from arango.graph import Graph
 
 from . import elasticsearch_db
 from .graph_models.edges import (
-    FileRef,
-    SentBy,
-    LinkedChat,
-    IsCreatorOf,
-    IsMemberOf,
-    edges,
-    HasMade,
-    ToBot,
-    Has,
     Downloaded,
+    FileRef,
     FromBot,
     FromHit,
+    Has,
+    HasMade,
+    IsCreatorOf,
+    IsMemberOf,
+    LinkedChat,
+    SentBy,
+    ToBot,
+    edges,
 )
 from .graph_models.vertices import (
     Audio,
     Chat,
+    Download,
     File,
-    User,
+    Hit,
     InlineQuery,
-    vertices,
+    Playlist,
     Query,
     QueryKeyword,
-    Hit,
-    Download,
-    Playlist,
+    User,
+    vertices,
 )
 from ..configs import ArangoDBConfig
 
@@ -91,14 +91,14 @@ class GraphDatabase:
                 _db = self.graph.vertex_collection(e_class._collection_edge_name)
             e_class._db = _db
 
-    def create_user(self, telegram_user: "pyrogram.types.User") -> Optional["User"]:
+    def create_user(
+        self, telegram_user: "pyrogram.types.User"
+    ) -> Optional[Tuple["User", bool]]:
         if telegram_user is None:
             return None
 
-        user = None
-        if not User.find_by_key(User.get_key(telegram_user)):
-            user, successful = User.create(User.parse_from_user(telegram_user))
-        return user
+        user, successful = User.create(User.parse_from_user(telegram_user))
+        return user, successful
 
     def get_or_create_user(
         self, telegram_user: "pyrogram.types.User"
@@ -109,7 +109,7 @@ class GraphDatabase:
         user = User.find_by_key(User.get_key(telegram_user))
         if not user:
             # user does not exist in the database, create it
-            user, successful = User.create(User.parse_from_user(telegram_user))
+            user, successful = self.create_user(telegram_user)
 
         return user
 
@@ -125,7 +125,10 @@ class GraphDatabase:
             user, successful = User.update(user, User.parse_from_user(telegram_user))
         else:
             # user does not exist in the database, create it
-            user, successful = User.create(User.parse_from_user(telegram_user))
+            user, successful = self.create_user(telegram_user)
+
+        if not user.is_bot:
+            self.get_or_create_user_favorite_playlist(user)
 
         return user
 
@@ -209,7 +212,9 @@ class GraphDatabase:
         audio = Audio.find_by_key(Audio.get_key(message))
         if audio:
             # audio exists in the database, update the audio
-            audio, successful = Audio.update(audio, Audio.parse_from_message(message))
+            audio, successful = Audio.update(
+                audio, Audio.parse_from_message(message, audio.download_url)
+            )
         else:
             # audio does not exist in the database, create it
             audio = self.create_audio(message)
@@ -362,6 +367,7 @@ class GraphDatabase:
         query_date: int,
         query_metadata: dict,
         audio_docs: List["elasticsearch_db.Audio"],
+        db_audios: List["Audio"],
     ) -> Optional[Tuple[Query, List[Hit]]]:
         if (
             bot_id is None
@@ -370,6 +376,7 @@ class GraphDatabase:
             or query_date is None
             or query_metadata is None
             or audio_docs is None
+            or db_audios is None
         ):
             return None
 
@@ -407,25 +414,23 @@ class GraphDatabase:
                     ToBot.parse_from_query_and_user(db_query, db_bot)
                 )
 
-                for audio_doc in audio_docs:
-                    db_audio = self.get_audio_by_key(audio_doc.id)
-                    if db_audio:
-                        db_hit, successful = Hit.create(
-                            Hit.parse_from_query_and_audio(
-                                db_query,
-                                db_audio,
-                                audio_doc.search_metadata,
-                            )
+                for audio_doc, db_audio in zip(audio_docs, db_audios):
+                    db_hit, successful = Hit.create(
+                        Hit.parse_from_query_and_audio(
+                            db_query,
+                            db_audio,
+                            audio_doc.search_metadata,
                         )
-                        if db_hit and successful:
-                            hits.append(db_hit)
+                    )
+                    if db_hit and successful:
+                        hits.append(db_hit)
 
-                        db_has_hit, successful = Has.create(
-                            Has.parse_from_query_and_hit(db_query, db_hit)
-                        )
-                        db_has_audio, successful = Has.create(
-                            Has.parse_from_hit_and_audio(db_hit, db_audio)
-                        )
+                    db_has_hit, successful = Has.create(
+                        Has.parse_from_query_and_hit(db_query, db_hit)
+                    )
+                    db_has_audio, successful = Has.create(
+                        Has.parse_from_hit_and_audio(db_hit, db_audio)
+                    )
         return db_query, hits
 
     def get_chat_by_chat_id(self, chat_id) -> Optional[Chat]:
@@ -445,6 +450,99 @@ class GraphDatabase:
             return None
 
         return Playlist.find_by_key(key)
+
+    def get_user_playlist_by_title(
+        self, db_user: "User", title: str
+    ) -> Optional[Playlist]:
+        if db_user is None or title is None:
+            return None
+
+        query_template = Template(
+            'for v_pl in 1..1 outbound "$user_id" graph "tase" options {order:"dfs", edgeCollections:['
+            '"$has_edge_name"], '
+            'vertexCollections:["playlists"]}'
+            '  filter v_pl.title == "$title"'
+            "  return v_pl",
+        )
+        query = query_template.substitute(
+            {
+                "user_id": db_user.id,
+                "title": title,
+                "has_edge_name": Has._collection_edge_name,
+            }
+        )
+
+        cursor = self.db.aql.execute(
+            query,
+            count=True,
+        )
+        if cursor and len(cursor):
+            return Playlist.parse_from_graph(vertex=cursor.pop())
+        else:
+            return None
+
+    def get_user_favorite_playlist(self, db_user: "User") -> Optional[Playlist]:
+        if db_user is None:
+            return None
+
+        return self.get_user_playlist_by_title(db_user, "Favorite")
+
+    def get_or_create_user_favorite_playlist(
+        self, db_user: "User"
+    ) -> Optional[Playlist]:
+        if db_user is None:
+            return None
+
+        db_playlist = self.get_user_playlist_by_title(db_user, "Favorite")
+        if db_playlist is None:
+            db_playlist, _ = self.create_user_favorite_playlist(db_user)
+
+        return db_playlist
+
+    def create_user_favorite_playlist(
+        self,
+        db_user: "User",
+    ) -> Optional[Tuple["User", bool]]:
+        if db_user is None:
+            return None
+
+        return self.create_playlist(
+            db_user, title="Favorite", description="Favorite Playlist"
+        )
+
+    def create_playlist(
+        self, db_user: "User", title: str, description: str = None
+    ) -> Optional[Tuple["Playlist", bool]]:
+        if db_user is None or title is None:
+            return None
+
+        v = Playlist(title=title, description=description)
+        v.key = Playlist.generate_token_urlsafe(10)
+        playlist, successful = Playlist.create(v)
+
+        if playlist and successful:
+            db_has = Has.parse_from_user_and_playlist(db_user, playlist)
+            if db_has is not None and not Has.find_by_key(db_has.key):
+                has_edge, _ = Has.create(db_has)
+                created = True
+                successful = True
+            else:
+                created = False
+                successful = True
+
+        return playlist, successful
+
+    def get_or_create_playlist(
+        self, db_user: "User", title: str, description: str = None
+    ) -> Optional["Playlist"]:
+        if db_user is None or title is None:
+            return None
+
+        db_playlist = self.get_user_playlist_by_title(db_user, title)
+        if db_playlist is None:
+            db_playlist, _ = self.create_playlist(db_user, title, description)
+
+        return db_playlist
 
     def get_or_create_download_from_chosen_inline_query(
         self,
@@ -502,7 +600,7 @@ class GraphDatabase:
         else:
             return None
 
-    def get_or_create_download_from_download_link(
+    def get_or_create_download_from_hit_download_url(
         self,
         download_url: "str",
         from_user: "User",
@@ -545,13 +643,30 @@ class GraphDatabase:
 
         return Hit.find_by_download_url(download_url)
 
+    def get_audio_by_download_url(self, download_url: str) -> Optional[Audio]:
+        if download_url is None:
+            return None
+
+        return Audio.find_by_download_url(download_url)
+
     def get_audio_from_hit(self, hit: Hit) -> Optional[Audio]:
         if hit is None:
             return None
 
+        query_template = Template(
+            'for v_audio in 1..1 outbound "$hit_id" graph "tase" options {order:"dfs",edgeCollections:['
+            '"$has_edge_name"], vertexCollections:["audios"]}'
+            "  return v_audio",
+        )
+        query = query_template.substitute(
+            {
+                "hit_id": hit.id,
+                "has_edge_name": Has._collection_edge_name,
+            }
+        )
+
         cursor = self.db.aql.execute(
-            f"for v_audio in 1..1 outbound '{hit.id}' {Has._collection_edge_name}"
-            f"  return v_audio",
+            query,
             count=True,
         )
         if cursor and len(cursor):
@@ -633,19 +748,18 @@ class GraphDatabase:
         return results
 
     def add_audio_to_playlist(
-        self, playlist_key: str, hit_download_url: str
+        self, playlist_key: str, audio_download_url: str
     ) -> Tuple[bool, bool]:
-        if playlist_key is None or hit_download_url is None:
+        if playlist_key is None or audio_download_url is None:
             return False, False
 
         created = False
         successful = False
 
-        db_hit = self.get_hit_by_download_url(hit_download_url)
-        db_audio = self.get_audio_from_hit(db_hit)
+        db_audio = self.get_audio_by_download_url(audio_download_url)
         db_playlist = self.get_playlist_by_key(playlist_key)
 
-        if db_hit and db_audio and db_playlist:
+        if db_audio and db_playlist:
             if db_audio.title is not None:
                 # todo: fix me
                 # if title is empty, audio cannot be used in inline mode
@@ -699,4 +813,26 @@ class GraphDatabase:
             count=True,
         ):
             results.append(Audio.parse_from_graph(aud))
+        return results
+
+    def get_audios_from_keys(self, audio_keys: List[str]) -> Optional[List["Audio"]]:
+        if audio_keys is None or not len(audio_keys):
+            return None
+
+        query_template = Template('return document("$audios",$audio_keys)')
+        query = query_template.substitute(
+            {"audios": Audio._vertex_name, "audio_keys": audio_keys}
+        )
+
+        results = []
+        try:
+
+            cursor = self.aql.execute(query, count=True)
+            if cursor and len(cursor):
+                audios_raw = cursor.pop()
+                for audio_raw in audios_raw:
+                    results.append(Audio.parse_from_graph(audio_raw))
+        except Exception as e:
+            pass
+
         return results

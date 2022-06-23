@@ -64,7 +64,9 @@ class PlaylistItem(BaseInlineItem):
             title=db_playlist.title,
             description=f"{db_playlist.description}",
             id=f"{inline_query.id}->{db_playlist.key}",
-            thumb_url="https://telegra.ph/file/ac2d210b9b0e5741470a1.jpg",
+            thumb_url="https://telegra.ph/file/ac2d210b9b0e5741470a1.jpg"
+            if db_playlist.title != "Favorite"
+            else "https://telegra.ph/file/07d5ca30dba31b5241bcf.jpg",
             input_message_content=InputTextMessageContent(
                 message_text=BaseTemplate.registry.playlist_template.render(data),
             ),

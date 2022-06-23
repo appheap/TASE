@@ -1,6 +1,7 @@
+import secrets
 from typing import Optional
 
-from arango import DocumentInsertError, DocumentUpdateError, DocumentRevisionError
+from arango import DocumentInsertError, DocumentRevisionError, DocumentUpdateError
 from arango.collection import VertexCollection
 from pydantic import BaseModel, Field
 
@@ -31,6 +32,15 @@ class BaseVertex(BaseModel):
 
     class Config:
         arbitrary_types_allowed = True
+
+    @staticmethod
+    def generate_token_urlsafe(nbytes: int = 6):
+        while True:
+            # todo: make sure the generated token is unique
+            download_url = secrets.token_urlsafe(nbytes)
+            if download_url.find("-") == -1:
+                break
+        return download_url
 
     def _to_graph(self) -> dict:
         temp_dict = self.dict()

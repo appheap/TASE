@@ -9,6 +9,11 @@ from .base_vertex import BaseVertex
 class Audio(BaseVertex):
     _vertex_name = "audios"
 
+    _do_not_update = [
+        "created_at",
+        "download_url",
+    ]
+
     chat_id: int
     message_id: int
     message_caption: Optional[str]
@@ -24,12 +29,17 @@ class Audio(BaseVertex):
     file_size: int
     date: int
 
+    download_url: Optional[str]
+
     @staticmethod
     def get_key(message: "pyrogram.types.Message"):
         return f"{message.audio.file_unique_id}:{message.chat.id}:{message.id}"
 
     @staticmethod
-    def parse_from_message(message: "pyrogram.types.Message") -> Optional["Audio"]:
+    def parse_from_message(
+        message: "pyrogram.types.Message",
+        old_download_url: str = None,
+    ) -> Optional["Audio"]:
         if not message or not message.audio:
             return None
 
@@ -48,4 +58,18 @@ class Audio(BaseVertex):
             mime_type=message.audio.mime_type,
             file_size=message.audio.file_size,
             date=get_timestamp(message.audio.date),
+            download_url=Audio.generate_token_urlsafe()
+            if old_download_url is None
+            else None,
         )
+
+    @classmethod
+    def find_by_download_url(cls, download_url: str) -> Optional["Audio"]:
+        if download_url is None:
+            return None
+
+        cursor = cls._db.find({"download_url": download_url})
+        if cursor and len(cursor):
+            return cls.parse_from_graph(cursor.pop())
+        else:
+            return None

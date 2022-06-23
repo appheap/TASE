@@ -28,7 +28,7 @@ class AudioItem(BaseInlineItem):
             [
                 InlineButton.get_button("add_to_playlist").get_inline_keyboard_button(
                     db_from_user.chosen_language_code,
-                    db_hit.download_url if db_hit else "download_url",  # todo: fix me
+                    db_audio.download_url,
                 ),
             ],
         ]

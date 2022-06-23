@@ -65,13 +65,13 @@ class AddToPlaylistInlineButton(InlineButton):
         db_from_user: graph_models.vertices.User,
         reg: Match,
     ):
-        hit_download_url = reg.group("arg1")
+        audio_download_url = reg.group("arg1")
 
         result_id_list = chosen_inline_result.result_id.split("->")
         inline_query_id = result_id_list[0]
         playlist_key = result_id_list[1]
 
-        # db_hit = db.get_hit_by_download_url(hit_download_url)
+        # db_hit = db.get_hit_by_download_url(audio_download_url)
         # db_audio = db.get_audio_from_hit(db_hit)
 
         if playlist_key == "add_a_new_playlist":
@@ -80,7 +80,7 @@ class AddToPlaylistInlineButton(InlineButton):
         else:
             # add the audio to the playlist
             created, successful = db.add_audio_to_playlist(
-                playlist_key, hit_download_url
+                playlist_key, audio_download_url
             )
 
             # todo: update these messages

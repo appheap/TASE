@@ -28,15 +28,6 @@ class Hit(BaseVertex):
         return f"{q.key}:{audio.key}:{q.query_date}"
 
     @staticmethod
-    def generate_download_url():
-        while True:
-            # todo: make sure the generated token is unique
-            download_url = secrets.token_urlsafe(6)
-            if download_url.find("-") == -1:
-                break
-        return download_url
-
-    @staticmethod
     def parse_from_query_and_audio(
         query: "Query",
         audio: "Audio",
@@ -46,13 +37,12 @@ class Hit(BaseVertex):
             return None
 
         key = Hit.get_key(query, audio)
-        download_url = Hit.generate_download_url()
         return Hit(
             key=key,
             rank=search_metadata.rank,
             score=search_metadata.score,
             query_date=query.query_date,
-            download_url=download_url,
+            download_url=Hit.generate_token_urlsafe(),
         )
 
     @staticmethod
@@ -65,13 +55,12 @@ class Hit(BaseVertex):
             return None
 
         key = Hit.get_key(inline_query, audio)
-        download_url = Hit.generate_download_url()
         return Hit(
             key=key,
             rank=search_metadata.rank,
             score=search_metadata.score,
             query_date=inline_query.query_date,
-            download_url=download_url,
+            download_url=Hit.generate_token_urlsafe(),
         )
 
     @classmethod

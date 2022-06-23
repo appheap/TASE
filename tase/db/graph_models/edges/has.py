@@ -29,6 +29,20 @@ class Has(BaseEdge):
     _to_vertex_collections = [Playlist, Audio, Hit, QueryKeyword]
 
     @staticmethod
+    def parse_from_user_and_playlist(
+        user: "User", playlist: "Playlist"
+    ) -> Optional["Has"]:
+        if user is None or playlist is None:
+            return None
+
+        key = f"{user.key}@{playlist.key}"
+        return Has(
+            key=key,
+            from_node=user,
+            to_node=playlist,
+        )
+
+    @staticmethod
     def parse_from_playlist_and_audio(
         playlist: "Playlist", audio: "Audio"
     ) -> Optional["Has"]:

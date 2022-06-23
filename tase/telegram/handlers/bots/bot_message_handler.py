@@ -19,6 +19,7 @@ from tase.telegram.templates import (
     BaseTemplate,
 )
 from tase.utils import get_timestamp, _trans
+from tase.db import elasticsearch_models
 
 
 class BotMessageHandler(BaseHandler):
@@ -155,7 +156,8 @@ class BotMessageHandler(BaseHandler):
                     InlineButton.get_button(
                         "add_to_playlist"
                     ).get_inline_keyboard_button(
-                        db_user.chosen_language_code, db_hit.download_url
+                        db_user.chosen_language_code,
+                        db_audio.download_url,
                     ),
                 ],
                 [
@@ -173,7 +175,7 @@ class BotMessageHandler(BaseHandler):
                 reply_markup=markup,
             )
 
-            db_download = self.db.get_or_create_download_from_download_url(
+            db_download = self.db.get_or_create_download_from_hit_download_url(
                 download_url,
                 db_user,
                 self.telegram_client.telegram_id,
@@ -219,6 +221,8 @@ class BotMessageHandler(BaseHandler):
             if not db_audio_docs or not len(db_audio_docs) or not len(query_metadata):
                 found_any = False
 
+            db_audios = self.db.get_audios_from_keys([doc.id for doc in db_audio_docs])
+
             db_query, db_hits = self.db.get_or_create_query(
                 self.telegram_client.telegram_id,
                 from_user,
@@ -226,16 +230,17 @@ class BotMessageHandler(BaseHandler):
                 query_date=get_timestamp(message.date),
                 query_metadata=query_metadata,
                 audio_docs=db_audio_docs,
+                db_audios=db_audios,
             )
 
         if found_any:
 
-            def process_item(index, db_audio, db_hit):
-                duration = timedelta(seconds=db_audio.duration)
+            def process_item(index, db_audio_doc: "elasticsearch_models.Audio", db_hit):
+                duration = timedelta(seconds=db_audio_doc.duration)
                 d = datetime(1, 1, 1) + duration
-                _performer = db_audio.performer or ""
-                _title = db_audio.title or ""
-                _file_name = db_audio.file_name or ""
+                _performer = db_audio_doc.performer or ""
+                _title = db_audio_doc.title or ""
+                _file_name = db_audio_doc.file_name or ""
                 if not (len(_title) < 2 or len(_performer) < 2):
                     name = f"{_performer} - {_title}"
                 elif not len(_performer) < 2:
@@ -246,7 +251,7 @@ class BotMessageHandler(BaseHandler):
                 return {
                     "index": f"{index + 1:02}",
                     "name": textwrap.shorten(name, width=35, placeholder="..."),
-                    "file_size": round(db_audio.file_size / 1000_000, 1),
+                    "file_size": round(db_audio_doc.file_size / 1000_000, 1),
                     "time": f"{str(d.hour) + ':' if d.hour > 0 else ''}{d.minute:02}:{d.second:02}",
                     "url": db_hit.download_url,
                     "sep": f"{40 * '-' if index != 0 else ''}",
@@ -255,7 +260,14 @@ class BotMessageHandler(BaseHandler):
             items = [
                 process_item(index, db_audio, db_hit)
                 for index, (db_audio, db_hit) in reversed(
-                    list(enumerate(zip(db_audio_docs, db_hits)))
+                    list(
+                        enumerate(
+                            filter(
+                                lambda args: args[0].title is not None,
+                                zip(db_audio_docs, db_hits),
+                            )
+                        )
+                    )
                 )
             ]
 

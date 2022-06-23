@@ -141,6 +141,7 @@ class DatabaseClient:
         query_date: int,
         query_metadata: dict,
         audio_docs: List[elasticsearch_models.Audio],
+        db_audios: List[graph_models.vertices.Audio],
     ) -> Optional[Tuple[graph_models.vertices.Query, List[graph_models.vertices.Hit]]]:
         if (
             bot_id is None
@@ -149,11 +150,12 @@ class DatabaseClient:
             or query_date is None
             or query_metadata is None
             or audio_docs is None
+            or db_audios is None
         ):
             return None
 
         return self._graph_db.get_or_create_query(
-            bot_id, from_user, query, query_date, query_metadata, audio_docs
+            bot_id, from_user, query, query_date, query_metadata, audio_docs, db_audios
         )
 
     def search_audio(
@@ -206,7 +208,7 @@ class DatabaseClient:
             chosen_inline_result, bot_id
         )
 
-    def get_or_create_download_from_download_url(
+    def get_or_create_download_from_hit_download_url(
         self,
         download_url: str,
         from_user: "graph_models.vertices.User",
@@ -215,7 +217,7 @@ class DatabaseClient:
         if download_url is None or bot_id is None or from_user is None:
             return None
 
-        return self._graph_db.get_or_create_download_from_download_link(
+        return self._graph_db.get_or_create_download_from_hit_download_url(
             download_url, from_user, bot_id
         )
 
@@ -260,12 +262,12 @@ class DatabaseClient:
         return self._graph_db.get_user_playlists(db_from_user, offset, limit)
 
     def add_audio_to_playlist(
-        self, playlist_key: str, hit_download_url: str
+        self, playlist_key: str, audio_download_url: str
     ) -> Tuple[bool, bool]:
-        if playlist_key is None or hit_download_url is None:
+        if playlist_key is None or audio_download_url is None:
             return False, False
 
-        return self._graph_db.add_audio_to_playlist(playlist_key, hit_download_url)
+        return self._graph_db.add_audio_to_playlist(playlist_key, audio_download_url)
 
     def get_playlist_audios(
         self,
@@ -291,3 +293,11 @@ class DatabaseClient:
             return None
 
         return self._graph_db.get_playlist_by_key(key)
+
+    def get_audios_from_keys(
+        self, audio_keys: List[str]
+    ) -> Optional[List[graph_models.vertices.Audio]]:
+        if audio_keys is None or not len(audio_keys):
+            return None
+
+        return self._graph_db.get_audios_from_keys(audio_keys)
