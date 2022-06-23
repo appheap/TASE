@@ -7,9 +7,10 @@ from typing import Dict, Optional
 import kombu
 from pyrogram import idle
 
+from tase.configs import ClientTypes
 from tase.db.database_client import DatabaseClient
 from tase.my_logger import logger
-from tase.telegram import ClientTypes, TelegramClient
+from tase.telegram import TelegramClient
 from tase.telegram.client_worker import ClientWorkerThread
 from tase.telegram.handlers.base import ClientDisconnectHandler
 from tase.telegram.handlers.bots import (
