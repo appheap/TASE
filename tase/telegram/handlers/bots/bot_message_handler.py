@@ -12,7 +12,12 @@ from tase.db import elasticsearch_models
 from tase.my_logger import logger
 from tase.telegram.handlers import BaseHandler, HandlerMetadata, exception_handler
 from tase.telegram.inline_buttons import InlineButton
-from tase.telegram.templates import (AudioCaptionData, BaseTemplate, NoResultsWereFoundData, QueryResultsData)
+from tase.telegram.templates import (
+    AudioCaptionData,
+    BaseTemplate,
+    NoResultsWereFoundData,
+    QueryResultsData,
+)
 from tase.utils import _trans, get_timestamp
 
 
@@ -202,8 +207,11 @@ class BotMessageHandler(BaseHandler):
         # update the user
         db_from_user = self.db.update_or_create_user(message.from_user)
 
-        # todo: fix this
-        db_from_user = self.db.get_user_by_user_id(message.from_user.id)
+        if db_from_user.chosen_language_code is None or not len(
+            db_from_user.chosen_language_code
+        ):
+            self.choose_language(client, db_from_user)
+            return
 
         found_any = True
         db_audio_docs = []
@@ -217,7 +225,7 @@ class BotMessageHandler(BaseHandler):
 
             db_audios = self.db.get_audios_from_keys([doc.id for doc in db_audio_docs])
 
-            db_query, db_hits = self.db.get_or_create_query(
+            res = self.db.get_or_create_query(
                 self.telegram_client.telegram_id,
                 from_user,
                 query,
@@ -226,6 +234,10 @@ class BotMessageHandler(BaseHandler):
                 audio_docs=db_audio_docs,
                 db_audios=db_audios,
             )
+            if res is not None:
+                db_query, db_hits = res
+            else:
+                found_any = False
 
         if found_any:
 

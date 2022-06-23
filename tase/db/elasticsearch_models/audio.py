@@ -140,3 +140,27 @@ class Audio(BaseDocument):
             logger.exception(e)
 
         return db_docs[0] if len(db_docs) else None
+
+    @classmethod
+    def get_query(cls, query: Optional[str]):
+        return {
+            "bool": {
+                "must": {
+                    "multi_match": {
+                        "query": query,
+                        "fuzziness": "AUTO",
+                        "type": "best_fields",
+                        "minimum_should_match": "60%",
+                        "fields": cls._search_fields,
+                    }
+                },
+                "filter": {"exists": {"field": "title"}},
+            }
+        }
+
+    @classmethod
+    def get_sort(cls):
+        return {
+            "download_count": {"order": "desc"},
+            "date": {"order": "desc"},
+        }

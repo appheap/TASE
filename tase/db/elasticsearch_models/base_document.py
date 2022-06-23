@@ -54,7 +54,9 @@ class BaseDocument(BaseModel):
         body.update({"id": hit["_id"]})
 
         obj = cls(**body)
-        obj.search_metadata = SearchMetaData(rank=rank, score=hit.get("_score", None))
+        obj.search_metadata = SearchMetaData(
+            rank=rank, score=hit.get("_score", None) or 0.0
+        )
         return obj
 
     def _update_doc_from_old_doc(self, old_doc: "BaseDocument"):
@@ -188,15 +190,8 @@ class BaseDocument(BaseModel):
                 index=cls._index_name,
                 from_=from_,
                 size=size,
-                query={
-                    "multi_match": {
-                        "query": query,
-                        "fuzziness": "AUTO",
-                        "type": "best_fields",
-                        "minimum_should_match": "60%",
-                        "fields": cls._search_fields,
-                    },
-                },
+                query=cls.get_query(query),
+                sort=cls.get_sort(),
             )
 
             hits = res.body["hits"]["hits"]
@@ -221,3 +216,19 @@ class BaseDocument(BaseModel):
             logger.exception(e)
 
         return db_docs, search_metadata
+
+    @classmethod
+    def get_query(cls, query: Optional[str]):
+        return {
+            "multi_match": {
+                "query": query,
+                "fuzziness": "AUTO",
+                "type": "best_fields",
+                "minimum_should_match": "60%",
+                "fields": cls._search_fields,
+            },
+        }
+
+    @classmethod
+    def get_sort(cls):
+        return None
