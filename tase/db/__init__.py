@@ -1,7 +1,4 @@
-from . import document_models
-from . import elasticsearch_models
-from . import graph_models
-
+from . import document_models, elasticsearch_models, graph_models
 from .database_client import DatabaseClient
 from .document_db import DocumentDatabase
 from .elasticsearch_db import ElasticsearchDatabase

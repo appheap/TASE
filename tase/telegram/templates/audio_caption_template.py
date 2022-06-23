@@ -4,10 +4,10 @@ from typing import Optional
 
 from jinja2 import Template
 
-from tase.static import Emoji
-from .base_template import BaseTemplate, BaseTemplateData
 from tase.db import elasticsearch_models, graph_models
+from tase.static import Emoji
 from tase.utils import _trans
+from .base_template import BaseTemplate, BaseTemplateData
 
 
 class AudioCaptionTemplate(BaseTemplate):

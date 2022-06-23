@@ -1,7 +1,7 @@
 from typing import Optional
 
 from .base_edge import BaseEdge
-from ..vertices import User, Download
+from ..vertices import Download, User
 
 
 class Downloaded(BaseEdge):

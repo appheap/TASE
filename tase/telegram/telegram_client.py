@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Optional, Coroutine, Union, List, Iterable
+from typing import Coroutine, Iterable, List, Optional, Union
 
 import pyrogram
 from pyrogram.handlers.handler import Handler

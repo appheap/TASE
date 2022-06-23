@@ -1,7 +1,7 @@
 from typing import Optional
 
 from .base_edge import BaseEdge
-from ..vertices import Hit, Download
+from ..vertices import Download, Hit
 
 
 class FromHit(BaseEdge):

@@ -1,7 +1,6 @@
-from typing import Optional, List
+from typing import List, Optional
 
 import pyrogram
-from arango.collection import VertexCollection
 
 from .base_vertex import BaseVertex
 from .restriction import Restriction

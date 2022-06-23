@@ -1,7 +1,7 @@
 from typing import Optional
 
 from .base_edge import BaseEdge
-from ..vertices import InlineQuery, User, Query
+from ..vertices import InlineQuery, Query, User
 
 
 class ToBot(BaseEdge):

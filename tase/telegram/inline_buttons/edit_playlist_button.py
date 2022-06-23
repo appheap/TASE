@@ -2,10 +2,9 @@ import pyrogram
 
 from .inline_button import InlineButton
 from ..telegram_client import TelegramClient
-
 # from ..handlers import BaseHandler
 from ...db import DatabaseClient, graph_models
-from ...utils import emoji, _trans
+from ...utils import _trans, emoji
 
 
 class EditPlaylistInlineButton(InlineButton):

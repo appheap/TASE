@@ -1,13 +1,13 @@
-from typing import Optional, List, Tuple
+from typing import List, Optional, Tuple
 
 import pyrogram.types
 
 from tase.my_logger import logger
-from . import graph_models, elasticsearch_models, document_models
+from . import document_models, elasticsearch_models, graph_models
 from .document_db import DocumentDatabase
 from .elasticsearch_db import ElasticsearchDatabase
 from .graph_db import GraphDatabase
-from ..configs import ElasticConfig, ArangoDBConfig
+from ..configs import ArangoDBConfig, ElasticConfig
 
 
 class DatabaseClient:
@@ -111,6 +111,7 @@ class DatabaseClient:
         query_date: int,
         query_metadata: dict,
         audio_docs: List[elasticsearch_models.Audio],
+        db_audios: List[graph_models.vertices.Audio],
         next_offset: Optional[str],
     ) -> Optional[
         Tuple[graph_models.vertices.InlineQuery, List[graph_models.vertices.Hit]]
@@ -121,6 +122,7 @@ class DatabaseClient:
             or query_date is None
             or query_metadata is None
             or audio_docs is None
+            or db_audios is None
         ):
             return None
 
@@ -130,6 +132,7 @@ class DatabaseClient:
             query_date,
             query_metadata,
             audio_docs,
+            db_audios,
             next_offset,
         )
 

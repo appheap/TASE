@@ -8,7 +8,7 @@ from pyrogram.types import (
 )
 
 from .base_inline_item import BaseInlineItem
-from ..templates import PlaylistData, BaseTemplate
+from ..templates import BaseTemplate, PlaylistData
 from ...db import graph_models
 
 

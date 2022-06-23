@@ -1,7 +1,7 @@
 from typing import Optional, Tuple
 
 from elastic_transport import ObjectApiResponse
-from elasticsearch import Elasticsearch, ConflictError, NotFoundError
+from elasticsearch import ConflictError, Elasticsearch, NotFoundError
 from pydantic import BaseModel, Field
 
 from tase.my_logger import logger

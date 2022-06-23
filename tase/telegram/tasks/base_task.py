@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List, Callable
+from typing import Callable, List
 
 from tase.db.database_client import DatabaseClient
 from tase.my_logger import logger

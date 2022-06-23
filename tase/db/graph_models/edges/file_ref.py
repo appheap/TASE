@@ -1,7 +1,7 @@
 from typing import Optional
 
 from .base_edge import BaseEdge
-from ..vertices import File, Audio
+from ..vertices import Audio, File
 
 
 class FileRef(BaseEdge):

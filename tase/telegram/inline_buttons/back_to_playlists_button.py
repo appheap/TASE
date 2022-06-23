@@ -1,7 +1,6 @@
 from .my_playlists_button import MyPlaylistsInlineButton
-
 # from ..handlers import BaseHandler
-from ...utils import emoji, _trans
+from ...utils import _trans, emoji
 
 
 class BackToPlaylistsInlineButton(MyPlaylistsInlineButton):

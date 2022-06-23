@@ -1,25 +1,19 @@
 import textwrap
-from datetime import timedelta, datetime
+from datetime import datetime, timedelta
 from typing import List
 
 import pyrogram
 from jinja2 import Template
-from pyrogram import filters
-from pyrogram import handlers
+from pyrogram import filters, handlers
 from pyrogram.enums import ParseMode
 from pyrogram.types import InlineKeyboardMarkup
 
+from tase.db import elasticsearch_models
 from tase.my_logger import logger
 from tase.telegram.handlers import BaseHandler, HandlerMetadata, exception_handler
 from tase.telegram.inline_buttons import InlineButton
-from tase.telegram.templates import (
-    QueryResultsData,
-    NoResultsWereFoundData,
-    AudioCaptionData,
-    BaseTemplate,
-)
-from tase.utils import get_timestamp, _trans
-from tase.db import elasticsearch_models
+from tase.telegram.templates import (AudioCaptionData, BaseTemplate, NoResultsWereFoundData, QueryResultsData)
+from tase.utils import _trans, get_timestamp
 
 
 class BotMessageHandler(BaseHandler):

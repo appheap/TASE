@@ -4,14 +4,13 @@ import re
 from typing import List
 
 import pyrogram
-from pyrogram import filters
-from pyrogram import handlers
+from pyrogram import filters, handlers
 
 from tase.db import elasticsearch_models
 from tase.my_logger import logger
 from tase.telegram.handlers import BaseHandler, HandlerMetadata, exception_handler
 from tase.telegram.inline_buttons import InlineButton
-from tase.telegram.inline_items import NoResultItem, AudioItem
+from tase.telegram.inline_items import AudioItem, NoResultItem
 from tase.utils import get_timestamp
 
 known_mime_types = (
@@ -98,30 +97,39 @@ class InlineQueryHandler(BaseHandler):
 
                 temp_res.append((db_audio_file_cache, db_audio_doc))
 
-            next_offset = str(from_ + len(temp_res) + 1) if len(temp_res) else None
-            db_inline_query, db_hits = self.db.get_or_create_inline_query(
+            db_audios = self.db.get_audios_from_keys([tup[1].id for tup in temp_res])
+
+            next_offset = (
+                str(from_ + len(db_audio_docs) + 1) if len(db_audio_docs) else None
+            )
+            res = self.db.get_or_create_inline_query(
                 self.telegram_client.telegram_id,
                 inline_query,
                 query_date=query_date,
                 query_metadata=query_metadata,
                 audio_docs=db_audio_docs,
+                db_audios=db_audios,
                 next_offset=next_offset,
             )
+            if res is not None:
+                db_inline_query, db_hits = res
 
-            if db_inline_query and db_hits:
-                for (db_audio_file_cache, db_audio_doc), db_hit in zip(
-                    temp_res, db_hits
-                ):
-                    results.append(
-                        AudioItem.get_item(
-                            db_audio_file_cache,
-                            db_from_user,
-                            db_audio_doc,
-                            inline_query,
-                            chats_dict,
-                            db_hit,
+                if db_inline_query and db_hits:
+                    for (db_audio_file_cache, db_audio_doc), db_audio, db_hit in zip(
+                        temp_res,
+                        db_audios,
+                        db_hits,
+                    ):
+                        results.append(
+                            AudioItem.get_item(
+                                db_audio_file_cache,
+                                db_from_user,
+                                db_audio,
+                                inline_query,
+                                chats_dict,
+                                db_hit,
+                            )
                         )
-                    )
 
             # logger.info(
             #     f"{inline_query.id} : {inline_query.query} ({len(results)}) => {inline_query.offset} : {next_offset}")

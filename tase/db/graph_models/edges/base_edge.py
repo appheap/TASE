@@ -1,6 +1,6 @@
-from typing import Optional, List
+from typing import List, Optional
 
-from arango import DocumentInsertError, DocumentUpdateError, DocumentRevisionError
+from arango import DocumentInsertError, DocumentRevisionError, DocumentUpdateError
 from arango.collection import EdgeCollection
 from pydantic import BaseModel, Field
 

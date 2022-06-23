@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import multiprocessing as mp
 import threading
-from typing import Optional, Dict
+from typing import Dict, Optional
 
 import kombu
 from pyrogram import idle

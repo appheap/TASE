@@ -1,7 +1,7 @@
-import colorlog
+from logging import CRITICAL, DEBUG, ERROR, FATAL, INFO, Logger, NOTSET, WARNING
 
-from logging import Logger, INFO, DEBUG, ERROR, CRITICAL, WARNING, FATAL, NOTSET
-from decouple import config, AutoConfig
+import colorlog
+from decouple import config
 
 _nameToLevel = {
     "CRITICAL": CRITICAL,

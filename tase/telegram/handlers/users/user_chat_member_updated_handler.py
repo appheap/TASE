@@ -1,9 +1,9 @@
 from typing import List
 
-from tase.my_logger import logger
 import pyrogram
 from pyrogram import handlers
 
+from tase.my_logger import logger
 from tase.telegram.handlers import BaseHandler, HandlerMetadata, exception_handler
 
 

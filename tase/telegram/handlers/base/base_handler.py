@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import Dict, List, Callable, Union
+from typing import Callable, Dict, List, Union
 
 import kombu
 import pyrogram
@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from pyrogram.enums import ParseMode
 from pyrogram.types import InlineKeyboardMarkup
 
-from tase.db import graph_models, elasticsearch_models
+from tase.db import elasticsearch_models, graph_models
 from tase.db.database_client import DatabaseClient
 from tase.my_logger import logger
 from tase.utils import languages_object
@@ -17,11 +17,11 @@ from .handler_metadata import HandlerMetadata
 from ...inline_buttons import InlineButton
 from ...telegram_client import TelegramClient
 from ...templates import (
-    HomeData,
-    ChooseLanguageData,
-    WelcomeData,
-    HelpData,
     BaseTemplate,
+    ChooseLanguageData,
+    HelpData,
+    HomeData,
+    WelcomeData,
 )
 
 

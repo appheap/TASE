@@ -2,10 +2,9 @@ from typing import List
 
 import pyrogram
 from pyrogram import handlers
+
 from tase.my_logger import logger
-from tase.telegram.globals import client_task
 from tase.telegram.handlers import BaseHandler, HandlerMetadata, exception_handler
-from tase.telegram.tasks import IndexAudiosTask
 
 
 class UserMessageHandler(BaseHandler):

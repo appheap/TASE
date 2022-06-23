@@ -1,16 +1,14 @@
 from threading import Thread
-from typing import Dict
-from typing import List
+from typing import Dict, List
 
+from decouple import config
 from kombu import Consumer
 from kombu.mixins import ConsumerProducerMixin
 from kombu.transport import pyamqp
 
-from tase.my_logger import logger
 from . import TelegramClient
 from .globals import *
 from ..db.database_client import DatabaseClient
-from decouple import config
 
 
 class ClientTaskConsumer(ConsumerProducerMixin):

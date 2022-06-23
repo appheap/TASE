@@ -2,10 +2,9 @@ from typing import List
 
 import arrow
 import pyrogram
-
-from tase.my_logger import logger
 from pyrogram import handlers
 
+from tase.my_logger import logger
 from tase.telegram.handlers import BaseHandler, HandlerMetadata, exception_handler
 
 

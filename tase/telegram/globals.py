@@ -1,10 +1,10 @@
 import kombu
+from decouple import config
 from kombu import Connection, Exchange, Queue, uuid
 
 from tase.my_logger import logger
 from tase.telegram.tasks.base_task import BaseTask
 from tase.utils import prettify
-from decouple import config
 
 tase_telegram_exchange = Exchange("tase_telegram_exchange", "direct", durable=True)
 tase_telegram_queue = Queue(

@@ -1,7 +1,7 @@
 from typing import Optional
 
 from .base_edge import BaseEdge
-from ..vertices import User, Chat
+from ..vertices import Chat, User
 
 
 class IsCreatorOf(BaseEdge):

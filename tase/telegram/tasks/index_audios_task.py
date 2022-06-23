@@ -1,4 +1,4 @@
-from dataclasses import field, dataclass
+from dataclasses import dataclass, field
 
 from .base_task import BaseTask, exception_handler
 from ..telegram_client import TelegramClient

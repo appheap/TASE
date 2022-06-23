@@ -6,7 +6,7 @@ from pyrogram.types import InlineKeyboardMarkup, InlineQueryResultCachedAudio
 
 from .base_inline_item import BaseInlineItem
 from ..templates import AudioCaptionData, BaseTemplate
-from ...db import graph_models, document_models, elasticsearch_models
+from ...db import document_models, elasticsearch_models, graph_models
 
 
 class AudioItem(BaseInlineItem):

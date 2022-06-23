@@ -1,6 +1,5 @@
 from .inline_button import InlineButton
-
-from ...utils import emoji, _trans
+from ...utils import _trans, emoji
 
 
 class AdvertisementInlineButton(InlineButton):

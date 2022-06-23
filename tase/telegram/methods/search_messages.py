@@ -1,10 +1,8 @@
 import asyncio
-from typing import Union, List, Optional, Generator
+from typing import List, Union
 
 import pyrogram
-from pyrogram import raw
-from pyrogram import types
-from pyrogram import utils
+from pyrogram import raw, types, utils
 
 
 class Filters:

@@ -1,6 +1,6 @@
 from typing import Optional
 
-from arango import DocumentInsertError, DocumentUpdateError, DocumentRevisionError
+from arango import DocumentInsertError, DocumentRevisionError, DocumentUpdateError
 from arango.collection import StandardCollection
 from pydantic import BaseModel, Field
 

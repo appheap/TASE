@@ -1,16 +1,7 @@
 from typing import Optional
 
 from .base_edge import BaseEdge
-from ..vertices import (
-    Audio,
-    Playlist,
-    Hit,
-    User,
-    InlineQuery,
-    Query,
-    QueryKeyword,
-    Download,
-)
+from ..vertices import (Audio, Download, Hit, InlineQuery, Playlist, Query, QueryKeyword, User)
 
 
 class Has(BaseEdge):

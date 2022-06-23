@@ -291,6 +291,7 @@ class GraphDatabase:
         query_date: int,
         query_metadata: dict,
         audio_docs: List["elasticsearch_db.Audio"],
+        db_audios: List["Audio"],
         next_offset: Optional[str],
     ) -> Optional[Tuple[InlineQuery, List[Hit]]]:
         if (
@@ -299,6 +300,7 @@ class GraphDatabase:
             or query_date is None
             or query_metadata is None
             or audio_docs is None
+            or db_audios is None
         ):
             return None
         db_bot = self.get_user_by_user_id(bot_id)
@@ -337,26 +339,24 @@ class GraphDatabase:
                     ToBot.parse_from_inline_query_and_user(db_inline_query, db_bot)
                 )
 
-                for audio_doc in audio_docs:
-                    db_audio = self.get_audio_by_key(audio_doc.id)
-                    if db_audio:
-                        db_hit, successful = Hit.create(
-                            Hit.parse_from_inline_query_and_audio(
-                                db_inline_query,
-                                db_audio,
-                                audio_doc.search_metadata,
-                            )
+                for audio_doc, db_audio in zip(audio_docs, db_audios):
+                    db_hit, successful = Hit.create(
+                        Hit.parse_from_inline_query_and_audio(
+                            db_inline_query,
+                            db_audio,
+                            audio_doc.search_metadata,
                         )
+                    )
 
-                        if db_hit and successful:
-                            hits.append(db_hit)
+                    if db_hit and successful:
+                        hits.append(db_hit)
 
-                        db_has_hit, successful = Has.create(
-                            Has.parse_from_inline_query_and_hit(db_inline_query, db_hit)
-                        )
-                        db_has_audio, successful = Has.create(
-                            Has.parse_from_hit_and_audio(db_hit, db_audio)
-                        )
+                    db_has_hit, successful = Has.create(
+                        Has.parse_from_inline_query_and_hit(db_inline_query, db_hit)
+                    )
+                    db_has_audio, successful = Has.create(
+                        Has.parse_from_hit_and_audio(db_hit, db_audio)
+                    )
         return db_inline_query, hits
 
     def get_or_create_query(
