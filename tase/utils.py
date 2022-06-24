@@ -70,7 +70,10 @@ if not len(languages):
         languages[lang_code] = lang.gettext
 
 
-def _trans(text: str, lang_code: str = "en") -> str:
+def _trans(
+    text: str,
+    lang_code: str = "en",
+) -> str:
     """
     Translates the given text to another language given by the `lang_code` parameter
 
@@ -81,7 +84,10 @@ def _trans(text: str, lang_code: str = "en") -> str:
     return translate_text(text, lang_code)
 
 
-def translate_text(text: str, lang_code: str = "en") -> str:
+def translate_text(
+    text: str,
+    lang_code: str = "en",
+) -> str:
     """
     Translates the given text to another language given by the `lang_code` parameter
 
@@ -97,7 +103,9 @@ languages_object = Languages(
 )
 
 
-def _get_config_from_file(file_path: str) -> Optional["dict"]:
+def _get_config_from_file(
+    file_path: str,
+) -> Optional["dict"]:
     try:
         with open(file_path, "rb") as f:
             return tomli.load(f)
@@ -160,7 +168,11 @@ def default_no_class_name(obj: object):
     )
 
 
-def prettify(obj: object, sort_keys=False, include_class_name=True) -> "str":
+def prettify(
+    obj: object,
+    sort_keys=False,
+    include_class_name=True,
+) -> "str":
     return json.dumps(
         obj,
         indent=4,
@@ -170,7 +182,9 @@ def prettify(obj: object, sort_keys=False, include_class_name=True) -> "str":
     )
 
 
-def get_timestamp(date=None) -> int:
+def get_timestamp(
+    date=None,
+) -> int:
     if date is not None:
         return int(arrow.get(date).timestamp())
     return int(arrow.utcnow().timestamp())

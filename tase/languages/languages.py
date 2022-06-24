@@ -23,7 +23,10 @@ class Languages(BaseModel):
 
         return InlineKeyboardMarkup(markup_list)
 
-    def get_language_by_code(self, lang_code: str) -> Optional[Language]:
+    def get_language_by_code(
+        self,
+        lang_code: str,
+    ) -> Optional[Language]:
         if lang_code is None:
             return None
         return self.mappings.get(lang_code, None)
