@@ -5,6 +5,7 @@ import pyrogram
 from .inline_button import InlineButton
 from ..inline_items import AudioItem, NoDownloadItem, PlaylistItem
 from ..telegram_client import TelegramClient
+
 # from ..handlers import BaseHandler
 from ...db import DatabaseClient, graph_models
 from ...my_logger import logger
@@ -36,38 +37,56 @@ class GetPlaylistAudioInlineButton(InlineButton):
             from_ = int(inline_query.offset)
 
         results = []
+        playlist_is_valid = (
+            False  # whether the requested playlist belongs to the user or not
+        )
 
         if from_ == 0:
             db_playlist = db.get_playlist_by_key(playlist_key)
-            results.append(
-                PlaylistItem.get_item(db_playlist, db_from_user, inline_query)
+            db_playlists = db.get_user_playlists(
+                db_from_user,
+                offset=0,
+                limit=100,
             )
+            for db_pl in db_playlists:
+                if db_pl.key == db_playlist.key:
+                    # playlist belongs to the user
+                    playlist_is_valid = True
+                    break
 
-        db_audios = db.get_playlist_audios(db_from_user, playlist_key, offset=from_)
-
-        # todo: fix this
-        chats_dict = handler.update_audio_cache(db_audios)
-
-        for db_audio in db_audios:
-            db_audio_file_cache = db.get_audio_file_from_cache(
-                db_audio, telegram_client.telegram_id
-            )
-
-            #  todo: Some audios have null titles, solution?
-            if not db_audio_file_cache or not db_audio.title:
-                continue
-
-            results.append(
-                AudioItem.get_item(
-                    db_audio_file_cache,
-                    db_from_user,
-                    db_audio,
-                    inline_query,
-                    chats_dict,
+            if playlist_is_valid:
+                results.append(
+                    PlaylistItem.get_item(db_playlist, db_from_user, inline_query)
                 )
-            )
+        else:
+            playlist_is_valid = True
 
-        if len(results):
+        if playlist_is_valid:
+            db_audios = db.get_playlist_audios(db_from_user, playlist_key, offset=from_)
+
+            # todo: fix this
+            chats_dict = handler.update_audio_cache(db_audios)
+
+            for db_audio in db_audios:
+                db_audio_file_cache = db.get_audio_file_from_cache(
+                    db_audio, telegram_client.telegram_id
+                )
+
+                #  todo: Some audios have null titles, solution?
+                if not db_audio_file_cache or not db_audio.title:
+                    continue
+
+                results.append(
+                    AudioItem.get_item(
+                        db_audio_file_cache,
+                        db_from_user,
+                        db_audio,
+                        inline_query,
+                        chats_dict,
+                    )
+                )
+
+        if len(results) and playlist_is_valid:
             try:
                 next_offset = (
                     str(from_ + len(results) + 1) if len(results) > 1 else None
