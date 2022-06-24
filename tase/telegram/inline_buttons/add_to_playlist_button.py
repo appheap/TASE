@@ -3,10 +3,12 @@ from typing import Match
 import pyrogram
 
 from .inline_button import InlineButton
+
 # from ..handlers import BaseHandler
 from ..inline_items import CreateNewPlaylistItem, PlaylistItem
 from ..telegram_client import TelegramClient
 from ...db import DatabaseClient, graph_models
+from ...db.document_models import BotTaskStatus, BotTaskType
 from ...my_logger import logger
 from ...utils import _trans, emoji
 
@@ -75,7 +77,17 @@ class AddToPlaylistInlineButton(InlineButton):
 
         if playlist_key == "add_a_new_playlist":
             # start creating a new playlist
-            pass
+            db.create_bot_task(
+                db_from_user.user_id,
+                telegram_client.telegram_id,
+                BotTaskType.CREATE_NEW_PLAYLIST,
+                BotTaskStatus.CREATED,
+            )
+
+            client.send_message(
+                db_from_user.user_id,
+                text="Enter your playlist title. Enter your playlist description in the next line",
+            )
         else:
             # add the audio to the playlist
             created, successful = db.add_audio_to_playlist(

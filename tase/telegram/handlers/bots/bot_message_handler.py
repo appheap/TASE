@@ -8,7 +8,8 @@ from pyrogram import filters, handlers
 from pyrogram.enums import ParseMode
 from pyrogram.types import InlineKeyboardMarkup
 
-from tase.db import elasticsearch_models
+from tase.db import elasticsearch_models, graph_models
+from tase.db.document_models import BotTask, BotTaskStatus, BotTaskType
 from tase.my_logger import logger
 from tase.telegram.handlers import BaseHandler, HandlerMetadata, exception_handler
 from tase.telegram.inline_buttons import InlineButton
@@ -213,31 +214,48 @@ class BotMessageHandler(BaseHandler):
             self.choose_language(client, db_from_user)
             return
 
+        # check if this message is reply to any bot task
+        bot_task = self.db.get_latest_bot_task(
+            db_from_user.user_id, self.telegram_client.telegram_id
+        )
+        if bot_task is not None:
+            self.check_bot_tasks(bot_task, db_from_user, message)
+            return
+
         found_any = True
         db_audio_docs = []
 
         if not query:
             found_any = False
         else:
-            db_audio_docs, query_metadata = self.db.search_audio(query, size=10)
-            if not db_audio_docs or not len(db_audio_docs) or not len(query_metadata):
+            if len(query) <= 3:
                 found_any = False
-
-            db_audios = self.db.get_audios_from_keys([doc.id for doc in db_audio_docs])
-
-            res = self.db.get_or_create_query(
-                self.telegram_client.telegram_id,
-                from_user,
-                query,
-                query_date=get_timestamp(message.date),
-                query_metadata=query_metadata,
-                audio_docs=db_audio_docs,
-                db_audios=db_audios,
-            )
-            if res is not None:
-                db_query, db_hits = res
             else:
-                found_any = False
+                db_audio_docs, query_metadata = self.db.search_audio(query, size=10)
+                if (
+                    not db_audio_docs
+                    or not len(db_audio_docs)
+                    or not len(query_metadata)
+                ):
+                    found_any = False
+
+                db_audios = self.db.get_audios_from_keys(
+                    [doc.id for doc in db_audio_docs]
+                )
+
+                res = self.db.get_or_create_query(
+                    self.telegram_client.telegram_id,
+                    from_user,
+                    query,
+                    query_date=get_timestamp(message.date),
+                    query_metadata=query_metadata,
+                    audio_docs=db_audio_docs,
+                    db_audios=db_audios,
+                )
+                if res is not None:
+                    db_query, db_hits = res
+                else:
+                    found_any = False
 
         if found_any:
 
@@ -305,3 +323,67 @@ class BotMessageHandler(BaseHandler):
         logger.info(f"bot_message_handler: {message}")
 
     #######################################################################################################
+
+    def check_bot_tasks(
+        self,
+        bot_task: BotTask,
+        db_from_user: graph_models.vertices.User,
+        message: pyrogram.types.Message,
+    ) -> None:
+        if bot_task.type == BotTaskType.CREATE_NEW_PLAYLIST:
+            error_message = None
+
+            items = message.text.split("\n")
+            if len(items) > 1:
+                title, description = items
+                if isinstance(description, list):
+                    temp_desc = []
+                    for item in description:
+                        if item is not None and len(item):
+                            temp_desc.append(item)
+
+                    description = "\n".join(temp_desc)
+                else:
+                    pass
+            else:
+                title = items[0]
+                description = None
+
+            if title is not None:
+                if len(title) < 3:
+                    error_message = "Title length is less than 3, Please try again"
+                elif len(title) > 20:
+                    error_message = "Title length is more than 20, Please try again"
+            else:
+                error_message = "Title is incorrect, Please try again"
+
+            if description is not None:
+                if len(description) > 100:
+                    error_message = (
+                        "Description length is more than 100, Please try again"
+                    )
+                elif len(description) < 3:
+                    error_message = (
+                        "Description length is less than 3, Please try again"
+                    )
+
+            # if the inputs are valid, change the status of the task to `done`
+            if error_message is None:
+                self.db.create_playlist(
+                    db_from_user,
+                    title,
+                    description,
+                )
+                bot_task.update_status(BotTaskStatus.DONE)
+                message.reply_text("Successfully created the playlist.")
+            else:
+                message.reply_text(error_message)
+
+                if bot_task.retry_count + 1 >= bot_task.max_retry_count:
+                    message.reply_text("Failed to create the Playlist")
+
+                bot_task.update_retry_count()
+
+        else:
+            # check for other types of bot tasks
+            pass

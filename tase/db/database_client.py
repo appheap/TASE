@@ -304,3 +304,42 @@ class DatabaseClient:
             return None
 
         return self._graph_db.get_audios_from_keys(audio_keys)
+
+    def create_bot_task(
+        self,
+        user_id: int,
+        bot_id: int,
+        task_type: "document_models.BotTaskType",
+        task_status: "document_models.BotTaskStatus",
+        cancel_recent_task: bool = True,
+    ) -> Optional[Tuple[document_models.BotTask, bool]]:
+        if cancel_recent_task:
+            self._document_db.cancel_recent_bot_task(
+                user_id,
+                bot_id,
+                task_type,
+            )
+        return self._document_db.create_bot_task(
+            user_id, bot_id, task_type, task_status
+        )
+
+    def update_task_state_dict(
+        self,
+        user_id: int,
+        bot_id: int,
+        task_type: "document_models.BotTaskType",
+        new_task_state: dict,
+    ):
+        return self._document_db.update_task_state_dict(
+            user_id, bot_id, task_type, new_task_state
+        )
+
+    def get_latest_bot_task(
+        self, user_id: int, bot_id: int
+    ) -> Optional[document_models.BotTask]:
+        return self._document_db.get_latest_bot_task(user_id, bot_id)
+
+    def create_playlist(
+        self, db_user: "graph_models.vertices.User", title: str, description: str = None
+    ) -> Optional[Tuple["graph_models.vertices.Playlist", bool]]:
+        return self._graph_db.create_playlist(db_user, title, description)

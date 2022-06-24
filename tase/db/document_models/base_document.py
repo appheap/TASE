@@ -3,6 +3,7 @@ from typing import Optional
 from arango import DocumentInsertError, DocumentRevisionError, DocumentUpdateError
 from arango.collection import StandardCollection
 from pydantic import BaseModel, Field
+from pydantic.types import Enum
 
 from tase.my_logger import logger
 from tase.utils import get_timestamp
@@ -10,6 +11,7 @@ from tase.utils import get_timestamp
 
 class BaseDocument(BaseModel):
     _doc_collection_name = "base_document_name"
+    _db: Optional[StandardCollection]
 
     id: Optional[str]
     key: Optional[str]
@@ -32,6 +34,12 @@ class BaseDocument(BaseModel):
 
     def _to_db(self) -> dict:
         temp_dict = self.dict()
+        for k, v in temp_dict.copy().items():
+            attr = getattr(self, k, None)
+            if attr:
+                if isinstance(attr, Enum):
+                    temp_dict[k] = attr.value
+
         for k, v in self._to_document_db_mapping.items():
             if temp_dict.get(k, None):
                 temp_dict[v] = temp_dict[k]
@@ -89,21 +97,20 @@ class BaseDocument(BaseModel):
         return self
 
     @classmethod
-    def create(cls, db: "StandardCollection", doc: "BaseDocument"):
+    def create(cls, doc: "BaseDocument"):
         """
         Insert a document into the database
 
-        :param db: The StandardCollection to use for inserting the document
         :param doc: The document to insert into the database
         :return: self, successful
         """
 
-        if db is None or doc is None:
+        if doc is None:
             return None, False
 
         successful = False
         try:
-            metadata = db.insert(doc.parse_for_db())
+            metadata = cls._db.insert(doc.parse_for_db())
             doc._update_from_metadata(metadata)
             successful = True
         except DocumentInsertError as e:
@@ -114,13 +121,10 @@ class BaseDocument(BaseModel):
         return doc, successful
 
     @classmethod
-    def update(
-        cls, db: "StandardCollection", old_doc: "BaseDocument", doc: "BaseDocument"
-    ):
+    def update(cls, old_doc: "BaseDocument", doc: "BaseDocument"):
         """
         Update a document in the database
 
-        :param db: The StandardCollection to use for updating the document
         :param old_doc:  The document that is already in the database
         :param doc: The document used for updating the object in the database
         :return: self, successful
@@ -130,12 +134,12 @@ class BaseDocument(BaseModel):
                 f"`document` is not an instance of {BaseDocument.__class__.__name__} class"
             )
 
-        if db is None or old_doc is None or doc is None:
+        if old_doc is None or doc is None:
             return None, False
 
         successful = False
         try:
-            metadata = db.update(
+            metadata = cls._db.update(
                 doc._update_metadata_from_old_document(old_doc).parse_for_db()
             )
             doc._update_from_metadata(metadata)
@@ -151,11 +155,11 @@ class BaseDocument(BaseModel):
         return doc, successful
 
     @classmethod
-    def find_by_key(cls, db: "StandardCollection", key: str):
-        if db is None or key is None:
+    def find_by_key(cls, key: str):
+        if key is None:
             return None
 
-        cursor = db.find({"_key": key})
+        cursor = cls._db.find({"_key": key})
         if cursor and len(cursor):
             return cls.parse_from_db(cursor.pop())
         else:
