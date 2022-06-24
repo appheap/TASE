@@ -67,6 +67,7 @@ class AddToPlaylistInlineButton(InlineButton):
         reg: Match,
     ):
         audio_download_url = reg.group("arg1")
+        # todo: check if the user has downloaded this audio earlier, otherwise, the request is not valid
 
         result_id_list = chosen_inline_result.result_id.split("->")
         inline_query_id = result_id_list[0]
