@@ -1,7 +1,16 @@
 from typing import Optional
 
 from .base_edge import BaseEdge
-from ..vertices import (Audio, Download, Hit, InlineQuery, Playlist, Query, QueryKeyword, User)
+from ..vertices import (
+    Audio,
+    Download,
+    Hit,
+    InlineQuery,
+    Playlist,
+    Query,
+    QueryKeyword,
+    User,
+)
 
 
 class Has(BaseEdge):
@@ -21,7 +30,8 @@ class Has(BaseEdge):
 
     @staticmethod
     def parse_from_user_and_playlist(
-        user: "User", playlist: "Playlist"
+        user: "User",
+        playlist: "Playlist",
     ) -> Optional["Has"]:
         if user is None or playlist is None:
             return None
@@ -35,7 +45,8 @@ class Has(BaseEdge):
 
     @staticmethod
     def parse_from_playlist_and_audio(
-        playlist: "Playlist", audio: "Audio"
+        playlist: "Playlist",
+        audio: "Audio",
     ) -> Optional["Has"]:
         if playlist is None or audio is None:
             return None
@@ -48,7 +59,10 @@ class Has(BaseEdge):
         )
 
     @staticmethod
-    def parse_from_hit_and_audio(hit: "Hit", audio: "Audio") -> Optional["Has"]:
+    def parse_from_hit_and_audio(
+        hit: "Hit",
+        audio: "Audio",
+    ) -> Optional["Has"]:
         if hit is None or audio is None:
             return None
 
@@ -94,24 +108,9 @@ class Has(BaseEdge):
     ########################################################################################
 
     @staticmethod
-    def parse_from_user_and_playlist(
-        user: "User", playlist: "Playlist"
-    ) -> Optional["Has"]:
-        if user is None or playlist is None:
-            return None
-
-        key = f"{user.key}@{playlist.key}"
-        return Has(
-            key=key,
-            from_node=user,
-            to_node=playlist,
-        )
-
-    ########################################################################################
-
-    @staticmethod
     def parse_from_download_and_audio(
-        download: "Download", audio: "Audio"
+        download: "Download",
+        audio: "Audio",
     ) -> Optional["Has"]:
         if download is None or audio is None:
             return None
@@ -138,7 +137,8 @@ class Has(BaseEdge):
 
     @staticmethod
     def parse_from_inline_query_and_query_keyword(
-        inline_query: "InlineQuery", query_keyword: "QueryKeyword"
+        inline_query: "InlineQuery",
+        query_keyword: "QueryKeyword",
     ) -> Optional["Has"]:
         if inline_query is None or query_keyword is None:
             return None

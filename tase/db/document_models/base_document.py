@@ -51,7 +51,10 @@ class BaseDocument(BaseModel):
         return temp_dict
 
     @classmethod
-    def _from_db(cls, document: dict) -> Optional["dict"]:
+    def _from_db(
+        cls,
+        document: dict,
+    ) -> Optional["dict"]:
         if not len(document):
             return None
 
@@ -68,12 +71,18 @@ class BaseDocument(BaseModel):
         return self._to_db()
 
     @classmethod
-    def parse_from_db(cls, document: dict):
+    def parse_from_db(
+        cls,
+        document: dict,
+    ):
         if document is None or not len(document):
             return None
         return cls(**cls._from_db(document))
 
-    def _update_from_metadata(self, metadata: dict):
+    def _update_from_metadata(
+        self,
+        metadata: dict,
+    ):
         """
         Update the document's metadata from the `metadata`
 
@@ -82,7 +91,10 @@ class BaseDocument(BaseModel):
         for k, v in self._from_document_db_mapping.items():
             setattr(self, v, metadata.get(k, None))
 
-    def _update_metadata_from_old_document(self, old_document: "BaseDocument"):
+    def _update_metadata_from_old_document(
+        self,
+        old_document: "BaseDocument",
+    ):
         """
         Updates the metadata of this document from another document metadata
         :param old_document: The vertex to get the metadata from
@@ -97,7 +109,10 @@ class BaseDocument(BaseModel):
         return self
 
     @classmethod
-    def create(cls, doc: "BaseDocument"):
+    def create(
+        cls,
+        doc: "BaseDocument",
+    ):
         """
         Insert a document into the database
 
@@ -121,7 +136,11 @@ class BaseDocument(BaseModel):
         return doc, successful
 
     @classmethod
-    def update(cls, old_doc: "BaseDocument", doc: "BaseDocument"):
+    def update(
+        cls,
+        old_doc: "BaseDocument",
+        doc: "BaseDocument",
+    ):
         """
         Update a document in the database
 
@@ -155,7 +174,10 @@ class BaseDocument(BaseModel):
         return doc, successful
 
     @classmethod
-    def find_by_key(cls, key: str):
+    def find_by_key(
+        cls,
+        key: str,
+    ):
         if key is None:
             return None
 

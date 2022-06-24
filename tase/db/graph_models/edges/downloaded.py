@@ -16,7 +16,8 @@ class Downloaded(BaseEdge):
 
     @staticmethod
     def parse_from_user_and_download(
-        user: "User", download: "Download"
+        user: "User",
+        download: "Download",
     ) -> Optional["Downloaded"]:
         if user is None or download is None:
             return None

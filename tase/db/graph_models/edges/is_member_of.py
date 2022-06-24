@@ -15,7 +15,10 @@ class IsMemberOf(BaseEdge):
     _to_vertex_collections = [Chat]
 
     @staticmethod
-    def parse_from_user_and_chat(user: "User", chat: "Chat") -> Optional["IsMemberOf"]:
+    def parse_from_user_and_chat(
+        user: "User",
+        chat: "Chat",
+    ) -> Optional["IsMemberOf"]:
         if chat is None or user is None:
             return None
 

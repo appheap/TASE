@@ -25,7 +25,8 @@ class InlineQuery(BaseVertex):
 
     @staticmethod
     def get_key(
-        bot: "User", inline_query: "pyrogram.types.InlineQuery"
+        bot: "User",
+        inline_query: "pyrogram.types.InlineQuery",
     ) -> Optional["str"]:
         if bot is None or inline_query is None:
             return None

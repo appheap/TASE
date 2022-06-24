@@ -13,7 +13,10 @@ class SentBy(BaseEdge):
     _to_vertex_collections = [Chat]
 
     @staticmethod
-    def parse_from_audio_and_chat(audio: "Audio", chat: "Chat") -> Optional["SentBy"]:
+    def parse_from_audio_and_chat(
+        audio: "Audio",
+        chat: "Chat",
+    ) -> Optional["SentBy"]:
         if audio is None and chat is None:
             return None
 

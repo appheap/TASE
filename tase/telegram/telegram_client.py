@@ -67,17 +67,25 @@ class TelegramClient:
         return self._client.get_me()
 
     def get_chat(
-        self, chat_id: Union[int, str]
+        self,
+        chat_id: Union[int, str],
     ) -> Union["pyrogram.types.Chat", "pyrogram.types.ChatPreview"]:
         return self._client.get_chat(chat_id=chat_id)
 
     def get_session_name(self) -> str:
         return self._client.name
 
-    def add_handler(self, handler: "Handler", group: int = 0):
+    def add_handler(
+        self,
+        handler: "Handler",
+        group: int = 0,
+    ):
         return self._client.add_handler(handler, group)
 
-    def add_handlers(self, handlers_list: List["handlers.BaseHandler"]):
+    def add_handlers(
+        self,
+        handlers_list: List["handlers.BaseHandler"],
+    ):
         for handler in handlers_list:
             for h in handler.init_handlers():
                 self.add_handler(
@@ -113,7 +121,8 @@ class TelegramClient:
 
     @staticmethod
     def _parse(
-        client_config: "ClientConfig", workdir: str
+        client_config: "ClientConfig",
+        workdir: str,
     ) -> Optional["TelegramClient"]:
         if client_config.type == ClientTypes.USER:
             return UserTelegramClient(client_config, workdir)
@@ -124,7 +133,9 @@ class TelegramClient:
             logger.error("Unknown TelegramClient Type")
 
     def get_messages(
-        self, chat_id: Union[int, str], message_ids: Union[int, Iterable[int]] = None
+        self,
+        chat_id: Union[int, str],
+        message_ids: Union[int, Iterable[int]] = None,
     ) -> Union["pyrogram.types.Message", List["pyrogram.types.Message"]]:
         messages = self._client.get_messages(chat_id=chat_id, message_ids=message_ids)
         if messages and not isinstance(messages, list):
@@ -136,7 +147,11 @@ class TelegramClient:
 class UserTelegramClient(TelegramClient):
     role: "UserClientRoles"
 
-    def __init__(self, client_config: "ClientConfig", workdir: str):
+    def __init__(
+        self,
+        client_config: "ClientConfig",
+        workdir: str,
+    ):
         self.client_type = ClientTypes.USER
         self.workdir = workdir
         self.name = client_config.name
@@ -159,7 +174,11 @@ class BotTelegramClient(TelegramClient):
     role: "BotClientRoles"
     token: "str"
 
-    def __init__(self, client_config: "ClientConfig", workdir: str):
+    def __init__(
+        self,
+        client_config: "ClientConfig",
+        workdir: str,
+    ):
         self.client_type = ClientTypes.BOT
         self.workdir = workdir
         self.name = client_config.name

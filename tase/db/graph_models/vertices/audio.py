@@ -32,7 +32,9 @@ class Audio(BaseVertex):
     download_url: Optional[str]
 
     @staticmethod
-    def get_key(message: "pyrogram.types.Message"):
+    def get_key(
+        message: "pyrogram.types.Message",
+    ):
         return f"{message.audio.file_unique_id}:{message.chat.id}:{message.id}"
 
     @staticmethod
@@ -64,7 +66,10 @@ class Audio(BaseVertex):
         )
 
     @classmethod
-    def find_by_download_url(cls, download_url: str) -> Optional["Audio"]:
+    def find_by_download_url(
+        cls,
+        download_url: str,
+    ) -> Optional["Audio"]:
         if download_url is None:
             return None
 

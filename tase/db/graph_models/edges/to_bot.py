@@ -16,7 +16,8 @@ class ToBot(BaseEdge):
 
     @staticmethod
     def parse_from_inline_query_and_user(
-        inline_query: "InlineQuery", user: "User"
+        inline_query: "InlineQuery",
+        user: "User",
     ) -> Optional["ToBot"]:
         if inline_query is None or user is None:
             return None
@@ -29,7 +30,10 @@ class ToBot(BaseEdge):
         )
 
     @staticmethod
-    def parse_from_query_and_user(query: "Query", user: "User") -> Optional["ToBot"]:
+    def parse_from_query_and_user(
+        query: "Query",
+        user: "User",
+    ) -> Optional["ToBot"]:
         if query is None or user is None:
             return None
 

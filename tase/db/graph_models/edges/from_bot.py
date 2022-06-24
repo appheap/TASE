@@ -16,7 +16,8 @@ class FromBot(BaseEdge):
 
     @staticmethod
     def parse_from_download_and_user(
-        download: "Download", user: "User"
+        download: "Download",
+        user: "User",
     ) -> Optional["FromBot"]:
         if download is None or user is None:
             return None

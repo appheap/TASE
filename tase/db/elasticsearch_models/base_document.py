@@ -36,7 +36,10 @@ class BaseDocument(BaseModel):
         return self.id, temp_dict
 
     @classmethod
-    def parse_from_db(cls, response: ObjectApiResponse):
+    def parse_from_db(
+        cls,
+        response: ObjectApiResponse,
+    ):
         if response is None or not len(response.body):
             return None
 
@@ -46,7 +49,11 @@ class BaseDocument(BaseModel):
         return cls(**body)
 
     @classmethod
-    def parse_from_db_hit(cls, hit: dict, rank: int):
+    def parse_from_db_hit(
+        cls,
+        hit: dict,
+        rank: int,
+    ):
         if hit is None or not len(hit) or not len(hit["_source"]) or rank is None:
             return None
 
@@ -59,7 +66,10 @@ class BaseDocument(BaseModel):
         )
         return obj
 
-    def _update_doc_from_old_doc(self, old_doc: "BaseDocument"):
+    def _update_doc_from_old_doc(
+        self,
+        old_doc: "BaseDocument",
+    ):
         for k in self._do_not_update:
             if getattr(self, k, None):
                 setattr(self, k, getattr(old_doc, k, None))
@@ -67,7 +77,10 @@ class BaseDocument(BaseModel):
         return self
 
     @classmethod
-    def has_index(cls, es: "Elasticsearch") -> bool:
+    def has_index(
+        cls,
+        es: "Elasticsearch",
+    ) -> bool:
         index_exists = False
         try:
             es.indices.get(index=cls._index_name)
@@ -79,7 +92,10 @@ class BaseDocument(BaseModel):
         return index_exists
 
     @classmethod
-    def create_index(cls, es: "Elasticsearch"):
+    def create_index(
+        cls,
+        es: "Elasticsearch",
+    ):
         try:
             es.indices.create(
                 index=cls._index_name,
@@ -89,7 +105,11 @@ class BaseDocument(BaseModel):
             pass
 
     @classmethod
-    def get(cls, es: "Elasticsearch", doc_id: str):
+    def get(
+        cls,
+        es: "Elasticsearch",
+        doc_id: str,
+    ):
         if es is None:
             return None
 
@@ -105,7 +125,11 @@ class BaseDocument(BaseModel):
         return obj
 
     @classmethod
-    def create(cls, es: "Elasticsearch", document: "BaseDocument"):
+    def create(
+        cls,
+        es: "Elasticsearch",
+        document: "BaseDocument",
+    ):
         """
         Creates a document in the index
 
@@ -137,7 +161,10 @@ class BaseDocument(BaseModel):
 
     @classmethod
     def update(
-        cls, es: "Elasticsearch", old_document: "BaseDocument", document: "BaseDocument"
+        cls,
+        es: "Elasticsearch",
+        old_document: "BaseDocument",
+        document: "BaseDocument",
     ):
         """
         Updates a document in the index
@@ -218,7 +245,10 @@ class BaseDocument(BaseModel):
         return db_docs, search_metadata
 
     @classmethod
-    def get_query(cls, query: Optional[str]):
+    def get_query(
+        cls,
+        query: Optional[str],
+    ):
         return {
             "multi_match": {
                 "query": query,

@@ -16,18 +16,23 @@ class Audio(BaseDocument):
     file_unique_id: str
 
     @staticmethod
-    def get_key(message: "pyrogram.types.Message", telegram_client_id: int):
+    def get_key(
+        message: "pyrogram.types.Message",
+        telegram_client_id: int,
+    ):
         return f"{str(telegram_client_id)}:{message.audio.file_unique_id}:{message.chat.id}:{message.id}"
 
     @staticmethod
     def get_key_from_audio(
-        audio: "elasticsearch_models.Audio", telegram_client_id: int
+        audio: "elasticsearch_models.Audio",
+        telegram_client_id: int,
     ):
         return f"{str(telegram_client_id)}:{audio.file_unique_id}:{audio.chat_id}:{audio.message_id}"
 
     @staticmethod
     def parse_from_message(
-        message: "pyrogram.types.Message", telegram_client_id: int
+        message: "pyrogram.types.Message",
+        telegram_client_id: int,
     ) -> Optional["Audio"]:
         if not message or not message.audio or telegram_client_id is None:
             return None

@@ -67,7 +67,9 @@ class BotMessageHandler(BaseHandler):
 
     @exception_handler
     def start_bot_handler(
-        self, client: "pyrogram.Client", message: "pyrogram.types.Message"
+        self,
+        client: "pyrogram.Client",
+        message: "pyrogram.types.Message",
     ):
         logger.debug(f"start_bot_handler: {message.command}")
 
@@ -80,7 +82,9 @@ class BotMessageHandler(BaseHandler):
 
     @exception_handler
     def base_commands_handler(
-        self, client: "pyrogram.Client", message: "pyrogram.types.Message"
+        self,
+        client: "pyrogram.Client",
+        message: "pyrogram.types.Message",
     ):
         logger.debug(f"base_commands_handler: {message.command}")
 
@@ -101,7 +105,9 @@ class BotMessageHandler(BaseHandler):
 
     @exception_handler
     def downloads_handler(
-        self, client: "pyrogram.Client", message: "pyrogram.types.Message"
+        self,
+        client: "pyrogram.Client",
+        message: "pyrogram.types.Message",
     ):
         """
         Check if the message is coming from a Telegram client and contains "dl_" regex, and then submit
@@ -194,7 +200,9 @@ class BotMessageHandler(BaseHandler):
 
     @exception_handler
     def search_query_handler(
-        self, client: "pyrogram.Client", message: "pyrogram.types.Message"
+        self,
+        client: "pyrogram.Client",
+        message: "pyrogram.types.Message",
     ):
         logger.info(f"search_query_handler: {message.text}")
         # todo: fix this
@@ -318,7 +326,9 @@ class BotMessageHandler(BaseHandler):
 
     @exception_handler
     def bot_message_handler(
-        self, client: "pyrogram.Client", message: "pyrogram.types.Message"
+        self,
+        client: "pyrogram.Client",
+        message: "pyrogram.types.Message",
     ):
         logger.info(f"bot_message_handler: {message}")
 

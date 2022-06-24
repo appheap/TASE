@@ -14,7 +14,8 @@ class LinkedChat(BaseEdge):
 
     @staticmethod
     def parse_from_chat_and_chat(
-        chat: "Chat", linked_chat: "Chat"
+        chat: "Chat",
+        linked_chat: "Chat",
     ) -> Optional["LinkedChat"]:
         if chat is None and linked_chat is None:
             return None

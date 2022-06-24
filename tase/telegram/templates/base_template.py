@@ -39,7 +39,10 @@ class BaseTemplateData(BaseModel):
 
         return self
 
-    def set_direction_from(self, value: str):
+    def set_direction_from(
+        self,
+        value: str,
+    ):
         if value is None:
             raise Exception("value cannot be None")
         x = len(
@@ -62,6 +65,9 @@ class BaseTemplate:
         return self.template.render(data.update_translations())
 
     @classmethod
-    def __init_subclass__(cls, **kwargs):
+    def __init_subclass__(
+        cls,
+        **kwargs,
+    ):
         temp = cls()
         setattr(BaseTemplate.registry, cls.name, temp)

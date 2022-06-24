@@ -77,7 +77,10 @@ class BaseEdge(BaseModel):
         return temp_dict
 
     @classmethod
-    def _from_graph(cls, vertex: dict) -> Optional["dict"]:
+    def _from_graph(
+        cls,
+        vertex: dict,
+    ) -> Optional["dict"]:
         if not len(vertex):
             return None
 
@@ -103,17 +106,26 @@ class BaseEdge(BaseModel):
         return self._to_graph()
 
     @classmethod
-    def parse_from_graph(cls, vertex: dict):
+    def parse_from_graph(
+        cls,
+        vertex: dict,
+    ):
         if vertex is None or not len(vertex):
             return None
 
         return cls(**cls._from_graph(vertex))
 
-    def _update_from_metadata(self, metadata: dict):
+    def _update_from_metadata(
+        self,
+        metadata: dict,
+    ):
         for k, v in self._from_graph_db_mapping.items():
             setattr(self, v, metadata.get(k, None))
 
-    def _update_metadata_from_old_edge(self, old_edge: "BaseEdge"):
+    def _update_metadata_from_old_edge(
+        self,
+        old_edge: "BaseEdge",
+    ):
         """
         Updates the metadata of this edge from another edge metadata
         :param old_edge: The edge to get the metadata from
@@ -128,7 +140,10 @@ class BaseEdge(BaseModel):
         return self
 
     @classmethod
-    def create(cls, edge: "BaseEdge"):
+    def create(
+        cls,
+        edge: "BaseEdge",
+    ):
         """
         Insert an object into the database
 
@@ -152,7 +167,11 @@ class BaseEdge(BaseModel):
         return edge, successful
 
     @classmethod
-    def update(cls, old_edge: "BaseEdge", edge: "BaseEdge"):
+    def update(
+        cls,
+        old_edge: "BaseEdge",
+        edge: "BaseEdge",
+    ):
         """
         Update an object in the database
 
@@ -186,7 +205,10 @@ class BaseEdge(BaseModel):
         return edge, successful
 
     @classmethod
-    def find_by_key(cls, key: str):
+    def find_by_key(
+        cls,
+        key: str,
+    ):
         if key is None:
             return None
 

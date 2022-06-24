@@ -63,7 +63,10 @@ class Hit(BaseVertex):
         )
 
     @classmethod
-    def find_by_download_url(cls, download_url: str) -> Optional["Hit"]:
+    def find_by_download_url(
+        cls,
+        download_url: str,
+    ) -> Optional["Hit"]:
         if download_url is None:
             return None
 

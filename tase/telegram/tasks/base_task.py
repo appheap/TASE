@@ -24,5 +24,9 @@ class BaseTask:
     kwargs: dict = field(default_factory=dict)
 
     @exception_handler
-    def run_task(self, telegram_client: "TelegramClient", db: "DatabaseClient"):
+    def run_task(
+        self,
+        telegram_client: "TelegramClient",
+        db: "DatabaseClient",
+    ):
         pass

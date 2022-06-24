@@ -11,7 +11,11 @@ class IndexAudiosTask(BaseTask):
     name: str = field(default="index_audios_task")
 
     @exception_handler
-    def run_task(self, telegram_client: "TelegramClient", db: "DatabaseClient"):
+    def run_task(
+        self,
+        telegram_client: "TelegramClient",
+        db: "DatabaseClient",
+    ):
         chat_id = self.kwargs.get("chat_id", None)
         if chat_id is None:
             return

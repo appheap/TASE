@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from pyrogram.types import InlineKeyboardButton
 
 from tase.db import DatabaseClient, graph_models
+
 # from ..telegram_client import TelegramClient
 # from tase.telegram.handlers import BaseHandler
 from tase.utils import translate_text
@@ -25,12 +26,18 @@ class InlineButton(BaseModel):
         InlineButton._registry[temp.name] = temp
 
     @classmethod
-    def get_button(cls, name: str) -> Optional["InlineButton"]:
+    def get_button(
+        cls,
+        name: str,
+    ) -> Optional["InlineButton"]:
         if name is None:
             return None
         return cls._registry.get(name, None)
 
-    def get_translated_text(self, lang_code: str = "en") -> str:
+    def get_translated_text(
+        self,
+        lang_code: str = "en",
+    ) -> str:
         temp_dict = self.dict()
 
         temp = ""
@@ -49,7 +56,10 @@ class InlineButton(BaseModel):
 
         return temp if len(temp) else self.text
 
-    def get_text(self, lang_code: str = "en") -> str:
+    def get_text(
+        self,
+        lang_code: str = "en",
+    ) -> str:
         return self.get_translated_text(lang_code)
 
     def get_url(self) -> str:
@@ -58,14 +68,21 @@ class InlineButton(BaseModel):
     def get_callback_data(self) -> Optional[str]:
         return self.callback_data
 
-    def get_switch_inline_query_current_chat(self, arg=None) -> Optional[str]:
+    def get_switch_inline_query_current_chat(
+        self,
+        arg=None,
+    ) -> Optional[str]:
         return (
             f"{self.switch_inline_query_current_chat} {arg}"
             if arg
             else self.switch_inline_query_current_chat
         )
 
-    def get_inline_keyboard_button(self, lang_code: str = "en", arg=None):
+    def get_inline_keyboard_button(
+        self,
+        lang_code: str = "en",
+        arg=None,
+    ):
         return InlineKeyboardButton(
             text=self.get_text(lang_code),
             callback_data=self.get_callback_data(),

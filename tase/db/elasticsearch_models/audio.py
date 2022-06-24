@@ -55,11 +55,16 @@ class Audio(BaseDocument):
     download_count: int
 
     @staticmethod
-    def get_id(message: "pyrogram.types.Message"):
+    def get_id(
+        message: "pyrogram.types.Message",
+    ):
         return f"{message.audio.file_unique_id}:{message.chat.id}:{message.id}"
 
     @classmethod
-    def parse_from_message(cls, message: "pyrogram.types.Message") -> Optional["Audio"]:
+    def parse_from_message(
+        cls,
+        message: "pyrogram.types.Message",
+    ) -> Optional["Audio"]:
         if message is None:
             return None
 
@@ -87,7 +92,9 @@ class Audio(BaseDocument):
 
     @classmethod
     def search_by_download_url(
-        cls, es: "Elasticsearch", download_url: str
+        cls,
+        es: "Elasticsearch",
+        download_url: str,
     ) -> Optional["Audio"]:
         if es is None or download_url is None:
             return None
@@ -115,7 +122,11 @@ class Audio(BaseDocument):
         return db_docs[0] if len(db_docs) else None
 
     @classmethod
-    def search_by_id(cls, es: "Elasticsearch", key: str) -> Optional["Audio"]:
+    def search_by_id(
+        cls,
+        es: "Elasticsearch",
+        key: str,
+    ) -> Optional["Audio"]:
         if es is None or key is None:
             return None
         db_docs = []
@@ -142,7 +153,10 @@ class Audio(BaseDocument):
         return db_docs[0] if len(db_docs) else None
 
     @classmethod
-    def get_query(cls, query: Optional[str]):
+    def get_query(
+        cls,
+        query: Optional[str],
+    ):
         return {
             "bool": {
                 "must": {
@@ -159,7 +173,9 @@ class Audio(BaseDocument):
         }
 
     @classmethod
-    def get_sort(cls):
+    def get_sort(
+        cls,
+    ):
         return {
             "download_count": {"order": "desc"},
             "date": {"order": "desc"},

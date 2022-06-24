@@ -17,7 +17,10 @@ callback_queue = Queue(uuid(), auto_delete=True)
 kombu.enable_insecure_serializers()
 
 
-def client_task(task: BaseTask, target_queue: "Queue"):
+def client_task(
+    task: BaseTask,
+    target_queue: "Queue",
+):
     logger.info(f"@pyrogram_task_call: {prettify(task)}")
 
     # connections

@@ -16,7 +16,8 @@ class IsContactOf(BaseEdge):
 
     @staticmethod
     def parse_from_user_and_user(
-        from_user: "User", to_user: "User"
+        from_user: "User",
+        to_user: "User",
     ) -> Optional["IsContactOf"]:
         if from_user is None or to_user is None:
             return None

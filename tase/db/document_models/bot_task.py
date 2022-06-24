@@ -31,7 +31,10 @@ class BotTask(BaseDocument):
     status: BotTaskStatus = Field(default=BotTaskStatus.UNKNOWN)
     state_dict: dict = Field(default=dict())  # todo: is it necessary?
 
-    def update_status(self, status: "BotTaskStatus"):
+    def update_status(
+        self,
+        status: "BotTaskStatus",
+    ):
         if status is None:
             return
 

@@ -47,7 +47,9 @@ class InlineQueryHandler(BaseHandler):
 
     @exception_handler
     def on_inline_query(
-        self, client: "pyrogram.Client", inline_query: "pyrogram.types.InlineQuery"
+        self,
+        client: "pyrogram.Client",
+        inline_query: "pyrogram.types.InlineQuery",
     ):
         logger.debug(f"on_inline_query: {inline_query}")
         query_date = get_timestamp()
@@ -146,7 +148,9 @@ class InlineQueryHandler(BaseHandler):
 
     @exception_handler
     def custom_commands_handler(
-        self, client: "pyrogram.Client", inline_query: "pyrogram.types.InlineQuery"
+        self,
+        client: "pyrogram.Client",
+        inline_query: "pyrogram.types.InlineQuery",
     ):
         logger.debug(f"custom_commands_handler: {inline_query}")
         query_date = get_timestamp()

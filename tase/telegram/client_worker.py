@@ -34,7 +34,11 @@ class ClientTaskConsumer(ConsumerProducerMixin):
         self.task_queues[self.telegram_client.name] = task_queue
         logger.info(f"task_queues: {self.task_queues}")
 
-    def get_consumers(self, consumer, channel) -> List[Consumer]:
+    def get_consumers(
+        self,
+        consumer,
+        channel,
+    ) -> List[Consumer]:
         return [
             Consumer(
                 queues=[self.task_queue],
@@ -46,7 +50,11 @@ class ClientTaskConsumer(ConsumerProducerMixin):
             )
         ]
 
-    def on_task(self, body: object, message: pyamqp.Message):
+    def on_task(
+        self,
+        body: object,
+        message: pyamqp.Message,
+    ):
         message.ack()
 
         task: BaseTask = body

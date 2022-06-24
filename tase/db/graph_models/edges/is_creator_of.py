@@ -16,7 +16,8 @@ class IsCreatorOf(BaseEdge):
 
     @staticmethod
     def parse_from_chat_and_user(
-        chat: "Chat", creator: "User"
+        chat: "Chat",
+        creator: "User",
     ) -> Optional["IsCreatorOf"]:
         if chat is None or creator is None:
             return None

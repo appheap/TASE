@@ -34,7 +34,9 @@ class BaseVertex(BaseModel):
         arbitrary_types_allowed = True
 
     @staticmethod
-    def generate_token_urlsafe(nbytes: int = 6):
+    def generate_token_urlsafe(
+        nbytes: int = 6,
+    ):
         while True:
             # todo: make sure the generated token is unique
             download_url = secrets.token_urlsafe(nbytes)
@@ -55,7 +57,10 @@ class BaseVertex(BaseModel):
         return temp_dict
 
     @classmethod
-    def _from_graph(cls, vertex: dict) -> Optional["dict"]:
+    def _from_graph(
+        cls,
+        vertex: dict,
+    ) -> Optional["dict"]:
         if not len(vertex):
             return None
 
@@ -72,12 +77,18 @@ class BaseVertex(BaseModel):
         return self._to_graph()
 
     @classmethod
-    def parse_from_graph(cls, vertex: dict):
+    def parse_from_graph(
+        cls,
+        vertex: dict,
+    ):
         if vertex is None or not len(vertex):
             return None
         return cls(**cls._from_graph(vertex))
 
-    def _update_from_metadata(self, metadata: dict):
+    def _update_from_metadata(
+        self,
+        metadata: dict,
+    ):
         """
         Update the vertex's metadata from the `metadata`
 
@@ -86,7 +97,10 @@ class BaseVertex(BaseModel):
         for k, v in self._from_graph_db_mapping.items():
             setattr(self, v, metadata.get(k, None))
 
-    def _update_metadata_from_old_vertex(self, old_vertex: "BaseVertex"):
+    def _update_metadata_from_old_vertex(
+        self,
+        old_vertex: "BaseVertex",
+    ):
         """
         Updates the metadata of this vertex from another vertex metadata
         :param old_vertex: The vertex to get the metadata from
@@ -101,7 +115,10 @@ class BaseVertex(BaseModel):
         return self
 
     @classmethod
-    def create(cls, vertex: "BaseVertex"):
+    def create(
+        cls,
+        vertex: "BaseVertex",
+    ):
         """
         Insert an object into the database
 
@@ -125,7 +142,11 @@ class BaseVertex(BaseModel):
         return vertex, successful
 
     @classmethod
-    def update(cls, old_vertex: "BaseVertex", vertex: "BaseVertex"):
+    def update(
+        cls,
+        old_vertex: "BaseVertex",
+        vertex: "BaseVertex",
+    ):
         """
         Update an object in the database
 

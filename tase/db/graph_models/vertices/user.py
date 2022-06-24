@@ -34,11 +34,15 @@ class User(BaseVertex):
     chosen_language_code: Optional[str]
 
     @staticmethod
-    def get_key(user: "pyrogram.types.User") -> str:
+    def get_key(
+        user: "pyrogram.types.User",
+    ) -> str:
         return str(user.id)
 
     @staticmethod
-    def parse_from_user(user: "pyrogram.types.User") -> Optional["User"]:
+    def parse_from_user(
+        user: "pyrogram.types.User",
+    ) -> Optional["User"]:
         if user is None:
             return None
 
@@ -61,7 +65,10 @@ class User(BaseVertex):
             restrictions=Restriction.parse_from_restrictions(user.restrictions),
         )
 
-    def update_chosen_language(self, chosen_language_code: str):
+    def update_chosen_language(
+        self,
+        chosen_language_code: str,
+    ):
         if chosen_language_code is None:
             return None
 

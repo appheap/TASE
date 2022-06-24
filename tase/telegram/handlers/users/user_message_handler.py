@@ -18,7 +18,9 @@ class UserMessageHandler(BaseHandler):
 
     @exception_handler
     def user_message_handler(
-        self, client: "pyrogram.Client", message: "pyrogram.types.Message"
+        self,
+        client: "pyrogram.Client",
+        message: "pyrogram.types.Message",
     ):
         direction = "=>" if message.outgoing else "<="
         logger.debug(

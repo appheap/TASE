@@ -16,7 +16,8 @@ class HasMade(BaseEdge):
 
     @staticmethod
     def parse_from_user_and_inline_query(
-        user: "User", inline_query: "InlineQuery"
+        user: "User",
+        inline_query: "InlineQuery",
     ) -> Optional["HasMade"]:
         if inline_query is None or user is None:
             return None
@@ -29,7 +30,10 @@ class HasMade(BaseEdge):
         )
 
     @staticmethod
-    def parse_from_user_and_query(user: "User", query: "Query") -> Optional["HasMade"]:
+    def parse_from_user_and_query(
+        user: "User",
+        query: "Query",
+    ) -> Optional["HasMade"]:
         if query is None or user is None:
             return None
 
