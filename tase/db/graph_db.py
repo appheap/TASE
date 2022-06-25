@@ -524,12 +524,14 @@ class GraphDatabase:
             return None
 
         v = Playlist(
+            key=Playlist.generate_token_urlsafe(10),
             title=title,
-            description=description,
             is_favorite=is_favorite,
             rank=1 if is_favorite else 2,
         )
-        v.key = Playlist.generate_token_urlsafe(10)
+        if description is not None:
+            v.description = description
+
         playlist, successful = Playlist.create(v)
 
         if playlist and successful:
