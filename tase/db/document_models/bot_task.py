@@ -28,7 +28,7 @@ class BotTask(BaseDocument):
     bot_id: int
 
     retry_count: int = Field(default=0)
-    max_retry_count: int = Field(default=5)
+    max_retry_count: int = Field(default=2)
 
     type: BotTaskType = Field(default=BotTaskType.UNKNOWN)
     status: BotTaskStatus = Field(default=BotTaskStatus.CREATED)
