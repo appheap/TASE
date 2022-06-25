@@ -65,8 +65,12 @@ class InlineButton(BaseModel):
     def get_url(self) -> str:
         return self.url
 
-    def get_callback_data(self) -> Optional[str]:
-        return self.callback_data
+    def get_callback_data(self, callback_arg=None) -> Optional[str]:
+        if callback_arg is None:
+            return self.callback_data
+        else:
+            data, arg = self.callback_data.split("->")
+            return f"{data}->{callback_arg}"
 
     def get_switch_inline_query_current_chat(
         self,
@@ -81,14 +85,15 @@ class InlineButton(BaseModel):
     def get_inline_keyboard_button(
         self,
         lang_code: str = "en",
-        arg=None,
+        switch_inline_query_current_chat=None,
+        callback_arg=None,
     ):
         return InlineKeyboardButton(
             text=self.get_text(lang_code),
-            callback_data=self.get_callback_data(),
+            callback_data=self.get_callback_data(callback_arg),
             url=self.get_url(),
             switch_inline_query_current_chat=self.get_switch_inline_query_current_chat(
-                arg
+                switch_inline_query_current_chat,
             ),
         )
 

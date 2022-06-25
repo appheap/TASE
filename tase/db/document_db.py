@@ -98,25 +98,21 @@ class DocumentDatabase:
         user_id: int,
         bot_id: int,
         task_type: "BotTaskType",
-        task_status: "BotTaskStatus",
+        state_dict: dict = None,
     ) -> Optional[Tuple[BotTask, bool]]:
-        if (
-            user_id is None
-            or bot_id is None
-            or task_type is None
-            or task_status is None
-        ):
+        if user_id is None or bot_id is None or task_type is None:
             return None
 
-        task, successful = BotTask.create(
-            BotTask(
-                key=str(uuid.uuid4()),
-                user_id=user_id,
-                bot_id=bot_id,
-                type=task_type,
-                status=task_status,
-            )
+        bot_task = BotTask(
+            key=str(uuid.uuid4()),
+            user_id=user_id,
+            bot_id=bot_id,
+            type=task_type,
         )
+        if state_dict is not None and len(state_dict):
+            bot_task.state_dict = state_dict
+
+        task, successful = BotTask.create(bot_task)
 
         return task, successful
 

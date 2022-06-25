@@ -168,7 +168,7 @@ class BotMessageHandler(BaseHandler):
                 ],
                 [
                     InlineButton.get_button("home").get_inline_keyboard_button(
-                        db_user.chosen_language_code
+                        db_user.chosen_language_code,
                     ),
                 ],
             ]
@@ -214,20 +214,30 @@ class BotMessageHandler(BaseHandler):
         query = message.text
 
         # update the user
-        db_from_user = self.db.update_or_create_user(message.from_user)
+        db_from_user = self.db.update_or_create_user(
+            message.from_user,
+        )
 
         if db_from_user.chosen_language_code is None or not len(
-            db_from_user.chosen_language_code
+            db_from_user.chosen_language_code,
         ):
-            self.choose_language(client, db_from_user)
+            self.choose_language(
+                client,
+                db_from_user,
+            )
             return
 
         # check if this message is reply to any bot task
         bot_task = self.db.get_latest_bot_task(
-            db_from_user.user_id, self.telegram_client.telegram_id
+            db_from_user.user_id,
+            self.telegram_client.telegram_id,
         )
         if bot_task is not None:
-            self.check_bot_tasks(bot_task, db_from_user, message)
+            self.check_bot_tasks(
+                bot_task,
+                db_from_user,
+                message,
+            )
             return
 
         found_any = True
@@ -239,7 +249,10 @@ class BotMessageHandler(BaseHandler):
             if len(query) <= 3:
                 found_any = False
             else:
-                db_audio_docs, query_metadata = self.db.search_audio(query, size=10)
+                db_audio_docs, query_metadata = self.db.search_audio(
+                    query,
+                    size=10,
+                )
                 if (
                     not db_audio_docs
                     or not len(db_audio_docs)
@@ -359,23 +372,10 @@ class BotMessageHandler(BaseHandler):
                 title = items[0]
                 description = None
 
-            if title is not None:
-                if len(title) < 3:
-                    error_message = "Title length is less than 3, Please try again"
-                elif len(title) > 20:
-                    error_message = "Title length is more than 20, Please try again"
-            else:
-                error_message = "Title is incorrect, Please try again"
+            error_message = self.validate_title(title)
 
-            if description is not None:
-                if len(description) > 100:
-                    error_message = (
-                        "Description length is more than 100, Please try again"
-                    )
-                elif len(description) < 3:
-                    error_message = (
-                        "Description length is less than 3, Please try again"
-                    )
+            if error_message is not None:
+                error_message = self.validate_description(description)
 
             # if the inputs are valid, change the status of the task to `done`
             if error_message is None:
@@ -394,6 +394,74 @@ class BotMessageHandler(BaseHandler):
 
                 bot_task.update_retry_count()
 
+        elif bot_task.type == BotTaskType.EDIT_PLAYLIST_TITLE:
+            title = message.text
+            error_message = self.validate_title(title)
+
+            playlist_key = bot_task.state_dict["playlist_key"]
+            if playlist_key is None:
+                # todo: An error has occurred, notify user
+                pass
+            else:
+                if error_message is None:
+                    # update playlist title
+                    self.db.update_playlist_title(
+                        playlist_key,
+                        title,
+                    )
+                    bot_task.update_status(BotTaskStatus.DONE)
+                    message.reply_text("Successfully updated the playlist.")
+                else:
+                    message.reply_text(error_message)
+                    bot_task.update_retry_count()
+
+        elif bot_task.type == BotTaskType.EDIT_PLAYLIST_DESCRIPTION:
+            description = message.text
+            error_message = self.validate_description(description)
+
+            playlist_key = bot_task.state_dict["playlist_key"]
+            if playlist_key is None:
+                # todo: An error has occurred, notify user
+                pass
+            else:
+                if error_message is None:
+                    # update playlist description
+                    self.db.update_playlist_description(
+                        playlist_key,
+                        description,
+                    )
+                    bot_task.update_status(BotTaskStatus.DONE)
+                    message.reply_text("Successfully updated the playlist.")
+                else:
+                    message.reply_text(error_message)
+                    bot_task.update_retry_count()
+
         else:
             # check for other types of bot tasks
             pass
+
+    def validate_description(
+        self,
+        description,
+    ):
+        error_message = None
+        if description is not None:
+            if len(description) > 100:
+                error_message = "Description length is more than 100, Please try again"
+            elif len(description) < 3:
+                error_message = "Description length is less than 3, Please try again"
+        return error_message
+
+    def validate_title(
+        self,
+        title: str,
+    ):
+        error_message = None
+        if title is not None:
+            if len(title) < 3:
+                error_message = "Title length is less than 3, Please try again"
+            elif len(title) > 20:
+                error_message = "Title length is more than 20, Please try again"
+        else:
+            error_message = "Title is incorrect, Please try again"
+        return error_message

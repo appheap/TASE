@@ -34,27 +34,34 @@ class DatabaseClient:
         )
 
     def update_user_chosen_language(
-        self, user: graph_models.vertices.User, lang_code: str
+        self,
+        user: graph_models.vertices.User,
+        lang_code: str,
     ):
         if user is None or lang_code is None:
             return
 
         self._graph_db.update_user_chosen_language(user, lang_code)
 
-    def get_user_by_user_id(self, user_id: int) -> Optional[graph_models.vertices.User]:
+    def get_user_by_user_id(
+        self,
+        user_id: int,
+    ) -> Optional[graph_models.vertices.User]:
         if user_id is None:
             return None
         return self._graph_db.get_user_by_user_id(user_id)
 
     def get_or_create_user(
-        self, telegram_user: "pyrogram.types.User"
+        self,
+        telegram_user: "pyrogram.types.User",
     ) -> Optional[graph_models.vertices.User]:
         if telegram_user is None:
             return None
         return self._graph_db.get_or_create_user(telegram_user)
 
     def update_or_create_user(
-        self, telegram_user: "pyrogram.types.User"
+        self,
+        telegram_user: "pyrogram.types.User",
     ) -> Optional[graph_models.vertices.User]:
         if telegram_user is None:
             return None
@@ -81,7 +88,9 @@ class DatabaseClient:
         return self._graph_db.update_or_create_chat(telegram_chat, creator, member)
 
     def get_or_create_audio(
-        self, message: "pyrogram.types.Message", telegram_client_id: int
+        self,
+        message: "pyrogram.types.Message",
+        telegram_client_id: int,
     ):
         if message is None or message.audio is None:
             return
@@ -93,7 +102,9 @@ class DatabaseClient:
             logger.exception(e)
 
     def update_or_create_audio(
-        self, message: "pyrogram.types.Message", telegram_client_id: int
+        self,
+        message: "pyrogram.types.Message",
+        telegram_client_id: int,
     ):
         if message is None or message.audio is None or telegram_client_id is None:
             return
@@ -158,18 +169,30 @@ class DatabaseClient:
             return None
 
         return self._graph_db.get_or_create_query(
-            bot_id, from_user, query, query_date, query_metadata, audio_docs, db_audios
+            bot_id,
+            from_user,
+            query,
+            query_date,
+            query_metadata,
+            audio_docs,
+            db_audios,
         )
 
     def search_audio(
-        self, query: str, from_: int = 0, size: int = 50
+        self,
+        query: str,
+        from_: int = 0,
+        size: int = 50,
     ) -> Optional[Tuple[List[graph_models.vertices.Audio], dict]]:
         if query is None or from_ is None or size is None:
             return None
 
         return self._es_db.search_audio(query, from_, size)
 
-    def get_chat_by_chat_id(self, chat_id: int) -> Optional[graph_models.vertices.Chat]:
+    def get_chat_by_chat_id(
+        self,
+        chat_id: int,
+    ) -> Optional[graph_models.vertices.Chat]:
         if chat_id is None:
             return None
 
@@ -186,14 +209,18 @@ class DatabaseClient:
         return self._document_db.get_audio_file_from_cache(audio, telegram_client_id)
 
     def get_audio_doc_by_download_url(
-        self, download_url: str
+        self,
+        download_url: str,
     ) -> Optional[elasticsearch_models.Audio]:
         if download_url is None:
             return None
 
         return self._es_db.get_audio_by_download_url(download_url)
 
-    def get_audio_doc_by_key(self, key: str) -> Optional[elasticsearch_models.Audio]:
+    def get_audio_doc_by_key(
+        self,
+        key: str,
+    ) -> Optional[elasticsearch_models.Audio]:
         if key is None:
             return None
 
@@ -225,7 +252,8 @@ class DatabaseClient:
         )
 
     def get_hit_by_download_url(
-        self, download_url: str
+        self,
+        download_url: str,
     ) -> Optional[graph_models.vertices.Hit]:
         if download_url is None:
             return None
@@ -233,7 +261,8 @@ class DatabaseClient:
         return self._graph_db.get_hit_by_download_url(download_url)
 
     def get_audio_from_hit(
-        self, hit: graph_models.vertices.Hit
+        self,
+        hit: graph_models.vertices.Hit,
     ) -> Optional[graph_models.vertices.Audio]:
         if hit is None:
             return None
@@ -265,7 +294,9 @@ class DatabaseClient:
         return self._graph_db.get_user_playlists(db_from_user, offset, limit)
 
     def add_audio_to_playlist(
-        self, playlist_key: str, audio_download_url: str
+        self,
+        playlist_key: str,
+        audio_download_url: str,
     ) -> Tuple[bool, bool]:
         if playlist_key is None or audio_download_url is None:
             return False, False
@@ -291,14 +322,18 @@ class DatabaseClient:
             db_from_user, playlist_key, offset, limit
         )
 
-    def get_playlist_by_key(self, key: str) -> Optional[graph_models.vertices.Playlist]:
+    def get_playlist_by_key(
+        self,
+        key: str,
+    ) -> Optional[graph_models.vertices.Playlist]:
         if key is None:
             return None
 
         return self._graph_db.get_playlist_by_key(key)
 
     def get_audios_from_keys(
-        self, audio_keys: List[str]
+        self,
+        audio_keys: List[str],
     ) -> Optional[List[graph_models.vertices.Audio]]:
         if audio_keys is None or not len(audio_keys):
             return None
@@ -310,7 +345,7 @@ class DatabaseClient:
         user_id: int,
         bot_id: int,
         task_type: "document_models.BotTaskType",
-        task_status: "document_models.BotTaskStatus",
+        state_dict: dict = None,
         cancel_recent_task: bool = True,
     ) -> Optional[Tuple[document_models.BotTask, bool]]:
         if cancel_recent_task:
@@ -320,7 +355,10 @@ class DatabaseClient:
                 task_type,
             )
         return self._document_db.create_bot_task(
-            user_id, bot_id, task_type, task_status
+            user_id,
+            bot_id,
+            task_type,
+            state_dict,
         )
 
     def update_task_state_dict(
@@ -340,6 +378,29 @@ class DatabaseClient:
         return self._document_db.get_latest_bot_task(user_id, bot_id)
 
     def create_playlist(
-        self, db_user: "graph_models.vertices.User", title: str, description: str = None
+        self,
+        db_user: "graph_models.vertices.User",
+        title: str,
+        description: str = None,
     ) -> Optional[Tuple["graph_models.vertices.Playlist", bool]]:
         return self._graph_db.create_playlist(db_user, title, description)
+
+    def update_playlist_title(
+        self,
+        playlist_key: str,
+        title: str,
+    ):
+        return self._graph_db.update_playlist_title(
+            playlist_key,
+            title,
+        )
+
+    def update_playlist_description(
+        self,
+        playlist_key: str,
+        description: str,
+    ):
+        return self._graph_db.update_playlist_description(
+            playlist_key,
+            description,
+        )

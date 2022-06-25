@@ -15,7 +15,7 @@ from ...utils import _trans, emoji
 class GetPlaylistAudioInlineButton(InlineButton):
     name = "get_playlist_audios"
 
-    s_audios = _trans("Audios")
+    s_audios = _trans("Audio Files")
     text = f"{s_audios} | {emoji._headphone}"
 
     switch_inline_query_current_chat = f"#get_playlist_audios"
@@ -56,20 +56,29 @@ class GetPlaylistAudioInlineButton(InlineButton):
 
             if playlist_is_valid:
                 results.append(
-                    PlaylistItem.get_item(db_playlist, db_from_user, inline_query)
+                    PlaylistItem.get_item(
+                        db_playlist,
+                        db_from_user,
+                        inline_query,
+                    )
                 )
         else:
             playlist_is_valid = True
 
         if playlist_is_valid:
-            db_audios = db.get_playlist_audios(db_from_user, playlist_key, offset=from_)
+            db_audios = db.get_playlist_audios(
+                db_from_user,
+                playlist_key,
+                offset=from_,
+            )
 
             # todo: fix this
             chats_dict = handler.update_audio_cache(db_audios)
 
             for db_audio in db_audios:
                 db_audio_file_cache = db.get_audio_file_from_cache(
-                    db_audio, telegram_client.telegram_id
+                    db_audio,
+                    telegram_client.telegram_id,
                 )
 
                 #  todo: Some audios have null titles, solution?
@@ -91,11 +100,16 @@ class GetPlaylistAudioInlineButton(InlineButton):
                 next_offset = (
                     str(from_ + len(results) + 1) if len(results) > 1 else None
                 )
-                inline_query.answer(results, cache_time=1, next_offset=next_offset)
+                inline_query.answer(
+                    results,
+                    cache_time=1,
+                    next_offset=next_offset,
+                )
             except Exception as e:
                 logger.exception(e)
         else:
             if from_ is None or from_ == 0:
                 inline_query.answer(
-                    [NoDownloadItem.get_item(db_from_user)], cache_time=1
+                    [NoDownloadItem.get_item(db_from_user)],
+                    cache_time=1,
                 )

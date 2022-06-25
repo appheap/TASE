@@ -511,7 +511,10 @@ class GraphDatabase:
         )
 
     def create_playlist(
-        self, db_user: "User", title: str, description: str = None
+        self,
+        db_user: "User",
+        title: str,
+        description: str = None,
     ) -> Optional[Tuple["Playlist", bool]]:
         if db_user is None or title is None:
             return None
@@ -533,7 +536,10 @@ class GraphDatabase:
         return playlist, successful
 
     def get_or_create_playlist(
-        self, db_user: "User", title: str, description: str = None
+        self,
+        db_user: "User",
+        title: str,
+        description: str = None,
     ) -> Optional["Playlist"]:
         if db_user is None or title is None:
             return None
@@ -637,19 +643,28 @@ class GraphDatabase:
         else:
             return None
 
-    def get_hit_by_download_url(self, download_url: str) -> Optional[Hit]:
+    def get_hit_by_download_url(
+        self,
+        download_url: str,
+    ) -> Optional[Hit]:
         if download_url is None:
             return None
 
         return Hit.find_by_download_url(download_url)
 
-    def get_audio_by_download_url(self, download_url: str) -> Optional[Audio]:
+    def get_audio_by_download_url(
+        self,
+        download_url: str,
+    ) -> Optional[Audio]:
         if download_url is None:
             return None
 
         return Audio.find_by_download_url(download_url)
 
-    def get_audio_from_hit(self, hit: Hit) -> Optional[Audio]:
+    def get_audio_from_hit(
+        self,
+        hit: Hit,
+    ) -> Optional[Audio]:
         if hit is None:
             return None
 
@@ -674,7 +689,11 @@ class GraphDatabase:
         else:
             return None
 
-    def update_user_chosen_language(self, user: User, lang_code: str):
+    def update_user_chosen_language(
+        self,
+        user: User,
+        lang_code: str,
+    ):
         if user is None or lang_code is None:
             return
 
@@ -815,7 +834,10 @@ class GraphDatabase:
             results.append(Audio.parse_from_graph(aud))
         return results
 
-    def get_audios_from_keys(self, audio_keys: List[str]) -> Optional[List["Audio"]]:
+    def get_audios_from_keys(
+        self,
+        audio_keys: List[str],
+    ) -> Optional[List["Audio"]]:
         if audio_keys is None or not len(audio_keys):
             return None
 
@@ -836,3 +858,25 @@ class GraphDatabase:
             pass
 
         return results
+
+    def update_playlist_title(
+        self,
+        playlist_key: str,
+        title: str,
+    ):
+        if playlist_key is None or title is None:
+            return
+
+        db_playlist = Playlist.find_by_key(playlist_key)
+        db_playlist.update_title(title)
+
+    def update_playlist_description(
+        self,
+        playlist_key: str,
+        description: str,
+    ):
+        if playlist_key is None or description is None:
+            return
+
+        db_playlist = Playlist.find_by_key(playlist_key)
+        db_playlist.update_description(description)

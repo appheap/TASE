@@ -5,7 +5,8 @@ from .back_to_playlists_button import BackToPlaylistsInlineButton
 from .choose_language_button import ChooseLanguageInlineButton
 from .delete_playlist_button import DeletePlaylistInlineButton
 from .download_history_button import DownloadHistoryInlineButton
-from .edit_playlist_button import EditPlaylistInlineButton
+from .edit_playlist_description_button import EditPlaylistDescriptionInlineButton
+from .edit_playlist_title_button import EditPlaylistTitleInlineButton
 from .get_playlist_audios_button import GetPlaylistAudioInlineButton
 from .help_catalog import HelpCatalogInlineButton
 from .home_button import HomeInlineButton
@@ -22,7 +23,8 @@ __all__ = [
     "ChooseLanguageInlineButton",
     "DeletePlaylistInlineButton",
     "DownloadHistoryInlineButton",
-    "EditPlaylistInlineButton",
+    "EditPlaylistTitleInlineButton",
+    "EditPlaylistDescriptionInlineButton",
     "GetPlaylistAudioInlineButton",
     "HelpCatalogInlineButton",
     "HomeInlineButton",

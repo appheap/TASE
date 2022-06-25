@@ -7,6 +7,8 @@ from .base_document import BaseDocument
 class BotTaskType(Enum):
     UNKNOWN = 0
     CREATE_NEW_PLAYLIST = 1
+    EDIT_PLAYLIST_TITLE = 2
+    EDIT_PLAYLIST_DESCRIPTION = 3
 
 
 class BotTaskStatus(Enum):
@@ -28,7 +30,7 @@ class BotTask(BaseDocument):
     max_retry_count: int = Field(default=5)
 
     type: BotTaskType = Field(default=BotTaskType.UNKNOWN)
-    status: BotTaskStatus = Field(default=BotTaskStatus.UNKNOWN)
+    status: BotTaskStatus = Field(default=BotTaskStatus.CREATED)
     state_dict: dict = Field(default=dict())  # todo: is it necessary?
 
     def update_status(

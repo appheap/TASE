@@ -35,16 +35,28 @@ class AddToPlaylistInlineButton(InlineButton):
         if inline_query.offset is not None and len(inline_query.offset):
             from_ = int(inline_query.offset)
 
-        db_playlists = db.get_user_playlists(db_from_user, offset=from_)
+        db_playlists = db.get_user_playlists(
+            db_from_user,
+            offset=from_,
+        )
 
         results = []
 
         if from_ == 0:
-            results.append(CreateNewPlaylistItem.get_item(db_from_user, inline_query))
+            results.append(
+                CreateNewPlaylistItem.get_item(
+                    db_from_user,
+                    inline_query,
+                )
+            )
 
         for db_playlist in db_playlists:
             results.append(
-                PlaylistItem.get_item(db_playlist, db_from_user, inline_query)
+                PlaylistItem.get_item(
+                    db_playlist,
+                    db_from_user,
+                    inline_query,
+                )
             )
 
         if len(results):
@@ -52,7 +64,11 @@ class AddToPlaylistInlineButton(InlineButton):
                 next_offset = (
                     str(from_ + len(results) + 1) if len(results) > 1 else None
                 )
-                inline_query.answer(results, cache_time=1, next_offset=next_offset)
+                inline_query.answer(
+                    results,
+                    cache_time=1,
+                    next_offset=next_offset,
+                )
             except Exception as e:
                 logger.exception(e)
 
@@ -82,7 +98,6 @@ class AddToPlaylistInlineButton(InlineButton):
                 db_from_user.user_id,
                 telegram_client.telegram_id,
                 BotTaskType.CREATE_NEW_PLAYLIST,
-                BotTaskStatus.CREATED,
             )
 
             client.send_message(
@@ -92,16 +107,24 @@ class AddToPlaylistInlineButton(InlineButton):
         else:
             # add the audio to the playlist
             created, successful = db.add_audio_to_playlist(
-                playlist_key, audio_download_url
+                playlist_key,
+                audio_download_url,
             )
 
             # todo: update these messages
             if successful:
                 if created:
-                    client.send_message(db_from_user.user_id, "Added to the playlist")
+                    client.send_message(
+                        db_from_user.user_id,
+                        "Added to the playlist",
+                    )
                 else:
                     client.send_message(
-                        db_from_user.user_id, "It's already on the playlist"
+                        db_from_user.user_id,
+                        "It's already on the playlist",
                     )
             else:
-                client.send_message(db_from_user.user_id, "Did not add to the playlist")
+                client.send_message(
+                    db_from_user.user_id,
+                    "Did not add to the playlist",
+                )

@@ -4,6 +4,7 @@ import pyrogram
 from pyrogram.types import InlineQueryResultArticle, InputTextMessageContent
 
 from .inline_button import InlineButton
+
 # from ..handlers import BaseHandler
 # from ..inline_buton_globals import buttons
 from ..inline_items import AudioItem
@@ -36,7 +37,10 @@ class DownloadHistoryInlineButton(InlineButton):
         if inline_query.offset is not None and len(inline_query.offset):
             from_ = int(inline_query.offset)
 
-        db_audios = db.get_user_download_history(db_from_user, offset=from_)
+        db_audios = db.get_user_download_history(
+            db_from_user,
+            offset=from_,
+        )
 
         results = []
 
@@ -45,7 +49,8 @@ class DownloadHistoryInlineButton(InlineButton):
 
         for db_audio in db_audios:
             db_audio_file_cache = db.get_audio_file_from_cache(
-                db_audio, telegram_client.telegram_id
+                db_audio,
+                telegram_client.telegram_id,
             )
 
             #  todo: Some audios have null titles, solution?
