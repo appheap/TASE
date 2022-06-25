@@ -67,6 +67,7 @@ class PlaylistItem(BaseInlineItem):
                 InlineButton.get_button("delete_playlist").get_inline_keyboard_button(
                     db_from_user.chosen_language_code,
                     db_playlist.key,
+                    callback_arg=db_playlist.key,
                 ),
             ],
         ]

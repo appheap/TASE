@@ -2,6 +2,7 @@ import textwrap
 from datetime import datetime, timedelta
 from typing import List
 
+import arrow
 import pyrogram
 from jinja2 import Template
 from pyrogram import filters, handlers
@@ -434,6 +435,27 @@ class BotMessageHandler(BaseHandler):
                     message.reply_text("Successfully updated the playlist.")
                 else:
                     message.reply_text(error_message)
+                    bot_task.update_retry_count()
+
+        elif bot_task.type == BotTaskType.DELETE_PLAYLIST:
+            playlist_key = bot_task.state_dict.get("playlist_key", None)
+            result = bot_task.state_dict.get("result", None)
+            if playlist_key is None or result is None:
+                # todo: An error has occurred, notify user
+                pass
+            else:
+                if message.text == result:
+                    # delete the playlist
+                    deleted_at = get_timestamp()
+                    self.db.delete_playlist(
+                        playlist_key,
+                        deleted_at,
+                    )
+                    bot_task.update_status(BotTaskStatus.DONE)
+                    message.reply_text("Successfully Deleted The Playlist")
+                else:
+                    # message sent does not equal to the result, send an error
+                    message.reply_text("Confirm code is wrong")
                     bot_task.update_retry_count()
 
         else:

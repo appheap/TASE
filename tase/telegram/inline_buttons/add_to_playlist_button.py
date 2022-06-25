@@ -94,6 +94,7 @@ class AddToPlaylistInlineButton(InlineButton):
 
         if playlist_key == "add_a_new_playlist":
             # start creating a new playlist
+            # todo: fix this duplicate code
             db.create_bot_task(
                 db_from_user.user_id,
                 telegram_client.telegram_id,

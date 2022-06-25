@@ -404,3 +404,13 @@ class DatabaseClient:
             playlist_key,
             description,
         )
+
+    def delete_playlist(
+        self,
+        playlist_key: str,
+        deleted_at: int,
+    ):
+        return self._graph_db.delete_playlist(
+            playlist_key,
+            deleted_at,
+        )

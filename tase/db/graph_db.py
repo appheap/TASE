@@ -746,7 +746,8 @@ class GraphDatabase:
         # todo: fix this
         query_template = Template(
             'for v in 1..1 any "$user_id" graph "tase" options {order : "dfs", edgeCollections : ["has"], vertexCollections : ["playlists"]}'
-            "   sort v.created_at DESC"
+            "   filter v.is_deleted == false"
+            "   sort v.modified DESC"
             "   limit $offset, $limit"
             "   return v"
         )
@@ -811,6 +812,9 @@ class GraphDatabase:
 
         db_playlist = Playlist.find_by_key(playlist_key)
 
+        if db_playlist is None:
+            return None
+
         # todo: fix this
         query_template = Template(
             'for v,e in 1..1 outbound "$playlist_id" graph "tase" options {order : "dfs", edgeCollections : ["has"], vertexCollections : ["audios"]}'
@@ -843,13 +847,19 @@ class GraphDatabase:
 
         query_template = Template('return document("$audios",$audio_keys)')
         query = query_template.substitute(
-            {"audios": Audio._vertex_name, "audio_keys": audio_keys}
+            {
+                "audios": Audio._vertex_name,
+                "audio_keys": audio_keys,
+            }
         )
 
         results = []
         try:
 
-            cursor = self.aql.execute(query, count=True)
+            cursor = self.aql.execute(
+                query,
+                count=True,
+            )
             if cursor and len(cursor):
                 audios_raw = cursor.pop()
                 for audio_raw in audios_raw:
@@ -868,7 +878,10 @@ class GraphDatabase:
             return
 
         db_playlist = Playlist.find_by_key(playlist_key)
-        db_playlist.update_title(title)
+        if db_playlist is None:
+            return
+        else:
+            db_playlist.update_title(title)
 
     def update_playlist_description(
         self,
@@ -879,4 +892,21 @@ class GraphDatabase:
             return
 
         db_playlist = Playlist.find_by_key(playlist_key)
-        db_playlist.update_description(description)
+        if db_playlist is None:
+            return
+        else:
+            db_playlist.update_description(description)
+
+    def delete_playlist(
+        self,
+        playlist_key: str,
+        deleted_at: int,
+    ):
+        if playlist_key is None or deleted_at is None:
+            return False
+
+        db_playlist = Playlist.find_by_key(playlist_key)
+        if db_playlist is None:
+            return False
+        else:
+            return db_playlist.soft_delete(deleted_at)

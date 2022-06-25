@@ -8,6 +8,7 @@ from .inline_button import InlineButton
 from ..inline_items import CreateNewPlaylistItem, NoPlaylistItem, PlaylistItem
 from ..telegram_client import TelegramClient
 from ...db import DatabaseClient, graph_models
+from ...db.document_models import BotTaskType
 from ...my_logger import logger
 from ...utils import _trans, emoji
 
@@ -34,16 +35,28 @@ class MyPlaylistsInlineButton(InlineButton):
         if inline_query.offset is not None and len(inline_query.offset):
             from_ = int(inline_query.offset)
 
-        db_playlists = db.get_user_playlists(db_from_user, offset=from_)
+        db_playlists = db.get_user_playlists(
+            db_from_user,
+            offset=from_,
+        )
 
         results = []
 
         if from_ == 0:
-            results.append(CreateNewPlaylistItem.get_item(db_from_user, inline_query))
+            results.append(
+                CreateNewPlaylistItem.get_item(
+                    db_from_user,
+                    inline_query,
+                )
+            )
 
         for db_playlist in db_playlists:
             results.append(
-                PlaylistItem.get_item(db_playlist, db_from_user, inline_query)
+                PlaylistItem.get_item(
+                    db_playlist,
+                    db_from_user,
+                    inline_query,
+                )
             )
 
         if len(results):
@@ -51,13 +64,18 @@ class MyPlaylistsInlineButton(InlineButton):
                 next_offset = (
                     str(from_ + len(results) + 1) if len(results) > 1 else None
                 )
-                inline_query.answer(results, cache_time=1, next_offset=next_offset)
+                inline_query.answer(
+                    results,
+                    cache_time=1,
+                    next_offset=next_offset,
+                )
             except Exception as e:
                 logger.exception(e)
         else:
             if from_ is None or from_ == 0:
                 inline_query.answer(
-                    [NoPlaylistItem.get_item(db_from_user)], cache_time=1
+                    [NoPlaylistItem.get_item(db_from_user)],
+                    cache_time=1,
                 )
 
     def on_chosen_inline_query(
@@ -81,4 +99,14 @@ class MyPlaylistsInlineButton(InlineButton):
 
         if playlist_key == "add_a_new_playlist":
             # start creating a new playlist
-            pass
+            # todo: fix this duplicate code
+            db.create_bot_task(
+                db_from_user.user_id,
+                telegram_client.telegram_id,
+                BotTaskType.CREATE_NEW_PLAYLIST,
+            )
+
+            client.send_message(
+                db_from_user.user_id,
+                text="Enter your playlist title. Enter your playlist description in the next line",
+            )
