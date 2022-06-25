@@ -12,7 +12,7 @@ from ...utils import _trans, emoji
 class DeletePlaylistInlineButton(InlineButton):
     name = "delete_playlist"
 
-    s_delete = _trans("Delete")
+    s_delete = _trans("Delete Playlist")
     text = f"{s_delete} | {emoji._cross_mark}"
     callback_data = "delete_playlist->delete_playlist"
 
