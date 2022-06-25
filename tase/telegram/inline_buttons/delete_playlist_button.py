@@ -33,7 +33,7 @@ class DeletePlaylistInlineButton(InlineButton):
             BotTaskType.DELETE_PLAYLIST,
             state_dict={
                 "playlist_key": callback_query.data.split("->")[1],
-                "result": 1,
+                "result": "1",
             },
         )
 

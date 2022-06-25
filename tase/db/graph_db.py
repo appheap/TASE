@@ -507,7 +507,10 @@ class GraphDatabase:
             return None
 
         return self.create_playlist(
-            db_user, title="Favorite", description="Favorite Playlist"
+            db_user,
+            title="Favorite",
+            description="Favorite Playlist",
+            is_favorite=True,
         )
 
     def create_playlist(
@@ -515,16 +518,25 @@ class GraphDatabase:
         db_user: "User",
         title: str,
         description: str = None,
+        is_favorite: bool = False,
     ) -> Optional[Tuple["Playlist", bool]]:
         if db_user is None or title is None:
             return None
 
-        v = Playlist(title=title, description=description)
+        v = Playlist(
+            title=title,
+            description=description,
+            is_favorite=is_favorite,
+            rank=1 if is_favorite else 2,
+        )
         v.key = Playlist.generate_token_urlsafe(10)
         playlist, successful = Playlist.create(v)
 
         if playlist and successful:
-            db_has = Has.parse_from_user_and_playlist(db_user, playlist)
+            db_has = Has.parse_from_user_and_playlist(
+                db_user,
+                playlist,
+            )
             if db_has is not None and not Has.find_by_key(db_has.key):
                 has_edge, _ = Has.create(db_has)
                 created = True
@@ -540,13 +552,22 @@ class GraphDatabase:
         db_user: "User",
         title: str,
         description: str = None,
+        is_favorite: bool = False,
     ) -> Optional["Playlist"]:
         if db_user is None or title is None:
             return None
 
-        db_playlist = self.get_user_playlist_by_title(db_user, title)
+        db_playlist = self.get_user_playlist_by_title(
+            db_user,
+            title,
+        )
         if db_playlist is None:
-            db_playlist, _ = self.create_playlist(db_user, title, description)
+            db_playlist, _ = self.create_playlist(
+                db_user,
+                title,
+                description,
+                is_favorite,
+            )
 
         return db_playlist
 
@@ -747,7 +768,7 @@ class GraphDatabase:
         query_template = Template(
             'for v in 1..1 any "$user_id" graph "tase" options {order : "dfs", edgeCollections : ["has"], vertexCollections : ["playlists"]}'
             "   filter v.is_deleted == false"
-            "   sort v.modified DESC"
+            "   sort v.rank , v.modified DESC"
             "   limit $offset, $limit"
             "   return v"
         )

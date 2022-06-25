@@ -13,6 +13,9 @@ class Playlist(BaseVertex):
     title: str
     description: Optional[str]
 
+    rank: int
+    is_favorite: bool = Field(default=False)
+
     deleted_at: Optional[int]
     is_deleted: bool = Field(default=False)
 

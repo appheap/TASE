@@ -382,8 +382,14 @@ class DatabaseClient:
         db_user: "graph_models.vertices.User",
         title: str,
         description: str = None,
+        is_favorite: bool = False,
     ) -> Optional[Tuple["graph_models.vertices.Playlist", bool]]:
-        return self._graph_db.create_playlist(db_user, title, description)
+        return self._graph_db.create_playlist(
+            db_user,
+            title,
+            description,
+            is_favorite,
+        )
 
     def update_playlist_title(
         self,
