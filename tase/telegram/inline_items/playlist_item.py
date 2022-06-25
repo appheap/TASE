@@ -26,7 +26,9 @@ class PlaylistItem(BaseInlineItem):
 
         data = PlaylistData(
             title=db_playlist.title,
-            description=db_playlist.description,
+            description=db_playlist.description
+            if db_playlist.description is not None
+            else " ",
             lang_code=db_from_user.chosen_language_code,
         )
         markup = [
@@ -75,10 +77,10 @@ class PlaylistItem(BaseInlineItem):
         markup = InlineKeyboardMarkup(markup)
         item = InlineQueryResultArticle(
             title=db_playlist.title,
-            description=f"{db_playlist.description}",
+            description=f"{db_playlist.description if db_playlist.description is not None else ' '}",
             id=f"{inline_query.id}->{db_playlist.key}",
             thumb_url="https://telegra.ph/file/ac2d210b9b0e5741470a1.jpg"
-            if db_playlist.title != "Favorite"
+            if not db_playlist.is_favorite
             else "https://telegra.ph/file/07d5ca30dba31b5241bcf.jpg",
             input_message_content=InputTextMessageContent(
                 message_text=BaseTemplate.registry.playlist_template.render(data),
