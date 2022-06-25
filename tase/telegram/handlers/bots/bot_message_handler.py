@@ -380,13 +380,46 @@ class BotMessageHandler(BaseHandler):
 
             # if the inputs are valid, change the status of the task to `done`
             if error_message is None:
-                self.db.create_playlist(
+                db_playlist, successful = self.db.create_playlist(
                     db_from_user,
                     title,
                     description,
                 )
-                bot_task.update_status(BotTaskStatus.DONE)
-                message.reply_text("Successfully created the playlist.")
+                if db_playlist and successful:
+                    db_playlist: graph_models.vertices.Playlist = db_playlist
+
+                    bot_task.update_status(BotTaskStatus.DONE)
+                    message.reply_text("Successfully created the playlist.")
+
+                    audio_download_url = bot_task.state_dict.get(
+                        "audio_download_url", None
+                    )
+                    if audio_download_url is not None:
+                        created, successful = self.db.add_audio_to_playlist(
+                            db_playlist.key,
+                            audio_download_url,
+                        )
+
+                        # todo: update these messages
+                        if successful:
+                            if created:
+                                message.reply_text(
+                                    "Added to the playlist",
+                                )
+                            else:
+                                message.reply_text(
+                                    "It's already on the playlist",
+                                )
+                        else:
+                            message.reply_text(
+                                "Did not add to the playlist",
+                            )
+
+                else:
+                    # todo: make this translatable
+                    bot_task.update_status(BotTaskStatus.FAILED)
+                    message.reply_text("An error has occurred")
+
             else:
                 message.reply_text(error_message)
 

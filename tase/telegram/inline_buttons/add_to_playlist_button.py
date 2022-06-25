@@ -99,6 +99,9 @@ class AddToPlaylistInlineButton(InlineButton):
                 db_from_user.user_id,
                 telegram_client.telegram_id,
                 BotTaskType.CREATE_NEW_PLAYLIST,
+                state_dict={
+                    "audio_download_url": audio_download_url,
+                },
             )
 
             client.send_message(
