@@ -55,7 +55,8 @@ class BotMessageHandler(BaseHandler):
                 & filters.text
                 & ~filters.bot
                 & ~filters.via_bot
-                & ~filters.media,
+                & ~filters.media
+                & ~filters.regex("^(.*/+.*)+$"),
                 group=0,
             ),
             HandlerMetadata(
