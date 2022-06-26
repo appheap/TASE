@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: tase\n"
-"POT-Creation-Date: 2022-05-17 15:11+0430\n"
-"PO-Revision-Date: 2022-05-17 15:11+0430\n"
+"POT-Creation-Date: 2022-06-26 19:18+0430\n"
+"PO-Revision-Date: 2022-06-26 19:18+0430\n"
 "Last-Translator: \n"
 "Language-Team: Hindi\n"
 "Language: hi_IN\n"
@@ -10,79 +10,87 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n==0 || n==1);\n"
-"X-Generator: Poedit 3.0.1\n"
+"X-Generator: Poedit 3.1\n"
 "X-Poedit-Basepath: ../../../tase\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 "X-Poedit-KeywordsList: _trans\n"
 "X-Poedit-SearchPath-0: .\n"
 
-#: telegram/handlers/bots/bot_message_handler.py:161
+#: telegram/handlers/bots/bot_message_handler.py:205
 msgid "An error occurred while processing the download URL for this audio"
 msgstr "इस ऑडियो के लिए डाउनलोड URL को संसाधित करते समय एक त्रुटि हुई"
 
-#: telegram/inline_buttons/add_to_playlist_button.py:17
+#: telegram/inline_buttons/add_to_playlist_button.py:19
 msgid "Add To Playlist"
 msgstr "प्लेलिस्ट में जोड़ें"
 
-#: telegram/inline_buttons/advertisement_button.py:9
+#: telegram/inline_buttons/advertisement_button.py:8
 msgid "Advertisement"
 msgstr "विज्ञापन"
 
-#: telegram/inline_buttons/back_button.py:13
-#: telegram/inline_buttons/back_to_playlists_button.py:9
+#: telegram/inline_buttons/back_button.py:14
+#: telegram/inline_buttons/back_to_playlists_button.py:10
 msgid "Back"
 msgstr "वापस"
 
-#: telegram/inline_buttons/choose_language_button.py:24
+#: telegram/inline_buttons/choose_language_button.py:29
 msgid "Language change has been saved"
 msgstr "भाषा परिवर्तन बच गया है"
 
-#: telegram/inline_buttons/delete_playlist_button.py:13
-msgid "Delete"
-msgstr "मिटाना"
+#: telegram/inline_buttons/delete_playlist_button.py:15
+msgid "Delete Playlist"
+msgstr "प्लेलिस्ट हटाएं"
 
-#: telegram/inline_buttons/download_history_button.py:23
+#: telegram/inline_buttons/download_history_button.py:20
 msgid "My Downloads"
 msgstr "मेरे डाउनलोड"
 
-#: telegram/inline_buttons/download_history_button.py:78
-#: telegram/inline_items/no_download_item.py:22
-#: telegram/inline_items/no_playlist_item.py:22
-#: telegram/inline_items/no_result_item.py:22
+#: telegram/inline_buttons/download_history_button.py:82
+#: telegram/inline_items/no_download_item.py:21
+#: telegram/inline_items/no_playlist_item.py:21
+#: telegram/inline_items/no_result_item.py:21
 msgid "No Results Were Found"
 msgstr "कोई परिणाम नहीं मिला"
 
-#: telegram/inline_buttons/download_history_button.py:80
-#: telegram/inline_items/no_download_item.py:24
+#: telegram/inline_buttons/download_history_button.py:86
+#: telegram/inline_items/no_download_item.py:23
 msgid "You haven't downloaded any audios yet"
 msgstr "आपने अभी तक कोई ऑडियो डाउनलोड नहीं किया है"
 
-#: telegram/inline_buttons/edit_playlist_button.py:13
-msgid "Edit"
-msgstr "संपादन करना"
+#: telegram/inline_buttons/edit_playlist_description_button.py:15
+msgid "Edit Description"
+msgstr "संपादित करें] वर्णन"
 
-#: telegram/inline_buttons/get_playlist_audios_button.py:17
-msgid "Audios"
-msgstr "ऑडियो"
+#: telegram/inline_buttons/edit_playlist_title_button.py:15
+msgid "Edit Title"
+msgstr "शीर्षक संपादित करें"
+
+#: telegram/inline_buttons/get_playlist_audios_button.py:18
+msgid "Audio Files"
+msgstr "ऑडियो फ़ाइलें"
 
 #: telegram/inline_buttons/help_catalog.py:18
 msgid "Help"
 msgstr "मदद"
 
-#: telegram/inline_buttons/home_button.py:13
-#: telegram/templates/choose_language_template.py:27
+#: telegram/inline_buttons/home_button.py:14
+#: telegram/templates/choose_language_template.py:29
 msgid "Home"
 msgstr "घर"
 
-#: telegram/inline_buttons/my_playlists_button.py:17
+#: telegram/inline_buttons/my_playlists_button.py:19
 msgid "My Playlists"
 msgstr "मेरी प्लेलिस्ट"
 
-#: telegram/inline_buttons/show_language_menu_button.py:13
+#: telegram/inline_buttons/remove_from_playlist_button.py:18
+msgid "Remove From Playlist"
+msgstr "प्लेलिस्ट से निकालें"
+
+#: telegram/inline_buttons/show_language_menu_button.py:14
 msgid "Language"
 msgstr "भाषा"
 
-#: telegram/inline_items/create_new_playlist_item.py:23
+#: telegram/inline_items/create_new_playlist_item.py:22
 msgid "Create A New Playlist"
 msgstr "एक नई प्लेलिस्ट बनाएं"
 
@@ -90,7 +98,7 @@ msgstr "एक नई प्लेलिस्ट बनाएं"
 msgid "Create a new playlist"
 msgstr "एक नई प्लेलिस्ट बनाएं"
 
-#: telegram/inline_items/no_playlist_item.py:24
+#: telegram/inline_items/no_playlist_item.py:23
 msgid "You haven't created any playlist yet"
 msgstr "आपने अभी तक कोई प्लेलिस्ट नहीं बनाई है"
 
@@ -98,73 +106,73 @@ msgstr "आपने अभी तक कोई प्लेलिस्ट न�
 msgid "No results were found"
 msgstr "कोई परिणाम नहीं मिले थे"
 
-#: telegram/templates/audio_caption_template.py:31
-#: telegram/templates/playlist_template.py:26
+#: telegram/templates/audio_caption_template.py:33
+#: telegram/templates/playlist_template.py:28
 msgid "Title"
 msgstr "शीर्षक"
 
-#: telegram/templates/audio_caption_template.py:32
+#: telegram/templates/audio_caption_template.py:34
 msgid "Performer"
 msgstr "अभिनेता"
 
-#: telegram/templates/audio_caption_template.py:33
+#: telegram/templates/audio_caption_template.py:35
 msgid "File name"
 msgstr "फ़ाइल का नाम"
 
-#: telegram/templates/audio_caption_template.py:34
+#: telegram/templates/audio_caption_template.py:36
 msgid "Source"
 msgstr "स्रोत"
 
-#: telegram/templates/audio_caption_template.py:35
+#: telegram/templates/audio_caption_template.py:37
 msgid "Audio Search Engine"
 msgstr "श्रव्य खोज इंजन"
 
-#: telegram/templates/audio_caption_template.py:36
+#: telegram/templates/audio_caption_template.py:38
 msgid "Submitted by Telegram Audio Search Engine Users"
 msgstr "टेलीग्राम ऑडियो खोज इंजन उपयोगकर्ताओं द्वारा प्रस्तुत किया गया"
 
-#: telegram/templates/choose_language_template.py:23
+#: telegram/templates/choose_language_template.py:25
 msgid "Please choose your language"
 msgstr "कृपया अपनी भाषा चुनें"
 
-#: telegram/templates/choose_language_template.py:24
+#: telegram/templates/choose_language_template.py:26
 msgid "You can change this later by:"
 msgstr "आप इसे बाद में बदल सकते हैं:"
 
-#: telegram/templates/choose_language_template.py:25
+#: telegram/templates/choose_language_template.py:27
 msgid "Sending"
 msgstr "भेजना"
 
-#: telegram/templates/choose_language_template.py:26
+#: telegram/templates/choose_language_template.py:28
 msgid "Going to"
 msgstr "जा रहा हूँ"
 
-#: telegram/templates/help_template.py:32
+#: telegram/templates/help_template.py:34
 msgid "Help menu"
 msgstr "सहायता मेनू"
 
-#: telegram/templates/help_template.py:33
-#: telegram/templates/home_template.py:33
+#: telegram/templates/help_template.py:35
+#: telegram/templates/home_template.py:35
 msgid "Channel:"
 msgstr "चैनल:"
 
-#: telegram/templates/help_template.py:34
-#: telegram/templates/home_template.py:34
+#: telegram/templates/help_template.py:36
+#: telegram/templates/home_template.py:36
 msgid "Our channels:"
 msgstr "हमारे चैनल:"
 
-#: telegram/templates/help_template.py:35
-#: telegram/templates/home_template.py:35
-#: telegram/templates/welcome_template.py:28
+#: telegram/templates/help_template.py:37
+#: telegram/templates/home_template.py:37
+#: telegram/templates/welcome_template.py:30
 msgid "Telegram Audio Search Engine"
 msgstr "तार ऑडियो खोज इंजन"
 
-#: telegram/templates/help_template.py:36
-#: telegram/templates/home_template.py:36
+#: telegram/templates/help_template.py:38
+#: telegram/templates/home_template.py:38
 msgid "How to reach us:"
 msgstr "हम तक कैसे पहुंचे:"
 
-#: telegram/templates/home_template.py:32
+#: telegram/templates/home_template.py:34
 msgid "Main menu"
 msgstr "मुख्य मेन्यू"
 
@@ -172,62 +180,68 @@ msgstr "मुख्य मेन्यू"
 msgid "No results were found for this query!"
 msgstr "इस क्वेरी के लिए कोई परिणाम नहीं मिला!"
 
-#: telegram/templates/playlist_template.py:25
+#: telegram/templates/playlist_template.py:27
 msgid "Playlist Menu"
 msgstr "प्लेलिस्ट मेनू"
 
-#: telegram/templates/playlist_template.py:27
+#: telegram/templates/playlist_template.py:29
 msgid "Description"
 msgstr "विवरण"
 
-#: telegram/templates/query_results_template.py:33
+#: telegram/templates/query_results_template.py:35
 msgid "Search results for:"
 msgstr "के लिए खोज परिणाम:"
 
-#: telegram/templates/query_results_template.py:34
+#: telegram/templates/query_results_template.py:36
 msgid "Better results are at the bottom of the list"
 msgstr "बेहतर परिणाम सूची के निचले भाग में हैं"
 
-#: telegram/templates/query_results_template.py:35
+#: telegram/templates/query_results_template.py:37
 msgid "Download:"
 msgstr "डाउनलोड:"
 
-#: telegram/templates/query_results_template.py:36
+#: telegram/templates/query_results_template.py:38
 msgid "MB"
 msgstr "एमबी"
 
-#: telegram/templates/welcome_template.py:26
+#: telegram/templates/welcome_template.py:28
 msgid "Take your audio searching to the speed"
 msgstr "अपने ऑडियो को गति तक खोजें"
 
-#: telegram/templates/welcome_template.py:27
+#: telegram/templates/welcome_template.py:29
 msgid "Welcome to"
 msgstr "आपका स्वागत है"
 
-#: telegram/templates/welcome_template.py:29
+#: telegram/templates/welcome_template.py:31
 msgid "It's great to have you!"
 msgstr "यह आपके लिए बहुत अच्छा है!"
 
-#: telegram/templates/welcome_template.py:30
+#: telegram/templates/welcome_template.py:33
 msgid "Here are a bunch of features that will get your searching up to"
 msgstr "यहां उन सुविधाओं का एक समूह है जो आपकी खोज को प्राप्त करेंगे"
 
-#: telegram/templates/welcome_template.py:31
+#: telegram/templates/welcome_template.py:35
 msgid "speed"
 msgstr "रफ़्तार"
 
-#: telegram/templates/welcome_template.py:32
+#: telegram/templates/welcome_template.py:36
 msgid "Find"
 msgstr "पाना"
 
-#: telegram/templates/welcome_template.py:33
+#: telegram/templates/welcome_template.py:37
 msgid "your audio (music, podcast, etc.) in"
 msgstr "आपका ऑडियो (संगीत, पॉडकास्ट, आदि)"
 
-#: telegram/templates/welcome_template.py:34
+#: telegram/templates/welcome_template.py:38
 msgid "Any question? then press"
 msgstr "कोई प्रश्न?फिर दबायें"
 
-#: telegram/templates/welcome_template.py:35
+#: telegram/templates/welcome_template.py:39
 msgid "milliseconds"
 msgstr "मिलीसेकेंड"
+
+#~ msgid "Delete"
+#~ msgstr "मिटाना"
+
+#~ msgid "Edit"
+#~ msgstr "संपादन करना"

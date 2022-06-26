@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: tase\n"
-"POT-Creation-Date: 2022-05-17 15:11+0430\n"
-"PO-Revision-Date: 2022-05-17 15:11+0430\n"
+"POT-Creation-Date: 2022-06-26 19:18+0430\n"
+"PO-Revision-Date: 2022-06-26 19:18+0430\n"
 "Last-Translator: \n"
 "Language-Team: Arabic\n"
 "Language: ar\n"
@@ -11,79 +11,87 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=6; plural=(n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
 "&& n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5);\n"
-"X-Generator: Poedit 3.0.1\n"
+"X-Generator: Poedit 3.1\n"
 "X-Poedit-Basepath: ../../../tase\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 "X-Poedit-KeywordsList: _trans\n"
 "X-Poedit-SearchPath-0: .\n"
 
-#: telegram/handlers/bots/bot_message_handler.py:161
+#: telegram/handlers/bots/bot_message_handler.py:205
 msgid "An error occurred while processing the download URL for this audio"
 msgstr "حدث خطأ أثناء معالجة عنوان URL لتنزيل الصوت"
 
-#: telegram/inline_buttons/add_to_playlist_button.py:17
+#: telegram/inline_buttons/add_to_playlist_button.py:19
 msgid "Add To Playlist"
 msgstr "إضافة إلى قائمة التشغيل"
 
-#: telegram/inline_buttons/advertisement_button.py:9
+#: telegram/inline_buttons/advertisement_button.py:8
 msgid "Advertisement"
 msgstr "إعلان"
 
-#: telegram/inline_buttons/back_button.py:13
-#: telegram/inline_buttons/back_to_playlists_button.py:9
+#: telegram/inline_buttons/back_button.py:14
+#: telegram/inline_buttons/back_to_playlists_button.py:10
 msgid "Back"
 msgstr "وراء"
 
-#: telegram/inline_buttons/choose_language_button.py:24
+#: telegram/inline_buttons/choose_language_button.py:29
 msgid "Language change has been saved"
 msgstr "تم حفظ تغيير اللغة"
 
-#: telegram/inline_buttons/delete_playlist_button.py:13
-msgid "Delete"
-msgstr "حذف"
+#: telegram/inline_buttons/delete_playlist_button.py:15
+msgid "Delete Playlist"
+msgstr "حذف قائمة التشغيل"
 
-#: telegram/inline_buttons/download_history_button.py:23
+#: telegram/inline_buttons/download_history_button.py:20
 msgid "My Downloads"
 msgstr "التنزيلات الخاصة بي"
 
-#: telegram/inline_buttons/download_history_button.py:78
-#: telegram/inline_items/no_download_item.py:22
-#: telegram/inline_items/no_playlist_item.py:22
-#: telegram/inline_items/no_result_item.py:22
+#: telegram/inline_buttons/download_history_button.py:82
+#: telegram/inline_items/no_download_item.py:21
+#: telegram/inline_items/no_playlist_item.py:21
+#: telegram/inline_items/no_result_item.py:21
 msgid "No Results Were Found"
 msgstr "لا توجد نتائج"
 
-#: telegram/inline_buttons/download_history_button.py:80
-#: telegram/inline_items/no_download_item.py:24
+#: telegram/inline_buttons/download_history_button.py:86
+#: telegram/inline_items/no_download_item.py:23
 msgid "You haven't downloaded any audios yet"
 msgstr "لم تقم بتنزيل أي صوتيات حتى الآن"
 
-#: telegram/inline_buttons/edit_playlist_button.py:13
-msgid "Edit"
-msgstr "تعديل"
+#: telegram/inline_buttons/edit_playlist_description_button.py:15
+msgid "Edit Description"
+msgstr "تحرير الوصف"
 
-#: telegram/inline_buttons/get_playlist_audios_button.py:17
-msgid "Audios"
-msgstr "صوتيات"
+#: telegram/inline_buttons/edit_playlist_title_button.py:15
+msgid "Edit Title"
+msgstr "تحرير العنوان"
+
+#: telegram/inline_buttons/get_playlist_audios_button.py:18
+msgid "Audio Files"
+msgstr "ملفات صوتية"
 
 #: telegram/inline_buttons/help_catalog.py:18
 msgid "Help"
 msgstr "المساعدة"
 
-#: telegram/inline_buttons/home_button.py:13
-#: telegram/templates/choose_language_template.py:27
+#: telegram/inline_buttons/home_button.py:14
+#: telegram/templates/choose_language_template.py:29
 msgid "Home"
 msgstr "منزل"
 
-#: telegram/inline_buttons/my_playlists_button.py:17
+#: telegram/inline_buttons/my_playlists_button.py:19
 msgid "My Playlists"
 msgstr "قوائم التشغيل الخاصة بي"
 
-#: telegram/inline_buttons/show_language_menu_button.py:13
+#: telegram/inline_buttons/remove_from_playlist_button.py:18
+msgid "Remove From Playlist"
+msgstr "إزالة من قائمة التشغيل"
+
+#: telegram/inline_buttons/show_language_menu_button.py:14
 msgid "Language"
 msgstr "لغة"
 
-#: telegram/inline_items/create_new_playlist_item.py:23
+#: telegram/inline_items/create_new_playlist_item.py:22
 msgid "Create A New Playlist"
 msgstr "قم بإنشاء قائمة تشغيل جديدة"
 
@@ -91,7 +99,7 @@ msgstr "قم بإنشاء قائمة تشغيل جديدة"
 msgid "Create a new playlist"
 msgstr "قم بإنشاء قائمة تشغيل جديدة"
 
-#: telegram/inline_items/no_playlist_item.py:24
+#: telegram/inline_items/no_playlist_item.py:23
 msgid "You haven't created any playlist yet"
 msgstr "لم تقم بإنشاء أي قائمة تشغيل حتى الآن"
 
@@ -99,73 +107,73 @@ msgstr "لم تقم بإنشاء أي قائمة تشغيل حتى الآن"
 msgid "No results were found"
 msgstr "لا توجد نتائج"
 
-#: telegram/templates/audio_caption_template.py:31
-#: telegram/templates/playlist_template.py:26
+#: telegram/templates/audio_caption_template.py:33
+#: telegram/templates/playlist_template.py:28
 msgid "Title"
 msgstr "عنوان"
 
-#: telegram/templates/audio_caption_template.py:32
+#: telegram/templates/audio_caption_template.py:34
 msgid "Performer"
 msgstr "المؤدي"
 
-#: telegram/templates/audio_caption_template.py:33
+#: telegram/templates/audio_caption_template.py:35
 msgid "File name"
 msgstr "اسم الملف"
 
-#: telegram/templates/audio_caption_template.py:34
+#: telegram/templates/audio_caption_template.py:36
 msgid "Source"
 msgstr "مصدر"
 
-#: telegram/templates/audio_caption_template.py:35
+#: telegram/templates/audio_caption_template.py:37
 msgid "Audio Search Engine"
 msgstr "محرك البحث الصوتي"
 
-#: telegram/templates/audio_caption_template.py:36
+#: telegram/templates/audio_caption_template.py:38
 msgid "Submitted by Telegram Audio Search Engine Users"
 msgstr "أرسلها مستخدمو محرك البحث الصوتي تلغرام"
 
-#: telegram/templates/choose_language_template.py:23
+#: telegram/templates/choose_language_template.py:25
 msgid "Please choose your language"
 msgstr "الرجاء اختيار لغتك"
 
-#: telegram/templates/choose_language_template.py:24
+#: telegram/templates/choose_language_template.py:26
 msgid "You can change this later by:"
 msgstr "يمكنك تغيير هذا لاحقًا عن طريق:"
 
-#: telegram/templates/choose_language_template.py:25
+#: telegram/templates/choose_language_template.py:27
 msgid "Sending"
 msgstr "إرسال"
 
-#: telegram/templates/choose_language_template.py:26
+#: telegram/templates/choose_language_template.py:28
 msgid "Going to"
 msgstr "الذهاب الى"
 
-#: telegram/templates/help_template.py:32
+#: telegram/templates/help_template.py:34
 msgid "Help menu"
 msgstr "قائمة المساعدة"
 
-#: telegram/templates/help_template.py:33
-#: telegram/templates/home_template.py:33
+#: telegram/templates/help_template.py:35
+#: telegram/templates/home_template.py:35
 msgid "Channel:"
 msgstr "قناة:"
 
-#: telegram/templates/help_template.py:34
-#: telegram/templates/home_template.py:34
+#: telegram/templates/help_template.py:36
+#: telegram/templates/home_template.py:36
 msgid "Our channels:"
 msgstr "قنواتنا:"
 
-#: telegram/templates/help_template.py:35
-#: telegram/templates/home_template.py:35
-#: telegram/templates/welcome_template.py:28
+#: telegram/templates/help_template.py:37
+#: telegram/templates/home_template.py:37
+#: telegram/templates/welcome_template.py:30
 msgid "Telegram Audio Search Engine"
 msgstr "محرك البحث الصوتي تلغرام"
 
-#: telegram/templates/help_template.py:36
-#: telegram/templates/home_template.py:36
+#: telegram/templates/help_template.py:38
+#: telegram/templates/home_template.py:38
 msgid "How to reach us:"
 msgstr "كيفية التواصل معنا:"
 
-#: telegram/templates/home_template.py:32
+#: telegram/templates/home_template.py:34
 msgid "Main menu"
 msgstr "القائمة الرئيسية"
 
@@ -173,65 +181,71 @@ msgstr "القائمة الرئيسية"
 msgid "No results were found for this query!"
 msgstr "لم يتم العثور على نتائج لهذا الاستعلام!"
 
-#: telegram/templates/playlist_template.py:25
+#: telegram/templates/playlist_template.py:27
 msgid "Playlist Menu"
 msgstr "قائمة التشغيل"
 
-#: telegram/templates/playlist_template.py:27
+#: telegram/templates/playlist_template.py:29
 msgid "Description"
 msgstr "وصف"
 
-#: telegram/templates/query_results_template.py:33
+#: telegram/templates/query_results_template.py:35
 msgid "Search results for:"
 msgstr "نتائج البحث عن:"
 
-#: telegram/templates/query_results_template.py:34
+#: telegram/templates/query_results_template.py:36
 msgid "Better results are at the bottom of the list"
 msgstr "أفضل النتائج في أسفل القائمة"
 
-#: telegram/templates/query_results_template.py:35
+#: telegram/templates/query_results_template.py:37
 msgid "Download:"
 msgstr "تنزيل:"
 
-#: telegram/templates/query_results_template.py:36
+#: telegram/templates/query_results_template.py:38
 msgid "MB"
 msgstr "ميغابايت"
 
-#: telegram/templates/welcome_template.py:26
+#: telegram/templates/welcome_template.py:28
 msgid "Take your audio searching to the speed"
 msgstr "خذ البحث الصوتي إلى السرعة"
 
-#: telegram/templates/welcome_template.py:27
+#: telegram/templates/welcome_template.py:29
 msgid "Welcome to"
 msgstr "مرحبا بك في"
 
-#: telegram/templates/welcome_template.py:29
+#: telegram/templates/welcome_template.py:31
 msgid "It's great to have you!"
 msgstr "إنه لشيء رائع أن يكون لديك!"
 
-#: telegram/templates/welcome_template.py:30
+#: telegram/templates/welcome_template.py:33
 msgid "Here are a bunch of features that will get your searching up to"
 msgstr "إليك مجموعة من الميزات التي ستجعل بحثك يصل إلى"
 
-#: telegram/templates/welcome_template.py:31
+#: telegram/templates/welcome_template.py:35
 msgid "speed"
 msgstr "السرعة"
 
-#: telegram/templates/welcome_template.py:32
+#: telegram/templates/welcome_template.py:36
 msgid "Find"
 msgstr "ابحث"
 
-#: telegram/templates/welcome_template.py:33
+#: telegram/templates/welcome_template.py:37
 msgid "your audio (music, podcast, etc.) in"
 msgstr "عن الصوت (موسيقى ، بودكاست ، وما إلى ذلك) في"
 
-#: telegram/templates/welcome_template.py:34
+#: telegram/templates/welcome_template.py:38
 msgid "Any question? then press"
 msgstr "اي سؤال؟ ثم اضغط على"
 
-#: telegram/templates/welcome_template.py:35
+#: telegram/templates/welcome_template.py:39
 msgid "milliseconds"
 msgstr "مللي ثانية"
+
+#~ msgid "Delete"
+#~ msgstr "حذف"
+
+#~ msgid "Edit"
+#~ msgstr "تعديل"
 
 #~ msgid "Title:"
 #~ msgstr "عنوان:"
