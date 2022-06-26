@@ -3,6 +3,7 @@ from typing import Match
 import pyrogram
 
 from .inline_button import InlineButton
+
 # from ..handlers import BaseHandler
 from ..inline_items import PlaylistItem
 from ..telegram_client import TelegramClient
@@ -65,6 +66,8 @@ class RemoveFromPlaylistInlineButton(InlineButton):
                 )
             except Exception as e:
                 logger.exception(e)
+
+        # todo: what to show when user doesn't have any playlists yet or hasn't added this audio to any playlist
 
     def on_chosen_inline_query(
         self,

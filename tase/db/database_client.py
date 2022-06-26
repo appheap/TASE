@@ -288,9 +288,6 @@ class DatabaseClient:
         offset: int = 0,
         limit: int = 20,
     ) -> Optional[List[graph_models.vertices.Playlist]]:
-        if db_from_user is None:
-            return None
-
         return self._graph_db.get_user_playlists(db_from_user, offset, limit)
 
     def remove_audio_from_playlist(
@@ -428,10 +425,12 @@ class DatabaseClient:
 
     def delete_playlist(
         self,
+        db_from_user: graph_models.vertices.User,
         playlist_key: str,
         deleted_at: int,
     ):
         return self._graph_db.delete_playlist(
+            db_from_user,
             playlist_key,
             deleted_at,
         )

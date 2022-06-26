@@ -799,7 +799,6 @@ class GraphDatabase:
         # todo: fix this
         query_template = Template(
             'for v in 1..1 any "$user_id" graph "tase" options {order : "dfs", edgeCollections : ["has"], vertexCollections : ["playlists"]}'
-            "   filter v.is_deleted == false"
             "   sort v.rank , v.modified DESC"
             "   limit $offset, $limit"
             "   return v"
@@ -817,6 +816,9 @@ class GraphDatabase:
             count=True,
         ):
             results.append(Playlist.parse_from_graph(pl))
+
+        # todo: remove None objects from the result (it's present when there are warnings)
+        # results = [res for res in results if res]
 
         return results
 
@@ -856,7 +858,6 @@ class GraphDatabase:
             if had_edge:
                 had_edge, successful = Had.create(had_edge)
                 if had_edge and successful:
-
                     return True
                 else:
                     return False
@@ -1046,14 +1047,41 @@ class GraphDatabase:
 
     def delete_playlist(
         self,
+        db_from_user: User,
         playlist_key: str,
         deleted_at: int,
     ):
-        if playlist_key is None or deleted_at is None:
+        if db_from_user is None and playlist_key is None or deleted_at is None:
             return False
 
         db_playlist = Playlist.find_by_key(playlist_key)
         if db_playlist is None:
             return False
         else:
-            return db_playlist.soft_delete(deleted_at)
+            has_edge = Has.find_by_key(
+                Has.parse_from_user_and_playlist(
+                    db_from_user,
+                    db_playlist,
+                ).key
+            )
+
+            if has_edge is None:
+                return False
+
+            deleted = Has.delete_edge(has_edge)
+            if not deleted:
+                return False
+            else:
+                had_edge = Had.parse_from_user_and_playlist(
+                    db_from_user,
+                    db_playlist,
+                    deleted_at,
+                    has_edge,
+                )
+                if had_edge:
+                    had_edge, successful = Had.create(had_edge)
+                    if had_edge and successful:
+                        return True
+                    else:
+                        return False
+            return False

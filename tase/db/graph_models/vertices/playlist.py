@@ -16,9 +16,6 @@ class Playlist(BaseVertex):
     rank: int
     is_favorite: bool = Field(default=False)
 
-    deleted_at: Optional[int]
-    is_deleted: bool = Field(default=False)
-
     def update_title(
         self,
         title: str,
@@ -48,28 +45,3 @@ class Playlist(BaseVertex):
             },
             silent=True,
         )
-
-    def soft_delete(
-        self,
-        deleted_at: int,
-    ):
-        if deleted_at is None:
-            return False
-
-        try:
-
-            self._db.update(
-                {
-                    "_key": self.key,
-                    "is_deleted": True,
-                    "deleted_at": deleted_at,
-                },
-                silent=True,
-            )
-            return True
-        except DocumentUpdateError as e:
-            logger.exception(e)
-            return False
-        except Exception as e:
-            logger.exception(e)
-            return False

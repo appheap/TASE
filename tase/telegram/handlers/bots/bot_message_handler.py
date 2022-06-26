@@ -168,6 +168,14 @@ class BotMessageHandler(BaseHandler):
                     ),
                 ],
                 [
+                    InlineButton.get_button(
+                        "remove_from_playlist"
+                    ).get_inline_keyboard_button(
+                        db_user.chosen_language_code,
+                        db_audio.download_url,
+                    ),
+                ],
+                [
                     InlineButton.get_button("home").get_inline_keyboard_button(
                         db_user.chosen_language_code,
                     ),
@@ -481,6 +489,7 @@ class BotMessageHandler(BaseHandler):
                     # delete the playlist
                     deleted_at = get_timestamp()
                     self.db.delete_playlist(
+                        db_from_user,
                         playlist_key,
                         deleted_at,
                     )
