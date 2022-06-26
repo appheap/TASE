@@ -73,6 +73,7 @@ class Emoji(BaseModel):
     _thumbs_up = emoji.EMOJI_ALIAS_UNICODE_ENGLISH[":thumbs_up:"]
     _thumbs_down = emoji.EMOJI_ALIAS_UNICODE_ENGLISH[":thumbs_down:"]
     _plus = emoji.EMOJI_ALIAS_UNICODE_ENGLISH[":heavy_plus_sign:"]
+    _minus = emoji.EMOJI_ALIAS_UNICODE_ENGLISH[":heavy_minus_sign:"]
     _fountain_pen = emoji.EMOJI_ALIAS_UNICODE_ENGLISH[":fountain_pen:"]
     _traffic_light = emoji.EMOJI_ALIAS_UNICODE_ENGLISH[":traffic_light:"]
     _checkmark_emoji = emoji.EMOJI_ALIAS_UNICODE_ENGLISH[":white_check_mark:"]

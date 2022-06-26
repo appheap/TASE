@@ -293,14 +293,23 @@ class DatabaseClient:
 
         return self._graph_db.get_user_playlists(db_from_user, offset, limit)
 
+    def remove_audio_from_playlist(
+        self,
+        playlist_key: str,
+        audio_download_url: str,
+        deleted_at: int,
+    ) -> bool:
+        return self._graph_db.remove_audio_from_playlist(
+            playlist_key,
+            audio_download_url,
+            deleted_at,
+        )
+
     def add_audio_to_playlist(
         self,
         playlist_key: str,
         audio_download_url: str,
     ) -> Tuple[bool, bool]:
-        if playlist_key is None or audio_download_url is None:
-            return False, False
-
         return self._graph_db.add_audio_to_playlist(playlist_key, audio_download_url)
 
     def get_playlist_audios(
@@ -310,16 +319,22 @@ class DatabaseClient:
         offset: int = 0,
         limit: int = 20,
     ) -> Optional[List[graph_models.vertices.Audio]]:
-        if (
-            db_from_user is None
-            or playlist_key is None
-            or offset is None
-            or limit is None
-        ):
-            return None
-
         return self._graph_db.get_playlist_audios(
             db_from_user, playlist_key, offset, limit
+        )
+
+    def get_audio_playlists(
+        self,
+        db_from_user: graph_models.vertices.User,
+        audio_download_url: str,
+        offset: int = 0,
+        limit: int = 20,
+    ) -> Optional[List[graph_models.vertices.Playlist]]:
+        return self._graph_db.get_audio_playlists(
+            db_from_user,
+            audio_download_url,
+            offset,
+            limit,
         )
 
     def get_playlist_by_key(

@@ -13,6 +13,7 @@ from .graph_models.edges import (
     FileRef,
     FromBot,
     FromHit,
+    Had,
     Has,
     HasMade,
     IsCreatorOf,
@@ -92,7 +93,8 @@ class GraphDatabase:
             e_class._db = _db
 
     def create_user(
-        self, telegram_user: "pyrogram.types.User"
+        self,
+        telegram_user: "pyrogram.types.User",
     ) -> Optional[Tuple["User", bool]]:
         if telegram_user is None:
             return None
@@ -101,7 +103,8 @@ class GraphDatabase:
         return user, successful
 
     def get_or_create_user(
-        self, telegram_user: "pyrogram.types.User"
+        self,
+        telegram_user: "pyrogram.types.User",
     ) -> Optional["User"]:
         if telegram_user is None:
             return None
@@ -114,7 +117,8 @@ class GraphDatabase:
         return user
 
     def update_or_create_user(
-        self, telegram_user: "pyrogram.types.User"
+        self,
+        telegram_user: "pyrogram.types.User",
     ) -> Optional["User"]:
         if telegram_user is None:
             return None
@@ -204,7 +208,8 @@ class GraphDatabase:
         return chat
 
     def update_or_create_audio(
-        self, message: "pyrogram.types.Message"
+        self,
+        message: "pyrogram.types.Message",
     ) -> Optional["Audio"]:
         if message is None or message.audio is None:
             return None
@@ -222,7 +227,8 @@ class GraphDatabase:
         return audio
 
     def get_or_create_audio(
-        self, message: "pyrogram.types.Message"
+        self,
+        message: "pyrogram.types.Message",
     ) -> Optional["Audio"]:
         if message is None or message.audio is None:
             return None
@@ -234,7 +240,10 @@ class GraphDatabase:
 
         return audio
 
-    def create_audio(self, message: "pyrogram.types.Message") -> Optional["Audio"]:
+    def create_audio(
+        self,
+        message: "pyrogram.types.Message",
+    ) -> Optional["Audio"]:
         if message is None or message.audio is None:
             return None
 
@@ -267,12 +276,18 @@ class GraphDatabase:
 
         return audio
 
-    def get_user_by_user_id(self, user_id) -> Optional["User"]:
+    def get_user_by_user_id(
+        self,
+        user_id,
+    ) -> Optional["User"]:
         if user_id is None:
             return None
         return User.find_by_key(str(user_id))
 
-    def get_or_create_query_keyword(self, query: str) -> Optional[QueryKeyword]:
+    def get_or_create_query_keyword(
+        self,
+        query: str,
+    ) -> Optional[QueryKeyword]:
         if query is None:
             return None
 
@@ -433,26 +448,37 @@ class GraphDatabase:
                     )
         return db_query, hits
 
-    def get_chat_by_chat_id(self, chat_id) -> Optional[Chat]:
+    def get_chat_by_chat_id(
+        self,
+        chat_id,
+    ) -> Optional[Chat]:
         if chat_id is None:
             return None
 
         return Chat.find_by_key(str(chat_id))
 
-    def get_audio_by_key(self, id: str) -> Optional[Audio]:
+    def get_audio_by_key(
+        self,
+        id: str,
+    ) -> Optional[Audio]:
         if id is None:
             return None
 
         return Audio.find_by_key(id)
 
-    def get_playlist_by_key(self, key: str) -> Optional[Playlist]:
+    def get_playlist_by_key(
+        self,
+        key: str,
+    ) -> Optional[Playlist]:
         if key is None:
             return None
 
         return Playlist.find_by_key(key)
 
     def get_user_playlist_by_title(
-        self, db_user: "User", title: str
+        self,
+        db_user: "User",
+        title: str,
     ) -> Optional[Playlist]:
         if db_user is None or title is None:
             return None
@@ -481,14 +507,18 @@ class GraphDatabase:
         else:
             return None
 
-    def get_user_favorite_playlist(self, db_user: "User") -> Optional[Playlist]:
+    def get_user_favorite_playlist(
+        self,
+        db_user: "User",
+    ) -> Optional[Playlist]:
         if db_user is None:
             return None
 
         return self.get_user_playlist_by_title(db_user, "Favorite")
 
     def get_or_create_user_favorite_playlist(
-        self, db_user: "User"
+        self,
+        db_user: "User",
     ) -> Optional[Playlist]:
         if db_user is None:
             return None
@@ -790,8 +820,53 @@ class GraphDatabase:
 
         return results
 
+    def remove_audio_from_playlist(
+        self,
+        playlist_key: str,
+        audio_download_url: str,
+        deleted_at: int,
+    ) -> bool:
+        if playlist_key is None or audio_download_url is None or deleted_at is None:
+            return False
+
+        db_audio = self.get_audio_by_download_url(audio_download_url)
+        db_playlist = self.get_playlist_by_key(playlist_key)
+        if db_audio is None or db_playlist is None:
+            return False
+
+        has_edge = Has.find_by_key(
+            Has.parse_from_playlist_and_audio(
+                db_playlist,
+                db_audio,
+            ).key
+        )
+        if has_edge is None:
+            return False
+
+        deleted = Has.delete_edge(has_edge)
+        if not deleted:
+            return False
+        else:
+            had_edge = Had.parse_from_playlist_and_audio(
+                db_playlist,
+                db_audio,
+                deleted_at,
+                has_edge,
+            )
+            if had_edge:
+                had_edge, successful = Had.create(had_edge)
+                if had_edge and successful:
+
+                    return True
+                else:
+                    return False
+
+        return False
+
     def add_audio_to_playlist(
-        self, playlist_key: str, audio_download_url: str
+        self,
+        playlist_key: str,
+        audio_download_url: str,
     ) -> Tuple[bool, bool]:
         if playlist_key is None or audio_download_url is None:
             return False, False
@@ -840,7 +915,8 @@ class GraphDatabase:
 
         # todo: fix this
         query_template = Template(
-            'for v,e in 1..1 outbound "$playlist_id" graph "tase" options {order : "dfs", edgeCollections : ["has"], vertexCollections : ["audios"]}'
+            'for v,e in 1..1 outbound "$playlist_id" graph "tase" options {order : "dfs", edgeCollections : ["$has"], '
+            'vertexCollections : ["$audios"]}'
             "   sort e.created_at DESC"
             "   limit $offset, $limit"
             "   return v"
@@ -850,6 +926,8 @@ class GraphDatabase:
                 "playlist_id": db_playlist.id,
                 "offset": offset,
                 "limit": limit,
+                "audios": Audio._vertex_name,
+                "has": Has._collection_edge_name,
             }
         )
 
@@ -859,6 +937,52 @@ class GraphDatabase:
             count=True,
         ):
             results.append(Audio.parse_from_graph(aud))
+        return results
+
+    def get_audio_playlists(
+        self,
+        db_from_user: User,
+        audio_download_url: str,
+        offset: int = 0,
+        limit: int = 20,
+    ) -> Optional[List[Playlist]]:
+        if (
+            db_from_user is None
+            or audio_download_url is None
+            or offset is None
+            or limit is None
+        ):
+            return None
+
+        db_audio = self.get_audio_by_download_url(audio_download_url)
+
+        if db_audio is None:
+            return None
+
+        # todo: fix this
+        query_template = Template(
+            'for v,e in 1..1 inbound "$audio_id" graph "tase" options {order : "dfs", edgeCollections : ["$has"], '
+            'vertexCollections : ["$playlists"]}'
+            "   sort v.rank ASC, e.created_at DESC"
+            "   limit $offset, $limit"
+            "   return v"
+        )
+        query = query_template.substitute(
+            {
+                "audio_id": db_audio.id,
+                "offset": offset,
+                "limit": limit,
+                "playlists": Playlist._vertex_name,
+                "has": Has._collection_edge_name,
+            }
+        )
+
+        results = []
+        for aud in self.aql.execute(
+            query,
+            count=True,
+        ):
+            results.append(Playlist.parse_from_graph(aud))
         return results
 
     def get_audios_from_keys(

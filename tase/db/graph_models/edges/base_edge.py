@@ -1,6 +1,11 @@
 from typing import List, Optional
 
-from arango import DocumentInsertError, DocumentRevisionError, DocumentUpdateError
+from arango import (
+    DocumentDeleteError,
+    DocumentInsertError,
+    DocumentRevisionError,
+    DocumentUpdateError,
+)
 from arango.collection import EdgeCollection
 from pydantic import BaseModel, Field
 
@@ -203,6 +208,34 @@ class BaseEdge(BaseModel):
         except Exception as e:
             logger.exception(f"{cls.__name__} : {e}")
         return edge, successful
+
+    @classmethod
+    def delete_edge(
+        cls,
+        edge: "BaseEdge",
+    ) -> bool:
+        """
+        Delete the object from the database
+
+        :param edge: The edge object to remove from the database
+        :type edge: BaseEdge
+        :return: whether the edge was deleted or not
+        :rtype: bool
+        """
+        if edge is None:
+            return False
+
+        try:
+            cls._db.delete(edge.key)
+            return True
+        except DocumentDeleteError as e:
+            pass
+        except DocumentRevisionError as e:
+            pass
+        except Exception as e:
+            logger.exception(e)
+
+        return False
 
     @classmethod
     def find_by_key(

@@ -4,6 +4,7 @@ from .downloaded import Downloaded
 from .file_ref import FileRef
 from .from_bot import FromBot
 from .from_hit import FromHit
+from .had import Had
 from .has import Has
 from .has_made import HasMade
 from .is_contact_of import IsContactOf
@@ -19,6 +20,7 @@ edges = [
     FileRef,
     FromBot,
     FromHit,
+    Had,
     Has,
     HasMade,
     IsContactOf,
@@ -36,6 +38,7 @@ __all__ = [
     "FileRef",
     "FromBot",
     "FromHit",
+    "Had",
     "Has",
     "HasMade",
     "IsContactOf",
