@@ -30,6 +30,7 @@ from .graph_models.vertices import (
     File,
     Hit,
     InlineQuery,
+    InlineQueryType,
     Playlist,
     Query,
     QueryKeyword,
@@ -303,12 +304,13 @@ class GraphDatabase:
         self,
         bot_id: int,
         inline_query: "pyrogram.types.InlineQuery",
+        inline_query_type: InlineQueryType,
         query_date: int,
         query_metadata: dict,
         audio_docs: List["elasticsearch_db.Audio"],
         db_audios: List["Audio"],
         next_offset: Optional[str],
-    ) -> Optional[Tuple[InlineQuery, List[Hit]]]:
+    ) -> Tuple[Optional[InlineQuery], Optional[List[Hit]]]:
         if (
             bot_id is None
             or inline_query is None
@@ -317,7 +319,7 @@ class GraphDatabase:
             or audio_docs is None
             or db_audios is None
         ):
-            return None
+            return None, None
         db_bot = self.get_user_by_user_id(bot_id)
         db_from_user = self.get_user_by_user_id(inline_query.from_user.id)
         db_inline_query = None
@@ -327,12 +329,20 @@ class GraphDatabase:
 
         if db_bot and db_from_user:
             db_inline_query = InlineQuery.find_by_key(
-                InlineQuery.get_key(db_bot, inline_query)
+                InlineQuery.get_key(
+                    db_bot,
+                    inline_query,
+                )
             )
             if not db_inline_query:
                 db_inline_query, successful = InlineQuery.create(
                     InlineQuery.parse_from_inline_query(
-                        db_bot, inline_query, query_date, query_metadata, next_offset
+                        db_bot,
+                        inline_query,
+                        inline_query_type,
+                        query_date,
+                        query_metadata,
+                        next_offset,
                     )
                 )
 
@@ -347,11 +357,15 @@ class GraphDatabase:
 
                 db_has_made, successful = HasMade.create(
                     HasMade.parse_from_user_and_inline_query(
-                        db_from_user, db_inline_query
+                        db_from_user,
+                        db_inline_query,
                     )
                 )
                 db_to_bot_edge, successful = ToBot.create(
-                    ToBot.parse_from_inline_query_and_user(db_inline_query, db_bot)
+                    ToBot.parse_from_inline_query_and_user(
+                        db_inline_query,
+                        db_bot,
+                    )
                 )
 
                 for audio_doc, db_audio in zip(audio_docs, db_audios):
@@ -367,10 +381,16 @@ class GraphDatabase:
                         hits.append(db_hit)
 
                     db_has_hit, successful = Has.create(
-                        Has.parse_from_inline_query_and_hit(db_inline_query, db_hit)
+                        Has.parse_from_inline_query_and_hit(
+                            db_inline_query,
+                            db_hit,
+                        )
                     )
                     db_has_audio, successful = Has.create(
-                        Has.parse_from_hit_and_audio(db_hit, db_audio)
+                        Has.parse_from_hit_and_audio(
+                            db_hit,
+                            db_audio,
+                        )
                     )
         return db_inline_query, hits
 
@@ -404,12 +424,20 @@ class GraphDatabase:
 
         if db_bot and db_from_user:
             db_query = Query.find_by_key(
-                Query.get_key(db_bot, db_from_user, query_date)
+                Query.get_key(
+                    db_bot,
+                    db_from_user,
+                    query_date,
+                )
             )
             if not db_query:
                 db_query, successful = Query.create(
                     Query.parse_from_query(
-                        db_bot, db_from_user, query, query_date, query_metadata
+                        db_bot,
+                        db_from_user,
+                        query,
+                        query_date,
+                        query_metadata,
                     )
                 )
 
@@ -423,10 +451,16 @@ class GraphDatabase:
                 )
 
                 db_has_made, successful = HasMade.create(
-                    HasMade.parse_from_user_and_query(db_from_user, db_query)
+                    HasMade.parse_from_user_and_query(
+                        db_from_user,
+                        db_query,
+                    )
                 )
                 db_to_bot_edge, successful = ToBot.create(
-                    ToBot.parse_from_query_and_user(db_query, db_bot)
+                    ToBot.parse_from_query_and_user(
+                        db_query,
+                        db_bot,
+                    )
                 )
 
                 for audio_doc, db_audio in zip(audio_docs, db_audios):
@@ -441,10 +475,16 @@ class GraphDatabase:
                         hits.append(db_hit)
 
                     db_has_hit, successful = Has.create(
-                        Has.parse_from_query_and_hit(db_query, db_hit)
+                        Has.parse_from_query_and_hit(
+                            db_query,
+                            db_hit,
+                        )
                     )
                     db_has_audio, successful = Has.create(
-                        Has.parse_from_hit_and_audio(db_hit, db_audio)
+                        Has.parse_from_hit_and_audio(
+                            db_hit,
+                            db_audio,
+                        )
                     )
         return db_query, hits
 
@@ -514,7 +554,10 @@ class GraphDatabase:
         if db_user is None:
             return None
 
-        return self.get_user_playlist_by_title(db_user, "Favorite")
+        return self.get_user_playlist_by_title(
+            db_user,
+            "Favorite",
+        )
 
     def get_or_create_user_favorite_playlist(
         self,
@@ -523,7 +566,10 @@ class GraphDatabase:
         if db_user is None:
             return None
 
-        db_playlist = self.get_user_playlist_by_title(db_user, "Favorite")
+        db_playlist = self.get_user_playlist_by_title(
+            db_user,
+            "Favorite",
+        )
         if db_playlist is None:
             db_playlist, _ = self.create_user_favorite_playlist(db_user)
 
@@ -634,18 +680,35 @@ class GraphDatabase:
                 db_download, successful = Download.create(d)
                 if db_download:
                     db_downloaded_edge, successful = Downloaded.create(
-                        Downloaded.parse_from_user_and_download(db_user, db_download)
+                        Downloaded.parse_from_user_and_download(
+                            db_user,
+                            db_download,
+                        )
                     )
                     db_from_bot = FromBot.create(
-                        FromBot.parse_from_download_and_user(db_download, db_bot)
+                        FromBot.parse_from_download_and_user(
+                            db_download,
+                            db_bot,
+                        )
                     )
                     db_downloaded_audio = Has.create(
-                        Has.parse_from_download_and_audio(db_download, db_audio)
+                        Has.parse_from_download_and_audio(
+                            db_download,
+                            db_audio,
+                        )
                     )
-                    db_hit = Hit.find_by_key(Hit.get_key(db_inline_query, db_audio))
+                    db_hit = Hit.find_by_key(
+                        Hit.get_key(
+                            db_inline_query,
+                            db_audio,
+                        )
+                    )
                     if db_hit:
                         db_from_hit_edge, successful = FromHit.create(
-                            FromHit.parse_from_download_and_hit(db_download, db_hit)
+                            FromHit.parse_from_download_and_hit(
+                                db_download,
+                                db_hit,
+                            )
                         )
                     else:
                         # todo: what then?
@@ -679,16 +742,28 @@ class GraphDatabase:
             db_download, successful = Download.create(d)
             if db_download:
                 db_downloaded_edge, successful = Downloaded.create(
-                    Downloaded.parse_from_user_and_download(db_user, db_download)
+                    Downloaded.parse_from_user_and_download(
+                        db_user,
+                        db_download,
+                    )
                 )
                 db_from_bot = FromBot.create(
-                    FromBot.parse_from_download_and_user(db_download, db_bot)
+                    FromBot.parse_from_download_and_user(
+                        db_download,
+                        db_bot,
+                    )
                 )
                 db_downloaded_audio = Has.create(
-                    Has.parse_from_download_and_audio(db_download, db_audio)
+                    Has.parse_from_download_and_audio(
+                        db_download,
+                        db_audio,
+                    )
                 )
                 db_from_hit_edge, successful = FromHit.create(
-                    FromHit.parse_from_download_and_hit(db_download, db_hit)
+                    FromHit.parse_from_download_and_hit(
+                        db_download,
+                        db_hit,
+                    )
                 )
                 return db_download
             else:
@@ -883,7 +958,10 @@ class GraphDatabase:
                 # todo: fix me
                 # if title is empty, audio cannot be used in inline mode
 
-                edge = Has.parse_from_playlist_and_audio(db_playlist, db_audio)
+                edge = Has.parse_from_playlist_and_audio(
+                    db_playlist,
+                    db_audio,
+                )
                 if edge is not None and not Has.find_by_key(edge.key):
                     has_edge, _ = Has.create(edge)
                     created = True

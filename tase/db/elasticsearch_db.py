@@ -25,14 +25,23 @@ class ElasticsearchDatabase:
         if not Audio.has_index(self.es):
             Audio.create_index(self.es)
 
-    def get_or_create_audio(self, message: "pyrogram.types.Message") -> Optional[Audio]:
+    def get_or_create_audio(
+        self,
+        message: "pyrogram.types.Message",
+    ) -> Optional[Audio]:
         if message is None or message.audio is None:
             return None
 
-        audio = Audio.get(self.es, Audio.get_id(message))
+        audio = Audio.get(
+            self.es,
+            Audio.get_id(message),
+        )
         if audio is None:
             # audio does not exist in the index, create it
-            audio, successful = Audio.create(self.es, Audio.parse_from_message(message))
+            audio, successful = Audio.create(
+                self.es,
+                Audio.parse_from_message(message),
+            )
         return audio
 
     def update_or_create_audio(
@@ -41,10 +50,16 @@ class ElasticsearchDatabase:
         if message is None or message.audio is None:
             return None
 
-        audio = Audio.get(self.es, Audio.get_id(message))
+        audio = Audio.get(
+            self.es,
+            Audio.get_id(message),
+        )
         if audio is None:
             # audio does not exist in the index, create it
-            audio, successful = Audio.create(self.es, Audio.parse_from_message(message))
+            audio, successful = Audio.create(
+                self.es,
+                Audio.parse_from_message(message),
+            )
         else:
             # audio exists in the index, update it
             audio, successful = Audio.update(
@@ -52,20 +67,40 @@ class ElasticsearchDatabase:
             )
 
     def search_audio(
-        self, query: str, from_: int = 0, size: int = 50
+        self,
+        query: str,
+        from_: int = 0,
+        size: int = 50,
     ) -> Optional[Tuple[List[Audio], dict]]:
         if query is None or from_ is None or size is None:
             return None
 
-        audios, search_metadata = Audio.search(self.es, query, from_, size)
+        audios, search_metadata = Audio.search(
+            self.es,
+            query,
+            from_,
+            size,
+        )
         return audios, search_metadata
 
-    def get_audio_by_download_url(self, download_url: str) -> Optional[Audio]:
+    def get_audio_by_download_url(
+        self,
+        download_url: str,
+    ) -> Optional[Audio]:
         if download_url is None:
             return None
-        return Audio.search_by_download_url(self.es, download_url)
+        return Audio.search_by_download_url(
+            self.es,
+            download_url,
+        )
 
-    def get_audio_by_id(self, key: str) -> Optional[Audio]:
+    def get_audio_by_id(
+        self,
+        key: str,
+    ) -> Optional[Audio]:
         if key is None:
             return None
-        return Audio.search_by_id(self.es, key)
+        return Audio.search_by_id(
+            self.es,
+            key,
+        )

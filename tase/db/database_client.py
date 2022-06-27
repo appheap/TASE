@@ -119,27 +119,21 @@ class DatabaseClient:
         self,
         bot_id: int,
         inline_query: "pyrogram.types.InlineQuery",
+        inline_query_type: graph_models.vertices.InlineQueryType,
         query_date: int,
         query_metadata: dict,
         audio_docs: List[elasticsearch_models.Audio],
         db_audios: List[graph_models.vertices.Audio],
         next_offset: Optional[str],
-    ) -> Optional[
-        Tuple[graph_models.vertices.InlineQuery, List[graph_models.vertices.Hit]]
+    ) -> Tuple[
+        Optional[graph_models.vertices.InlineQuery],
+        Optional[List[graph_models.vertices.Hit]],
     ]:
-        if (
-            bot_id is None
-            or inline_query is None
-            or query_date is None
-            or query_metadata is None
-            or audio_docs is None
-            or db_audios is None
-        ):
-            return None
 
         return self._graph_db.get_or_create_inline_query(
             bot_id,
             inline_query,
+            inline_query_type,
             query_date,
             query_metadata,
             audio_docs,
@@ -187,7 +181,11 @@ class DatabaseClient:
         if query is None or from_ is None or size is None:
             return None
 
-        return self._es_db.search_audio(query, from_, size)
+        return self._es_db.search_audio(
+            query,
+            from_,
+            size,
+        )
 
     def get_chat_by_chat_id(
         self,

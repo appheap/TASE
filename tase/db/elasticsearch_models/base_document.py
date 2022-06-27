@@ -62,7 +62,8 @@ class BaseDocument(BaseModel):
 
         obj = cls(**body)
         obj.search_metadata = SearchMetaData(
-            rank=rank, score=hit.get("_score", None) or 0.0
+            rank=rank,
+            score=hit.get("_score", None) or 0.0,
         )
         return obj
 
@@ -115,7 +116,10 @@ class BaseDocument(BaseModel):
 
         obj = None
         try:
-            response = es.get(index=cls._index_name, id=doc_id)
+            response = es.get(
+                index=cls._index_name,
+                id=doc_id,
+            )
             obj = cls.parse_from_db(response)
         except NotFoundError as e:
             # audio does not exist in the index
@@ -149,7 +153,11 @@ class BaseDocument(BaseModel):
         try:
             id, doc = document.parse_for_db()
             if id and doc:
-                response = es.create(index=cls._index_name, id=id, document=doc)
+                response = es.create(
+                    index=cls._index_name,
+                    id=id,
+                    document=doc,
+                )
                 successful = True
         except ConflictError as e:
             # Exception representing a 409 status code. Document exists in the index
@@ -186,7 +194,11 @@ class BaseDocument(BaseModel):
         try:
             id, doc = document._update_doc_from_old_doc(old_document).parse_for_db()
             if id and doc:
-                response = es.update(index=cls._index_name, id=id, doc=doc)
+                response = es.update(
+                    index=cls._index_name,
+                    id=id,
+                    doc=doc,
+                )
                 successful = True
         except Exception as e:
             logger.exception(e)
@@ -236,7 +248,10 @@ class BaseDocument(BaseModel):
             }
 
             for index, hit in enumerate(hits, start=1):
-                db_doc = cls.parse_from_db_hit(hit, len(hits) - index + 1)
+                db_doc = cls.parse_from_db_hit(
+                    hit,
+                    len(hits) - index + 1,
+                )
                 db_docs.append(db_doc)
 
         except Exception as e:

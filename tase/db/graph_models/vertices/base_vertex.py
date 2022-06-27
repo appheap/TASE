@@ -4,6 +4,7 @@ from typing import Optional
 from arango import DocumentInsertError, DocumentRevisionError, DocumentUpdateError
 from arango.collection import VertexCollection
 from pydantic import BaseModel, Field
+from pydantic.types import Enum
 
 from tase.my_logger import logger
 from tase.utils import get_timestamp
@@ -46,6 +47,13 @@ class BaseVertex(BaseModel):
 
     def _to_graph(self) -> dict:
         temp_dict = self.dict()
+
+        for k, v in temp_dict.copy().items():
+            attr = getattr(self, k, None)
+            if attr:
+                if isinstance(attr, Enum):
+                    temp_dict[k] = attr.value
+
         for k, v in self._to_graph_db_mapping.items():
             if temp_dict.get(k, None):
                 temp_dict[v] = temp_dict[k]
