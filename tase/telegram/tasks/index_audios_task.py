@@ -36,9 +36,14 @@ class IndexAudiosTask(BaseTask):
             last_offset_id = 1
 
             for message in telegram_client.iter_audios(
-                chat_id=chat_id, offset_id=last_offset_id, only_newer_messages=True
+                chat_id=chat_id,
+                offset_id=last_offset_id,
+                only_newer_messages=True,
             ):
-                db.update_or_create_audio(message, telegram_client.telegram_id)
+                db.update_or_create_audio(
+                    message,
+                    telegram_client.telegram_id,
+                )
 
                 if message.id > last_offset_id:
                     last_offset_id = message.id

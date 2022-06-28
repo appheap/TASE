@@ -11,6 +11,8 @@ tase_telegram_exchange = Exchange(
     "direct",
     durable=True,
 )
+
+# this queue is for distributing general tasks among all client workers
 tase_telegram_queue = Queue(
     "tase_telegram_queue",
     exchange=tase_telegram_exchange,
@@ -28,7 +30,7 @@ def client_task(
     task: BaseTask,
     target_queue: "Queue",
 ):
-    logger.info(f"@pyrogram_task_call: {prettify(task)}")
+    logger.info(f"@client_task: {prettify(task)}")
 
     # connections
     with Connection(
@@ -41,7 +43,7 @@ def client_task(
         producer.publish(
             body=task,
             exchange=tase_telegram_exchange,
-            routing_key=target_queue.name,
+            routing_key=target_queue.routing_key,
             declare=[
                 target_queue,
             ],

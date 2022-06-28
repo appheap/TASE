@@ -45,8 +45,14 @@ class ClientTaskConsumer(ConsumerProducerMixin):
                 channel=channel,
                 prefetch_count=1,
                 accept=["pickle"],
-                # accept=['json', 'pickle'],
-            )
+            ),
+            Consumer(
+                queues=[tase_telegram_queue],
+                callbacks=[self.on_task],
+                channel=channel,
+                prefetch_count=1,
+                accept=["pickle"],
+            ),
         ]
 
     def on_task(
