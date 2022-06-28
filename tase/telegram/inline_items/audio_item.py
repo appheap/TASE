@@ -32,9 +32,11 @@ class AudioItem(BaseInlineItem):
                 ),
             ],
             [
-                InlineButton.get_button("remove_from_playlist").get_inline_keyboard_button(
-                        db_from_user.chosen_language_code,
-                        db_audio.download_url,
+                InlineButton.get_button(
+                    "remove_from_playlist"
+                ).get_inline_keyboard_button(
+                    db_from_user.chosen_language_code,
+                    db_audio.download_url,
                 ),
             ],
         ]

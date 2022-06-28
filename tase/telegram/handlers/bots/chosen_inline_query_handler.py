@@ -45,12 +45,10 @@ class ChosenInlineQueryHandler(BaseHandler):
             button = InlineButton.get_button(reg.group("command"))
             if button:
                 button.on_chosen_inline_query(
-                    client,
-                    chosen_inline_result,
                     self,
-                    self.db,
-                    self.telegram_client,
+                    client,
                     db_from_user,
+                    chosen_inline_result,
                     reg,
                 )
 
@@ -58,5 +56,6 @@ class ChosenInlineQueryHandler(BaseHandler):
             inline_query_id, audio_key = chosen_inline_result.result_id.split("->")
 
             db_download = self.db.get_or_create_download_from_chosen_inline_query(
-                chosen_inline_result, self.telegram_client.telegram_id
+                chosen_inline_result,
+                self.telegram_client.telegram_id,
             )

@@ -1,9 +1,7 @@
 from typing import Optional
 
-from arango import DocumentUpdateError
 from pydantic import Field
 
-from tase.my_logger import logger
 from .base_vertex import BaseVertex
 
 

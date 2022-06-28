@@ -2,7 +2,6 @@ import textwrap
 from datetime import datetime, timedelta
 from typing import List
 
-import arrow
 import pyrogram
 from jinja2 import Template
 from pyrogram import filters, handlers

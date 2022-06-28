@@ -1,14 +1,11 @@
-from typing import Match
+from typing import Match, Optional
 
 import pyrogram
 
 from .inline_button import InlineButton
-
-# from ..handlers import BaseHandler
+from ..inline import CustomInlineQueryResult
 from ..inline_items import PlaylistItem
-from ..telegram_client import TelegramClient
-from ...db import DatabaseClient, graph_models
-from ...my_logger import logger
+from ...db import graph_models
 from ...utils import _trans, emoji, get_timestamp
 
 
@@ -22,25 +19,21 @@ class RemoveFromPlaylistInlineButton(InlineButton):
 
     def on_inline_query(
         self,
+        handler: "BaseHandler",
+        result: CustomInlineQueryResult,
+        db_from_user: "graph_models.vertices.User",
         client: "pyrogram.Client",
         inline_query: "pyrogram.types.InlineQuery",
-        handler: "BaseHandler",
-        db: "DatabaseClient",
-        telegram_client: "TelegramClient",
-        db_from_user: graph_models.vertices.User,
-        reg: Match,
+        query_date: int,
+        reg: Optional[Match] = None,
     ):
-        from_ = 0
-        if inline_query.offset is not None and len(inline_query.offset):
-            from_ = int(inline_query.offset)
-
         audio_download_url = reg.group("arg1")
         valid = True if audio_download_url is not None else False
 
-        db_playlists = db.get_audio_playlists(
+        db_playlists = handler.db.get_audio_playlists(
             db_from_user,
             audio_download_url,
-            offset=from_,
+            offset=result.from_,
         )
 
         results = []
@@ -55,28 +48,15 @@ class RemoveFromPlaylistInlineButton(InlineButton):
             )
 
         if len(results) and valid:
-            try:
-                next_offset = (
-                    str(from_ + len(results) + 1) if len(results) > 1 else None
-                )
-                inline_query.answer(
-                    results,
-                    cache_time=1,
-                    next_offset=next_offset,
-                )
-            except Exception as e:
-                logger.exception(e)
-
+            result.results = results
         # todo: what to show when user doesn't have any playlists yet or hasn't added this audio to any playlist
 
     def on_chosen_inline_query(
         self,
-        client: "pyrogram.Client",
-        chosen_inline_result: "pyrogram.types.ChosenInlineResult",
         handler: "BaseHandler",
-        db: "DatabaseClient",
-        telegram_client: "TelegramClient",
+        client: "pyrogram.Client",
         db_from_user: graph_models.vertices.User,
+        chosen_inline_result: "pyrogram.types.ChosenInlineResult",
         reg: Match,
     ):
         audio_download_url = reg.group("arg1")
@@ -87,7 +67,7 @@ class RemoveFromPlaylistInlineButton(InlineButton):
         playlist_key = result_id_list[1]
 
         # remove the audio from the playlist
-        removed = db.remove_audio_from_playlist(
+        removed = handler.db.remove_audio_from_playlist(
             playlist_key,
             audio_download_url,
             deleted_at=get_timestamp(),

@@ -1,7 +1,6 @@
 from threading import Thread
 from typing import Dict, List
 
-from decouple import config
 from kombu import Consumer
 from kombu.mixins import ConsumerProducerMixin
 from kombu.transport import pyamqp

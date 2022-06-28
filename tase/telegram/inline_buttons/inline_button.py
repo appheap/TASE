@@ -4,14 +4,18 @@ import pyrogram
 from pydantic import BaseModel
 from pyrogram.types import InlineKeyboardButton
 
-from tase.db import DatabaseClient, graph_models
-
-# from ..telegram_client import TelegramClient
-# from tase.telegram.handlers import BaseHandler
+from tase.db import graph_models
 from tase.utils import translate_text
+from ..inline import CustomInlineQueryResult
+from ..interfaces import OnCallbackQuery, OnChosenInlineQuery, OnInlineQuery
 
 
-class InlineButton(BaseModel):
+class InlineButton(
+    BaseModel,
+    OnInlineQuery,
+    OnChosenInlineQuery,
+    OnCallbackQuery,
+):
     _registry = dict()
     name: str
 
@@ -101,35 +105,31 @@ class InlineButton(BaseModel):
 
     def on_inline_query(
         self,
+        handler: "BaseHandler",
+        result: CustomInlineQueryResult,
+        db_from_user: "graph_models.vertices.User",
         client: "pyrogram.Client",
         inline_query: "pyrogram.types.InlineQuery",
-        handler: "BaseHandler",
-        db: "DatabaseClient",
-        telegram_client: "TelegramClient",
-        db_from_user: graph_models.vertices.User,
-        reg: Match,
+        query_date: int,
+        reg: Optional[Match] = None,
     ):
         raise NotImplementedError
 
     def on_chosen_inline_query(
         self,
-        client: "pyrogram.Client",
-        chosen_inline_result: "pyrogram.types.ChosenInlineResult",
         handler: "BaseHandler",
-        db: "DatabaseClient",
-        telegram_client: "TelegramClient",
+        client: "pyrogram.Client",
         db_from_user: graph_models.vertices.User,
+        chosen_inline_result: "pyrogram.types.ChosenInlineResult",
         reg: Match,
     ):
         raise NotImplementedError
 
     def on_callback_query(
         self,
+        handler: "BaseHandler",
+        db_from_user: "graph_models.vertices.User",
         client: "pyrogram.Client",
         callback_query: "pyrogram.types.CallbackQuery",
-        handler: "BaseHandler",
-        db: "DatabaseClient",
-        telegram_client: "TelegramClient",
-        db_from_user: graph_models.vertices.User,
     ):
         raise NotImplementedError

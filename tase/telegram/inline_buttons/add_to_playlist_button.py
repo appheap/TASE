@@ -1,15 +1,12 @@
-from typing import Match
+from typing import Match, Optional
 
 import pyrogram
 
 from .inline_button import InlineButton
-
-# from ..handlers import BaseHandler
+from ..inline import CustomInlineQueryResult
 from ..inline_items import CreateNewPlaylistItem, PlaylistItem
-from ..telegram_client import TelegramClient
-from ...db import DatabaseClient, graph_models
-from ...db.document_models import BotTaskStatus, BotTaskType
-from ...my_logger import logger
+from ...db import graph_models
+from ...db.document_models import BotTaskType
 from ...utils import _trans, emoji
 
 
@@ -23,26 +20,22 @@ class AddToPlaylistInlineButton(InlineButton):
 
     def on_inline_query(
         self,
+        handler: "BaseHandler",
+        result: CustomInlineQueryResult,
+        db_from_user: "graph_models.vertices.User",
         client: "pyrogram.Client",
         inline_query: "pyrogram.types.InlineQuery",
-        handler: "BaseHandler",
-        db: "DatabaseClient",
-        telegram_client: "TelegramClient",
-        db_from_user: graph_models.vertices.User,
-        reg: Match,
+        query_date: int,
+        reg: Optional[Match] = None,
     ):
-        from_ = 0
-        if inline_query.offset is not None and len(inline_query.offset):
-            from_ = int(inline_query.offset)
-
-        db_playlists = db.get_user_playlists(
+        db_playlists = handler.db.get_user_playlists(
             db_from_user,
-            offset=from_,
+            offset=result.from_,
         )
 
         results = []
 
-        if from_ == 0:
+        if result.from_ == 0:
             results.append(
                 CreateNewPlaylistItem.get_item(
                     db_from_user,
@@ -60,26 +53,14 @@ class AddToPlaylistInlineButton(InlineButton):
             )
 
         if len(results):
-            try:
-                next_offset = (
-                    str(from_ + len(results) + 1) if len(results) > 1 else None
-                )
-                inline_query.answer(
-                    results,
-                    cache_time=1,
-                    next_offset=next_offset,
-                )
-            except Exception as e:
-                logger.exception(e)
+            result.results = results
 
     def on_chosen_inline_query(
         self,
-        client: "pyrogram.Client",
-        chosen_inline_result: "pyrogram.types.ChosenInlineResult",
         handler: "BaseHandler",
-        db: "DatabaseClient",
-        telegram_client: "TelegramClient",
+        client: "pyrogram.Client",
         db_from_user: graph_models.vertices.User,
+        chosen_inline_result: "pyrogram.types.ChosenInlineResult",
         reg: Match,
     ):
         audio_download_url = reg.group("arg1")
@@ -95,9 +76,9 @@ class AddToPlaylistInlineButton(InlineButton):
         if playlist_key == "add_a_new_playlist":
             # start creating a new playlist
             # todo: fix this duplicate code
-            db.create_bot_task(
+            handler.db.create_bot_task(
                 db_from_user.user_id,
-                telegram_client.telegram_id,
+                handler.telegram_client.telegram_id,
                 BotTaskType.CREATE_NEW_PLAYLIST,
                 state_dict={
                     "audio_download_url": audio_download_url,
@@ -110,7 +91,7 @@ class AddToPlaylistInlineButton(InlineButton):
             )
         else:
             # add the audio to the playlist
-            created, successful = db.add_audio_to_playlist(
+            created, successful = handler.db.add_audio_to_playlist(
                 playlist_key,
                 audio_download_url,
             )

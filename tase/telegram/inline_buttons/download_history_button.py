@@ -1,16 +1,12 @@
-from typing import Match
+from typing import Match, Optional
 
 import pyrogram
 from pyrogram.types import InlineQueryResultArticle, InputTextMessageContent
 
 from .inline_button import InlineButton
-
-# from ..handlers import BaseHandler
-# from ..inline_buton_globals import buttons
+from ..inline import CustomInlineQueryResult
 from ..inline_items import AudioItem
-from ..telegram_client import TelegramClient
-from ...db import DatabaseClient, graph_models
-from ...my_logger import logger
+from ...db import graph_models
 from ...utils import _trans, emoji
 
 
@@ -24,22 +20,17 @@ class DownloadHistoryInlineButton(InlineButton):
 
     def on_inline_query(
         self,
+        handler: "BaseHandler",
+        result: CustomInlineQueryResult,
+        db_from_user: "graph_models.vertices.User",
         client: "pyrogram.Client",
         inline_query: "pyrogram.types.InlineQuery",
-        handler: "BaseHandler",
-        db: "DatabaseClient",
-        telegram_client: "TelegramClient",
-        db_from_user: graph_models.vertices.User,
-        reg: Match,
+        query_date: int,
+        reg: Optional[Match] = None,
     ):
-        from_ = 0
-
-        if inline_query.offset is not None and len(inline_query.offset):
-            from_ = int(inline_query.offset)
-
-        db_audios = db.get_user_download_history(
+        db_audios = handler.db.get_user_download_history(
             db_from_user,
-            offset=from_,
+            offset=result.from_,
         )
 
         results = []
@@ -48,9 +39,9 @@ class DownloadHistoryInlineButton(InlineButton):
         chats_dict = handler.update_audio_cache(db_audios)
 
         for db_audio in db_audios:
-            db_audio_file_cache = db.get_audio_file_from_cache(
+            db_audio_file_cache = handler.db.get_audio_file_from_cache(
                 db_audio,
-                telegram_client.telegram_id,
+                handler.telegram_client.telegram_id,
             )
 
             #  todo: Some audios have null titles, solution?
@@ -68,28 +59,21 @@ class DownloadHistoryInlineButton(InlineButton):
             )
 
         if len(results):
-            try:
-                next_offset = str(from_ + len(results) + 1) if len(results) else None
-                inline_query.answer(results, cache_time=1, next_offset=next_offset)
-            except Exception as e:
-                logger.exception(e)
+            result.results = results
         else:
-            if from_ is None or from_ == 0:
-                inline_query.answer(
-                    [
-                        InlineQueryResultArticle(
-                            title=_trans(
-                                "No Results Were Found",
-                                db_from_user.chosen_language_code,
-                            ),
-                            description=_trans(
-                                "You haven't downloaded any audios yet",
-                                db_from_user.chosen_language_code,
-                            ),
-                            input_message_content=InputTextMessageContent(
-                                message_text=emoji.high_voltage,
-                            ),
-                        )
-                    ],
-                    cache_time=1,
-                )
+            if result.from_ is None or result.from_ == 0:
+                result.results = [
+                    InlineQueryResultArticle(
+                        title=_trans(
+                            "No Results Were Found",
+                            db_from_user.chosen_language_code,
+                        ),
+                        description=_trans(
+                            "You haven't downloaded any audios yet",
+                            db_from_user.chosen_language_code,
+                        ),
+                        input_message_content=InputTextMessageContent(
+                            message_text=emoji.high_voltage,
+                        ),
+                    )
+                ]

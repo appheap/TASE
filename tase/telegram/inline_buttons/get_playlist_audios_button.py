@@ -1,14 +1,11 @@
-from typing import Match
+from typing import Match, Optional
 
 import pyrogram
 
 from .inline_button import InlineButton
+from ..inline import CustomInlineQueryResult
 from ..inline_items import AudioItem, NoDownloadItem, PlaylistItem
-from ..telegram_client import TelegramClient
-
-# from ..handlers import BaseHandler
-from ...db import DatabaseClient, graph_models
-from ...my_logger import logger
+from ...db import graph_models
 from ...utils import _trans, emoji
 
 
@@ -22,28 +19,24 @@ class GetPlaylistAudioInlineButton(InlineButton):
 
     def on_inline_query(
         self,
+        handler: "BaseHandler",
+        result: CustomInlineQueryResult,
+        db_from_user: "graph_models.vertices.User",
         client: "pyrogram.Client",
         inline_query: "pyrogram.types.InlineQuery",
-        handler: "BaseHandler",
-        db: "DatabaseClient",
-        telegram_client: "TelegramClient",
-        db_from_user: graph_models.vertices.User,
-        reg: Match,
+        query_date: int,
+        reg: Optional[Match] = None,
     ):
         playlist_key = reg.group("arg1")
-
-        from_ = 0
-        if inline_query.offset is not None and len(inline_query.offset):
-            from_ = int(inline_query.offset)
 
         results = []
         playlist_is_valid = (
             False  # whether the requested playlist belongs to the user or not
         )
 
-        if from_ == 0:
-            db_playlist = db.get_playlist_by_key(playlist_key)
-            db_playlists = db.get_user_playlists(
+        if result.from_ == 0:
+            db_playlist = handler.db.get_playlist_by_key(playlist_key)
+            db_playlists = handler.db.get_user_playlists(
                 db_from_user,
                 offset=0,
                 limit=100,
@@ -66,19 +59,19 @@ class GetPlaylistAudioInlineButton(InlineButton):
             playlist_is_valid = True
 
         if playlist_is_valid:
-            db_audios = db.get_playlist_audios(
+            db_audios = handler.db.get_playlist_audios(
                 db_from_user,
                 playlist_key,
-                offset=from_,
+                offset=result.from_,
             )
 
             # todo: fix this
             chats_dict = handler.update_audio_cache(db_audios)
 
             for db_audio in db_audios:
-                db_audio_file_cache = db.get_audio_file_from_cache(
+                db_audio_file_cache = handler.db.get_audio_file_from_cache(
                     db_audio,
-                    telegram_client.telegram_id,
+                    handler.telegram_client.telegram_id,
                 )
 
                 #  todo: Some audios have null titles, solution?
@@ -96,20 +89,7 @@ class GetPlaylistAudioInlineButton(InlineButton):
                 )
 
         if len(results) and playlist_is_valid:
-            try:
-                next_offset = (
-                    str(from_ + len(results) + 1) if len(results) > 1 else None
-                )
-                inline_query.answer(
-                    results,
-                    cache_time=1,
-                    next_offset=next_offset,
-                )
-            except Exception as e:
-                logger.exception(e)
+            result.results = results
         else:
-            if from_ is None or from_ == 0:
-                inline_query.answer(
-                    [NoDownloadItem.get_item(db_from_user)],
-                    cache_time=1,
-                )
+            if result.from_ is None or result.from_ == 0:
+                result.results = [NoDownloadItem.get_item(db_from_user)]

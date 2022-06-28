@@ -1,14 +1,12 @@
-from typing import Match
+from typing import Match, Optional
 
 import pyrogram
 from pyrogram.enums import ParseMode
 from pyrogram.types import InlineQueryResultArticle, InputTextMessageContent
 
 from .inline_button import InlineButton
-from ..telegram_client import TelegramClient
-
-# from ..handlers import BaseHandler
-from ...db import DatabaseClient, graph_models
+from ..inline import CustomInlineQueryResult
+from ...db import graph_models
 from ...utils import _trans, emoji
 
 
@@ -22,13 +20,13 @@ class HelpCatalogInlineButton(InlineButton):
 
     def on_inline_query(
         self,
+        handler: "BaseHandler",
+        result: CustomInlineQueryResult,
+        db_from_user: "graph_models.vertices.User",
         client: "pyrogram.Client",
         inline_query: "pyrogram.types.InlineQuery",
-        handler: "BaseHandler",
-        db: "DatabaseClient",
-        telegram_client: "TelegramClient",
-        db_from_user: graph_models.vertices.User,
-        reg: Match,
+        query_date: int,
+        reg: Optional[Match] = None,
     ):
         # todo: make these messages translatable
         results = [
@@ -110,7 +108,5 @@ class HelpCatalogInlineButton(InlineButton):
             ),
         ]
 
-        inline_query.answer(
-            results,
-            cache_time=10,  # todo: fix me
-        )
+        result.results = results
+        result.cache_time = 10  # todo: fix me
