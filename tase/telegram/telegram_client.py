@@ -125,9 +125,15 @@ class TelegramClient:
         workdir: str,
     ) -> Optional["TelegramClient"]:
         if client_config.type == ClientTypes.USER:
-            return UserTelegramClient(client_config, workdir)
+            return UserTelegramClient(
+                client_config,
+                workdir,
+            )
         elif client_config.type == ClientTypes.BOT:
-            return BotTelegramClient(client_config, workdir)
+            return BotTelegramClient(
+                client_config,
+                workdir,
+            )
         else:
             # todo: raise error (unknown client type)
             logger.error("Unknown TelegramClient Type")
@@ -137,7 +143,10 @@ class TelegramClient:
         chat_id: Union[int, str],
         message_ids: Union[int, Iterable[int]] = None,
     ) -> Union["pyrogram.types.Message", List["pyrogram.types.Message"]]:
-        messages = self._client.get_messages(chat_id=chat_id, message_ids=message_ids)
+        messages = self._client.get_messages(
+            chat_id=chat_id,
+            message_ids=message_ids,
+        )
         if messages and not isinstance(messages, list):
             messages = [messages]
 

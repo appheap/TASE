@@ -41,7 +41,8 @@ class TASE:
 
                 for client_config in tase_config.clients_config:
                     tg_client = TelegramClient._parse(
-                        client_config, tase_config.pyrogram_config.workdir
+                        client_config,
+                        tase_config.pyrogram_config.workdir,
                     )
                     client_manager = ClientManager(
                         telegram_client_name=tg_client.name,
