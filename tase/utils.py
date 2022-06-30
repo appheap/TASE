@@ -2,6 +2,8 @@ import gettext
 import json
 import typing
 from collections import OrderedDict
+from functools import wraps
+from time import time
 from typing import Optional
 
 import arrow
@@ -188,3 +190,18 @@ def get_timestamp(
     if date is not None:
         return int(arrow.get(date).timestamp())
     return int(arrow.utcnow().timestamp())
+
+
+def timing(f):
+    @wraps(f)
+    def wrap(*args, **kw):
+        ts = time()
+        result = f(*args, **kw)
+        te = time()
+
+        # fixme
+        # logger.info("func:%r args:[%r, %r] took: %2.4f sec" % (f.__name__, args, kw, te - ts))
+        logger.error("func:%r  took: %2.4f sec" % (f.__name__, te - ts))
+        return result
+
+    return wrap
