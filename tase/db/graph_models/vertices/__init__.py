@@ -9,7 +9,7 @@ from .playlist import Playlist
 from .query import Query
 from .query_keyword import QueryKeyword
 from .restriction import Restriction
-from .user import User
+from .user import User, UserRole
 
 vertices = [
     Audio,
@@ -39,5 +39,6 @@ __all__ = [
     "QueryKeyword",
     "Restriction",
     "User",
+    "UserRole",
     "vertices",
 ]

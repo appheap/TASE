@@ -1,9 +1,18 @@
 from typing import List, Optional
 
 import pyrogram
+from pydantic import Field
 
 from .base_vertex import BaseVertex
 from .restriction import Restriction
+from pydantic.types import Enum
+
+
+class UserRole(Enum):
+    UNKNOWN = 0
+    SEARCHER = 1
+    ADMIN = 2
+    OWNER = 3
 
 
 class User(BaseVertex):
@@ -32,6 +41,8 @@ class User(BaseVertex):
 
     # custom field that are not from telegram
     chosen_language_code: Optional[str]
+
+    role: UserRole = Field(default=UserRole.SEARCHER)
 
     @staticmethod
     def get_key(
