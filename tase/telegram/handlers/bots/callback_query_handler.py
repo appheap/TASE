@@ -32,12 +32,10 @@ class CallbackQueryHandler(BaseHandler):
 
         if button:
             button.on_callback_query(
+                self,
+                db_user,
                 client,
                 callback_query,
-                self,
-                self.db,
-                self.telegram_client,
-                db_user,
             )
         else:
             callback_query.answer("", show_alert=False)
