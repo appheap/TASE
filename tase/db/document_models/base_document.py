@@ -1,6 +1,12 @@
 from typing import Optional
 
-from arango import DocumentInsertError, DocumentRevisionError, DocumentUpdateError
+from arango import (
+    CursorEmptyError,
+    DocumentGetError,
+    DocumentInsertError,
+    DocumentRevisionError,
+    DocumentUpdateError,
+)
 from arango.collection import StandardCollection
 from pydantic import BaseModel, Field
 from pydantic.types import Enum
@@ -181,8 +187,15 @@ class BaseDocument(BaseModel):
         if key is None:
             return None
 
-        cursor = cls._db.find({"_key": key})
-        if cursor and len(cursor):
-            return cls.parse_from_db(cursor.pop())
-        else:
-            return None
+        try:
+            cursor = cls._db.find({"_key": key})
+            if cursor and len(cursor):
+                return cls.parse_from_db(cursor.pop())
+            else:
+                return None
+        except CursorEmptyError as e:
+            logger.exception(e)
+        except DocumentGetError as e:
+            logger.exception(e)
+
+        return None

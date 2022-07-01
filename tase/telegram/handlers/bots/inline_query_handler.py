@@ -39,7 +39,7 @@ class InlineQueryHandler(BaseHandler):
                 cls=handlers.InlineQueryHandler,
                 callback=self.custom_commands_handler,
                 filters=filters.regex(
-                    "^#(?P<command>[a-zA-Z0-9_]+)(\s(?P<arg1>[a-zA-Z0-9_]+))?"
+                    r"^#(?P<command>[a-zA-Z0-9_]+)(\s(?P<arg1>[a-zA-Z0-9_]+))?"
                 ),
                 group=0,
             ),
@@ -92,7 +92,7 @@ class InlineQueryHandler(BaseHandler):
             db_from_user = self.db.update_or_create_user(inline_query.from_user)
 
         reg = re.search(
-            "^#(?P<command>[a-zA-Z0-9_]+)(\s(?P<arg1>[a-zA-Z0-9_]+))?",
+            r"^#(?P<command>[a-zA-Z0-9_]+)(\s(?P<arg1>[a-zA-Z0-9_]+))?",
             inline_query.query,
         )
         button = InlineButton.get_button(reg.group("command"))
