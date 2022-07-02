@@ -30,6 +30,8 @@ class CustomInlineQueryResult(BaseModel):
     def answer_query(self, inline_query: "pyrogram.types.InlineQuery"):
         if inline_query is None:
             raise Exception("`inline_query` param cannot be None")
+        if not len(self.results) or self.results is None:
+            raise Exception("results cannot be empty")
         try:
             inline_query.answer(
                 self.results,

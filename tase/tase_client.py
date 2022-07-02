@@ -2,6 +2,8 @@ import json
 import multiprocessing as mp
 from typing import List, Optional
 
+from decouple import config
+
 from tase.configs import TASEConfig
 from tase.db.database_client import DatabaseClient
 from tase.telegram import TelegramClient
@@ -14,11 +16,9 @@ class TASE:
 
     def __init__(
         self,
-        tase_config_path: str = "./tase.toml",
     ):
         self.clients = []
         self.client_managers = []
-        self.tase_config_path = tase_config_path
         self.tase_config = None
         self.database_client = None
 
@@ -26,8 +26,20 @@ class TASE:
         mgr = mp.Manager()
         task_queues = mgr.dict()
 
-        if self.tase_config_path is not None:
-            with open("../tase.json", "r") as f:  # todo : fix me
+        debug = config(
+            "DEBUG",
+            cast=bool,
+            default=True,
+        )
+
+        tase_config_file_name = (
+            config("TASE_CONFIG_FILE_NAME_DEBUG")
+            if debug
+            else config("TASE_CONFIG_FILE_NAME_PRODUCTION")
+        )
+
+        if tase_config_file_name is not None:
+            with open(f"../{tase_config_file_name}", "r") as f:
                 tase_config = TASEConfig.parse_obj(
                     json.loads("".join(f.readlines()))
                 )  # todo: any improvement?
@@ -70,5 +82,5 @@ class TASE:
 
 
 if __name__ == "__main__":
-    tase = TASE("../tase.toml")
+    tase = TASE()
     tase.init_telegram_clients()

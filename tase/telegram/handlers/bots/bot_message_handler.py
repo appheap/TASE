@@ -344,6 +344,7 @@ class BotMessageHandler(BaseHandler):
             text=text,
             quote=True,
             parse_mode=ParseMode.HTML,
+            disable_web_page_preview=True,
         )
 
     @exception_handler
