@@ -17,9 +17,9 @@ license = "MIT"
 include = [
     "LICENSE",
 ]
-packages = [
-    { include = "" }
-]
+#packages = [
+#    { include = "" }
+#]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
