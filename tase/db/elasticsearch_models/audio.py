@@ -36,7 +36,12 @@ class Audio(BaseDocument):
         "created_at",
         "download_count",
     ]
-    _search_fields = ["performer", "file_name", "message_caption", "title"]
+    _search_fields = [
+        "performer",
+        "title",
+        "file_name",
+        "message_caption",
+    ]
 
     chat_id: int
     message_id: int
@@ -164,7 +169,7 @@ class Audio(BaseDocument):
                         "query": query,
                         "fuzziness": "AUTO",
                         "type": "best_fields",
-                        "minimum_should_match": "60%",
+                        "minimum_should_match": "65%",
                         "fields": cls._search_fields,
                     }
                 },
@@ -177,6 +182,7 @@ class Audio(BaseDocument):
         cls,
     ):
         return {
+            "_score": {"order": "desc"},
             "download_count": {"order": "desc"},
             "date": {"order": "desc"},
         }

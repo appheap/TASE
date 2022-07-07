@@ -255,7 +255,7 @@ class BotMessageHandler(BaseHandler):
         if not query:
             found_any = False
         else:
-            if len(query) <= 3:
+            if len(query) <= 2:
                 found_any = False
             else:
                 db_audio_docs, query_metadata = self.db.search_audio(
