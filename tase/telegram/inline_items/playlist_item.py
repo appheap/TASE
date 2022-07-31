@@ -1,6 +1,7 @@
 from typing import Optional
 
 import pyrogram.types
+from pyrogram.enums import ParseMode
 from pyrogram.types import (
     InlineKeyboardMarkup,
     InlineQueryResultArticle,
@@ -84,6 +85,7 @@ class PlaylistItem(BaseInlineItem):
             else "https://telegra.ph/file/07d5ca30dba31b5241bcf.jpg",
             input_message_content=InputTextMessageContent(
                 message_text=BaseTemplate.registry.playlist_template.render(data),
+                parse_mode=ParseMode.HTML,
             ),
             reply_markup=markup,
         )

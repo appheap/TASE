@@ -2,10 +2,10 @@ from typing import List, Optional
 
 import pyrogram
 from pydantic import Field
+from pydantic.types import Enum
 
 from .base_vertex import BaseVertex
 from .restriction import Restriction
-from pydantic.types import Enum
 
 
 class UserRole(Enum):

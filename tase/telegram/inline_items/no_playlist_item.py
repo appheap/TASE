@@ -1,6 +1,7 @@
 from typing import Optional
 
 import pyrogram.types
+from pyrogram.enums import ParseMode
 from pyrogram.types import InlineQueryResultArticle, InputTextMessageContent
 
 from .base_inline_item import BaseInlineItem
@@ -25,5 +26,6 @@ class NoPlaylistItem(BaseInlineItem):
             ),
             input_message_content=InputTextMessageContent(
                 message_text=emoji.high_voltage,
+                parse_mode=ParseMode.HTML,
             ),
         )

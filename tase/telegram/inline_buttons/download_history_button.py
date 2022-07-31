@@ -1,6 +1,7 @@
 from typing import Match, Optional
 
 import pyrogram
+from pyrogram.enums import ParseMode
 from pyrogram.types import InlineQueryResultArticle, InputTextMessageContent
 
 from .inline_button import InlineButton
@@ -74,6 +75,7 @@ class DownloadHistoryInlineButton(InlineButton):
                         ),
                         input_message_content=InputTextMessageContent(
                             message_text=emoji.high_voltage,
+                            parse_mode=ParseMode.HTML,
                         ),
                     )
                 ]
