@@ -7,9 +7,11 @@ from pydantic import BaseModel
 from tase.static import Emoji
 from tase.utils import translate_text
 
+_emoji = Emoji()
+
 
 class BaseTemplateData(BaseModel):
-    emoji: Emoji = Emoji()
+    emoji: Emoji = _emoji
 
     c_new_line: str = "\n"
     c_dir: str = "&lrm;"

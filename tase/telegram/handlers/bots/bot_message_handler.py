@@ -43,6 +43,12 @@ class BotMessageHandler(BaseHandler):
             ),
             HandlerMetadata(
                 cls=handlers.MessageHandler,
+                callback=self.admin_commands_handler,
+                filters=filters.command(["index"]),
+                group=0,
+            ),
+            HandlerMetadata(
+                cls=handlers.MessageHandler,
                 callback=self.downloads_handler,
                 filters=filters.private & filters.regex("^/dl_[a-zA-Z0-9_]+$"),
                 group=0,
@@ -101,6 +107,25 @@ class BotMessageHandler(BaseHandler):
             self.show_help(client, db_from_user, message)
         elif command == "home":
             self.show_home(client, db_from_user, message)
+        else:
+            pass
+
+    @exception_handler
+    def admin_commands_handler(
+        self,
+        client: "pyrogram.Client",
+        message: "pyrogram.types.Message",
+    ):
+        logger.debug(f"admin_commands_handler: {message .command}")
+
+        db_from_user = self.db.get_or_create_user(message.from_user)
+
+        command = message.command[0]
+        if not command or command is None:
+            return
+
+        if command == "index":
+            pass
         else:
             pass
 
