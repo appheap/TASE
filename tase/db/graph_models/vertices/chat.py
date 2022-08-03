@@ -1,6 +1,7 @@
 from typing import List, Optional
 
 import pyrogram
+from pydantic import Field
 from pydantic.types import Enum
 
 from .base_vertex import BaseVertex
@@ -9,6 +10,12 @@ from .restriction import Restriction
 
 class Chat(BaseVertex):
     _vertex_name = "chats"
+    _do_not_update = [
+        "created_at",
+        "last_indexed_offset_date",
+        "last_indexed_offset_message_id",
+        "importance_score",
+    ]
 
     chat_id: int
     chat_type: "ChatType"
@@ -32,6 +39,10 @@ class Chat(BaseVertex):
     available_reactions: Optional[List[str]]
     member_count: Optional[int]
     distance: Optional[int]
+
+    importance_score: Optional[float] = Field(default=0)
+    last_indexed_offset_date: Optional[int] = Field(default=0)
+    last_indexed_offset_message_id: Optional[int] = Field(default=1)
 
     @staticmethod
     def get_key(
@@ -68,6 +79,21 @@ class Chat(BaseVertex):
             available_reactions=chat.available_reactions,
             member_count=chat.members_count,
             distance=chat.distance,
+        )
+
+    def update_importance_score(
+        self,
+        importance_score: float,
+    ) -> bool:
+        if importance_score is None:
+            return False
+
+        return self._db.update(
+            {
+                "_key": self.key,
+                "importance_score": importance_score,
+            },
+            silent=True,
         )
 
 

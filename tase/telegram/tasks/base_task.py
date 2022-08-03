@@ -1,5 +1,6 @@
-from dataclasses import dataclass, field
 from typing import Callable, List
+
+from pydantic import BaseModel, Field
 
 from tase.db.database_client import DatabaseClient
 from tase.my_logger import logger
@@ -17,13 +18,11 @@ def exception_handler(func: "Callable"):
     return wrap
 
 
-@dataclass
-class BaseTask:
-    name: str = field(default="")
-    args: List[object] = field(default_factory=list)
-    kwargs: dict = field(default_factory=dict)
+class BaseTask(BaseModel):
+    name: str = Field(default="")
+    args: List[object] = Field(default_factory=list)
+    kwargs: dict = Field(default_factory=dict)
 
-    @exception_handler
     def run_task(
         self,
         telegram_client: "TelegramClient",

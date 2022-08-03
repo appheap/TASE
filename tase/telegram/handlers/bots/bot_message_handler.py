@@ -10,9 +10,12 @@ from pyrogram.types import InlineKeyboardMarkup
 
 from tase.db import elasticsearch_models, graph_models
 from tase.db.document_models import BotTask, BotTaskStatus, BotTaskType
+from tase.db.graph_models.vertices import UserRole
 from tase.my_logger import logger
+from tase.telegram.globals import add_job, tase_telegram_queue
 from tase.telegram.handlers import BaseHandler, HandlerMetadata, exception_handler
 from tase.telegram.inline_buttons import InlineButton
+from tase.telegram.tasks import AddChannelTask
 from tase.telegram.templates import (
     AudioCaptionData,
     BaseTemplate,
@@ -38,13 +41,23 @@ class BotMessageHandler(BaseHandler):
             HandlerMetadata(
                 cls=handlers.MessageHandler,
                 callback=self.base_commands_handler,
-                filters=filters.command(["lang", "help", "home"]),
+                filters=filters.command(
+                    [
+                        "lang",
+                        "help",
+                        "home",
+                    ]
+                ),
                 group=0,
             ),
             HandlerMetadata(
                 cls=handlers.MessageHandler,
                 callback=self.admin_commands_handler,
-                filters=filters.command(["index"]),
+                filters=filters.command(
+                    [
+                        "add",  # is used to add a new channel to the DB to be indexed later
+                    ]
+                ),
                 group=0,
             ),
             HandlerMetadata(
@@ -116,7 +129,7 @@ class BotMessageHandler(BaseHandler):
         client: "pyrogram.Client",
         message: "pyrogram.types.Message",
     ):
-        logger.debug(f"admin_commands_handler: {message .command}")
+        logger.debug(f"admin_commands_handler: {message.command}")
 
         db_from_user = self.db.get_or_create_user(message.from_user)
 
@@ -124,8 +137,23 @@ class BotMessageHandler(BaseHandler):
         if not command or command is None:
             return
 
-        if command == "index":
-            pass
+        # check if the user has permission to execute admin/owner commands
+        if db_from_user.role not in (UserRole.ADMIN, UserRole.OWNER):
+            # todo: log users who query these commands without having permission
+            return
+
+        if command == "add":
+            if len(message.command) == 2:
+                channel_username = message.command[1]
+                add_job(
+                    AddChannelTask(kwargs={"channel_username": channel_username}),
+                    tase_telegram_queue,
+                    None,
+                    self.telegram_client,
+                )
+            else:
+                # `index` command haven't been provided with `channel_username` argument
+                pass
         else:
             pass
 
@@ -138,9 +166,13 @@ class BotMessageHandler(BaseHandler):
         """
         Check if the message is coming from a Telegram client and contains "dl_" regex, and then submit
         a thread to retrieve the searched audio file
-        :param client: Telegram Client
-        :param message: Telegram message object
-        :return:
+
+        Parameters
+        ----------
+        client : pyrogram.Client
+            Client receiving this update
+        message : pyrogram.types.Message
+            Message associated with update
         """
         logger.debug(f"base_downloads_handler: {message.text}")
 

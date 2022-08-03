@@ -1,16 +1,14 @@
-from dataclasses import dataclass, field
+from pydantic import Field
 
-from .base_task import BaseTask, exception_handler
+from .base_task import BaseTask
 from ..telegram_client import TelegramClient
 from ...db import DatabaseClient
 from ...my_logger import logger
 
 
-@dataclass
 class IndexAudiosTask(BaseTask):
-    name: str = field(default="index_audios_task")
+    name: str = Field(default="index_audios_task")
 
-    @exception_handler
     def run_task(
         self,
         telegram_client: "TelegramClient",

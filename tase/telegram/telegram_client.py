@@ -2,6 +2,7 @@ from enum import Enum
 from typing import Coroutine, Iterable, List, Optional, Union
 
 import pyrogram
+from apscheduler.schedulers.background import BackgroundScheduler
 from pyrogram.handlers.handler import Handler
 
 from tase.my_logger import logger
@@ -44,6 +45,7 @@ class TelegramClient:
     workdir: "str" = None
     telegram_id: int = None
     client_type: "ClientTypes"
+    scheduler: Optional[BackgroundScheduler] = None
 
     def init_client(self):
         pass

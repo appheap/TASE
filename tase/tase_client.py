@@ -18,7 +18,7 @@ class TASE:
         self,
     ):
         self.clients = []
-        self.client_managers = []
+        self.client_managers: List[ClientManager] = []
         self.tase_config = None
         self.database_client = None
 
@@ -74,6 +74,9 @@ class TASE:
             pass
 
         for client_mgr in self.client_managers:
+            if client_mgr.telegram_client and client_mgr.telegram_client.scheduler:
+                client_mgr.telegram_client.scheduler.shutdown()
+
             client_mgr.join()
 
     def connect_clients(self):

@@ -7,6 +7,8 @@ from kombu.transport import pyamqp
 
 from . import TelegramClient
 from .globals import *
+from .handlers import exception_handler
+from ..configs import ClientTypes
 from ..db.database_client import DatabaseClient
 
 
@@ -38,23 +40,35 @@ class ClientTaskConsumer(ConsumerProducerMixin):
         consumer,
         channel,
     ) -> List[Consumer]:
-        return [
-            Consumer(
-                queues=[self.task_queue],
-                callbacks=[self.on_task],
-                channel=channel,
-                prefetch_count=1,
-                accept=["pickle"],
-            ),
-            Consumer(
-                queues=[tase_telegram_queue],
-                callbacks=[self.on_task],
-                channel=channel,
-                prefetch_count=1,
-                accept=["pickle"],
-            ),
-        ]
+        if self.telegram_client.client_type == ClientTypes.USER:
+            return [
+                Consumer(
+                    queues=[self.task_queue],
+                    callbacks=[self.on_task],
+                    channel=channel,
+                    prefetch_count=1,
+                    accept=["pickle"],
+                ),
+                Consumer(
+                    queues=[tase_telegram_queue],
+                    callbacks=[self.on_task],
+                    channel=channel,
+                    prefetch_count=1,
+                    accept=["pickle"],
+                ),
+            ]
+        else:
+            return [
+                Consumer(
+                    queues=[self.task_queue],
+                    callbacks=[self.on_task],
+                    channel=channel,
+                    prefetch_count=1,
+                    accept=["pickle"],
+                ),
+            ]
 
+    @exception_handler
     def on_task(
         self,
         body: object,

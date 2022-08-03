@@ -20,6 +20,7 @@ class User(BaseVertex):
     _do_not_update = [
         "created_at",
         "chosen_language_code",
+        "role",
     ]
 
     user_id: int
