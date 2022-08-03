@@ -8,6 +8,7 @@ from tase.configs import TASEConfig
 from tase.db.database_client import DatabaseClient
 from tase.telegram import TelegramClient
 from tase.telegram.client_manager import ClientManager
+from tase.telegram.scheduler import SchedulerWorkerProcess
 
 
 class TASE:
@@ -25,6 +26,7 @@ class TASE:
     def init_telegram_clients(self):
         mgr = mp.Manager()
         task_queues = mgr.dict()
+        scheduler = None
 
         debug = config(
             "DEBUG",
@@ -65,6 +67,14 @@ class TASE:
                     client_manager.start()
                     self.clients.append(tg_client)
                     self.client_managers.append(client_manager)
+
+                scheduler = SchedulerWorkerProcess(
+                    0,
+                    self.database_client,
+                    task_queues,
+                )
+                scheduler.start()
+
             else:
                 # todo: raise error (config file is invalid)
                 pass
@@ -74,10 +84,10 @@ class TASE:
             pass
 
         for client_mgr in self.client_managers:
-            if client_mgr.telegram_client and client_mgr.telegram_client.scheduler:
-                client_mgr.telegram_client.scheduler.shutdown()
-
             client_mgr.join()
+
+        if scheduler:
+            scheduler.join()
 
     def connect_clients(self):
         for client in self.clients:

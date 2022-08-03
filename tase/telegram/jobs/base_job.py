@@ -1,31 +1,39 @@
 from typing import Callable, List, Optional
 
+import apscheduler.triggers.base
 from pydantic import BaseModel, Field
 
 from tase.db.database_client import DatabaseClient
 from tase.my_logger import logger
-from tase.telegram.telegram_client import TelegramClient
 
 
 def exception_handler(func: "Callable"):
     def wrap(*args, **kwargs):
         try:
             func(*args, **kwargs)
-            logger.info(f"Task Finished")
+            logger.info(f"Job Finished")
         except Exception as e:
             logger.exception(e)
 
     return wrap
 
 
-class BaseTask(BaseModel):
-    name: Optional[str] = Field(default=None)
+class BaseJob(BaseModel):
+    """
+    Abstract base class that defines the interface that every job must implement
+    """
+
+    name: str = Field(default=None)
+    trigger: Optional[apscheduler.triggers.base.BaseTrigger] = Field(default=None)
+
     args: List[object] = Field(default_factory=list)
     kwargs: dict = Field(default_factory=dict)
 
-    def run_task(
+    class Config:
+        arbitrary_types_allowed = True
+
+    def run_job(
         self,
-        telegram_client: "TelegramClient",
         db: "DatabaseClient",
     ):
         pass

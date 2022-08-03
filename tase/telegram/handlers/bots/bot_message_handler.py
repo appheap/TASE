@@ -12,7 +12,10 @@ from tase.db import elasticsearch_models, graph_models
 from tase.db.document_models import BotTask, BotTaskStatus, BotTaskType
 from tase.db.graph_models.vertices import UserRole
 from tase.my_logger import logger
-from tase.telegram.globals import add_job, tase_telegram_queue
+from tase.telegram.globals import (
+    publish_client_task,
+    tase_telegram_queue,
+)
 from tase.telegram.handlers import BaseHandler, HandlerMetadata, exception_handler
 from tase.telegram.inline_buttons import InlineButton
 from tase.telegram.tasks import AddChannelTask
@@ -145,12 +148,11 @@ class BotMessageHandler(BaseHandler):
         if command == "add":
             if len(message.command) == 2:
                 channel_username = message.command[1]
-                add_job(
+                publish_client_task(
                     AddChannelTask(kwargs={"channel_username": channel_username}),
                     tase_telegram_queue,
-                    None,
-                    self.telegram_client,
                 )
+
             else:
                 # `index` command haven't been provided with `channel_username` argument
                 pass

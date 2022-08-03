@@ -82,7 +82,6 @@ class ClientTaskConsumer(ConsumerProducerMixin):
         )
 
         if self.telegram_client.is_connected() and task.name:
-            logger.info(task.name)
             task.run_task(self.telegram_client, self.db)
 
 

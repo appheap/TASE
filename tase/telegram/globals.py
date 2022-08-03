@@ -1,11 +1,10 @@
-import apscheduler.triggers.base
 import kombu
-from apscheduler.schedulers.background import BackgroundScheduler
 from decouple import config
 from kombu import Connection, Exchange, Queue, uuid
 
 import tase
 from tase.my_logger import logger
+from tase.telegram.jobs import BaseJob
 from tase.telegram.tasks.base_task import BaseTask
 from tase.utils import prettify
 
@@ -26,6 +25,12 @@ callback_queue = Queue(
     auto_delete=True,
 )
 
+scheduler_queue = Queue(
+    f"scheduler_queue",
+    exchange=tase_telegram_exchange,
+    routing_key="scheduler_queue",
+)
+
 kombu.enable_insecure_serializers()
 
 
@@ -34,7 +39,7 @@ def publish_client_task(
     target_queue: kombu.Queue,
 ) -> None:
     """
-    Publishes a task to a queue to be executed by a Telegram Client
+    Publishes a task on a queue to be executed by a Telegram Client
 
     Parameters
     ----------
@@ -70,60 +75,37 @@ def publish_client_task(
         )
 
 
-def job(*args, **kwargs) -> None:
+def publish_job_to_scheduler(job: BaseJob) -> None:
     """
-    This functions serves as wrapper for RabbitMQ Tasks to be scheduled using APScheduler.
+    Publishes a job on the global scheduler queue to be scheduled
 
     Parameters
     ----------
-    args : tuple
-        A list of arguments provided as input to the job. The first argument is a subclass of
-        `BaseTask<tase.telegram.tasks.BaseTask>` and second argument is the queue (instance of `Queue<kombu.Queue>`
-        class) which task will be sent to.
-    kwargs : dict
-        A dictionary containing other keyword arguments passed to this function.
+    job : tase.telegram.jobs.BaseJob
+        Job to be scheduled
     """
-    publish_client_task(
-        args[0],
-        target_queue=args[1],
-    )
+    logger.info(f"@publish_job_to_scheduler: {prettify(job)}")
 
-
-def add_job(
-    task: BaseTask,
-    queue: kombu.Queue,
-    trigger: apscheduler.triggers.base.BaseTrigger,
-    telegram_client: "tase.telegram.TelegramClient",
-) -> None:
-    """
-    Adds a job to the scheduler to be scheduled to run based on the type of the trigger provided.
-
-    Parameters
-    ----------
-
-    task : tase.telegram.tasks.BaseTask
-        Task to be scheduled
-    queue : kombu.Queue
-        Queue to send the task to be executed on
-    trigger : apscheduler.triggers.base.BaseTrigger
-        Trigger that determines when the job is executed
-    telegram_client : tase.telegram.TelegramClient
-        Telegram client who added the job
-
-    """
-
-    if telegram_client.scheduler is None:
-        # fixme: use a global scheduler for all telegram clients instead
-        telegram_client.scheduler = BackgroundScheduler()
-        telegram_client.scheduler.start()
-
-
-    telegram_client.scheduler.add_job(
-        job,
-        trigger,
-        args=[
-            task,
-            queue,
-        ],
-        kwargs={},
-    )
+    # connections
+    with Connection(
+        config("RABBITMQ_URL"),
+        userid=config("RABBITMQ_DEFAULT_USER"),
+        password=config("RABBITMQ_DEFAULT_PASS"),
+    ) as conn:
+        # produce
+        producer = conn.Producer(serializer="pickle")
+        producer.publish(
+            body=job,
+            exchange=tase_telegram_exchange,
+            routing_key=scheduler_queue.routing_key,
+            declare=[
+                scheduler_queue,
+            ],
+            retry=True,
+            retry_policy={
+                "interval_start": 0,
+                "interval_step": 2,
+                "interval_max": 30,
+                "max_retries": 30,
+            },
+        )
