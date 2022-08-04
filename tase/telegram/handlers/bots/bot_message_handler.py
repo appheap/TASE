@@ -148,14 +148,26 @@ class BotMessageHandler(BaseHandler):
         if command == "add":
             if len(message.command) == 2:
                 channel_username = message.command[1]
-                publish_client_task(
-                    AddChannelTask(kwargs={"channel_username": channel_username}),
-                    tase_telegram_queue,
-                )
+
+                # todo: check if the username is in valid format
+
+                db_chat = self.db.get_chat_by_username(channel_username)
+                if db_chat:
+                    # todo: translate me
+                    message.reply_text("This channel already exists in the Database!")
+                else:
+                    publish_client_task(
+                        AddChannelTask(kwargs={"channel_username": channel_username}),
+                        tase_telegram_queue,
+                    )
+                    # todo: translate me
+                    message.reply_text("Added Channel to the Database for indexing.")
 
             else:
                 # `index` command haven't been provided with `channel_username` argument
                 pass
+        elif command == "index_channels":
+            publish_job_to_scheduler(IndexChannelsJob())
         else:
             pass
 

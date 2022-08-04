@@ -26,6 +26,7 @@ from .graph_models.edges import (
 from .graph_models.vertices import (
     Audio,
     Chat,
+    ChatType,
     Download,
     File,
     Hit,
@@ -496,6 +497,20 @@ class GraphDatabase:
             return None
 
         return Chat.find_by_key(str(chat_id))
+
+    def get_chat_by_username(
+        self,
+        username,
+    ) -> Optional[Chat]:
+        if username is None:
+            return None
+
+        # todo: fix this
+        cursor = Chat._db.find({"username": username})
+        if cursor and len(cursor):
+            return Chat.parse_from_graph(cursor.pop())
+        else:
+            return None
 
     def get_audio_by_key(
         self,
@@ -1174,10 +1189,12 @@ class GraphDatabase:
         """
         query_template = Template(
             "for chat in chats"
+            "   filter chat.chat_type==$chat_type"
             "   sort chat.importance_score desc"
             "   return chat"
         )
-        query = query_template.substitute({})
+        # todo: only channels can be indexed for now. add support for public channels and supergroups
+        query = query_template.substitute({"chat_type": ChatType.CHANNEL.value})
 
         results = []
         for aud in self.aql.execute(

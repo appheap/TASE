@@ -196,6 +196,15 @@ class DatabaseClient:
 
         return self._graph_db.get_chat_by_chat_id(chat_id)
 
+    def get_chat_by_username(
+        self,
+        username: str,
+    ) -> Optional[graph_models.vertices.Chat]:
+        if username is None:
+            return None
+
+        return self._graph_db.get_chat_by_username(username.lower())
+
     def get_audio_file_from_cache(
         self,
         audio: "elasticsearch_models.Audio",

@@ -67,7 +67,9 @@ class Chat(BaseVertex):
             is_fake=chat.is_fake,
             is_support=chat.is_support,
             title=chat.title,
-            username=chat.username,
+            username=chat.username.lower()
+            if chat.username
+            else None,  # it's useful for searching by username
             first_name=chat.first_name,
             last_name=chat.last_name,
             bio=chat.bio,
