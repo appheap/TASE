@@ -32,7 +32,7 @@ class SchedulerWorkerProcess(Process):
 
     def run(self) -> None:
         logger.info(f"SchedulerWorkerProcess {self.index} started ....")
-        self.consumer = SchedulerTaskConsumer(
+        self.consumer = SchedulerJobConsumer(
             connection=Connection(
                 config("RABBITMQ_URL"),
                 userid=config("RABBITMQ_DEFAULT_USER"),
@@ -44,7 +44,7 @@ class SchedulerWorkerProcess(Process):
         self.consumer.run()
 
 
-class SchedulerTaskConsumer(ConsumerProducerMixin):
+class SchedulerJobConsumer(ConsumerProducerMixin):
     def __init__(
         self,
         connection: "Connection",
