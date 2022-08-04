@@ -36,7 +36,7 @@ kombu.enable_insecure_serializers()
 
 def publish_client_task(
     task: BaseTask,
-    target_queue: kombu.Queue,
+    target_queue: kombu.Queue = None,
 ) -> None:
     """
     Publishes a task on a queue to be executed by a Telegram Client
@@ -46,9 +46,12 @@ def publish_client_task(
     task : tase.telegram.tasks.BaseTask
         Task to be executed
     target_queue : kombu.Queue
-        Queue to send to task to
+        Queue to send to task to. If no queue is provided, then the task will be broadcasted to all available workers.
     """
     logger.info(f"@publish_client_task: {prettify(task)}")
+
+    if target_queue is None:
+        target_queue = tase_telegram_queue
 
     # connections
     with Connection(

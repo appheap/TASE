@@ -432,3 +432,13 @@ class DatabaseClient:
             playlist_key,
             deleted_at,
         )
+
+    def get_chats_sorted_by_importance_score(self) -> List[graph_models.vertices.Chat]:
+        """
+        Gets the list of chats sorted by their importance score in a descending order
+
+        Returns
+        -------
+        A list of Chat objects
+        """
+        return self._graph_db.get_chats_sorted_by_importance_score()

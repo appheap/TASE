@@ -3,7 +3,7 @@ from typing import Callable, List, Optional
 import apscheduler.triggers.base
 from pydantic import BaseModel, Field
 
-from tase.db.database_client import DatabaseClient
+import tase
 from tase.my_logger import logger
 
 
@@ -34,6 +34,6 @@ class BaseJob(BaseModel):
 
     def run_job(
         self,
-        db: "DatabaseClient",
-    ):
+        db: "tase.db.DatabaseClient",
+    ) -> None:
         pass

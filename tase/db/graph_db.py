@@ -1163,3 +1163,26 @@ class GraphDatabase:
                     else:
                         return False
             return False
+
+    def get_chats_sorted_by_importance_score(self) -> List[Chat]:
+        """
+        Gets the list of chats sorted by their importance score in a descending order
+
+        Returns
+        -------
+        A list of Chat objects
+        """
+        query_template = Template(
+            "for chat in chats"
+            "   sort chat.importance_score desc"
+            "   return chat"
+        )
+        query = query_template.substitute({})
+
+        results = []
+        for aud in self.aql.execute(
+            query,
+            count=True,
+        ):
+            results.append(Chat.parse_from_graph(aud))
+        return results

@@ -4,6 +4,7 @@ from .base_task import BaseTask
 from ..telegram_client import TelegramClient
 from ...db import DatabaseClient
 from ...my_logger import logger
+from ...utils import get_timestamp
 
 
 class IndexAudiosTask(BaseTask):
@@ -31,7 +32,8 @@ class IndexAudiosTask(BaseTask):
             creator = db.update_or_create_user(tg_user)
             chat = db.update_or_create_chat(tg_chat, creator)
 
-            last_offset_id = 1
+            last_offset_id = chat.last_indexed_offset_message_id
+            last_offset_date = chat.last_indexed_offset_date
 
             for message in telegram_client.iter_audios(
                 chat_id=chat_id,
@@ -45,5 +47,7 @@ class IndexAudiosTask(BaseTask):
 
                 if message.id > last_offset_id:
                     last_offset_id = message.id
+                    last_offset_date = get_timestamp(message.date)
 
-            # todo: update the `last_offset_id` of the chat in the database
+            chat.update_offset_attributes(last_offset_id, last_offset_date)
+            logger.debug(f"Finished {chat.username}")

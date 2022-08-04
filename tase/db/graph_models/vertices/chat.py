@@ -96,6 +96,37 @@ class Chat(BaseVertex):
             silent=True,
         )
 
+    def update_offset_attributes(
+        self,
+        offset_id: int,
+        offset_date: int,
+    ) -> bool:
+        """
+        Updates offset attributes of the chat after being indexed
+
+        Parameters
+        ----------
+        offset_id : int
+            New offset id
+        offset_date : int
+            New offset date (it's a timestamp)
+
+        Returns
+        -------
+        Whether the update was successful or not
+        """
+        if offset_id is None or offset_date is None:
+            return False
+
+        return self._db.update(
+            {
+                "_key": self.key,
+                "last_indexed_offset_date": offset_date,
+                "last_indexed_offset_message_id": offset_id,
+            },
+            silent=True,
+        )
+
 
 class ChatType(Enum):
     UNKNOWN = 0
@@ -120,6 +151,7 @@ class ChatType(Enum):
         chat_type: "pyrogram.enums.ChatType",
     ) -> Optional["ChatType"]:
         if chat_type is None:
+            # fixme: how to avoid this?
             raise Exception("chat_type cannot be empty")
 
         return _from_pyrogram_mapping[chat_type.value]

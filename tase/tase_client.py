@@ -8,6 +8,8 @@ from tase.configs import TASEConfig
 from tase.db.database_client import DatabaseClient
 from tase.telegram import TelegramClient
 from tase.telegram.client_manager import ClientManager
+from tase.telegram.globals import publish_job_to_scheduler
+from tase.telegram.jobs import IndexChannelsJob
 from tase.telegram.scheduler import SchedulerWorkerProcess
 
 
@@ -74,6 +76,9 @@ class TASE:
                     task_queues,
                 )
                 scheduler.start()
+
+                # todo: do initial job scheduling in a proper way
+                publish_job_to_scheduler(IndexChannelsJob())
 
             else:
                 # todo: raise error (config file is invalid)
