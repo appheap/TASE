@@ -53,29 +53,7 @@ def publish_client_task(
     if target_queue is None:
         target_queue = tase_telegram_queue
 
-    # connections
-    with Connection(
-        config("RABBITMQ_URL"),
-        userid=config("RABBITMQ_DEFAULT_USER"),
-        password=config("RABBITMQ_DEFAULT_PASS"),
-    ) as conn:
-        # produce
-        producer = conn.Producer(serializer="pickle")
-        producer.publish(
-            body=task,
-            exchange=tase_telegram_exchange,
-            routing_key=target_queue.routing_key,
-            declare=[
-                target_queue,
-            ],
-            retry=True,
-            retry_policy={
-                "interval_start": 0,
-                "interval_step": 2,
-                "interval_max": 30,
-                "max_retries": 30,
-            },
-        )
+    publish(task, target_queue)
 
 
 def publish_job_to_scheduler(job: BaseJob) -> None:
@@ -89,7 +67,23 @@ def publish_job_to_scheduler(job: BaseJob) -> None:
     """
     logger.info(f"@publish_job_to_scheduler: {prettify(job)}")
 
-    # connections
+    publish(job, scheduler_queue)
+
+
+def publish(
+    body: object,
+    target_queue: kombu.Queue,
+) -> None:
+    """
+    Publishes an object on a queue to be processed
+
+    Parameters
+    ----------
+    body : object
+        Object to be sent as input for the worker to process
+    target_queue : Queue
+        Queue to send the body to
+    """
     with Connection(
         config("RABBITMQ_URL"),
         userid=config("RABBITMQ_DEFAULT_USER"),
@@ -98,11 +92,11 @@ def publish_job_to_scheduler(job: BaseJob) -> None:
         # produce
         producer = conn.Producer(serializer="pickle")
         producer.publish(
-            body=job,
+            body=body,
             exchange=tase_telegram_exchange,
-            routing_key=scheduler_queue.routing_key,
+            routing_key=target_queue.routing_key,
             declare=[
-                scheduler_queue,
+                target_queue,
             ],
             retry=True,
             retry_policy={

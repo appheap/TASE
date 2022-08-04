@@ -27,5 +27,9 @@ class IndexChannelsJob(BaseJob):
 
         for db_chat in db_chats:
             publish_client_task(
-                IndexAudiosTask(kwargs={"chat_id": db_chat.username}),
+                IndexAudiosTask(
+                    kwargs={
+                        "db_chat": db_chat,
+                    }
+                ),
             )
