@@ -44,6 +44,7 @@ class TelegramClient:
     workdir: "str" = None
     telegram_id: int = None
     client_type: "ClientTypes"
+    _me: Optional["pyrogram.types.User"] = None
 
     def init_client(self):
         pass
@@ -64,7 +65,10 @@ class TelegramClient:
         return self._client.is_connected
 
     def get_me(self) -> Optional["pyrogram.types.User"]:
-        return self._client.get_me()
+        # todo: add a feature to update this on fixed intervals to have latest information
+        if self._me is None:
+            self._me = self._client.get_me()
+        return self._me
 
     def get_chat(
         self,
@@ -108,7 +112,7 @@ class TelegramClient:
         offset_id: int = 0,
         only_newer_messages: bool = True,
     ):
-        for message in search_messages(
+        yield from search_messages(
             client=self._client,
             chat_id=chat_id,
             filter="audio",
@@ -116,8 +120,24 @@ class TelegramClient:
             offset=offset,
             offset_id=offset_id,
             only_newer_messages=only_newer_messages,
-        ):
-            yield message
+        )
+
+    def iter_messages(
+        self,
+        chat_id: Union["str", "int"],
+        query: str = "",
+        offset: int = 0,
+        offset_id: int = 0,
+        only_newer_messages: bool = True,
+    ):
+        yield from search_messages(
+            client=self._client,
+            chat_id=chat_id,
+            query=query,
+            offset=offset,
+            offset_id=offset_id,
+            only_newer_messages=only_newer_messages,
+        )
 
     @staticmethod
     def _parse(
@@ -166,9 +186,7 @@ class UserTelegramClient(TelegramClient):
         self.name = client_config.name
         self.api_id = client_config.api_id
         self.api_hash = client_config.api_hash
-        self.role = UserClientRoles._parse(
-            client_config.role
-        )  # todo: check for unknown roles
+        self.role = UserClientRoles._parse(client_config.role)  # todo: check for unknown roles
 
     def init_client(self):
         self._client = pyrogram.Client(
@@ -194,9 +212,7 @@ class BotTelegramClient(TelegramClient):
         self.api_id = client_config.api_id
         self.api_hash = client_config.api_hash
         self.token = client_config.bot_token
-        self.role = BotClientRoles._parse(
-            client_config.role
-        )  # todo: check for unknown roles
+        self.role = BotClientRoles._parse(client_config.role)  # todo: check for unknown roles
 
     def init_client(self):
         self._client = pyrogram.Client(

@@ -21,12 +21,12 @@ class AddChannelTask(BaseTask):
             if chat.type == ChatType.CHANNEL:
                 db_chat = db.update_or_create_chat(chat)
                 if db_chat is not None:
-                    importance_score = ChannelAnalyzer.calculate_score(
+                    score = ChannelAnalyzer.calculate_score(
                         telegram_client,
                         chat,
                     )
-                    logger.debug(f"Channel {chat.username} score: {importance_score}")
-                    db_chat.update_importance_score(importance_score=importance_score)
+                    logger.debug(f"Channel {chat.username} score: {score}")
+                    db.update_audio_indexer_score(chat=db_chat, score=score)
                 else:
                     pass
             else:

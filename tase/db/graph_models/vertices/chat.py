@@ -2,22 +2,23 @@ from typing import List, Optional
 
 import pyrogram
 from pydantic import Field
-from pydantic.types import Enum
 
 from .base_vertex import BaseVertex
+from .indexer_metadata import IndexerMetadata
 from .restriction import Restriction
+from ...enums import ChatType
 
 
 class Chat(BaseVertex):
     _vertex_name = "chats"
     _do_not_update = [
         "created_at",
-        "last_indexed_offset_date",
-        "last_indexed_offset_message_id",
-        "importance_score",
+        "audio_indexer_metadata",
+        "username_extractor_metadata",
     ]
 
     chat_id: int
+    is_public: bool
     chat_type: "ChatType"
     is_verified: Optional[bool]
     is_restricted: Optional[bool]
@@ -40,9 +41,8 @@ class Chat(BaseVertex):
     member_count: Optional[int]
     distance: Optional[int]
 
-    importance_score: Optional[float] = Field(default=0)
-    last_indexed_offset_date: Optional[int] = Field(default=0)
-    last_indexed_offset_message_id: Optional[int] = Field(default=1)
+    audio_indexer_metadata: IndexerMetadata = Field(default=IndexerMetadata())
+    username_extractor_metadata: IndexerMetadata = Field(default=IndexerMetadata())
 
     @staticmethod
     def get_key(
@@ -57,19 +57,20 @@ class Chat(BaseVertex):
         if chat is None:
             return None
 
+        chat_type = ChatType.parse_from_pyrogram(chat.type)
+
         return Chat(
             key=Chat.get_key(chat),
             chat_id=chat.id,
-            chat_type=ChatType.parse_from_pyrogram(chat.type),
+            is_public=Chat.get_is_public(chat, chat_type),
+            chat_type=chat_type,
             is_verified=chat.is_verified,
             is_restricted=chat.is_restricted,
             is_scam=chat.is_scam,
             is_fake=chat.is_fake,
             is_support=chat.is_support,
             title=chat.title,
-            username=chat.username.lower()
-            if chat.username
-            else None,  # it's useful for searching by username
+            username=chat.username.lower() if chat.username else None,  # it's useful for searching by username
             first_name=chat.first_name,
             last_name=chat.last_name,
             bio=chat.bio,
@@ -83,89 +84,38 @@ class Chat(BaseVertex):
             distance=chat.distance,
         )
 
-    def update_importance_score(
-        self,
-        importance_score: float,
-    ) -> bool:
-        if importance_score is None:
-            return False
-
-        return self._db.update(
-            {
-                "_key": self.key,
-                "importance_score": importance_score,
-            },
-            silent=True,
-        )
-
-    def update_offset_attributes(
-        self,
-        offset_id: int,
-        offset_date: int,
+    @staticmethod
+    def get_is_public(
+        chat: pyrogram.types.Chat,
+        chat_type: ChatType,
     ) -> bool:
         """
-        Updates offset attributes of the chat after being indexed
+        Check whether a chat is public or not
 
         Parameters
         ----------
-        offset_id : int
-            New offset id
-        offset_date : int
-            New offset date (it's a timestamp)
+        chat : pyrogram.types.Chat
+            Chat object from pyrogram
+        chat_type : ChatType
+            Type of the chat
 
         Returns
         -------
-        Whether the update was successful or not
+        Whether the chat is public or not
         """
-        if offset_id is None or offset_date is None:
-            return False
+        is_public = False
+        if chat_type in (ChatType.PRIVATE, ChatType.BOT):
+            is_public = True
+        elif chat_type == ChatType.GROUP:
+            is_public = False
+        elif chat_type in (ChatType.CHANNEL, ChatType.SUPERGROUP):
+            if chat.username:
+                is_public = True
+            else:
+                is_public = False
 
-        return self._db.update(
-            {
-                "_key": self.key,
-                "last_indexed_offset_date": offset_date,
-                "last_indexed_offset_message_id": offset_id,
-            },
-            silent=True,
-        )
+        return is_public
 
-
-class ChatType(Enum):
-    UNKNOWN = 0
-
-    PRIVATE = 1
-    "Chat is a private chat with a user"
-
-    BOT = 2
-    "Chat is a private chat with a bot"
-
-    GROUP = 3
-    "Chat is a basic group"
-
-    SUPERGROUP = 4
-    "Chat is a supergroup"
-
-    CHANNEL = 5
-    "Chat is a channel"
-
-    @staticmethod
-    def parse_from_pyrogram(
-        chat_type: "pyrogram.enums.ChatType",
-    ) -> Optional["ChatType"]:
-        if chat_type is None:
-            # fixme: how to avoid this?
-            raise Exception("chat_type cannot be empty")
-
-        return _from_pyrogram_mapping[chat_type.value]
-
-
-_from_pyrogram_mapping = {
-    pyrogram.enums.ChatType.PRIVATE.value: ChatType.PRIVATE,
-    pyrogram.enums.ChatType.BOT.value: ChatType.BOT,
-    pyrogram.enums.ChatType.GROUP.value: ChatType.GROUP,
-    pyrogram.enums.ChatType.SUPERGROUP.value: ChatType.SUPERGROUP,
-    pyrogram.enums.ChatType.CHANNEL.value: ChatType.CHANNEL,
-}
 
 # todo: how to fix this?
 Chat.update_forward_refs()

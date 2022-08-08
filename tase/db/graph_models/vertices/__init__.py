@@ -4,6 +4,7 @@ from .chat import Chat, ChatType
 from .download import Download
 from .file import File
 from .hit import Hit
+from .indexer_metadata import IndexerMetadata
 from .inline_query import InlineQuery, InlineQueryType
 from .playlist import Playlist
 from .query import Query
@@ -32,6 +33,7 @@ __all__ = [
     "Download",
     "File",
     "Hit",
+    "IndexerMetadata",
     "InlineQuery",
     "InlineQueryType",
     "Playlist",

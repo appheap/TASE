@@ -136,8 +136,10 @@ class BaseDocument(BaseModel):
             successful = True
         except DocumentInsertError as e:
             # Failed to insert the document
+            logger.error(doc)
             logger.exception(e)
         except Exception as e:
+            logger.error(doc)
             logger.exception(e)
         return doc, successful
 
@@ -171,11 +173,14 @@ class BaseDocument(BaseModel):
             successful = True
         except DocumentUpdateError as e:
             # Failed to update document.
+            logger.error(doc)
             logger.exception(e)
         except DocumentRevisionError as e:
             # The expected and actual document revisions mismatched.
+            logger.error(doc)
             logger.exception(e)
         except Exception as e:
+            logger.error(doc)
             logger.exception(e)
         return doc, successful
 

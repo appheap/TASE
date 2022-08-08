@@ -185,9 +185,7 @@ class GraphDatabase:
         if chat and successful:
             if telegram_chat.linked_chat:
                 # todo: fix this
-                linked_chat = self.get_or_create_chat(
-                    telegram_chat.linked_chat, creator, member
-                )
+                linked_chat = self.get_or_create_chat(telegram_chat.linked_chat, creator, member)
                 if linked_chat:
                     linked_chat_edge, successful = LinkedChat.create(
                         LinkedChat.parse_from_chat_and_chat(chat, linked_chat)
@@ -198,14 +196,10 @@ class GraphDatabase:
             pass
 
         if chat and telegram_chat.is_creator and creator:
-            is_creator_of, successful = IsCreatorOf.create(
-                IsCreatorOf.parse_from_chat_and_user(chat, creator)
-            )
+            is_creator_of, successful = IsCreatorOf.create(IsCreatorOf.parse_from_chat_and_user(chat, creator))
 
         if chat and member:
-            is_member_of, successful = IsMemberOf.create(
-                IsMemberOf.parse_from_user_and_chat(user=member, chat=chat)
-            )
+            is_member_of, successful = IsMemberOf.create(IsMemberOf.parse_from_user_and_chat(user=member, chat=chat))
 
         return chat
 
@@ -219,9 +213,7 @@ class GraphDatabase:
         audio = Audio.find_by_key(Audio.get_key(message))
         if audio:
             # audio exists in the database, update the audio
-            audio, successful = Audio.update(
-                audio, Audio.parse_from_message(message, audio.download_url)
-            )
+            audio, successful = Audio.update(audio, Audio.parse_from_message(message, audio.download_url))
         else:
             # audio does not exist in the database, create it
             audio = self.create_audio(message)
@@ -253,24 +245,16 @@ class GraphDatabase:
         if audio and successful:
             chat = self.get_or_create_chat(message.chat)
 
-            sent_by, successful = SentBy.create(
-                SentBy.parse_from_audio_and_chat(audio, chat)
-            )
+            sent_by, successful = SentBy.create(SentBy.parse_from_audio_and_chat(audio, chat))
 
             db_file = File.find_by_key(audio.file_unique_id)
             if db_file:
-                file_ref, successful = FileRef.create(
-                    FileRef.parse_from_audio_and_file(audio, db_file)
-                )
+                file_ref, successful = FileRef.create(FileRef.parse_from_audio_and_file(audio, db_file))
             else:
                 file, successful = File.create(File.parse_from_audio(message.audio))
                 if file and successful:
-                    if not FileRef._db.find(
-                        {"_from": audio.id, "_to": file.id}
-                    ):  # todo: fix me
-                        file_ref, successful = FileRef.create(
-                            FileRef.parse_from_audio_and_file(audio, file)
-                        )
+                    if not FileRef._db.find({"_from": audio.id, "_to": file.id}):  # todo: fix me
+                        file_ref, successful = FileRef.create(FileRef.parse_from_audio_and_file(audio, file))
                     else:
                         pass
                 else:
@@ -295,9 +279,7 @@ class GraphDatabase:
 
         query_keyword = QueryKeyword.find_by_key(QueryKeyword.get_key(query))
         if not query_keyword:
-            query_keyword, successful = QueryKeyword.create(
-                QueryKeyword.parse_from_query(query)
-            )
+            query_keyword, successful = QueryKeyword.create(QueryKeyword.parse_from_query(query))
 
         return query_keyword
 
@@ -994,12 +976,7 @@ class GraphDatabase:
         offset: int = 0,
         limit: int = 20,
     ) -> Optional[List[Audio]]:
-        if (
-            db_from_user is None
-            or playlist_key is None
-            or offset is None
-            or limit is None
-        ):
+        if db_from_user is None or playlist_key is None or offset is None or limit is None:
             return None
 
         db_playlist = Playlist.find_by_key(playlist_key)
@@ -1040,12 +1017,7 @@ class GraphDatabase:
         offset: int = 0,
         limit: int = 20,
     ) -> Optional[List[Playlist]]:
-        if (
-            db_from_user is None
-            or audio_download_url is None
-            or offset is None
-            or limit is None
-        ):
+        if db_from_user is None or audio_download_url is None or offset is None or limit is None:
             return None
 
         db_audio = self.get_audio_by_download_url(audio_download_url)
@@ -1179,9 +1151,9 @@ class GraphDatabase:
                         return False
             return False
 
-    def get_chats_sorted_by_importance_score(self) -> List[Chat]:
+    def get_chats_sorted_by_audio_indexer_score(self) -> List[Chat]:
         """
-        Gets the list of chats sorted by their importance score in a descending order
+        Gets the list of chats sorted by their audio importance score in a descending order
 
         Returns
         -------
@@ -1190,12 +1162,13 @@ class GraphDatabase:
         query_template = Template(
             "for chat in chats"
             "   filter chat.chat_type==$chat_type"
-            "   sort chat.importance_score desc"
+            "   sort chat.audio_indexer_metadata.score desc, chat.member_count desc"
             "   return chat"
         )
-        # todo: only channels can be indexed for now. add support for public channels and supergroups
+        # todo: only public channels can be indexed for now. add support supergroups
         query = query_template.substitute({"chat_type": ChatType.CHANNEL.value})
 
+        # fixme: use a generator instead of returning all results
         results = []
         for aud in self.aql.execute(
             query,
@@ -1203,3 +1176,206 @@ class GraphDatabase:
         ):
             results.append(Chat.parse_from_graph(aud))
         return results
+
+    def get_chats_sorted_by_username_extractor_score(self) -> List[Chat]:
+        """
+        Gets the list of chats sorted by their username extractor importance score in a descending order
+
+        Returns
+        -------
+        A list of Chat objects
+        """
+        query_template = Template(
+            "for chat in chats"
+            "   filter chat.chat_type==$chat_type"
+            "   sort chat.username_extractor_metadata.score desc, chat.member_count desc"
+            "   return chat"
+        )
+
+        # todo: only public channels can be indexed for now. add support for other types if necessary
+        query = query_template.substitute({"chat_type": ChatType.CHANNEL.value})
+
+        # fixme: use a generator instead of returning all results
+        results = []
+        for aud in self.aql.execute(
+            query,
+            count=True,
+        ):
+            results.append(Chat.parse_from_graph(aud))
+        return results
+
+    def update_audio_indexer_metadata(
+        self,
+        chat: Chat,
+        offset_id: int,
+        offset_date: int,
+    ) -> bool:
+        """
+        Updates audio indexer offset attributes of the chat after being indexed
+
+        Parameters
+        ----------
+        chat : Chat
+            Chat to update its metadata
+        offset_id : int
+            New offset id
+        offset_date : int
+            New offset date (it's a timestamp)
+
+        Returns
+        -------
+        Whether the update was successful or not
+        """
+        if offset_id is None or offset_date is None:
+            return False
+
+        query_template = Template(
+            "for chat in chats"
+            "   filter chat._key==$key"
+            "   update chat with {"
+            "       audio_indexer_metadata: "
+            "       {last_message_offset_id: $offset_id,last_message_offset_date: $offset_date }"
+            "   in chats options {mergeObjects: true}"
+            "   return chat"
+        )
+        query = query_template.substitute(
+            {
+                "key": chat.key,
+                "offset_id": offset_id,
+                "offset_date": offset_date,
+            }
+        )
+
+        db_chat = self.aql.execute(query)
+
+        return True if db_chat else False
+
+    def update_username_extractor_metadata(
+        self,
+        chat: Chat,
+        offset_id: int,
+        offset_date: int,
+    ) -> bool:
+        """
+        Updates username extractor  offset attributes of the chat after being indexed
+
+        Parameters
+        ----------
+        chat : Chat
+            Chat to update its metadata
+        offset_id : int
+            New offset id
+        offset_date : int
+            New offset date (it's a timestamp)
+
+        Returns
+        -------
+        Whether the update was successful or not
+        """
+        if offset_id is None or offset_date is None:
+            return False
+
+        query_template = Template(
+            "for chat in chats"
+            "   filter chat._key==$key"
+            "   update chat with {"
+            "       username_extractor_metadata: "
+            "       {last_message_offset_id: $offset_id,last_message_offset_date: $offset_date }"
+            "   in chats options {mergeObjects: true}"
+            "   return chat"
+        )
+        query = query_template.substitute(
+            {
+                "key": chat.key,
+                "offset_id": offset_id,
+                "offset_date": offset_date,
+            }
+        )
+
+        db_chat = self.aql.execute(query)
+
+        return True if db_chat else False
+
+    def update_audio_indexer_score(
+        self,
+        chat: Chat,
+        score: float,
+    ) -> bool:
+        """
+        Updates audio indexer score of a chat
+
+        Parameters
+        ----------
+        chat : Chat
+            Chat to update its score
+        score : float
+            New score
+
+        Returns
+        -------
+        Whether the update was successful or not
+        """
+        if chat is None or score is None:
+            return False
+
+        query_template = Template(
+            "for chat in chats"
+            "   filter chat._key==$key"
+            "   update chat with {"
+            "       audio_indexer_metadata: "
+            "       {score: $score }"
+            "   in chats options {mergeObjects: true}"
+            "   return chat"
+        )
+        query = query_template.substitute(
+            {
+                "key": chat.key,
+                "score": score,
+            }
+        )
+
+        db_chat = self.aql.execute(query)
+
+        return True if db_chat else False
+
+    def update_username_extractor_score(
+        self,
+        chat: Chat,
+        score: float,
+    ) -> bool:
+        """
+        Updates username extractor score of a chat
+
+        Parameters
+        ----------
+        chat : Chat
+            Chat to update its score
+        score : float
+            New score
+
+        Returns
+        -------
+        Whether the update was successful or not
+        """
+        if chat is None or score is None:
+            return False
+
+        query_template = Template(
+            "for chat in chats"
+            "   filter chat._key==$key"
+            "   update chat with {"
+            "       username_extractor_metadata: "
+            "       {score: $score }"
+            "   in chats options {mergeObjects: true}"
+            "   return chat"
+        )
+        query = query_template.substitute(
+            {
+                "key": chat.key,
+                "score": score,
+            }
+        )
+
+        db_chat = self.aql.execute(query)
+
+        return True if db_chat else False

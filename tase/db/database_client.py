@@ -125,10 +125,7 @@ class DatabaseClient:
         audio_docs: List[elasticsearch_models.Audio],
         db_audios: List[graph_models.vertices.Audio],
         next_offset: Optional[str],
-    ) -> Tuple[
-        Optional[graph_models.vertices.InlineQuery],
-        Optional[List[graph_models.vertices.Hit]],
-    ]:
+    ) -> Tuple[Optional[graph_models.vertices.InlineQuery], Optional[List[graph_models.vertices.Hit]],]:
 
         return self._graph_db.get_or_create_inline_query(
             bot_id,
@@ -241,9 +238,7 @@ class DatabaseClient:
         if chosen_inline_result is None or bot_id is None:
             return None
 
-        return self._graph_db.get_or_create_download_from_chosen_inline_query(
-            chosen_inline_result, bot_id
-        )
+        return self._graph_db.get_or_create_download_from_chosen_inline_query(chosen_inline_result, bot_id)
 
     def get_or_create_download_from_hit_download_url(
         self,
@@ -254,9 +249,7 @@ class DatabaseClient:
         if download_url is None or bot_id is None or from_user is None:
             return None
 
-        return self._graph_db.get_or_create_download_from_hit_download_url(
-            download_url, from_user, bot_id
-        )
+        return self._graph_db.get_or_create_download_from_hit_download_url(download_url, from_user, bot_id)
 
     def get_hit_by_download_url(
         self,
@@ -285,9 +278,7 @@ class DatabaseClient:
         if db_from_user is None:
             return None
 
-        return self._graph_db.get_user_download_user_history(
-            db_from_user, offset, limit
-        )
+        return self._graph_db.get_user_download_user_history(db_from_user, offset, limit)
 
     def get_user_playlists(
         self,
@@ -323,9 +314,7 @@ class DatabaseClient:
         offset: int = 0,
         limit: int = 20,
     ) -> Optional[List[graph_models.vertices.Audio]]:
-        return self._graph_db.get_playlist_audios(
-            db_from_user, playlist_key, offset, limit
-        )
+        return self._graph_db.get_playlist_audios(db_from_user, playlist_key, offset, limit)
 
     def get_audio_playlists(
         self,
@@ -387,13 +376,9 @@ class DatabaseClient:
         task_type: "document_models.BotTaskType",
         new_task_state: dict,
     ):
-        return self._document_db.update_task_state_dict(
-            user_id, bot_id, task_type, new_task_state
-        )
+        return self._document_db.update_task_state_dict(user_id, bot_id, task_type, new_task_state)
 
-    def get_latest_bot_task(
-        self, user_id: int, bot_id: int
-    ) -> Optional[document_models.BotTask]:
+    def get_latest_bot_task(self, user_id: int, bot_id: int) -> Optional[document_models.BotTask]:
         return self._document_db.get_latest_bot_task(user_id, bot_id)
 
     def create_playlist(
@@ -442,12 +427,165 @@ class DatabaseClient:
             deleted_at,
         )
 
-    def get_chats_sorted_by_importance_score(self) -> List[graph_models.vertices.Chat]:
+    def get_chats_sorted_by_audio_indexer_score(
+        self,
+    ) -> List[graph_models.vertices.Chat]:
         """
-        Gets the list of chats sorted by their importance score in a descending order
+        Gets the list of chats sorted by their audio importance score in a descending order
 
         Returns
         -------
         A list of Chat objects
         """
-        return self._graph_db.get_chats_sorted_by_importance_score()
+        return self._graph_db.get_chats_sorted_by_audio_indexer_score()
+
+    def get_chats_sorted_by_username_extractor_score(
+        self,
+    ) -> List[graph_models.vertices.Chat]:
+        """
+        Gets the list of chats sorted by their username extractor importance score in a descending order
+
+        Returns
+        -------
+        A list of Chat objects
+        """
+        return self._graph_db.get_chats_sorted_by_username_extractor_score()
+
+    def get_chat_buffer_from_chat(
+        self,
+        chat: pyrogram.types.Chat,
+    ) -> Optional[document_models.ChatBuffer]:
+        """
+        Get a ChatBuffer by key from the provided Chat
+
+        Parameters
+        ----------
+        chat : pyrogram.types.Chat
+            Chat to get the from
+
+        Returns
+        -------
+        A ChatBuffer if it exists otherwise returns None
+        """
+        return self._document_db.get_chat_buffer_from_chat(chat)
+
+    def get_chat_username_buffer_from_chat(
+        self,
+        username: str,
+    ) -> Optional[document_models.ChatUsernameBuffer]:
+        """
+        Get a ChatUsernameBuffer by the key from the provided username
+
+        Parameters
+        ----------
+        username : str
+            username to get the key from
+
+        Returns
+        -------
+        A ChatUsernameBuffer if it exists otherwise returns None
+        """
+        return self._document_db.get_chat_username_buffer_from_chat(username)
+
+    def get_or_create_chat_username_buffer(
+        self, username: str
+    ) -> Tuple[Optional[document_models.ChatUsernameBuffer], bool]:
+        return self._document_db.get_or_create_chat_username_buffer(username)
+
+    def update_username_extractor_metadata(
+        self,
+        chat: graph_models.vertices.Chat,
+        offset_id: int,
+        offset_date: int,
+    ) -> bool:
+        """
+        Updates username extractor  offset attributes of the chat after being indexed
+
+        Parameters
+        ----------
+        chat : Chat
+            Chat to update its metadata
+        offset_id : int
+            New offset id
+        offset_date : int
+            New offset date (it's a timestamp)
+
+        Returns
+        -------
+        Whether the update was successful or not
+        """
+        return self._graph_db.update_username_extractor_metadata(
+            chat,
+            offset_id,
+            offset_date,
+        )
+
+    def update_audio_indexer_metadata(
+        self,
+        chat: graph_models.vertices.Chat,
+        offset_id: int,
+        offset_date: int,
+    ) -> bool:
+        """
+        Updates audio indexer offset attributes of the chat after being indexed
+
+        Parameters
+        ----------
+        chat : Chat
+            Chat to update its metadata
+        offset_id : int
+            New offset id
+        offset_date : int
+            New offset date (it's a timestamp)
+
+        Returns
+        -------
+        Whether the update was successful or not
+        """
+        return self._graph_db.update_audio_indexer_metadata(
+            chat,
+            offset_id,
+            offset_date,
+        )
+
+    def update_audio_indexer_score(
+        self,
+        chat: graph_models.vertices.Chat,
+        score: float,
+    ) -> bool:
+        """
+        Updates audio indexer score of a chat
+
+        Parameters
+        ----------
+        chat : graph_models.vertices.Chat
+            Chat to update its score
+        score : float
+            New score
+
+        Returns
+        -------
+        Whether the update was successful or not
+        """
+        return self._graph_db.update_audio_indexer_score(chat, score)
+
+    def update_username_extractor_score(
+        self,
+        chat: graph_models.vertices.Chat,
+        score: float,
+    ) -> bool:
+        """
+        Updates username extractor score of a chat
+
+        Parameters
+        ----------
+        chat : graph_models.vertices.Chat
+            Chat to update its score
+        score : float
+            New score
+
+        Returns
+        -------
+        Whether the update was successful or not
+        """
+        return self._graph_db.update_username_extractor_score(chat, score)

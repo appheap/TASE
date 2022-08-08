@@ -18,8 +18,6 @@ class IndexAudiosTask(BaseTask):
         db_chat: graph_models.vertices.Chat = self.kwargs.get("db_chat")
         if db_chat is None:
             return
-        tg_user = None
-        tg_chat = None
 
         chat_id = db_chat.username if db_chat.username else db_chat.invite_link
         title = db_chat.title
@@ -38,8 +36,8 @@ class IndexAudiosTask(BaseTask):
             db_chat = db.update_or_create_chat(tg_chat, creator)
 
             if creator and db_chat:
-                last_offset_id = db_chat.last_indexed_offset_message_id
-                last_offset_date = db_chat.last_indexed_offset_date
+                last_offset_id = db_chat.audio_indexer_metadata.last_message_offset_id
+                last_offset_date = db_chat.audio_indexer_metadata.last_message_offset_date
 
                 for message in telegram_client.iter_audios(
                     chat_id=chat_id,
@@ -55,7 +53,7 @@ class IndexAudiosTask(BaseTask):
                         last_offset_id = message.id
                         last_offset_date = get_timestamp(message.date)
 
-                db_chat.update_offset_attributes(last_offset_id, last_offset_date)
+                db.update_audio_indexer_metadata(db_chat, last_offset_id, last_offset_date)
                 logger.debug(f"Finished {title}")
             else:
                 logger.debug(f"Error occurred: {title}")
