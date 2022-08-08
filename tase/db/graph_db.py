@@ -8,6 +8,7 @@ from arango.database import StandardDatabase
 from arango.graph import Graph
 
 from . import elasticsearch_db
+from .enums import MentionSource
 from .graph_models.edges import (
     Downloaded,
     FileRef,
@@ -19,6 +20,7 @@ from .graph_models.edges import (
     IsCreatorOf,
     IsMemberOf,
     LinkedChat,
+    Mentions,
     SentBy,
     ToBot,
     edges,
@@ -36,6 +38,7 @@ from .graph_models.vertices import (
     Query,
     QueryKeyword,
     User,
+    Username,
     vertices,
 )
 from ..configs import ArangoDBConfig
@@ -1231,11 +1234,11 @@ class GraphDatabase:
 
         query_template = Template(
             "for chat in chats"
-            "   filter chat._key==$key"
+            "   filter chat._key=='$key'"
             "   update chat with {"
             "       audio_indexer_metadata: "
             "       {last_message_offset_id: $offset_id,last_message_offset_date: $offset_date }"
-            "   in chats options {mergeObjects: true}"
+            "   } in chats options {mergeObjects: true}"
             "   return chat"
         )
         query = query_template.substitute(
@@ -1246,9 +1249,12 @@ class GraphDatabase:
             }
         )
 
-        db_chat = self.aql.execute(query)
+        cursor = self.aql.execute(
+            query,
+            count=True,
+        )
 
-        return True if db_chat else False
+        return True if len(cursor) else False
 
     def update_username_extractor_metadata(
         self,
@@ -1279,9 +1285,8 @@ class GraphDatabase:
             "for chat in chats"
             "   filter chat._key==$key"
             "   update chat with {"
-            "       username_extractor_metadata: "
-            "       {last_message_offset_id: $offset_id,last_message_offset_date: $offset_date }"
-            "   in chats options {mergeObjects: true}"
+            "       username_extractor_metadata:{last_message_offset_id: $offset_id,last_message_offset_date: $offset_date }"
+            "   } in chats options {mergeObjects: true}"
             "   return chat"
         )
         query = query_template.substitute(
@@ -1292,9 +1297,12 @@ class GraphDatabase:
             }
         )
 
-        db_chat = self.aql.execute(query)
+        cursor = self.aql.execute(
+            query,
+            count=True,
+        )
 
-        return True if db_chat else False
+        return True if len(cursor) else False
 
     def update_audio_indexer_score(
         self,
@@ -1320,11 +1328,10 @@ class GraphDatabase:
 
         query_template = Template(
             "for chat in chats"
-            "   filter chat._key==$key"
+            "   filter chat._key=='$key'"
             "   update chat with {"
-            "       audio_indexer_metadata: "
-            "       {score: $score }"
-            "   in chats options {mergeObjects: true}"
+            "       audio_indexer_metadata: {score: $score }"
+            "   } in chats options {mergeObjects: true}"
             "   return chat"
         )
         query = query_template.substitute(
@@ -1334,9 +1341,12 @@ class GraphDatabase:
             }
         )
 
-        db_chat = self.aql.execute(query)
+        cursor = self.aql.execute(
+            query,
+            count=True,
+        )
 
-        return True if db_chat else False
+        return True if len(cursor) else False
 
     def update_username_extractor_score(
         self,
@@ -1362,11 +1372,10 @@ class GraphDatabase:
 
         query_template = Template(
             "for chat in chats"
-            "   filter chat._key==$key"
+            "   filter chat._key=='$key'"
             "   update chat with {"
-            "       username_extractor_metadata: "
-            "       {score: $score }"
-            "   in chats options {mergeObjects: true}"
+            "       username_extractor_metadata: {score: $score }"
+            "   } in chats options {mergeObjects: true}"
             "   return chat"
         )
         query = query_template.substitute(
@@ -1376,6 +1385,129 @@ class GraphDatabase:
             }
         )
 
-        db_chat = self.aql.execute(query)
+        cursor = self.aql.execute(
+            query,
+            count=True,
+        )
 
-        return True if db_chat else False
+        return True if len(cursor) else False
+
+    def create_username(
+        self,
+        chat: Chat,
+        username: str,
+        is_direct_mention: bool,
+        mentioned_at: int,
+        mention_source: MentionSource,
+        mention_start_index: int,
+        from_message_id: int,
+    ) -> Tuple[Optional[Username], bool]:
+        if (
+            chat is None
+            or username is None
+            or is_direct_mention is None
+            or mentioned_at is None
+            or mention_source is None
+            or mention_start_index is None
+            or from_message_id is None
+        ):
+            return None, False
+
+        db_username, successful = Username.create(Username.parse_from_username(username))
+
+        if not successful:  # todo: is it necessary?
+            raise Exception(f"Could not create vertex {Username.__class__.__name__}")
+
+        return db_username, successful
+
+    def get_or_create_username(
+        self,
+        chat: Chat,
+        username: str,
+        is_direct_mention: bool,
+        mentioned_at: int,
+        mention_source: MentionSource,
+        mention_start_index: int,
+        from_message_id: int,
+    ) -> Tuple[Optional[Username], bool]:
+        if (
+            chat is None
+            or username is None
+            or is_direct_mention is None
+            or mentioned_at is None
+            or mention_source is None
+            or mention_start_index is None
+            or from_message_id is None
+        ):
+            return None, False
+
+        db_username = Username.find_by_key(Username.get_key(username))
+        created = False
+
+        if not db_username:
+            # username does not exist in the database, create it
+            db_username, successful = self.create_username(
+                chat,
+                username,
+                is_direct_mention,
+                mentioned_at,
+                mention_source,
+                mention_start_index,
+                from_message_id,
+            )
+            created = True
+
+        if chat.username is not None:
+            if chat.username != username.lower():
+                create_mention_edge = True
+            else:
+                create_mention_edge = False
+        else:
+            create_mention_edge = True
+
+        if create_mention_edge:
+            db_mentions = Mentions.find_by_key(
+                Mentions.get_key(
+                    chat,
+                    db_username,
+                    mentioned_at,
+                    mention_source,
+                    mention_start_index,
+                    from_message_id,
+                )
+            )
+            if db_mentions is None:
+                db_mentions, _ = Mentions.create(
+                    Mentions.parse_from_chat_and_username(
+                        chat,
+                        db_username,
+                        is_direct_mention,
+                        mentioned_at,
+                        mention_source,
+                        mention_start_index,
+                        from_message_id,
+                    )
+                )
+
+        return db_username, created
+
+    def get_username(
+        self,
+        username: str,
+    ) -> Optional[Username]:
+        """
+        Get a Username by the key from the provided username
+
+        Parameters
+        ----------
+        username : str
+            username to get the key from
+
+        Returns
+        -------
+        A Username if it exists otherwise returns None
+        """
+        if username is None:
+            return None
+
+        return Username.find_by_key(Username.get_key(username))

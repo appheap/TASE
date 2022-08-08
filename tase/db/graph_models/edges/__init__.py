@@ -11,6 +11,7 @@ from .is_contact_of import IsContactOf
 from .is_creator_of import IsCreatorOf
 from .is_member_of import IsMemberOf
 from .linked_chat import LinkedChat
+from .mentions import Mentions
 from .sent_by import SentBy
 from .to_bot import ToBot
 
@@ -27,11 +28,13 @@ edges = [
     IsCreatorOf,
     IsMemberOf,
     LinkedChat,
+    Mentions,
     SentBy,
     ToBot,
 ]
 
 __all__ = [
+    "edges",
     "ArchivedAudio",
     "BaseEdge",
     "Downloaded",
@@ -45,7 +48,7 @@ __all__ = [
     "IsCreatorOf",
     "IsMemberOf",
     "LinkedChat",
+    "Mentions",
     "SentBy",
     "ToBot",
-    "edges",
 ]

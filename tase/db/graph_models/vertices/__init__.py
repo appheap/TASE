@@ -9,6 +9,7 @@ from .playlist import Playlist
 from .query import Query
 from .query_keyword import QueryKeyword
 from .user import User, UserRole
+from .username import Username
 
 vertices = [
     Audio,
@@ -21,9 +22,11 @@ vertices = [
     Query,
     QueryKeyword,
     User,
+    Username,
 ]
 
 __all__ = [
+    "vertices",
     "Audio",
     "BaseVertex",
     "Chat",
@@ -38,5 +41,5 @@ __all__ = [
     "QueryKeyword",
     "User",
     "UserRole",
-    "vertices",
+    "Username",
 ]

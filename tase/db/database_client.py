@@ -6,6 +6,7 @@ from tase.my_logger import logger
 from . import document_models, elasticsearch_models, graph_models
 from .document_db import DocumentDatabase
 from .elasticsearch_db import ElasticsearchDatabase
+from .enums import MentionSource
 from .graph_db import GraphDatabase
 from ..configs import ArangoDBConfig, ElasticConfig
 
@@ -469,12 +470,12 @@ class DatabaseClient:
         """
         return self._document_db.get_chat_buffer_from_chat(chat)
 
-    def get_chat_username_buffer_from_chat(
+    def get_username(
         self,
         username: str,
-    ) -> Optional[document_models.ChatUsernameBuffer]:
+    ) -> Optional[graph_models.vertices.Username]:
         """
-        Get a ChatUsernameBuffer by the key from the provided username
+        Get a Username by the key from the provided username
 
         Parameters
         ----------
@@ -483,14 +484,29 @@ class DatabaseClient:
 
         Returns
         -------
-        A ChatUsernameBuffer if it exists otherwise returns None
+        A Username if it exists otherwise returns None
         """
-        return self._document_db.get_chat_username_buffer_from_chat(username)
+        return self._graph_db.get_username(username)
 
-    def get_or_create_chat_username_buffer(
-        self, username: str
-    ) -> Tuple[Optional[document_models.ChatUsernameBuffer], bool]:
-        return self._document_db.get_or_create_chat_username_buffer(username)
+    def get_or_create_username(
+        self,
+        chat: graph_models.vertices.Chat,
+        username: str,
+        is_direct_mention: bool,
+        mentioned_at: int,
+        mention_source: MentionSource,
+        mention_start_index: int,
+        from_message_id: int,
+    ) -> Tuple[Optional[graph_models.vertices.Username], bool]:
+        return self._graph_db.get_or_create_username(
+            chat,
+            username,
+            is_direct_mention,
+            mentioned_at,
+            mention_source,
+            mention_start_index,
+            from_message_id,
+        )
 
     def update_username_extractor_metadata(
         self,

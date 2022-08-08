@@ -2,29 +2,31 @@ from typing import Optional
 
 from pydantic import Field
 
-from .base_document import BaseDocument
+from .base_vertex import BaseVertex
 
 
-class ChatUsernameBuffer(BaseDocument):
+class Username(BaseVertex):
     """
     This class is for buffering chat usernames that are being extracted from messages before adding them to the
     database for indexing
     """
 
-    _doc_collection_name = "doc_chat_username_buffers"
+    _vertex_name = "usernames"
 
     username: Optional[str]
     is_checked: bool = Field(default=False)
+    checked_at: Optional[int]
+    is_valid: Optional[bool]
 
     @staticmethod
     def parse_from_username(
         username: str,
-    ) -> Optional["ChatUsernameBuffer"]:
+    ) -> Optional["Username"]:
         if username is None:
             return None
 
-        return ChatUsernameBuffer(
-            key=ChatUsernameBuffer.get_key(username),
+        return Username(
+            key=Username.get_key(username),
             username=username.lower(),
         )
 

@@ -201,19 +201,13 @@ class BotMessageHandler(BaseHandler):
         db_audio = self.db.get_audio_from_hit(db_hit)
         db_audio_doc = self.db.get_audio_doc_by_key(db_audio.key)
         if db_audio_doc:
-            audio_file_cache = self.db.get_audio_file_from_cache(
-                db_audio_doc, self.telegram_client.telegram_id
-            )
+            audio_file_cache = self.db.get_audio_file_from_cache(db_audio_doc, self.telegram_client.telegram_id)
             db_chat = self.db.get_chat_by_chat_id(db_audio_doc.chat_id)
             if not audio_file_cache:
-                messages = client.get_messages(
-                    db_chat.username, [db_audio_doc.message_id]
-                )
+                messages = client.get_messages(db_chat.username, [db_audio_doc.message_id])
                 if not messages or not len(messages):
                     # todo: could not get the audio from telegram servers, what to do now?
-                    logger.error(
-                        "could not get the audio from telegram servers, what to do now?"
-                    )
+                    logger.error("could not get the audio from telegram servers, what to do now?")
                     return
                 file_id = messages[0].audio.file_id
             else:
@@ -231,17 +225,13 @@ class BotMessageHandler(BaseHandler):
 
             markup = [
                 [
-                    InlineButton.get_button(
-                        "add_to_playlist"
-                    ).get_inline_keyboard_button(
+                    InlineButton.get_button("add_to_playlist").get_inline_keyboard_button(
                         db_user.chosen_language_code,
                         db_audio.download_url,
                     ),
                 ],
                 [
-                    InlineButton.get_button(
-                        "remove_from_playlist"
-                    ).get_inline_keyboard_button(
+                    InlineButton.get_button("remove_from_playlist").get_inline_keyboard_button(
                         db_user.chosen_language_code,
                         db_audio.download_url,
                     ),
@@ -268,9 +258,7 @@ class BotMessageHandler(BaseHandler):
             )
         else:
             # todo: An Error occurred while processing this audio download url, why?
-            logger.error(
-                f"An error occurred while processing the download URL for this audio: {download_url}"
-            )
+            logger.error(f"An error occurred while processing the download URL for this audio: {download_url}")
             message.reply_text(
                 _trans(
                     "An error occurred while processing the download URL for this audio",
@@ -333,16 +321,10 @@ class BotMessageHandler(BaseHandler):
                     query,
                     size=10,
                 )
-                if (
-                    not db_audio_docs
-                    or not len(db_audio_docs)
-                    or not len(query_metadata)
-                ):
+                if not db_audio_docs or not len(db_audio_docs) or not len(query_metadata):
                     found_any = False
 
-                db_audios = self.db.get_audios_from_keys(
-                    [doc.id for doc in db_audio_docs]
-                )
+                db_audios = self.db.get_audios_from_keys([doc.id for doc in db_audio_docs])
 
                 res = self.db.get_or_create_query(
                     self.telegram_client.telegram_id,
@@ -471,9 +453,7 @@ class BotMessageHandler(BaseHandler):
                     bot_task.update_status(BotTaskStatus.DONE)
                     message.reply_text("Successfully created the playlist.")
 
-                    audio_download_url = bot_task.state_dict.get(
-                        "audio_download_url", None
-                    )
+                    audio_download_url = bot_task.state_dict.get("audio_download_url", None)
                     if audio_download_url is not None:
                         created, successful = self.db.add_audio_to_playlist(
                             db_playlist.key,

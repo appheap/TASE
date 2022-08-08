@@ -8,6 +8,7 @@ from arango import (
 )
 from arango.collection import EdgeCollection
 from pydantic import BaseModel, Field
+from pydantic.types import Enum
 
 from tase.my_logger import logger
 from tase.utils import get_timestamp
@@ -63,6 +64,13 @@ class BaseEdge(BaseModel):
 
     def _to_graph(self) -> dict:
         temp_dict = self.dict()
+
+        for k, v in temp_dict.copy().items():
+            attr = getattr(self, k, None)
+            if attr:
+                if isinstance(attr, Enum):
+                    temp_dict[k] = attr.value
+
         for k, v in self._to_graph_db_mapping.items():
             if temp_dict.get(k, None):
                 temp_dict[v] = temp_dict[k]
@@ -98,9 +106,7 @@ class BaseEdge(BaseModel):
 
         for k, v in BaseEdge._from_graph_db_mapping_rel.items():
             if vertex.get(k, None):
-                vertex[v] = BaseVertex.parse_from_graph(
-                    {"_id": vertex.get(vertex[k], None)}
-                )
+                vertex[v] = BaseVertex.parse_from_graph({"_id": vertex.get(vertex[k], None)})
                 del vertex[k]
             else:
                 vertex[v] = None
@@ -188,15 +194,11 @@ class BaseEdge(BaseModel):
             return None, False
 
         if not isinstance(edge, BaseEdge):
-            raise Exception(
-                f"`edge` is not an instance of {BaseEdge.__class__.__name__} class"
-            )
+            raise Exception(f"`edge` is not an instance of {BaseEdge.__class__.__name__} class")
 
         successful = False
         try:
-            metadata = cls._db.update(
-                edge._update_metadata_from_old_edge(old_edge).parse_for_graph()
-            )
+            metadata = cls._db.update(edge._update_metadata_from_old_edge(old_edge).parse_for_graph())
             edge._update_from_metadata(metadata)
             successful = True
         except DocumentUpdateError as e:

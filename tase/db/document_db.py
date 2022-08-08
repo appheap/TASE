@@ -13,7 +13,6 @@ from tase.db.document_models import (
     BotTaskStatus,
     BotTaskType,
     ChatBuffer,
-    ChatUsernameBuffer,
     docs,
 )
 
@@ -62,14 +61,10 @@ class DocumentDatabase:
         if message is None or message.audio is None or telegram_client_id is None:
             return None
 
-        audio, successful = Audio.create(
-            Audio.parse_from_message(message, telegram_client_id)
-        )
+        audio, successful = Audio.create(Audio.parse_from_message(message, telegram_client_id))
         return audio
 
-    def get_or_create_audio(
-        self, message: "pyrogram.types.Message", telegram_client_id: int
-    ) -> Optional[Audio]:
+    def get_or_create_audio(self, message: "pyrogram.types.Message", telegram_client_id: int) -> Optional[Audio]:
         if message is None or message.audio is None or telegram_client_id is None:
             return None
 
@@ -80,18 +75,14 @@ class DocumentDatabase:
 
         return audio
 
-    def update_or_create_audio(
-        self, message: "pyrogram.types.Message", telegram_client_id: int
-    ) -> Optional[Audio]:
+    def update_or_create_audio(self, message: "pyrogram.types.Message", telegram_client_id: int) -> Optional[Audio]:
         if message is None or message.audio is None or telegram_client_id is None:
             return None
 
         audio = Audio.find_by_key(Audio.get_key(message, telegram_client_id))
         if audio:
             # audio exists in the database, update the audio
-            audio, successful = Audio.update(
-                audio, Audio.parse_from_message(message, telegram_client_id)
-            )
+            audio, successful = Audio.update(audio, Audio.parse_from_message(message, telegram_client_id))
         else:
             # audio does not exist in the database, create it
             audio = self.create_audio(message, telegram_client_id)
@@ -102,85 +93,6 @@ class DocumentDatabase:
         if audio is None or telegram_client_id is None:
             return None
         return Audio.find_by_key(Audio.get_key_from_audio(audio, telegram_client_id))
-
-    def create_chat_username_buffer(
-        self,
-        username: str,
-    ) -> Tuple[Optional[ChatUsernameBuffer], bool]:
-        if username is None:
-            return None, False
-
-        chat_username_buffer, successful = ChatUsernameBuffer.create(
-            ChatUsernameBuffer.parse_from_username(username)
-        )
-        return chat_username_buffer, successful
-
-    def get_or_create_chat_username_buffer(
-        self, username: str
-    ) -> Tuple[Optional[ChatUsernameBuffer], bool]:
-        if username is None:
-            return None, False
-
-        chat_username_buffer = ChatUsernameBuffer.find_by_key(
-            ChatUsernameBuffer.get_key(username)
-        )
-        created = False
-        if not chat_username_buffer:
-            # chat username buffer does not exist in the database, create it
-            (
-                chat_username_buffer,
-                successful,
-            ) = self.create_chat_username_buffer(username)
-            created = True
-
-        return chat_username_buffer, created
-
-    def update_or_create_chat_username_buffer(
-        self, username: str
-    ) -> Tuple[Optional[ChatUsernameBuffer], bool]:
-        if username is None:
-            return None, False
-
-        chat_username_buffer = ChatUsernameBuffer.find_by_key(
-            ChatUsernameBuffer.get_key(username)
-        )
-
-        created = False
-        if chat_username_buffer:
-            # chat username buffer exists in the database, update the chat username buffer
-            chat_username_buffer, successful = ChatUsernameBuffer.update(
-                chat_username_buffer, ChatUsernameBuffer.parse_from_username(username)
-            )
-            created = False
-        else:
-            # chat username buffer does not exist in the database, create it
-            chat_username_buffer, successful = self.create_chat_username_buffer(
-                username
-            )
-            created = True
-
-        return chat_username_buffer, created
-
-    def get_chat_username_buffer_from_chat(
-        self,
-        username: str,
-    ) -> Optional[ChatUsernameBuffer]:
-        """
-        Get a ChatUsernameBuffer by the key from the provided username
-
-        Parameters
-        ----------
-        username : str
-            username to get the key from
-
-        Returns
-        -------
-        A ChatUsernameBuffer if it exists otherwise returns None
-        """
-        if username is None:
-            return None
-
-        return ChatUsernameBuffer.find_by_key(ChatUsernameBuffer.get_key(username))
 
     def create_chat_buffer(
         self,
@@ -193,7 +105,8 @@ class DocumentDatabase:
         return chat_buffer
 
     def get_or_create_chat_buffer(
-        self, chat: "pyrogram.types.Chat"
+        self,
+        chat: "pyrogram.types.Chat",
     ) -> Optional[ChatBuffer]:
         if chat is None:
             return None
@@ -206,7 +119,8 @@ class DocumentDatabase:
         return chat_buffer
 
     def update_or_create_chat_buffer(
-        self, chat: "pyrogram.types.Chat"
+        self,
+        chat: "pyrogram.types.Chat",
     ) -> Optional[Audio]:
         if chat is None:
             return None
@@ -214,9 +128,7 @@ class DocumentDatabase:
         chat_buffer = ChatBuffer.find_by_key(ChatBuffer.get_key(chat))
         if chat_buffer:
             # chat_buffer exists in the database, update the chat_buffer
-            chat_buffer, successful = Audio.update(
-                chat_buffer, ChatBuffer.parse_from_chat(chat)
-            )
+            chat_buffer, successful = Audio.update(chat_buffer, ChatBuffer.parse_from_chat(chat))
         else:
             # chat_buffer does not exist in the database, create it
             chat_buffer = self.create_chat_buffer(chat)
@@ -312,12 +224,7 @@ class DocumentDatabase:
         task_type: "BotTaskType",
         new_task_state: dict,
     ):
-        if (
-            user_id is None
-            or bot_id is None
-            or task_type is None
-            or new_task_state is None
-        ):
+        if user_id is None or bot_id is None or task_type is None or new_task_state is None:
             return
 
         query_template = Template(
