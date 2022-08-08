@@ -3,12 +3,12 @@ import arrow
 
 import tase
 from .base_job import BaseJob
-from ..tasks import ExtractChannelUserNamesTask
+from ..tasks import ExtractUsernamesTask
 from ...my_logger import logger
 
 
-class ExtractChannelUserNamesJob(BaseJob):
-    name = "extract_channel_usernames_job"
+class ExtractUsernamesJob(BaseJob):
+    name = "extract_usernames_job"
     trigger = apscheduler.triggers.interval.IntervalTrigger(
         hours=1,
         start_date=arrow.now().shift(seconds=+20).datetime,
@@ -26,8 +26,9 @@ class ExtractChannelUserNamesJob(BaseJob):
         logger.debug([chat.username for chat in db_chats])
 
         for db_chat in db_chats:
+            # todo: blocking or non-blocking? which one is better suited for this case?
             publish_client_task(
-                ExtractChannelUserNamesTask(
+                ExtractUsernamesTask(
                     kwargs={
                         "db_chat": db_chat,
                     }

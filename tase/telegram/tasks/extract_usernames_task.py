@@ -16,8 +16,8 @@ from ...utils import get_timestamp
 username_pattern = re.compile(r"(?:@|(?:(?:(?:https?://)?t(?:elegram)?)\.me\/))(?P<username>[a-zA-Z0-9_]{5,32})")
 
 
-class ExtractChannelUserNamesTask(BaseTask):
-    name: str = Field(default="extract_channel_usernames_task")
+class ExtractUsernamesTask(BaseTask):
+    name: str = Field(default="extract_usernames_task")
 
     chat_username: Optional[str]
     last_offset_id: Optional[int] = Field(default=1)

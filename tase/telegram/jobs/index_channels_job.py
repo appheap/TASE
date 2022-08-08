@@ -25,6 +25,7 @@ class IndexChannelsJob(BaseJob):
         # fixme: remove this later
         logger.debug([chat.username for chat in db_chats])
 
+        # todo: blocking or non-blocking? which one is better suited for this case?
         for db_chat in db_chats:
             publish_client_task(
                 IndexAudiosTask(
