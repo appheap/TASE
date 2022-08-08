@@ -30,4 +30,4 @@ class ChatUsernameBuffer(BaseDocument):
 
     @staticmethod
     def get_key(username: str) -> str:
-        return username.lower().encode("ascii", "ignore").strip().decode()
+        return username.lower()
