@@ -4,8 +4,7 @@ import pyrogram
 from pydantic import Field
 
 from .base_vertex import BaseVertex
-from .indexer_metadata import IndexerMetadata
-from .restriction import Restriction
+from ..helper_models import IndexerMetadata, Restriction
 from ...enums import ChatType
 
 

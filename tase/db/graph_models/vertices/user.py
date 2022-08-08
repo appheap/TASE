@@ -5,7 +5,7 @@ from pydantic import Field
 from pydantic.types import Enum
 
 from .base_vertex import BaseVertex
-from .restriction import Restriction
+from ..helper_models import Restriction
 
 
 class UserRole(Enum):
