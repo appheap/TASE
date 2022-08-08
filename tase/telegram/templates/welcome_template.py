@@ -29,9 +29,7 @@ class WelcomeData(BaseTemplateData):
     s_welcome_to: str = _trans("Welcome to")
     s_tase: str = _trans("Telegram Audio Search Engine")
     s_title2: str = _trans("It's great to have you!")
-    s_title3: str = _trans(
-        "Here are a bunch of features that will get your searching up to"
-    )
+    s_title3: str = _trans("Here are a bunch of features that will get your searching up to")
     s_speed: str = _trans("speed")
     s_find: str = _trans("Find")
     s_title4: str = _trans("your audio (music, podcast, etc.) in")

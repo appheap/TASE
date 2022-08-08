@@ -163,18 +163,14 @@ class BaseVertex(BaseModel):
         :return: self, successful
         """
         if not isinstance(vertex, BaseVertex):
-            raise Exception(
-                f"`vertex` is not an instance of {BaseVertex.__class__.__name__} class"
-            )
+            raise Exception(f"`vertex` is not an instance of {BaseVertex.__class__.__name__} class")
 
         if old_vertex is None or vertex is None:
             return None, False
 
         successful = False
         try:
-            metadata = cls._db.update(
-                vertex._update_metadata_from_old_vertex(old_vertex).parse_for_graph()
-            )
+            metadata = cls._db.update(vertex._update_metadata_from_old_vertex(old_vertex).parse_for_graph())
             vertex._update_from_metadata(metadata)
             successful = True
         except DocumentUpdateError as e:

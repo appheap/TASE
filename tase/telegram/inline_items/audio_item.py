@@ -32,9 +32,7 @@ class AudioItem(BaseInlineItem):
                 ),
             ],
             [
-                InlineButton.get_button(
-                    "remove_from_playlist"
-                ).get_inline_keyboard_button(
+                InlineButton.get_button("remove_from_playlist").get_inline_keyboard_button(
                     db_from_user.chosen_language_code,
                     db_audio.download_url,
                 ),
@@ -43,19 +41,13 @@ class AudioItem(BaseInlineItem):
         if inline_query.chat_type == ChatType.BOT:
             markup.append(
                 [
-                    InlineButton.get_button("home").get_inline_keyboard_button(
-                        db_from_user.chosen_language_code
-                    ),
+                    InlineButton.get_button("home").get_inline_keyboard_button(db_from_user.chosen_language_code),
                 ]
             )
 
         markup = InlineKeyboardMarkup(markup)
 
-        key = (
-            db_audio.key
-            if isinstance(db_audio, graph_models.vertices.Audio)
-            else db_audio.id
-        )
+        key = db_audio.key if isinstance(db_audio, graph_models.vertices.Audio) else db_audio.id
 
         return InlineQueryResultCachedAudio(
             audio_file_id=db_audio_file_cache.file_id,

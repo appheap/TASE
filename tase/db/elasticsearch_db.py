@@ -45,7 +45,8 @@ class ElasticsearchDatabase:
         return audio
 
     def update_or_create_audio(
-        self, message: "pyrogram.types.Message"
+        self,
+        message: "pyrogram.types.Message",
     ) -> Optional[Audio]:
         if message is None or message.audio is None:
             return None
@@ -62,9 +63,7 @@ class ElasticsearchDatabase:
             )
         else:
             # audio exists in the index, update it
-            audio, successful = Audio.update(
-                self.es, audio, Audio.parse_from_message(message)
-            )
+            audio, successful = Audio.update(self.es, audio, Audio.parse_from_message(message))
 
     def search_audio(
         self,

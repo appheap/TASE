@@ -50,13 +50,9 @@ class InlineButton(
             for attr_name, attr_value in temp_dict.items():
                 if attr_name.startswith("s_"):
                     if not len(temp):
-                        temp = self.text.replace(
-                            attr_value, translate_text(attr_value, lang_code)
-                        )
+                        temp = self.text.replace(attr_value, translate_text(attr_value, lang_code))
                     else:
-                        temp = temp.replace(
-                            attr_value, translate_text(attr_value, lang_code)
-                        )
+                        temp = temp.replace(attr_value, translate_text(attr_value, lang_code))
 
         return temp if len(temp) else self.text
 
@@ -80,11 +76,7 @@ class InlineButton(
         self,
         arg=None,
     ) -> Optional[str]:
-        return (
-            f"{self.switch_inline_query_current_chat} {arg}"
-            if arg
-            else self.switch_inline_query_current_chat
-        )
+        return f"{self.switch_inline_query_current_chat} {arg}" if arg else self.switch_inline_query_current_chat
 
     def get_inline_keyboard_button(
         self,

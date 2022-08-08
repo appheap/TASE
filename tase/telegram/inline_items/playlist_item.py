@@ -27,9 +27,7 @@ class PlaylistItem(BaseInlineItem):
 
         data = PlaylistData(
             title=db_playlist.title,
-            description=db_playlist.description
-            if db_playlist.description is not None
-            else " ",
+            description=db_playlist.description if db_playlist.description is not None else " ",
             lang_code=db_from_user.chosen_language_code,
         )
         markup = [
@@ -42,25 +40,19 @@ class PlaylistItem(BaseInlineItem):
                 ),
             ],
             [
-                InlineButton.get_button(
-                    "get_playlist_audios"
-                ).get_inline_keyboard_button(
+                InlineButton.get_button("get_playlist_audios").get_inline_keyboard_button(
                     db_from_user.chosen_language_code,
                     db_playlist.key,
                 ),
                 # todo: add a button to get the top 10 audios from this playlist as a message
             ],
             [
-                InlineButton.get_button(
-                    "edit_playlist_title"
-                ).get_inline_keyboard_button(
+                InlineButton.get_button("edit_playlist_title").get_inline_keyboard_button(
                     db_from_user.chosen_language_code,
                     db_playlist.key,
                     callback_arg=db_playlist.key,
                 ),
-                InlineButton.get_button(
-                    "edit_playlist_description"
-                ).get_inline_keyboard_button(
+                InlineButton.get_button("edit_playlist_description").get_inline_keyboard_button(
                     db_from_user.chosen_language_code,
                     db_playlist.key,
                     callback_arg=db_playlist.key,

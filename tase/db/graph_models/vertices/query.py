@@ -35,13 +35,7 @@ class Query(BaseVertex):
         query_date: int,
         query_metadata: dict,
     ) -> Optional["Query"]:
-        if (
-            bot is None
-            or from_user is None
-            or query is None
-            or query_date is None
-            or query_metadata is None
-        ):
+        if bot is None or from_user is None or query is None or query_date is None or query_metadata is None:
             return None
 
         key = Query.get_key(bot, from_user, query_date)

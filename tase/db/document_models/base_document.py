@@ -157,18 +157,14 @@ class BaseDocument(BaseModel):
         :return: self, successful
         """
         if not isinstance(doc, BaseDocument):
-            raise Exception(
-                f"`document` is not an instance of {BaseDocument.__class__.__name__} class"
-            )
+            raise Exception(f"`document` is not an instance of {BaseDocument.__class__.__name__} class")
 
         if old_doc is None or doc is None:
             return None, False
 
         successful = False
         try:
-            metadata = cls._db.update(
-                doc._update_metadata_from_old_document(old_doc).parse_for_db()
-            )
+            metadata = cls._db.update(doc._update_metadata_from_old_document(old_doc).parse_for_db())
             doc._update_from_metadata(metadata)
             successful = True
         except DocumentUpdateError as e:

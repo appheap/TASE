@@ -77,9 +77,7 @@ class ClientTaskConsumer(ConsumerProducerMixin):
         message.ack()
 
         task: BaseTask = body
-        logger.info(
-            f"client_task_consumer_on_task : {self.telegram_client.get_session_name()}"
-        )
+        logger.info(f"client_task_consumer_on_task : {self.telegram_client.get_session_name()}")
 
         if self.telegram_client.is_connected() and task.name:
             task.run_task(self.telegram_client, self.db)

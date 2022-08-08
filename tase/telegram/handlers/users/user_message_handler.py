@@ -23,9 +23,7 @@ class UserMessageHandler(BaseHandler):
         message: "pyrogram.types.Message",
     ):
         direction = "=>" if message.outgoing else "<="
-        logger.debug(
-            f"user_message_handler: {direction} {message.chat.title or message.chat.first_name}"
-        )
+        logger.debug(f"user_message_handler: {direction} {message.chat.title or message.chat.first_name}")
 
         # todo: temp solution
         from .temp import func

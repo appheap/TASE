@@ -5,6 +5,7 @@ class MentionSource(Enum):
     """
     In this class, all kinds of sources are listed which a mention is extracted from
     """
+
     UNKNOWN = 0
 
     MESSAGE_TEXT = 1

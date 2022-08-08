@@ -21,9 +21,7 @@ class CreateNewPlaylistItem(BaseInlineItem):
 
         return InlineQueryResultArticle(
             title=_trans("Create A New Playlist", db_from_user.chosen_language_code),
-            description=_trans(
-                "Create a new playlist", db_from_user.chosen_language_code
-            ),
+            description=_trans("Create a new playlist", db_from_user.chosen_language_code),
             id=f"{inline_query.id}->add_a_new_playlist",
             thumb_url="https://telegra.ph/file/aaafdf705c6745e1a32ee.png",
             input_message_content=InputTextMessageContent(

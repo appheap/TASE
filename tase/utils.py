@@ -28,20 +28,14 @@ german = Language(code="de", flag=emoji._germany_flag, name="Deutsch (German)")
 
 dutch = Language(code="nl", flag=emoji._netherlands_flag, name="Dutch (Nederlands)")
 
-portugues = Language(
-    code="pt_BR", flag=emoji._portugal_flag, name="Português (Portuguese)"
-)
+portugues = Language(code="pt_BR", flag=emoji._portugal_flag, name="Português (Portuguese)")
 
 persian = Language(code="fa", flag=emoji._iran_flag, name="فارسی (Persian)")
 arabic = Language(code="ar", flag=emoji._saudi_arabia_flag, name="العربية (Arabic)")
 
-kurdish_sorani = Language(
-    code="ku", flag=emoji._tajikistan_flag, name="کوردی سۆرانی (Sorani Kurdish)"
-)
+kurdish_sorani = Language(code="ku", flag=emoji._tajikistan_flag, name="کوردی سۆرانی (Sorani Kurdish)")
 
-kurdish_kurmanji = Language(
-    code="ku_TR", flag=emoji._lithuania_flag, name="(Kurmanji Kurdish) Kurdî Kurmancî"
-)
+kurdish_kurmanji = Language(code="ku_TR", flag=emoji._lithuania_flag, name="(Kurmanji Kurdish) Kurdî Kurmancî")
 
 italian = Language(code="it", flag=emoji._italy_flag, name="Italiana (Italian)")
 
@@ -65,9 +59,7 @@ language_mapping: typing.Dict[str, Language] = {
 if not len(languages):
     for lang_code in language_mapping.keys():
         logger.debug(f"lang_code: {lang_code}")
-        lang = gettext.translation(
-            "tase", localedir="../locales", languages=[lang_code]
-        )
+        lang = gettext.translation("tase", localedir="../locales", languages=[lang_code])
         lang.install()
         languages[lang_code] = lang.gettext
 

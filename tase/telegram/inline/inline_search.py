@@ -59,11 +59,7 @@ class InlineSearch(OnInlineQuery):
                     size=15,  # todo: update?
                 )
 
-                if (
-                    not db_audio_docs
-                    or not len(db_audio_docs)
-                    or not len(query_metadata)
-                ):
+                if not db_audio_docs or not len(db_audio_docs) or not len(query_metadata):
                     found_any = False
 
                 db_audio_docs: List["elasticsearch_models.Audio"] = db_audio_docs
@@ -91,9 +87,7 @@ class InlineSearch(OnInlineQuery):
                         )
                     )
 
-                db_audios = handler.db.get_audios_from_keys(
-                    [tup[1].id for tup in temp_res]
-                )
+                db_audios = handler.db.get_audios_from_keys([tup[1].id for tup in temp_res])
 
                 db_inline_query, db_hits = handler.db.get_or_create_inline_query(
                     handler.telegram_client.telegram_id,

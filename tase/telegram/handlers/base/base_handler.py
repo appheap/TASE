@@ -48,9 +48,7 @@ class BaseHandler(BaseModel):
 
     def update_audio_cache(
         self,
-        db_audios: Union[
-            List[graph_models.vertices.Audio], List[elasticsearch_models.Audio]
-        ],
+        db_audios: Union[List[graph_models.vertices.Audio], List[elasticsearch_models.Audio]],
     ) -> Dict[int, graph_models.vertices.Chat]:
         """
         Update Audio file caches that are not been cached by this telegram client
@@ -61,9 +59,7 @@ class BaseHandler(BaseModel):
         chat_msg = defaultdict(list)
         chats_dict = {}
         for db_audio in db_audios:
-            if not self.db.get_audio_file_from_cache(
-                db_audio, self.telegram_client.telegram_id
-            ):
+            if not self.db.get_audio_file_from_cache(db_audio, self.telegram_client.telegram_id):
                 chat_msg[db_audio.chat_id].append(db_audio.message_id)
 
             if not chats_dict.get(db_audio.chat_id, None):
@@ -75,9 +71,7 @@ class BaseHandler(BaseModel):
             db_chat = chats_dict[chat_id]
 
             # todo: this approach is only for public channels, what about private channels?
-            messages = self.telegram_client.get_messages(
-                chat_id=db_chat.username, message_ids=message_ids
-            )
+            messages = self.telegram_client.get_messages(chat_id=db_chat.username, message_ids=message_ids)
 
             for message in messages:
                 self.db.update_or_create_audio(
@@ -137,22 +131,14 @@ class BaseHandler(BaseModel):
                 InlineButton.get_button("download_history").get_inline_keyboard_button(
                     db_from_user.chosen_language_code
                 ),
-                InlineButton.get_button("my_playlists").get_inline_keyboard_button(
-                    db_from_user.chosen_language_code
-                ),
+                InlineButton.get_button("my_playlists").get_inline_keyboard_button(db_from_user.chosen_language_code),
             ],
             [
-                InlineButton.get_button("back").get_inline_keyboard_button(
-                    db_from_user.chosen_language_code
-                ),
+                InlineButton.get_button("back").get_inline_keyboard_button(db_from_user.chosen_language_code),
             ],
             [
-                InlineButton.get_button("advertisement").get_inline_keyboard_button(
-                    db_from_user.chosen_language_code
-                ),
-                InlineButton.get_button("help_catalog").get_inline_keyboard_button(
-                    db_from_user.chosen_language_code
-                ),
+                InlineButton.get_button("advertisement").get_inline_keyboard_button(db_from_user.chosen_language_code),
+                InlineButton.get_button("help_catalog").get_inline_keyboard_button(db_from_user.chosen_language_code),
             ],
         ]
         markup = InlineKeyboardMarkup(markup)
@@ -214,22 +200,16 @@ class BaseHandler(BaseModel):
                 InlineButton.get_button("download_history").get_inline_keyboard_button(
                     db_from_user.chosen_language_code
                 ),
-                InlineButton.get_button("my_playlists").get_inline_keyboard_button(
+                InlineButton.get_button("my_playlists").get_inline_keyboard_button(db_from_user.chosen_language_code),
+            ],
+            [
+                InlineButton.get_button("show_language_menu").get_inline_keyboard_button(
                     db_from_user.chosen_language_code
                 ),
             ],
             [
-                InlineButton.get_button(
-                    "show_language_menu"
-                ).get_inline_keyboard_button(db_from_user.chosen_language_code),
-            ],
-            [
-                InlineButton.get_button("advertisement").get_inline_keyboard_button(
-                    db_from_user.chosen_language_code
-                ),
-                InlineButton.get_button("help_catalog").get_inline_keyboard_button(
-                    db_from_user.chosen_language_code
-                ),
+                InlineButton.get_button("advertisement").get_inline_keyboard_button(db_from_user.chosen_language_code),
+                InlineButton.get_button("help_catalog").get_inline_keyboard_button(db_from_user.chosen_language_code),
             ],
         ]
         markup = InlineKeyboardMarkup(markup)

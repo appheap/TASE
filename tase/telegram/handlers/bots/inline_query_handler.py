@@ -38,9 +38,7 @@ class InlineQueryHandler(BaseHandler):
             HandlerMetadata(
                 cls=handlers.InlineQueryHandler,
                 callback=self.custom_commands_handler,
-                filters=filters.regex(
-                    r"^#(?P<command>[a-zA-Z0-9_]+)(\s(?P<arg1>[a-zA-Z0-9_]+))?"
-                ),
+                filters=filters.regex(r"^#(?P<command>[a-zA-Z0-9_]+)(\s(?P<arg1>[a-zA-Z0-9_]+))?"),
                 group=0,
             ),
             HandlerMetadata(

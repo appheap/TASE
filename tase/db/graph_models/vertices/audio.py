@@ -60,9 +60,7 @@ class Audio(BaseVertex):
             mime_type=message.audio.mime_type,
             file_size=message.audio.file_size,
             date=get_timestamp(message.audio.date),
-            download_url=Audio.generate_token_urlsafe()
-            if old_download_url is None
-            else None,
+            download_url=Audio.generate_token_urlsafe() if old_download_url is None else None,
         )
 
     @classmethod

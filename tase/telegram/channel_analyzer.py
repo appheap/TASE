@@ -33,36 +33,20 @@ class ChannelAnalyzer(BaseModel):
         Calculated score for the channel
         """
         all_messages_count = telegram_client._client.get_chat_history_count(chat.id)
-        audio_count = telegram_client._client.search_messages_count(
-            chat.id, filter=MessagesFilter.AUDIO
-        )
-        photo_video_count = telegram_client._client.search_messages_count(
-            chat.id, filter=MessagesFilter.PHOTO_VIDEO
-        )
-        document_count = telegram_client._client.search_messages_count(
-            chat.id, filter=MessagesFilter.DOCUMENT
-        )
+        audio_count = telegram_client._client.search_messages_count(chat.id, filter=MessagesFilter.AUDIO)
+        photo_video_count = telegram_client._client.search_messages_count(chat.id, filter=MessagesFilter.PHOTO_VIDEO)
+        document_count = telegram_client._client.search_messages_count(chat.id, filter=MessagesFilter.DOCUMENT)
         audio_video_note_count = telegram_client._client.search_messages_count(
             chat.id, filter=MessagesFilter.AUDIO_VIDEO_NOTE
         )
-        gif_count = telegram_client._client.search_messages_count(
-            chat.id, filter=MessagesFilter.ANIMATION
-        )
-        link_count = telegram_client._client.search_messages_count(
-            chat.id, filter=MessagesFilter.URL
-        )
-        location_count = telegram_client._client.search_messages_count(
-            chat.id, filter=MessagesFilter.LOCATION
-        )
+        gif_count = telegram_client._client.search_messages_count(chat.id, filter=MessagesFilter.ANIMATION)
+        link_count = telegram_client._client.search_messages_count(chat.id, filter=MessagesFilter.URL)
+        location_count = telegram_client._client.search_messages_count(chat.id, filter=MessagesFilter.LOCATION)
         # phone_call_count = telegram_client._client.search_messages_count(
         #     chat.id, filter=MessagesFilter.PHONE_CALL
         # )
-        chat_photo_count = telegram_client._client.search_messages_count(
-            chat.id, filter=MessagesFilter.CHAT_PHOTO
-        )
-        contact_count = telegram_client._client.search_messages_count(
-            chat.id, filter=MessagesFilter.CONTACT
-        )
+        chat_photo_count = telegram_client._client.search_messages_count(chat.id, filter=MessagesFilter.CHAT_PHOTO)
+        contact_count = telegram_client._client.search_messages_count(chat.id, filter=MessagesFilter.CONTACT)
 
         media_count = (
             audio_count
@@ -79,9 +63,7 @@ class ChannelAnalyzer(BaseModel):
 
         deleted_message_count = all_messages_count - media_count
 
-        audio_density = audio_count / (
-            all_messages_count - deleted_message_count - link_count
-        )
+        audio_density = audio_count / (all_messages_count - deleted_message_count - link_count)
         member_density = math.log(chat.members_count, 10**10)
         logger.debug(f"audio_density: {audio_density}")
         logger.debug(f"member_density: {member_density}")

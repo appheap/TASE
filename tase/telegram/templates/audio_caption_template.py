@@ -58,9 +58,7 @@ class AudioCaptionData(BaseTemplateData):
 
         return AudioCaptionData(
             title=audio_doc.title.replace("@", "") if audio_doc.title else "",
-            performer=audio_doc.performer.replace("@", "")
-            if audio_doc.performer
-            else "",
+            performer=audio_doc.performer.replace("@", "") if audio_doc.performer else "",
             file_name=textwrap.shorten(
                 audio_doc.file_name.replace("@", "") if audio_doc.file_name else "",
                 width=40,

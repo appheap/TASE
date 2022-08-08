@@ -30,9 +30,7 @@ class GetPlaylistAudioInlineButton(InlineButton):
         playlist_key = reg.group("arg1")
 
         results = []
-        playlist_is_valid = (
-            False  # whether the requested playlist belongs to the user or not
-        )
+        playlist_is_valid = False  # whether the requested playlist belongs to the user or not
 
         if result.from_ == 0:
             db_playlist = handler.db.get_playlist_by_key(playlist_key)

@@ -2,7 +2,7 @@ import time
 
 from pydantic import Field
 
-from .base_task import BaseTask, exception_handler
+from .base_task import BaseTask
 from ..telegram_client import TelegramClient
 from ...db import DatabaseClient
 from ...my_logger import logger

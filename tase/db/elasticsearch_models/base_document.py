@@ -145,9 +145,7 @@ class BaseDocument(BaseModel):
             return None, False
 
         if not isinstance(document, BaseDocument):
-            raise Exception(
-                f"`document` is not an instance of {BaseDocument.__class__.__name__} class"
-            )
+            raise Exception(f"`document` is not an instance of {BaseDocument.__class__.__name__} class")
 
         successful = False
         try:
@@ -186,9 +184,7 @@ class BaseDocument(BaseModel):
             return None, False
 
         if not isinstance(document, BaseDocument):
-            raise Exception(
-                f"`document` is not an instance of {BaseDocument.__class__.__name__} class"
-            )
+            raise Exception(f"`document` is not an instance of {BaseDocument.__class__.__name__} class")
 
         successful = False
         try:

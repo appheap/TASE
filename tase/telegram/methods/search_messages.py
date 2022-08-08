@@ -50,9 +50,7 @@ async def get_chunk(
         filter = Filters.__dict__[filter.upper()]
     except KeyError:
         raise ValueError(
-            'Invalid filter "{}". Possible values are: {}'.format(
-                filter, ", ".join(f'"{v}"' for v in POSSIBLE_VALUES)
-            )
+            'Invalid filter "{}". Possible values are: {}'.format(filter, ", ".join(f'"{v}"' for v in POSSIBLE_VALUES))
         ) from None
 
     if with_id:
