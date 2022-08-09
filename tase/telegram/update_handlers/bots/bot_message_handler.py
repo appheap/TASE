@@ -32,36 +32,14 @@ class BotMessageHandler(BaseHandler):
         handlers_list = [
             HandlerMetadata(
                 cls=handlers.MessageHandler,
-                callback=self.start_bot_handler,
+                callback=self.commands_handler,
                 filters=filters.command(
                     BaseCommand.get_command_strings(
                         [
                             BotCommandType.START,
-                        ]
-                    )
-                ),
-                group=0,
-            ),
-            HandlerMetadata(
-                cls=handlers.MessageHandler,
-                callback=self.base_commands_handler,
-                filters=filters.command(
-                    BaseCommand.get_command_strings(
-                        [
                             BotCommandType.LANGUAGE,
                             BotCommandType.HELP,
                             BotCommandType.HOME,
-                        ]
-                    )
-                ),
-                group=0,
-            ),
-            HandlerMetadata(
-                cls=handlers.MessageHandler,
-                callback=self.admin_commands_handler,
-                filters=filters.command(
-                    BaseCommand.get_command_strings(
-                        [
                             BotCommandType.ADD_CHANNEL,
                         ]
                     )
@@ -94,32 +72,12 @@ class BotMessageHandler(BaseHandler):
         return handlers_list
 
     @exception_handler
-    def start_bot_handler(
+    def commands_handler(
         self,
         client: "pyrogram.Client",
         message: "pyrogram.types.Message",
     ):
-        logger.debug(f"start_bot_handler: {message.command}")
-
-        BaseCommand.run_command(client, message, self)
-
-    @exception_handler
-    def base_commands_handler(
-        self,
-        client: "pyrogram.Client",
-        message: "pyrogram.types.Message",
-    ):
-        logger.debug(f"base_commands_handler: {message.command}")
-
-        BaseCommand.run_command(client, message, self)
-
-    @exception_handler
-    def admin_commands_handler(
-        self,
-        client: "pyrogram.Client",
-        message: "pyrogram.types.Message",
-    ):
-        logger.debug(f"admin_commands_handler: {message.command}")
+        logger.debug(f"commands_handler: {message.command}")
 
         BaseCommand.run_command(client, message, self)
 
