@@ -1,24 +1,13 @@
 from collections import defaultdict
-from typing import Callable, Dict, List, Union
+from typing import Dict, List, Union
 
 import kombu
 from pydantic import BaseModel
 
 from tase.db import elasticsearch_models, graph_models
 from tase.db.database_client import DatabaseClient
-from tase.my_logger import logger
 from .handler_metadata import HandlerMetadata
 from ...telegram_client import TelegramClient
-
-
-def exception_handler(func: "Callable"):
-    def wrap(*args, **kwargs):
-        try:
-            func(*args, **kwargs)
-        except Exception as e:
-            logger.exception(e)
-
-    return wrap
 
 
 class BaseHandler(BaseModel):

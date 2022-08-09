@@ -6,11 +6,9 @@ from decouple import config
 
 from tase.configs import TASEConfig
 from tase.db.database_client import DatabaseClient
+from tase.scheduler import SchedulerWorkerProcess
 from tase.telegram import TelegramClient
 from tase.telegram.client_manager import ClientManager
-from tase.telegram.globals import publish_job_to_scheduler
-from tase.telegram.jobs import ExtractUsernamesJob, IndexChannelsJob
-from tase.telegram.scheduler import SchedulerWorkerProcess
 
 
 class TASE:

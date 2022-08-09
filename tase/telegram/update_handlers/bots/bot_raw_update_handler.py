@@ -4,7 +4,8 @@ import pyrogram
 from pyrogram import handlers, raw
 
 from tase.my_logger import logger
-from tase.telegram.update_handlers import BaseHandler, HandlerMetadata, exception_handler
+from tase.telegram.update_handlers import BaseHandler, HandlerMetadata
+from tase.utils import exception_handler
 
 
 class BotRawUpdateHandler(BaseHandler):

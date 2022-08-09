@@ -197,3 +197,13 @@ def timing(f):
         return result
 
     return wrap
+
+
+def exception_handler(func: "typing.Callable"):
+    def wrap(*args, **kwargs):
+        try:
+            func(*args, **kwargs)
+        except Exception as e:
+            logger.exception(e)
+
+    return wrap

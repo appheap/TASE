@@ -7,13 +7,13 @@ from kombu import Consumer, Queue, Connection
 from kombu.mixins import ConsumerProducerMixin
 from kombu.transport import pyamqp
 
-from . import TelegramClient
 from tase import globals
+from . import TelegramClient
 from .tasks import BaseTask
-from .update_handlers import exception_handler
 from ..configs import ClientTypes
 from ..db.database_client import DatabaseClient
 from ..my_logger import logger
+from ..utils import exception_handler
 
 
 class ClientTaskConsumer(ConsumerProducerMixin):

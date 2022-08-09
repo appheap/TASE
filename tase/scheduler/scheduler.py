@@ -12,7 +12,7 @@ import tase
 from tase import globals
 from tase.my_logger import logger
 from tase.scheduler.jobs import BaseJob
-from tase.scheduler.jobs.base_job import exception_handler
+from tase.utils import exception_handler
 
 
 class SchedulerWorkerProcess(Process):

@@ -19,8 +19,8 @@ from tase.telegram.templates import (
     NoResultsWereFoundData,
     QueryResultsData,
 )
-from tase.telegram.update_handlers import BaseHandler, HandlerMetadata, exception_handler
-from tase.utils import _trans, get_timestamp
+from tase.telegram.update_handlers import BaseHandler, HandlerMetadata
+from tase.utils import _trans, get_timestamp, exception_handler
 
 
 class BotMessageHandler(BaseHandler):

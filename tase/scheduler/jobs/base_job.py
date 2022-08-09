@@ -1,21 +1,9 @@
-from typing import Callable, List, Optional
+from typing import List, Optional
 
 import apscheduler.triggers.base
 from pydantic import BaseModel, Field
 
 import tase
-from tase.my_logger import logger
-
-
-def exception_handler(func: "Callable"):
-    def wrap(*args, **kwargs):
-        try:
-            func(*args, **kwargs)
-            logger.info(f"Job Finished")
-        except Exception as e:
-            logger.exception(e)
-
-    return wrap
 
 
 class BaseJob(BaseModel):

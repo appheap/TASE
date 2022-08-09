@@ -5,7 +5,8 @@ import pyrogram
 from pyrogram import handlers
 
 from tase.my_logger import logger
-from .base_handler import BaseHandler, exception_handler
+from tase.utils import exception_handler
+from .base_handler import BaseHandler
 from .handler_metadata import HandlerMetadata
 
 

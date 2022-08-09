@@ -1,21 +1,9 @@
-from typing import Callable, List, Optional
+from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
 from tase.db.database_client import DatabaseClient
-from tase.my_logger import logger
 from tase.telegram.telegram_client import TelegramClient
-
-
-def exception_handler(func: "Callable"):
-    def wrap(*args, **kwargs):
-        try:
-            func(*args, **kwargs)
-            logger.info(f"Task Finished")
-        except Exception as e:
-            logger.exception(e)
-
-    return wrap
 
 
 class BaseTask(BaseModel):
