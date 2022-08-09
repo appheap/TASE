@@ -4,8 +4,8 @@ import pyrogram
 from pydantic import BaseModel
 from pyrogram.enums import MessagesFilter
 
-import tase
 from tase.my_logger import logger
+from tase.telegram.client import TelegramClient
 
 
 class ChannelAnalyzer(BaseModel):
@@ -15,7 +15,7 @@ class ChannelAnalyzer(BaseModel):
 
     @staticmethod
     def calculate_score(
-        telegram_client: "tase.telegram.TelegramClient",
+        telegram_client: "TelegramClient",
         chat: pyrogram.types.Chat,
     ) -> float:
         """
