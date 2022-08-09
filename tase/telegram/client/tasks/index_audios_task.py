@@ -1,10 +1,10 @@
 from pydantic import Field
 
+from tase.db import DatabaseClient, graph_models
+from tase.my_logger import logger
 from tase.telegram.client import TelegramClient
+from tase.utils import get_timestamp
 from .base_task import BaseTask
-from ...db import DatabaseClient, graph_models
-from ...my_logger import logger
-from ...utils import get_timestamp
 
 
 class IndexAudiosTask(BaseTask):

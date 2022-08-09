@@ -3,7 +3,7 @@ import arrow
 
 import tase
 from .base_job import BaseJob
-from tase.telegram.tasks import ExtractUsernamesTask
+from tase.telegram.client.tasks import ExtractUsernamesTask
 from tase.my_logger import logger
 from tase import globals
 

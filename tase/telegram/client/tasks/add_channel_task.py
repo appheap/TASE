@@ -1,9 +1,11 @@
 from pydantic import Field
 from pyrogram.enums import ChatType
 
+from tase.db import DatabaseClient
+from tase.my_logger import logger
+from tase.telegram.channel_analyzer import ChannelAnalyzer
+from tase.telegram.client import TelegramClient
 from .base_task import BaseTask
-from ..channel_analyzer import ChannelAnalyzer
-from ...my_logger import logger
 
 
 class AddChannelTask(BaseTask):

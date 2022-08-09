@@ -2,10 +2,10 @@ import time
 
 from pydantic import Field
 
+from tase.db import DatabaseClient
+from tase.my_logger import logger
 from tase.telegram.client import TelegramClient
 from .base_task import BaseTask
-from ...db import DatabaseClient
-from ...my_logger import logger
 
 
 class DummyTask(BaseTask):

@@ -3,7 +3,7 @@ from pydantic import Field
 
 from tase import globals
 from tase.db.graph_models.vertices import UserRole
-from tase.telegram.tasks import AddChannelTask
+from tase.telegram.client.tasks import AddChannelTask
 from ..base_command import BaseCommand
 from ..bot_command_type import BotCommandType
 

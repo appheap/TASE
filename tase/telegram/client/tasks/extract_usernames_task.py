@@ -6,12 +6,12 @@ import pyrogram
 from pydantic import Field
 
 import tase.telegram
+from tase.db import DatabaseClient, graph_models
+from tase.db.enums import MentionSource
+from tase.my_logger import logger
 from tase.telegram.client import TelegramClient
+from tase.utils import get_timestamp
 from .base_task import BaseTask
-from ...db import DatabaseClient, graph_models
-from ...db.enums import MentionSource
-from ...my_logger import logger
-from ...utils import get_timestamp
 
 username_pattern = re.compile(r"(?:@|(?:(?:(?:https?://)?t(?:elegram)?)\.me\/))(?P<username>[a-zA-Z0-9_]{5,32})")
 

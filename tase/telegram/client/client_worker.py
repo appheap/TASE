@@ -12,7 +12,7 @@ from tase.configs import ClientTypes
 from tase.db.database_client import DatabaseClient
 from tase.my_logger import logger
 from tase.telegram.client import TelegramClient
-from tase.telegram.tasks import BaseTask
+from tase.telegram.client.tasks import BaseTask
 from tase.utils import exception_handler
 
 
