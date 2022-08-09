@@ -5,7 +5,7 @@ import pyrogram
 from tase.db import graph_models
 from tase.db.document_models import BotTaskType
 from tase.my_logger import logger
-from tase.telegram.inline import CustomInlineQueryResult
+from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.utils import _trans, emoji
 from .inline_button import InlineButton
 from ..inline_items import CreateNewPlaylistItem, PlaylistItem, NoPlaylistItem

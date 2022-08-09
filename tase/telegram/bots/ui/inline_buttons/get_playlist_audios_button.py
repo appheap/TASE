@@ -3,7 +3,7 @@ from typing import Match, Optional
 import pyrogram
 
 from tase.db import graph_models
-from tase.telegram.inline import CustomInlineQueryResult
+from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.utils import _trans, emoji
 from .inline_button import InlineButton
 from ..inline_items import PlaylistItem, AudioItem, NoDownloadItem

@@ -5,7 +5,7 @@ from pyrogram.enums import ParseMode
 from pyrogram.types import InlineQueryResultArticle, InputTextMessageContent
 
 from .inline_button import InlineButton
-from tase.telegram.inline import CustomInlineQueryResult
+from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.db import graph_models
 from tase.utils import _trans, emoji
 

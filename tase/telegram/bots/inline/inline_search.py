@@ -3,11 +3,12 @@ from typing import List, Optional
 
 import pyrogram
 
-from . import CustomInlineQueryResult
+from tase.db import elasticsearch_models, graph_models
+from tase.db.graph_models.vertices import InlineQueryType
 from tase.telegram.bots.ui.inline_items import AudioItem, NoResultItem
-from ..update_interfaces import OnInlineQuery
-from ...db import elasticsearch_models, graph_models
-from ...db.graph_models.vertices import InlineQueryType
+from tase.telegram.update_handlers import BaseHandler
+from tase.telegram.update_interfaces import OnInlineQuery
+from . import CustomInlineQueryResult
 
 known_mime_types = (
     "audio/mpeg",

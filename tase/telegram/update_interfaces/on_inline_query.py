@@ -3,7 +3,8 @@ from typing import Optional
 
 import pyrogram
 
-from ..inline import CustomInlineQueryResult
+from tase.telegram.bots.inline import CustomInlineQueryResult
+from tase.telegram.update_handlers import BaseHandler
 from ...db import graph_models
 
 
