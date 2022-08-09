@@ -1,6 +1,5 @@
 from .my_playlists_button import MyPlaylistsInlineButton
 
-# from ..handlers import BaseHandler
 from ...utils import _trans, emoji
 
 

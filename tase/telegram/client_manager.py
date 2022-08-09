@@ -12,15 +12,15 @@ from tase.db.database_client import DatabaseClient
 from tase.my_logger import logger
 from tase.telegram import TelegramClient
 from tase.telegram.client_worker import ClientWorkerThread
-from tase.telegram.handlers.base import ClientDisconnectHandler
-from tase.telegram.handlers.bots import (
+from tase.telegram.update_handlers.base import ClientDisconnectHandler
+from tase.telegram.update_handlers.bots import (
     BotDeletedMessagesHandler,
     BotMessageHandler,
     CallbackQueryHandler,
     ChosenInlineQueryHandler,
     InlineQueryHandler,
 )
-from tase.telegram.handlers.users import (
+from tase.telegram.update_handlers.users import (
     UserChatMemberUpdatedHandler,
     UserDeletedMessagesHandler,
     UserMessageHandler,
@@ -102,7 +102,7 @@ class ClientManager(mp.Process):
                 task_queues=self.task_queues,
                 telegram_client=self.telegram_client,
             ),
-            # handlers.BotRawUpdateHandler(
+            # BotRawUpdateHandler(
             #     db=self.db,
             #     task_queues=self.task_queues,
             #     telegram_client=self.telegram_client

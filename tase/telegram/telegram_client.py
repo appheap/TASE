@@ -5,7 +5,7 @@ import pyrogram
 from pyrogram.handlers.handler import Handler
 
 from tase.my_logger import logger
-from tase.telegram import handlers
+from tase.telegram import update_handlers
 from .methods.search_messages import search_messages
 from ..configs import ClientConfig, ClientTypes
 
@@ -88,7 +88,7 @@ class TelegramClient:
 
     def add_handlers(
         self,
-        handlers_list: List["handlers.BaseHandler"],
+        handlers_list: List["update_handlers.BaseHandler"],
     ):
         for handler in handlers_list:
             for h in handler.init_handlers():

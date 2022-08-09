@@ -7,7 +7,7 @@ from kombu.transport import pyamqp
 
 from . import TelegramClient
 from .globals import *
-from .handlers import exception_handler
+from .update_handlers import exception_handler
 from ..configs import ClientTypes
 from ..db.database_client import DatabaseClient
 

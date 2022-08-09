@@ -16,7 +16,7 @@ from tase.telegram.globals import (
     publish_client_task,
     tase_telegram_queue,
 )
-from tase.telegram.handlers import BaseHandler, HandlerMetadata, exception_handler
+from tase.telegram.update_handlers import BaseHandler, HandlerMetadata, exception_handler
 from tase.telegram.inline_buttons import InlineButton
 from tase.telegram.tasks import AddChannelTask
 from tase.telegram.templates import (
