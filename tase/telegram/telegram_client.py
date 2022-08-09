@@ -6,7 +6,7 @@ from pyrogram.handlers.handler import Handler
 
 from tase.my_logger import logger
 from tase.telegram import update_handlers
-from .methods.search_messages import search_messages
+from .raw_methods.search_messages import search_messages
 from ..configs import ClientConfig, ClientTypes
 
 
