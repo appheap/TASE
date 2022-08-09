@@ -5,7 +5,7 @@ import pyrogram
 from pydantic import BaseModel, Field
 
 from .bot_command_type import BotCommandType
-from ...my_logger import logger
+from tase.my_logger import logger
 
 
 class BaseCommand(BaseModel):

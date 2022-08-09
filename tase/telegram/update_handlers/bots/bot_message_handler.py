@@ -11,8 +11,8 @@ from pyrogram.types import InlineKeyboardMarkup
 from tase.db import elasticsearch_models, graph_models
 from tase.db.document_models import BotTask, BotTaskStatus, BotTaskType
 from tase.my_logger import logger
-from tase.telegram.bot_commands.base_command import BaseCommand
-from tase.telegram.bot_commands.bot_command_type import BotCommandType
+from tase.telegram.bots.bot_commands import BaseCommand
+from tase.telegram.bots.bot_commands import BotCommandType
 from tase.telegram.inline_buttons import InlineButton
 from tase.telegram.templates import (
     AudioCaptionData,

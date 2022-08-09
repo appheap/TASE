@@ -4,8 +4,8 @@ from pydantic import Field
 from tase.db.graph_models.vertices import UserRole
 from ..base_command import BaseCommand
 from ..bot_command_type import BotCommandType
-from ...globals import publish_client_task, tase_telegram_queue
-from ...tasks import AddChannelTask
+from tase.telegram.globals import publish_client_task, tase_telegram_queue
+from tase.telegram.tasks import AddChannelTask
 
 
 class AddChannelCommand(BaseCommand):

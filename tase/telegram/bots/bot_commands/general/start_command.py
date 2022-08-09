@@ -2,9 +2,8 @@ import pyrogram
 from pydantic import Field
 from pyrogram.enums import ParseMode
 
-# import tase
-from tase.telegram.bot_commands.base_command import BaseCommand
-from tase.telegram.bot_commands.bot_command_type import BotCommandType
+from tase.telegram.bots.bot_commands.base_command import BaseCommand
+from tase.telegram.bots.bot_commands.bot_command_type import BotCommandType
 from tase.telegram.templates import BaseTemplate, WelcomeData
 
 
