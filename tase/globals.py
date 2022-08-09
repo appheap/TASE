@@ -4,7 +4,7 @@ from kombu import Connection, Exchange, Queue, uuid
 
 import tase
 from tase.my_logger import logger
-from tase.telegram.jobs import BaseJob
+from tase.scheduler.jobs import BaseJob
 from tase.telegram.tasks.base_task import BaseTask
 from tase.utils import prettify
 

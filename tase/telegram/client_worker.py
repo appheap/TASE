@@ -1,15 +1,19 @@
 from threading import Thread
 from typing import Dict, List
 
-from kombu import Consumer
+import kombu
+from decouple import config
+from kombu import Consumer, Queue, Connection
 from kombu.mixins import ConsumerProducerMixin
 from kombu.transport import pyamqp
 
 from . import TelegramClient
-from .globals import *
+from tase import globals
+from .tasks import BaseTask
 from .update_handlers import exception_handler
 from ..configs import ClientTypes
 from ..db.database_client import DatabaseClient
+from ..my_logger import logger
 
 
 class ClientTaskConsumer(ConsumerProducerMixin):
@@ -28,7 +32,7 @@ class ClientTaskConsumer(ConsumerProducerMixin):
 
         task_queue = Queue(
             f"{self.telegram_client.get_session_name()}_queue",
-            exchange=tase_telegram_exchange,
+            exchange=globals.tase_telegram_exchange,
             routing_key=f"{self.telegram_client.get_session_name()}_queue",
         )
         self.task_queue = task_queue
@@ -50,7 +54,7 @@ class ClientTaskConsumer(ConsumerProducerMixin):
                     accept=["pickle"],
                 ),
                 Consumer(
-                    queues=[tase_telegram_queue],
+                    queues=[globals.tase_telegram_queue],
                     callbacks=[self.on_task],
                     channel=channel,
                     prefetch_count=1,

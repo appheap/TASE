@@ -1,8 +1,8 @@
 from pydantic import Field
 
 from . import BaseJob
-from ...db import DatabaseClient
-from ...my_logger import logger
+from tase.db import DatabaseClient
+from tase.my_logger import logger
 
 
 class DummyJob(BaseJob):
