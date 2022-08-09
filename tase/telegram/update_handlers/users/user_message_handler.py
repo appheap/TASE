@@ -25,8 +25,3 @@ class UserMessageHandler(BaseHandler):
     ):
         direction = "=>" if message.outgoing else "<="
         logger.debug(f"user_message_handler: {direction} {message.chat.title or message.chat.first_name}")
-
-        # todo: temp solution
-        from .temp import func
-
-        func(client, self.telegram_client, message, logger, self.task_queues)
