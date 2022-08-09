@@ -117,4 +117,4 @@ class Chat(BaseVertex):
 
 
 # todo: how to fix this?
-Chat.update_forward_refs()
+# Chat.update_forward_refs()
