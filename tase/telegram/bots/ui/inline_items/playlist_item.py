@@ -9,7 +9,7 @@ from pyrogram.types import (
 )
 
 from tase.db import graph_models
-from tase.telegram.templates import BaseTemplate, PlaylistData
+from tase.telegram.bots.ui.templates import BaseTemplate, PlaylistData
 from .base_inline_item import BaseInlineItem
 
 

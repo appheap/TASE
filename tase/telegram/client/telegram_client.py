@@ -7,7 +7,7 @@ from pyrogram.handlers.handler import Handler
 from tase.configs import ClientConfig, ClientTypes
 from tase.my_logger import logger
 from tase.telegram import update_handlers
-from tase.telegram.raw_methods.search_messages import search_messages
+from tase.telegram.client.raw_methods import search_messages
 
 
 class UserClientRoles(Enum):

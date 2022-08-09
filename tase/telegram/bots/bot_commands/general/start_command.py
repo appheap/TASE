@@ -4,7 +4,7 @@ from pyrogram.enums import ParseMode
 
 from tase.telegram.bots.bot_commands.base_command import BaseCommand
 from tase.telegram.bots.bot_commands.bot_command_type import BotCommandType
-from tase.telegram.templates import BaseTemplate, WelcomeData
+from tase.telegram.bots.ui.templates import BaseTemplate, WelcomeData
 
 
 class StartCommand(BaseCommand):

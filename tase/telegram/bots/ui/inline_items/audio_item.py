@@ -5,7 +5,7 @@ from pyrogram.enums import ChatType
 from pyrogram.types import InlineKeyboardMarkup, InlineQueryResultCachedAudio
 
 from tase.db import document_models, elasticsearch_models, graph_models
-from tase.telegram.templates import AudioCaptionData, BaseTemplate
+from tase.telegram.bots.ui.templates import AudioCaptionData, BaseTemplate
 from .base_inline_item import BaseInlineItem
 
 

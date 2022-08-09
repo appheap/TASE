@@ -13,7 +13,7 @@ from tase.db.document_models import BotTask, BotTaskStatus, BotTaskType
 from tase.my_logger import logger
 from tase.telegram.bots.bot_commands import BaseCommand, BotCommandType
 from tase.telegram.bots.ui.inline_buttons import InlineButton
-from tase.telegram.templates import (
+from tase.telegram.bots.ui.templates import (
     AudioCaptionData,
     BaseTemplate,
     NoResultsWereFoundData,

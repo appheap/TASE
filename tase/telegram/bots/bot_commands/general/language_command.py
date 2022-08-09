@@ -5,7 +5,7 @@ from pyrogram.enums import ParseMode
 from tase.utils import languages_object
 from tase.telegram.bots.bot_commands.base_command import BaseCommand
 from tase.telegram.bots.bot_commands.bot_command_type import BotCommandType
-from tase.telegram.templates import BaseTemplate, ChooseLanguageData
+from tase.telegram.bots.ui.templates import BaseTemplate, ChooseLanguageData
 
 
 class LanguageCommand(BaseCommand):
