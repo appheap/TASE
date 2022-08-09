@@ -3,7 +3,7 @@ from typing import List, Optional
 from pydantic import BaseModel, Field
 
 from tase.db.database_client import DatabaseClient
-from tase.telegram.telegram_client import TelegramClient
+from tase.telegram.client import TelegramClient
 
 
 class BaseTask(BaseModel):

@@ -4,10 +4,10 @@ from typing import Coroutine, Iterable, List, Optional, Union
 import pyrogram
 from pyrogram.handlers.handler import Handler
 
+from tase.configs import ClientConfig, ClientTypes
 from tase.my_logger import logger
 from tase.telegram import update_handlers
-from .raw_methods.search_messages import search_messages
-from ..configs import ClientConfig, ClientTypes
+from tase.telegram.raw_methods.search_messages import search_messages
 
 
 class UserClientRoles(Enum):

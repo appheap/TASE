@@ -1,7 +1,7 @@
 from pydantic import Field
 
+from tase.telegram.client import TelegramClient
 from .base_task import BaseTask
-from ..telegram_client import TelegramClient
 from ...db import DatabaseClient, graph_models
 from ...my_logger import logger
 from ...utils import get_timestamp

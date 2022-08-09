@@ -10,8 +10,8 @@ from pyrogram import idle
 from tase.configs import ClientTypes
 from tase.db.database_client import DatabaseClient
 from tase.my_logger import logger
-from tase.telegram import TelegramClient
-from tase.telegram.client_worker import ClientWorkerThread
+from tase.telegram.client import TelegramClient
+from tase.telegram.client.client_worker import ClientWorkerThread
 from tase.telegram.update_handlers.base import ClientDisconnectHandler
 from tase.telegram.update_handlers.bots import (
     BotDeletedMessagesHandler,

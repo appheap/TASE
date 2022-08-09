@@ -6,8 +6,8 @@ from pydantic import BaseModel
 
 from tase.db import elasticsearch_models, graph_models
 from tase.db.database_client import DatabaseClient
+from tase.telegram.client import TelegramClient
 from .handler_metadata import HandlerMetadata
-from ...telegram_client import TelegramClient
 
 
 class BaseHandler(BaseModel):

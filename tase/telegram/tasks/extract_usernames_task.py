@@ -6,8 +6,8 @@ import pyrogram
 from pydantic import Field
 
 import tase.telegram
+from tase.telegram.client import TelegramClient
 from .base_task import BaseTask
-from ..telegram_client import TelegramClient
 from ...db import DatabaseClient, graph_models
 from ...db.enums import MentionSource
 from ...my_logger import logger
