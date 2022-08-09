@@ -10,21 +10,17 @@ from pyrogram.types import InlineKeyboardMarkup
 
 from tase.db import elasticsearch_models, graph_models
 from tase.db.document_models import BotTask, BotTaskStatus, BotTaskType
-from tase.db.graph_models.vertices import UserRole
 from tase.my_logger import logger
-from tase.telegram.globals import (
-    publish_client_task,
-    tase_telegram_queue,
-)
-from tase.telegram.update_handlers import BaseHandler, HandlerMetadata, exception_handler
+from tase.telegram.bot_commands.base_command import BaseCommand
+from tase.telegram.bot_commands.bot_command_type import BotCommandType
 from tase.telegram.inline_buttons import InlineButton
-from tase.telegram.tasks import AddChannelTask
 from tase.telegram.templates import (
     AudioCaptionData,
     BaseTemplate,
     NoResultsWereFoundData,
     QueryResultsData,
 )
+from tase.telegram.update_handlers import BaseHandler, HandlerMetadata, exception_handler
 from tase.utils import _trans, get_timestamp
 
 
@@ -38,18 +34,26 @@ class BotMessageHandler(BaseHandler):
             HandlerMetadata(
                 cls=handlers.MessageHandler,
                 callback=self.start_bot_handler,
-                filters=filters.command(["start"]),
+                filters=filters.command(
+                    BaseCommand.get_command_strings(
+                        [
+                            BotCommandType.START,
+                        ]
+                    )
+                ),
                 group=0,
             ),
             HandlerMetadata(
                 cls=handlers.MessageHandler,
                 callback=self.base_commands_handler,
                 filters=filters.command(
-                    [
-                        "lang",
-                        "help",
-                        "home",
-                    ]
+                    BaseCommand.get_command_strings(
+                        [
+                            BotCommandType.LANGUAGE,
+                            BotCommandType.HELP,
+                            BotCommandType.HOME,
+                        ]
+                    )
                 ),
                 group=0,
             ),
@@ -57,9 +61,11 @@ class BotMessageHandler(BaseHandler):
                 cls=handlers.MessageHandler,
                 callback=self.admin_commands_handler,
                 filters=filters.command(
-                    [
-                        "add",  # is used to add a new channel to the DB to be indexed later
-                    ]
+                    BaseCommand.get_command_strings(
+                        [
+                            BotCommandType.ADD_CHANNEL,
+                        ]
+                    )
                 ),
                 group=0,
             ),
@@ -96,12 +102,7 @@ class BotMessageHandler(BaseHandler):
     ):
         logger.debug(f"start_bot_handler: {message.command}")
 
-        db_from_user = self.db.get_or_create_user(message.from_user)
-
-        self.say_welcome(client, db_from_user, message)
-
-        if db_from_user.chosen_language_code is None:
-            self.choose_language(client, db_from_user)
+        BaseCommand.run_command(client, message, self)
 
     @exception_handler
     def base_commands_handler(
@@ -111,20 +112,7 @@ class BotMessageHandler(BaseHandler):
     ):
         logger.debug(f"base_commands_handler: {message.command}")
 
-        db_from_user = self.db.get_or_create_user(message.from_user)
-
-        command = message.command[0]
-        if not command or command is None:
-            return
-
-        if command == "lang":
-            self.choose_language(client, db_from_user)
-        elif command == "help":
-            self.show_help(client, db_from_user, message)
-        elif command == "home":
-            self.show_home(client, db_from_user, message)
-        else:
-            pass
+        BaseCommand.run_command(client, message, self)
 
     @exception_handler
     def admin_commands_handler(
@@ -134,42 +122,33 @@ class BotMessageHandler(BaseHandler):
     ):
         logger.debug(f"admin_commands_handler: {message.command}")
 
-        db_from_user = self.db.get_or_create_user(message.from_user)
+        BaseCommand.run_command(client, message, self)
 
-        command = message.command[0]
-        if not command or command is None:
-            return
-
-        # check if the user has permission to execute admin/owner commands
-        if db_from_user.role not in (UserRole.ADMIN, UserRole.OWNER):
-            # todo: log users who query these commands without having permission
-            return
-
-        if command == "add":
-            if len(message.command) == 2:
-                channel_username = message.command[1]
-
-                # todo: check if the username is in valid format
-
-                db_chat = self.db.get_chat_by_username(channel_username)
-                if db_chat:
-                    # todo: translate me
-                    message.reply_text("This channel already exists in the Database!")
-                else:
-                    publish_client_task(
-                        AddChannelTask(kwargs={"channel_username": channel_username}),
-                        tase_telegram_queue,
-                    )
-                    # todo: translate me
-                    message.reply_text("Added Channel to the Database for indexing.")
-
-            else:
-                # `index` command haven't been provided with `channel_username` argument
-                pass
-        elif command == "index_channels":
-            publish_job_to_scheduler(IndexChannelsJob())
-        else:
-            pass
+        # if command == "add":
+        #     if len(message.command) == 2:
+        #         channel_username = message.command[1]
+        #
+        #         # todo: check if the username is in valid format
+        #
+        #         db_chat = self.db.get_chat_by_username(channel_username)
+        #         if db_chat:
+        #             # todo: translate me
+        #             message.reply_text("This channel already exists in the Database!")
+        #         else:
+        #             publish_client_task(
+        #                 AddChannelTask(kwargs={"channel_username": channel_username}),
+        #                 tase_telegram_queue,
+        #             )
+        #             # todo: translate me
+        #             message.reply_text("Added Channel to the Database for indexing.")
+        #
+        #     else:
+        #         # `index` command haven't been provided with `channel_username` argument
+        #         pass
+        # elif command == "index_channels":
+        #     publish_job_to_scheduler(IndexChannelsJob())
+        # else:
+        #     pass
 
     @exception_handler
     def downloads_handler(

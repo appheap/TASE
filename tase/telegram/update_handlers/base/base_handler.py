@@ -1,28 +1,14 @@
-from __future__ import annotations
-
 from collections import defaultdict
 from typing import Callable, Dict, List, Union
 
 import kombu
-import pyrogram
 from pydantic import BaseModel
-from pyrogram.enums import ParseMode
-from pyrogram.types import InlineKeyboardMarkup
 
 from tase.db import elasticsearch_models, graph_models
 from tase.db.database_client import DatabaseClient
 from tase.my_logger import logger
-from tase.utils import languages_object
 from .handler_metadata import HandlerMetadata
-from ...inline_buttons import InlineButton
 from ...telegram_client import TelegramClient
-from ...templates import (
-    BaseTemplate,
-    ChooseLanguageData,
-    HelpData,
-    HomeData,
-    WelcomeData,
-)
 
 
 def exception_handler(func: "Callable"):
@@ -53,8 +39,13 @@ class BaseHandler(BaseModel):
         """
         Update Audio file caches that are not been cached by this telegram client
 
-        :param db_audios: List of audios to be checked
-        :return: A dictionary mapping from `chat_id` to a Chat object
+        Parameters
+        ----------
+        db_audios : Union[List[graph_models.vertices.Audio], List[elasticsearch_models.Audio]]
+            List of audios to be checked
+        Returns
+        -------
+        A dictionary mapping from `chat_id` to a Chat object
         """
         chat_msg = defaultdict(list)
         chats_dict = {}
@@ -79,153 +70,3 @@ class BaseHandler(BaseModel):
                     self.telegram_client.telegram_id,
                 )
         return chats_dict
-
-    def say_welcome(
-        self,
-        client: "pyrogram.Client",
-        db_from_user: graph_models.vertices.User,
-        message: "pyrogram.types.Message",
-    ) -> None:
-        """
-        Shows a welcome message to the user after hitting 'start'
-
-        :param client: Telegram client
-        :param db_from_user: User Object from the graph database
-        :param message: Telegram message object
-        :return:
-        """
-        data = WelcomeData(
-            name=message.from_user.first_name or message.from_user.last_name,
-            lang_code=db_from_user.chosen_language_code,
-        )
-
-        client.send_message(
-            chat_id=message.from_user.id,
-            text=BaseTemplate.registry.welcome_template.render(data),
-            parse_mode=ParseMode.HTML,
-        )
-
-    def show_help(
-        self,
-        client: "pyrogram.Client",
-        db_from_user: graph_models.vertices.User,
-        message: "pyrogram.types.Message",
-    ) -> None:
-        """
-        Shows the help menu
-
-        :param client: Telegram client
-        :param db_from_user: User Object from the graph database
-        :param message: Telegram message object
-        :return:
-        """
-        data = HelpData(
-            support_channel_username="support_channel_username",
-            url1="https://github.com/appheap/TASE",
-            url2="https://github.com/appheap/TASE",
-            lang_code=db_from_user.chosen_language_code,
-        )
-
-        markup = [
-            [
-                InlineButton.get_button("download_history").get_inline_keyboard_button(
-                    db_from_user.chosen_language_code
-                ),
-                InlineButton.get_button("my_playlists").get_inline_keyboard_button(db_from_user.chosen_language_code),
-            ],
-            [
-                InlineButton.get_button("back").get_inline_keyboard_button(db_from_user.chosen_language_code),
-            ],
-            [
-                InlineButton.get_button("advertisement").get_inline_keyboard_button(db_from_user.chosen_language_code),
-                InlineButton.get_button("help_catalog").get_inline_keyboard_button(db_from_user.chosen_language_code),
-            ],
-        ]
-        markup = InlineKeyboardMarkup(markup)
-
-        client.send_message(
-            chat_id=message.from_user.id,
-            text=BaseTemplate.registry.help_template.render(data),
-            parse_mode=ParseMode.HTML,
-            reply_markup=markup,
-        )
-
-    def choose_language(
-        self,
-        client: "pyrogram.Client",
-        db_from_user: graph_models.vertices.User,
-    ) -> None:
-        """
-        Ask users to choose a language among a menu shows a list of available languages.
-
-        :param client: Telegram client
-        :param db_from_user: User Object from the graph database
-        :return:
-        """
-        data = ChooseLanguageData(
-            name=db_from_user.first_name or db_from_user.last_name,
-            lang_code=db_from_user.chosen_language_code,
-        )
-
-        client.send_message(
-            chat_id=db_from_user.user_id,
-            text=BaseTemplate.registry.choose_language_template.render(data),
-            reply_markup=languages_object.get_choose_language_markup(),
-            parse_mode=ParseMode.HTML,
-        )
-
-    def show_home(
-        self,
-        client: "pyrogram.Client",
-        db_from_user: graph_models.vertices.User,
-        message: "pyrogram.types.Message",
-    ) -> None:
-        """
-        Shows the Home menu
-
-        :param client: Telegram client
-        :param db_from_user: User Object from the graph database
-        :param message: Telegram message object
-        :return:
-        """
-        data = HomeData(
-            support_channel_username="support_channel_username",
-            url1="https://github.com/appheap/TASE",
-            url2="https://github.com/appheap/TASE",
-            lang_code=db_from_user.chosen_language_code,
-        )
-
-        markup = [
-            [
-                InlineButton.get_button("download_history").get_inline_keyboard_button(
-                    db_from_user.chosen_language_code
-                ),
-                InlineButton.get_button("my_playlists").get_inline_keyboard_button(db_from_user.chosen_language_code),
-            ],
-            [
-                InlineButton.get_button("show_language_menu").get_inline_keyboard_button(
-                    db_from_user.chosen_language_code
-                ),
-            ],
-            [
-                InlineButton.get_button("advertisement").get_inline_keyboard_button(db_from_user.chosen_language_code),
-                InlineButton.get_button("help_catalog").get_inline_keyboard_button(db_from_user.chosen_language_code),
-            ],
-        ]
-        markup = InlineKeyboardMarkup(markup)
-
-        chat_id = None
-        if message:
-            if message.chat:
-                chat_id = message.chat.id
-            elif message.from_user:
-                chat_id = message.from_user.id
-        else:
-            chat_id = db_from_user.user_id
-
-        client.send_message(
-            chat_id=chat_id,
-            text=BaseTemplate.registry.home_template.render(data),
-            parse_mode=ParseMode.HTML,
-            reply_markup=markup,
-        )
