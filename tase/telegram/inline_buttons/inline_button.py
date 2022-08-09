@@ -7,7 +7,7 @@ from pyrogram.types import InlineKeyboardButton
 from tase.db import graph_models
 from tase.utils import translate_text
 from ..inline import CustomInlineQueryResult
-from ..interfaces import OnCallbackQuery, OnChosenInlineQuery, OnInlineQuery
+from ..update_interfaces import OnCallbackQuery, OnChosenInlineQuery, OnInlineQuery
 
 
 class InlineButton(
