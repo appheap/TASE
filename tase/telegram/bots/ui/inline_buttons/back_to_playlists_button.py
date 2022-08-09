@@ -1,6 +1,6 @@
 from .my_playlists_button import MyPlaylistsInlineButton
 
-from ...utils import _trans, emoji
+from tase.utils import _trans, emoji
 
 
 class BackToPlaylistsInlineButton(MyPlaylistsInlineButton):

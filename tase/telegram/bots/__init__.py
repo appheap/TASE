@@ -1,6 +1,6 @@
-from . import bot_commands
+from . import bot_commands, ui
 
 __all__ = [
     "bot_commands",
-
+    "ui",
 ]

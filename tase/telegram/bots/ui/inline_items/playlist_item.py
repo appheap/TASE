@@ -8,9 +8,9 @@ from pyrogram.types import (
     InputTextMessageContent,
 )
 
+from tase.db import graph_models
+from tase.telegram.templates import BaseTemplate, PlaylistData
 from .base_inline_item import BaseInlineItem
-from ..templates import BaseTemplate, PlaylistData
-from ...db import graph_models
 
 
 class PlaylistItem(BaseInlineItem):

@@ -4,11 +4,11 @@ import pyrogram
 from pyrogram.enums import ParseMode
 from pyrogram.types import InlineQueryResultArticle, InputTextMessageContent
 
+from tase.db import graph_models
+from tase.telegram.inline import CustomInlineQueryResult
+from tase.utils import _trans, emoji
 from .inline_button import InlineButton
-from ..inline import CustomInlineQueryResult
 from ..inline_items import AudioItem
-from ...db import graph_models
-from ...utils import _trans, emoji
 
 
 class DownloadHistoryInlineButton(InlineButton):

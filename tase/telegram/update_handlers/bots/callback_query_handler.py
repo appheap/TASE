@@ -4,8 +4,8 @@ import pyrogram
 from pyrogram import handlers
 
 from tase.my_logger import logger
+from tase.telegram.bots.ui.inline_buttons import InlineButton
 from tase.telegram.update_handlers import BaseHandler, HandlerMetadata, exception_handler
-from tase.telegram.inline_buttons import InlineButton
 
 
 class CallbackQueryHandler(BaseHandler):

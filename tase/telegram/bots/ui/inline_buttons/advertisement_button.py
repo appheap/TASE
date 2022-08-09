@@ -1,5 +1,5 @@
 from .inline_button import InlineButton
-from ...utils import _trans, emoji
+from tase.utils import _trans, emoji
 
 
 class AdvertisementInlineButton(InlineButton):

@@ -2,21 +2,22 @@ from typing import Match, Optional
 
 import pyrogram
 
+from tase.db import graph_models
+from tase.db.document_models import BotTaskType
+from tase.my_logger import logger
+from tase.telegram.inline import CustomInlineQueryResult
+from tase.utils import _trans, emoji
 from .inline_button import InlineButton
-from ..inline import CustomInlineQueryResult
-from ..inline_items import CreateNewPlaylistItem, PlaylistItem
-from ...db import graph_models
-from ...db.document_models import BotTaskType
-from ...utils import _trans, emoji
+from ..inline_items import CreateNewPlaylistItem, PlaylistItem, NoPlaylistItem
 
 
-class AddToPlaylistInlineButton(InlineButton):
-    name = "add_to_playlist"
+class MyPlaylistsInlineButton(InlineButton):
+    name = "my_playlists"
 
-    s_add_to_playlist = _trans("Add To Playlist")
-    text = f"{s_add_to_playlist} | {emoji._plus}"
+    s_my_playlists = _trans("My Playlists")
+    text = f"{s_my_playlists} | {emoji._headphone}"
 
-    switch_inline_query_current_chat = f"#add_to_playlist"
+    switch_inline_query_current_chat = f"#my_playlists"
 
     def on_inline_query(
         self,
@@ -28,6 +29,7 @@ class AddToPlaylistInlineButton(InlineButton):
         query_date: int,
         reg: Optional[Match] = None,
     ):
+
         db_playlists = handler.db.get_user_playlists(
             db_from_user,
             offset=result.from_,
@@ -53,7 +55,16 @@ class AddToPlaylistInlineButton(InlineButton):
             )
 
         if len(results):
-            result.results = results
+            try:
+                result.results = results
+            except Exception as e:
+                logger.exception(e)
+        else:
+            if result.from_ is None or result.from_ == 0:
+                inline_query.answer(
+                    [NoPlaylistItem.get_item(db_from_user)],
+                    cache_time=1,
+                )
 
     def on_chosen_inline_query(
         self,
@@ -63,14 +74,13 @@ class AddToPlaylistInlineButton(InlineButton):
         chosen_inline_result: "pyrogram.types.ChosenInlineResult",
         reg: Match,
     ):
-        audio_download_url = reg.group("arg1")
-        # todo: check if the user has downloaded this audio earlier, otherwise, the request is not valid
+        hit_download_url = reg.group("arg1")
 
         result_id_list = chosen_inline_result.result_id.split("->")
         inline_query_id = result_id_list[0]
         playlist_key = result_id_list[1]
 
-        # db_hit = db.get_hit_by_download_url(audio_download_url)
+        # db_hit = db.get_hit_by_download_url(hit_download_url)
         # db_audio = db.get_audio_from_hit(db_hit)
 
         if playlist_key == "add_a_new_playlist":
@@ -80,36 +90,9 @@ class AddToPlaylistInlineButton(InlineButton):
                 db_from_user.user_id,
                 handler.telegram_client.telegram_id,
                 BotTaskType.CREATE_NEW_PLAYLIST,
-                state_dict={
-                    "audio_download_url": audio_download_url,
-                },
             )
 
             client.send_message(
                 db_from_user.user_id,
                 text="Enter your playlist title. Enter your playlist description in the next line",
             )
-        else:
-            # add the audio to the playlist
-            created, successful = handler.db.add_audio_to_playlist(
-                playlist_key,
-                audio_download_url,
-            )
-
-            # todo: update these messages
-            if successful:
-                if created:
-                    client.send_message(
-                        db_from_user.user_id,
-                        "Added to the playlist",
-                    )
-                else:
-                    client.send_message(
-                        db_from_user.user_id,
-                        "It's already on the playlist",
-                    )
-            else:
-                client.send_message(
-                    db_from_user.user_id,
-                    "Did not add to the playlist",
-                )

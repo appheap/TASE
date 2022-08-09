@@ -2,11 +2,11 @@ from typing import Match, Optional
 
 import pyrogram
 
+from tase.db import graph_models
+from tase.telegram.inline import CustomInlineQueryResult
+from tase.utils import _trans, emoji, get_timestamp
 from .inline_button import InlineButton
-from ..inline import CustomInlineQueryResult
 from ..inline_items import PlaylistItem
-from ...db import graph_models
-from ...utils import _trans, emoji, get_timestamp
 
 
 class RemoveFromPlaylistInlineButton(InlineButton):

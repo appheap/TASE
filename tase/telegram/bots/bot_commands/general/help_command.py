@@ -5,7 +5,7 @@ from pyrogram.types import InlineKeyboardMarkup
 
 from tase.telegram.bots.bot_commands.base_command import BaseCommand
 from tase.telegram.bots.bot_commands.bot_command_type import BotCommandType
-from tase.telegram.inline_buttons import InlineButton
+from tase.telegram.bots.ui.inline_buttons import InlineButton
 from tase.telegram.templates import BaseTemplate, HelpData
 
 

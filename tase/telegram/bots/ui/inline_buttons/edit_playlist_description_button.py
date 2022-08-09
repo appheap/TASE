@@ -1,17 +1,17 @@
 import pyrogram
 
 from .inline_button import InlineButton
-from ...db import graph_models
-from ...db.document_models import BotTaskType
-from ...utils import _trans, emoji
+from tase.db import graph_models
+from tase.db.document_models import BotTaskType
+from tase.utils import _trans, emoji
 
 
-class DeletePlaylistInlineButton(InlineButton):
-    name = "delete_playlist"
+class EditPlaylistDescriptionInlineButton(InlineButton):
+    name = "edit_playlist_description"
 
-    s_delete = _trans("Delete Playlist")
-    text = f"{s_delete} | {emoji._cross_mark}"
-    callback_data = "delete_playlist->delete_playlist"
+    s_edit = _trans("Edit Description")
+    text = f"{s_edit} | {emoji._gear}"
+    callback_data = "edit_playlist_description->edit_playlist_description"
 
     def on_callback_query(
         self,
@@ -25,15 +25,14 @@ class DeletePlaylistInlineButton(InlineButton):
         handler.db.create_bot_task(
             db_from_user.user_id,
             handler.telegram_client.telegram_id,
-            BotTaskType.DELETE_PLAYLIST,
+            BotTaskType.EDIT_PLAYLIST_DESCRIPTION,
             state_dict={
                 "playlist_key": callback_query.data.split("->")[1],
-                "result": "1",
             },
         )
 
         # todo: make it translatable
         client.send_message(
             db_from_user.user_id,
-            "Please send 1 to confirm deleting the playlist:",
+            "Enter the new Description:",
         )

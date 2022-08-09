@@ -1,8 +1,8 @@
 import pyrogram
 
 from .inline_button import InlineButton
-from ...db import graph_models
-from ...utils import _trans
+from tase.db import graph_models
+from tase.utils import _trans
 
 
 class ChooseLanguageInlineButton(InlineButton):

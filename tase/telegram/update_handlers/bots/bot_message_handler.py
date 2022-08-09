@@ -11,9 +11,8 @@ from pyrogram.types import InlineKeyboardMarkup
 from tase.db import elasticsearch_models, graph_models
 from tase.db.document_models import BotTask, BotTaskStatus, BotTaskType
 from tase.my_logger import logger
-from tase.telegram.bots.bot_commands import BaseCommand
-from tase.telegram.bots.bot_commands import BotCommandType
-from tase.telegram.inline_buttons import InlineButton
+from tase.telegram.bots.bot_commands import BaseCommand, BotCommandType
+from tase.telegram.bots.ui.inline_buttons import InlineButton
 from tase.telegram.templates import (
     AudioCaptionData,
     BaseTemplate,
@@ -268,10 +267,7 @@ class BotMessageHandler(BaseHandler):
         if db_from_user.chosen_language_code is None or not len(
             db_from_user.chosen_language_code,
         ):
-            self.choose_language(
-                client,
-                db_from_user,
-            )
+            BaseCommand.run_command(client, message, self, BotCommandType.LANGUAGE)
             return
 
         # check if this message is reply to any bot task

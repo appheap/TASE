@@ -4,7 +4,7 @@ from typing import List, Optional
 import pyrogram
 
 from . import CustomInlineQueryResult
-from ..inline_items import AudioItem, NoResultItem
+from tase.telegram.bots.ui.inline_items import AudioItem, NoResultItem
 from ..update_interfaces import OnInlineQuery
 from ...db import elasticsearch_models, graph_models
 from ...db.graph_models.vertices import InlineQueryType

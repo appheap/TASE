@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from . import update_handlers, inline_buttons, inline_items, jobs, raw_methods, tasks, templates
+from . import update_handlers, jobs, raw_methods, tasks, templates, bots
+
+# todo: don't change the order of `bots` package. `bots` package should be last one.
 from .telegram_client import (
     BotClientRoles,
     BotTelegramClient,

@@ -4,12 +4,12 @@ import pyrogram.types
 from pyrogram.enums import ParseMode
 from pyrogram.types import InlineQueryResultArticle, InputTextMessageContent
 
+from tase.db import graph_models
+from tase.utils import _trans, emoji
 from .base_inline_item import BaseInlineItem
-from ...db import graph_models
-from ...utils import _trans, emoji
 
 
-class NoResultItem(BaseInlineItem):
+class NoPlaylistItem(BaseInlineItem):
     @classmethod
     def get_item(
         cls,
@@ -20,7 +20,10 @@ class NoResultItem(BaseInlineItem):
 
         return InlineQueryResultArticle(
             title=_trans("No Results Were Found", db_from_user.chosen_language_code),
-            description=_trans("No results were found", db_from_user.chosen_language_code),
+            description=_trans(
+                "You haven't created any playlist yet",
+                db_from_user.chosen_language_code,
+            ),
             input_message_content=InputTextMessageContent(
                 message_text=emoji.high_voltage,
                 parse_mode=ParseMode.HTML,
