@@ -14,6 +14,7 @@ class AddChannelCommand(BaseCommand):
     """
 
     command_type: BotCommandType = Field(default=BotCommandType.ADD_CHANNEL)
+    required_role_level: UserRole = UserRole.ADMIN
 
     def command_function(
         self,
@@ -22,13 +23,6 @@ class AddChannelCommand(BaseCommand):
         handler: "tase.telegram.handlers.BaseHandler",
         db_from_user: "tase.db.graph_models.vertices.User",
     ) -> None:
-
-        # todo: this is need to be check for all admin/owner commands.
-        # check if the user has permission to execute admin/owner commands
-        if db_from_user.role not in (UserRole.ADMIN, UserRole.OWNER):
-            # todo: log users who query these commands without having permission
-            return
-
         if len(message.command) == 2:
             channel_username = message.command[1]
 

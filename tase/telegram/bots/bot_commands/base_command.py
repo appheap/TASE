@@ -4,12 +4,16 @@ from typing import List, Optional
 import pyrogram
 from pydantic import BaseModel, Field
 
-from .bot_command_type import BotCommandType
+from tase.db.graph_models.vertices import UserRole, User
 from tase.my_logger import logger
+from tase.utils import _trans
+from .bot_command_type import BotCommandType
 
 
 class BaseCommand(BaseModel):
     command_type: BotCommandType = Field(default=BotCommandType.HELP)
+    required_role_level: UserRole = Field(default=UserRole.SEARCHER)
+
     _registry = dict()
 
     @classmethod
@@ -35,13 +39,31 @@ class BaseCommand(BaseModel):
         handler: "tase.telegram.handlers.BaseHandler",
         bot_command_type: Optional[BotCommandType] = None,
     ) -> None:
+        if client is None or message is None or handler is None or message.from_user is None:
+            return
+
         command = BaseCommand.get_command(
             bot_command_type if bot_command_type is not None else BotCommandType.get_from_message(message)
         )
         if command:
-            db_from_user = handler.db.get_or_create_user(message.from_user)
+            db_from_user: User = handler.db.get_or_create_user(message.from_user)
 
-            command.command_function(client, message, handler, db_from_user)
+            # check if the user has permission to execute this command
+            if db_from_user.role.value >= command.required_role_level.value:
+                try:
+                    command.command_function(client, message, handler, db_from_user)
+                except Exception as e:
+                    logger.exception(e)
+            else:
+                # todo: log users who query these commands without having permission
+                message.reply_text(
+                    _trans(
+                        "You don't have the required permission to execute this command!",
+                        db_from_user.chosen_language_code,
+                    ),
+                    quote=True,
+                    disable_web_page_preview=True,
+                )
 
     def command_function(
         self,
