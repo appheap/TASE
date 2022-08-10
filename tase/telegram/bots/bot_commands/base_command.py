@@ -11,6 +11,22 @@ from .bot_command_type import BotCommandType
 
 
 class BaseCommand(BaseModel):
+    """
+    This class is used as the base class for all other commands to inherit from.
+    Any class who inherits from this class needs to implement
+    :meth:`~tase.telegram.bots.bot_commands.BaseCommand.command_function` method.
+
+
+    Attributes
+    ----------
+    command_type : BotCommandType
+        Type of this command
+    required_role_level : UserRole
+        Role level required to execute this command
+    number_of_required_arguments : int
+        Number of arguments necessary to run this command
+    """
+
     command_type: BotCommandType = Field(default=BotCommandType.HELP)
     required_role_level: UserRole = Field(default=UserRole.SEARCHER)
     number_of_required_arguments: int = Field(default=0)
@@ -101,7 +117,8 @@ class BaseCommand(BaseModel):
 
         Returns
         -------
-        List of command strings if successful otherwise it raises an exception
+        List[str]
+            List of command strings if successful otherwise it raises an exception
         """
         if bot_command_types is None or not len(bot_command_types):
             raise ValueError(f"bot_command_types list cannot be empty")
