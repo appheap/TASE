@@ -198,10 +198,7 @@ class DatabaseClient:
         self,
         username: str,
     ) -> Optional[graph_models.vertices.Chat]:
-        if username is None:
-            return None
-
-        return self._graph_db.get_chat_by_username(username.lower())
+        return self._graph_db.get_chat_by_username(username)
 
     def get_audio_file_from_cache(
         self,

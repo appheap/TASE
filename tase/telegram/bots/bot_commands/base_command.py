@@ -47,11 +47,15 @@ class BaseCommand(BaseModel):
         )
         if command:
             db_from_user: User = handler.db.get_or_create_user(message.from_user)
+            if db_from_user is None:
+                raise Exception(f"Could not get/create user vertex from: {message.from_user}")
 
             # check if the user has permission to execute this command
             if db_from_user.role.value >= command.required_role_level.value:
                 try:
                     command.command_function(client, message, handler, db_from_user)
+                except NotImplementedError:
+                    pass
                 except Exception as e:
                     logger.exception(e)
             else:

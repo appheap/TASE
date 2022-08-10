@@ -491,7 +491,7 @@ class GraphDatabase:
             return None
 
         # todo: fix this
-        cursor = Chat._db.find({"username": username})
+        cursor = Chat._db.find({"username": username.lower()})
         if cursor and len(cursor):
             return Chat.parse_from_graph(cursor.pop())
         else:

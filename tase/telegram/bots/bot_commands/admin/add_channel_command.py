@@ -1,6 +1,7 @@
 import pyrogram
 from pydantic import Field
 
+import tase
 from tase import globals
 from tase.db.graph_models.vertices import UserRole
 from tase.telegram.client.tasks import AddChannelTask
@@ -20,7 +21,7 @@ class AddChannelCommand(BaseCommand):
         self,
         client: pyrogram.Client,
         message: pyrogram.types.Message,
-        handler: "tase.telegram.handlers.BaseHandler",
+        handler: "tase.telegram.update_handlers.BaseHandler",
         db_from_user: "tase.db.graph_models.vertices.User",
     ) -> None:
         if len(message.command) == 2:
