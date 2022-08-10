@@ -13,6 +13,7 @@ from .bot_command_type import BotCommandType
 class BaseCommand(BaseModel):
     command_type: BotCommandType = Field(default=BotCommandType.HELP)
     required_role_level: UserRole = Field(default=UserRole.SEARCHER)
+    number_of_required_arguments: int = Field(default=0)
 
     _registry = dict()
 
@@ -46,6 +47,15 @@ class BaseCommand(BaseModel):
             bot_command_type if bot_command_type is not None else BotCommandType.get_from_message(message)
         )
         if command:
+            if len(message.command) - 1 < command.number_of_required_arguments:
+                # todo: translate me
+                message.reply_text(
+                    "Not enough arguments are provided to run this command",
+                    quote=True,
+                    disable_web_page_preview=True,
+                )
+                return
+
             db_from_user: User = handler.db.get_or_create_user(message.from_user)
             if db_from_user is None:
                 raise Exception(f"Could not get/create user vertex from: {message.from_user}")
