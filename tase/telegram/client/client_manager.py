@@ -33,13 +33,13 @@ class ClientManager(mp.Process):
         *,
         telegram_client_name: str,
         telegram_client: "TelegramClient",
-        task_queues: Dict["str", "kombu.Queue"],
+        client_worker_queues: Dict["str", "kombu.Queue"],
         database_client: "DatabaseClient",
     ):
         super().__init__()
         self.name = telegram_client_name
         self.telegram_client: Optional["TelegramClient"] = telegram_client
-        self.task_queues = task_queues
+        self.client_worker_queues = client_worker_queues
         self.db = database_client
 
     def run(self) -> None:
@@ -57,7 +57,7 @@ class ClientManager(mp.Process):
             telegram_client=self.telegram_client,
             index=0,
             db=self.db,
-            task_queues=self.task_queues,
+            client_worker_queues=self.client_worker_queues,
         )
         worker.start()
 
@@ -71,17 +71,17 @@ class ClientManager(mp.Process):
         self.user_update_handlers = [
             UserChatMemberUpdatedHandler(
                 db=self.db,
-                task_queues=self.task_queues,
+                task_queues=self.client_worker_queues,
                 telegram_client=self.telegram_client,
             ),
             UserDeletedMessagesHandler(
                 db=self.db,
-                task_queues=self.task_queues,
+                task_queues=self.client_worker_queues,
                 telegram_client=self.telegram_client,
             ),
             UserMessageHandler(
                 db=self.db,
-                task_queues=self.task_queues,
+                task_queues=self.client_worker_queues,
                 telegram_client=self.telegram_client,
             ),
             # UserRawUpdateHandler(
@@ -94,12 +94,12 @@ class ClientManager(mp.Process):
         self.bot_update_handlers = [
             BotDeletedMessagesHandler(
                 db=self.db,
-                task_queues=self.task_queues,
+                task_queues=self.client_worker_queues,
                 telegram_client=self.telegram_client,
             ),
             BotMessageHandler(
                 db=self.db,
-                task_queues=self.task_queues,
+                task_queues=self.client_worker_queues,
                 telegram_client=self.telegram_client,
             ),
             # BotRawUpdateHandler(
@@ -109,24 +109,24 @@ class ClientManager(mp.Process):
             # ),
             CallbackQueryHandler(
                 db=self.db,
-                task_queues=self.task_queues,
+                task_queues=self.client_worker_queues,
                 telegram_client=self.telegram_client,
             ),
             ChosenInlineQueryHandler(
                 db=self.db,
-                task_queues=self.task_queues,
+                task_queues=self.client_worker_queues,
                 telegram_client=self.telegram_client,
             ),
             InlineQueryHandler(
                 db=self.db,
-                task_queues=self.task_queues,
+                task_queues=self.client_worker_queues,
                 telegram_client=self.telegram_client,
             ),
         ]
 
         self.disconnect_handler = ClientDisconnectHandler(
             db=self.db,
-            task_queues=self.task_queues,
+            task_queues=self.client_worker_queues,
             telegram_client=self.telegram_client,
         )
 

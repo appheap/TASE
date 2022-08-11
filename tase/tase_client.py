@@ -25,7 +25,7 @@ class TASE:
 
     def init_telegram_clients(self):
         mgr = mp.Manager()
-        task_queues = mgr.dict()
+        client_worker_queues = mgr.dict()
         scheduler = None
 
         debug = config(
@@ -57,7 +57,7 @@ class TASE:
                     client_manager = ClientManager(
                         telegram_client_name=tg_client.name,
                         telegram_client=tg_client,
-                        task_queues=task_queues,
+                        client_worker_queues=client_worker_queues,
                         database_client=self.database_client,
                     )
                     client_manager.start()
@@ -67,7 +67,7 @@ class TASE:
                 scheduler = SchedulerWorkerProcess(
                     0,
                     self.database_client,
-                    task_queues,
+                    client_worker_queues,
                 )
                 scheduler.start()
 

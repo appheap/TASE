@@ -22,22 +22,22 @@ class ClientTaskConsumer(ConsumerProducerMixin):
         connection: "Connection",
         telegram_client: "TelegramClient",
         db,
-        task_queues: Dict["str", "kombu.Queue"],
+        client_worker_queues: Dict["str", "kombu.Queue"],
     ):
         logger.info("client task consumer started...")
         self.connection = connection
         self.telegram_client = telegram_client
         self.db = db
-        self.task_queues = task_queues
+        self.client_worker_queues = client_worker_queues
 
-        task_queue = Queue(
+        client_worker_private_queue = Queue(
             f"{self.telegram_client.get_session_name()}_queue",
             exchange=tase_globals.tase_telegram_exchange,
             routing_key=f"{self.telegram_client.get_session_name()}_queue",
         )
-        self.task_queue = task_queue
-        self.task_queues[self.telegram_client.name] = task_queue
-        logger.info(f"task_queues: {self.task_queues}")
+        self.client_worker_private_queue = client_worker_private_queue
+        self.client_worker_queues[self.telegram_client.name] = client_worker_private_queue
+        logger.info(f"client_worker_queues: {self.client_worker_queues}")
 
     def get_consumers(
         self,
@@ -47,14 +47,14 @@ class ClientTaskConsumer(ConsumerProducerMixin):
         if self.telegram_client.client_type == ClientTypes.USER:
             return [
                 Consumer(
-                    queues=[self.task_queue],
+                    queues=[self.client_worker_private_queue],
                     callbacks=[self.on_task],
                     channel=channel,
                     prefetch_count=1,
                     accept=["pickle"],
                 ),
                 Consumer(
-                    queues=[tase_globals.tase_telegram_queue],
+                    queues=[tase_globals.tase_telegram_client_worker_general_queue],
                     callbacks=[self.on_task],
                     channel=channel,
                     prefetch_count=1,
@@ -64,7 +64,7 @@ class ClientTaskConsumer(ConsumerProducerMixin):
         else:
             return [
                 Consumer(
-                    queues=[self.task_queue],
+                    queues=[self.client_worker_private_queue],
                     callbacks=[self.on_task],
                     channel=channel,
                     prefetch_count=1,
@@ -93,7 +93,7 @@ class ClientWorkerThread(Thread):
         telegram_client: "TelegramClient",
         index: int,
         db: "DatabaseClient",
-        task_queues: Dict["str", "kombu.Queue"],
+        client_worker_queues: Dict["str", "kombu.Queue"],
     ):
         super().__init__()
         self.daemon = True
@@ -101,7 +101,7 @@ class ClientWorkerThread(Thread):
         self.name = f"Client_Worker_Thread {index}"
         self.index = index
         self.db = db
-        self.task_queues = task_queues
+        self.client_worker_queues = client_worker_queues
         self.consumer = None
 
     def run(self) -> None:
@@ -114,6 +114,6 @@ class ClientWorkerThread(Thread):
             ),
             telegram_client=self.telegram_client,
             db=self.db,
-            task_queues=self.task_queues,
+            client_worker_queues=self.client_worker_queues,
         )
         self.consumer.run()

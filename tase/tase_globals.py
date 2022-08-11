@@ -14,7 +14,7 @@ tase_telegram_exchange = Exchange(
 )
 
 # this queue is for distributing general tasks among all client workers
-tase_telegram_queue = Queue(
+tase_telegram_client_worker_general_queue = Queue(
     "tase_telegram_queue",
     exchange=tase_telegram_exchange,
     routing_key="tase_telegram_queue",
@@ -51,7 +51,7 @@ def publish_client_task(
     logger.info(f"@publish_client_task: {prettify(task)}")
 
     if target_queue is None:
-        target_queue = tase_telegram_queue
+        target_queue = tase_telegram_client_worker_general_queue
 
     publish(task, target_queue)
 
