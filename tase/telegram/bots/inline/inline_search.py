@@ -6,7 +6,7 @@ import pyrogram
 from tase.db import elasticsearch_models, graph_models
 from tase.db.graph_models.vertices import InlineQueryType
 from tase.telegram.bots.ui.inline_items import AudioItem, NoResultItem
-from tase.telegram.update_handlers import BaseHandler
+from tase.telegram.update_handlers.base import BaseHandler
 from tase.telegram.update_interfaces import OnInlineQuery
 from . import CustomInlineQueryResult
 
@@ -58,6 +58,7 @@ class InlineSearch(OnInlineQuery):
                     inline_query.query,
                     from_=result.from_,
                     size=15,  # todo: update?
+                    valid_for_inline_search=True,
                 )
 
                 if not db_audio_docs or not len(db_audio_docs) or not len(query_metadata):

@@ -210,7 +210,7 @@ class GraphDatabase:
         self,
         message: "pyrogram.types.Message",
     ) -> Optional["Audio"]:
-        if message is None or message.audio is None:
+        if message is None or (message.audio is None and message.document is None):
             return None
 
         audio = Audio.find_by_key(Audio.get_key(message))
@@ -227,7 +227,7 @@ class GraphDatabase:
         self,
         message: "pyrogram.types.Message",
     ) -> Optional["Audio"]:
-        if message is None or message.audio is None:
+        if message is None or (message.audio is None and message.document is None):
             return None
 
         audio = Audio.find_by_key(Audio.get_key(message))
@@ -241,7 +241,7 @@ class GraphDatabase:
         self,
         message: "pyrogram.types.Message",
     ) -> Optional["Audio"]:
-        if message is None or message.audio is None:
+        if message is None or (message.audio is None and message.document is None):
             return None
 
         audio, successful = Audio.create(Audio.parse_from_message(message))

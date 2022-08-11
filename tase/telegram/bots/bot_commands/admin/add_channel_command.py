@@ -22,8 +22,9 @@ class AddChannelCommand(BaseCommand):
         self,
         client: pyrogram.Client,
         message: pyrogram.types.Message,
-        handler: "tase.telegram.update_handlers.BaseHandler",
+        handler: "tase.telegram.update_handlers.base.BaseHandler",
         db_from_user: "tase.db.graph_models.vertices.User",
+        from_callback_query: bool,
     ) -> None:
         channel_username = message.command[1]
 
@@ -39,6 +40,3 @@ class AddChannelCommand(BaseCommand):
             )
             # todo: translate me
             message.reply_text("Added Channel to the Database for indexing.")
-        # else:
-        #     # fixme: `index` command haven't been provided with `channel_username` argument
-        #     pass

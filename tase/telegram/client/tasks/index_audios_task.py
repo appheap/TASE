@@ -39,10 +39,11 @@ class IndexAudiosTask(BaseTask):
                 last_offset_id = db_chat.audio_indexer_metadata.last_message_offset_id
                 last_offset_date = db_chat.audio_indexer_metadata.last_message_offset_date
 
-                for message in telegram_client.iter_audios(
+                for message in telegram_client.iter_messages(
                     chat_id=chat_id,
                     offset_id=last_offset_id,
                     only_newer_messages=True,
+                    filter="audio",
                 ):
                     db.update_or_create_audio(
                         message,

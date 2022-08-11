@@ -7,9 +7,9 @@ import pyrogram
 from pyrogram import filters, handlers
 
 from tase.my_logger import logger
-from tase.telegram.bots.ui.inline_buttons import InlineButton
 from tase.telegram.bots.inline import CustomInlineQueryResult, InlineSearch
-from tase.telegram.update_handlers import BaseHandler, HandlerMetadata
+from tase.telegram.bots.ui.inline_buttons import InlineButton
+from tase.telegram.update_handlers.base import BaseHandler, HandlerMetadata
 from tase.utils import get_timestamp, exception_handler
 
 known_mime_types = (

@@ -20,8 +20,9 @@ class LanguageCommand(BaseCommand):
         self,
         client: pyrogram.Client,
         message: pyrogram.types.Message,
-        handler: "tase.telegram.update_handlers.BaseHandler",
+        handler: "tase.telegram.update_handlers.base.BaseHandler",
         db_from_user: "tase.db.graph_models.vertices.User",
+        from_callback_query: bool,
     ) -> None:
         data = ChooseLanguageData(
             name=db_from_user.first_name or db_from_user.last_name,

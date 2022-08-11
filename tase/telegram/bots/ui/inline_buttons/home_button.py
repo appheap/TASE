@@ -1,8 +1,9 @@
 import pyrogram
 
-from .inline_button import InlineButton
 from tase.db import graph_models
+from tase.telegram.bots import bot_commands
 from tase.utils import _trans, emoji
+from .inline_button import InlineButton
 
 
 class HomeInlineButton(InlineButton):
@@ -20,4 +21,11 @@ class HomeInlineButton(InlineButton):
         callback_query: "pyrogram.types.CallbackQuery",
     ):
         callback_query.answer("")
-        handler.show_home(client, db_from_user, callback_query.message)
+
+        bot_commands.BaseCommand.run_command_from_callback_query(
+            client,
+            callback_query,
+            handler,
+            db_from_user,
+            bot_commands.BotCommandType.HOME,
+        )

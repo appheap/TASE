@@ -4,7 +4,7 @@ from typing import Optional
 import pyrogram
 
 from tase.telegram.bots.inline import CustomInlineQueryResult
-from tase.telegram.update_handlers import BaseHandler
+from tase.telegram.update_handlers.base import BaseHandler
 from ...db import graph_models
 
 

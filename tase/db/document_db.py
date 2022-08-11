@@ -58,7 +58,7 @@ class DocumentDatabase:
         message: "pyrogram.types.Message",
         telegram_client_id: int,
     ) -> Optional[Audio]:
-        if message is None or message.audio is None or telegram_client_id is None:
+        if message is None or (message.audio is None and message.document is None) or telegram_client_id is None:
             return None
 
         audio, successful = Audio.create(Audio.parse_from_message(message, telegram_client_id))
@@ -76,7 +76,7 @@ class DocumentDatabase:
         return audio
 
     def update_or_create_audio(self, message: "pyrogram.types.Message", telegram_client_id: int) -> Optional[Audio]:
-        if message is None or message.audio is None or telegram_client_id is None:
+        if message is None or (message.audio is None and message.document is None) or telegram_client_id is None:
             return None
 
         audio = Audio.find_by_key(Audio.get_key(message, telegram_client_id))

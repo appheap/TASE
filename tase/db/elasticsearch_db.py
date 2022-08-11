@@ -29,7 +29,7 @@ class ElasticsearchDatabase:
         self,
         message: "pyrogram.types.Message",
     ) -> Optional[Audio]:
-        if message is None or message.audio is None:
+        if message is None or (message.audio is None and message.document is None):
             return None
 
         audio = Audio.get(
@@ -48,7 +48,7 @@ class ElasticsearchDatabase:
         self,
         message: "pyrogram.types.Message",
     ) -> Optional[Audio]:
-        if message is None or message.audio is None:
+        if message is None or (message.audio is None and message.document is None):
             return None
 
         audio = Audio.get(
@@ -70,6 +70,7 @@ class ElasticsearchDatabase:
         query: str,
         from_: int = 0,
         size: int = 50,
+        valid_for_inline_search: Optional[bool] = True,
     ) -> Optional[Tuple[List[Audio], dict]]:
         if query is None or from_ is None or size is None:
             return None
@@ -79,6 +80,7 @@ class ElasticsearchDatabase:
             query,
             from_,
             size,
+            valid_for_inline_search,
         )
         return audios, search_metadata
 

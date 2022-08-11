@@ -19,7 +19,7 @@ from tase.telegram.bots.ui.templates import (
     NoResultsWereFoundData,
     QueryResultsData,
 )
-from tase.telegram.update_handlers import BaseHandler, HandlerMetadata
+from tase.telegram.update_handlers.base import BaseHandler, HandlerMetadata
 from tase.utils import _trans, get_timestamp, exception_handler
 
 
@@ -130,12 +130,19 @@ class BotMessageHandler(BaseHandler):
             audio_file_cache = self.db.get_audio_file_from_cache(db_audio_doc, self.telegram_client.telegram_id)
             db_chat = self.db.get_chat_by_chat_id(db_audio_doc.chat_id)
             if not audio_file_cache:
+                # fixme: find a better way of getting messages that have not been cached yet
                 messages = client.get_messages(db_chat.username, [db_audio_doc.message_id])
                 if not messages or not len(messages):
                     # todo: could not get the audio from telegram servers, what to do now?
                     logger.error("could not get the audio from telegram servers, what to do now?")
                     return
-                file_id = messages[0].audio.file_id
+
+                if messages[0].audio:
+                    file_id = messages[0].audio.file_id
+                elif messages[0].document:
+                    file_id = messages[0].document.file_id
+                else:
+                    raise ValueError("message does not contain any kind of audio!")
             else:
                 file_id = audio_file_cache.file_id
 
@@ -149,33 +156,51 @@ class BotMessageHandler(BaseHandler):
                 )
             )
 
-            markup = [
-                [
-                    InlineButton.get_button("add_to_playlist").get_inline_keyboard_button(
-                        db_user.chosen_language_code,
-                        db_audio.download_url,
-                    ),
-                ],
-                [
-                    InlineButton.get_button("remove_from_playlist").get_inline_keyboard_button(
-                        db_user.chosen_language_code,
-                        db_audio.download_url,
-                    ),
-                ],
-                [
-                    InlineButton.get_button("home").get_inline_keyboard_button(
-                        db_user.chosen_language_code,
-                    ),
-                ],
-            ]
-            markup = InlineKeyboardMarkup(markup)
+            if db_audio.valid_for_inline_search:
+                markup = [
+                    [
+                        InlineButton.get_button("add_to_playlist").get_inline_keyboard_button(
+                            db_user.chosen_language_code,
+                            db_audio.download_url,
+                        ),
+                    ],
+                    [
+                        InlineButton.get_button("remove_from_playlist").get_inline_keyboard_button(
+                            db_user.chosen_language_code,
+                            db_audio.download_url,
+                        ),
+                    ],
+                    [
+                        InlineButton.get_button("home").get_inline_keyboard_button(
+                            db_user.chosen_language_code,
+                        ),
+                    ],
+                ]
+                markup = InlineKeyboardMarkup(markup)
+            else:
+                markup = [
+                    [
+                        InlineButton.get_button("home").get_inline_keyboard_button(
+                            db_user.chosen_language_code,
+                        ),
+                    ],
+                ]
+                markup = InlineKeyboardMarkup(markup)
 
-            message.reply_audio(
-                audio=file_id,
-                caption=text,
-                parse_mode=ParseMode.HTML,
-                reply_markup=markup,
-            )
+            if db_audio.is_audio_file:
+                message.reply_audio(
+                    audio=file_id,
+                    caption=text,
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=markup,
+                )
+            else:
+                message.reply_document(
+                    document=file_id,
+                    caption=text,
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=markup,
+                )
 
             db_download = self.db.get_or_create_download_from_hit_download_url(
                 download_url,
@@ -243,6 +268,7 @@ class BotMessageHandler(BaseHandler):
                 db_audio_docs, query_metadata = self.db.search_audio(
                     query,
                     size=10,
+                    valid_for_inline_search=True,
                 )
                 if not db_audio_docs or not len(db_audio_docs) or not len(query_metadata):
                     found_any = False
@@ -266,7 +292,7 @@ class BotMessageHandler(BaseHandler):
         if found_any:
 
             def process_item(index, db_audio_doc: "elasticsearch_models.Audio", db_hit):
-                duration = timedelta(seconds=db_audio_doc.duration)
+                duration = timedelta(seconds=db_audio_doc.duration if db_audio_doc.duration else 0)
                 d = datetime(1, 1, 1) + duration
                 _performer = db_audio_doc.performer or ""
                 _title = db_audio_doc.title or ""

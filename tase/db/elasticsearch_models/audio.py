@@ -29,6 +29,8 @@ class Audio(BaseDocument):
             "file_size": {"type": "integer"},
             "date": {"type": "date"},
             "download_count": {"type": "long"},
+            "is_audio_file": {"type": "bool"},
+            "valid_for_inline_search": {"type": "bool"},
         }
     }
 
@@ -49,7 +51,7 @@ class Audio(BaseDocument):
     message_date: int
 
     file_unique_id: str
-    duration: int
+    duration: Optional[int]
     performer: Optional[str]
     title: Optional[str]
     file_name: Optional[str]
@@ -58,12 +60,27 @@ class Audio(BaseDocument):
     date: int
 
     download_count: int
+    is_audio_file: bool  # whether the audio file is shown in the `audios` or `files/documents` section of telegram app
+    valid_for_inline_search: bool
+    """
+     when an audio's title is None or the audio is shown in document section of
+     telegram, then that audio could not be shown in telegram inline mode. Moreover, it should not have keyboard
+     markups like `add_to_playlist`, etc... . On top of that, if any audio of this kind gets downloaded through
+     query search, then, it cannot be shown in `download_history` section or any other sections that work in inline
+     mode.
+    """
 
     @staticmethod
     def get_id(
         message: "pyrogram.types.Message",
     ):
-        return f"{message.audio.file_unique_id}:{message.chat.id}:{message.id}"
+        if message.audio:
+            _audio = message.audio
+        elif message.document:
+            _audio = message.document
+        else:
+            raise ValueError("Unexpected value for `message`: nor audio nor document")
+        return f"{_audio.file_unique_id}:{message.chat.id}:{message.id}"
 
     @classmethod
     def parse_from_message(
@@ -73,10 +90,24 @@ class Audio(BaseDocument):
         if message is None:
             return None
 
+        if message.audio:
+            _audio = message.audio
+            is_audio_file = True
+        elif message.document:
+            _audio = message.document
+            is_audio_file = False
+        else:
+            raise ValueError("Unexpected value for `message`: nor audio nor document")
+
         while True:
             download_url = secrets.token_urlsafe(6)
             if download_url.find("-") == -1:
                 break
+
+        title = getattr(_audio, "title", None)
+
+        # todo: check if the following statement is actually true
+        valid_for_inline = True if title is not None and is_audio_file is not None else False
 
         return Audio(
             id=cls.get_id(message),
@@ -84,15 +115,17 @@ class Audio(BaseDocument):
             message_id=message.id,
             message_caption=message.caption,
             message_date=get_timestamp(message.date),
-            file_unique_id=message.audio.file_unique_id,
-            duration=message.audio.duration,
-            performer=message.audio.performer,
-            title=message.audio.title,
-            file_name=message.audio.file_name,
-            mime_type=message.audio.mime_type,
-            file_size=message.audio.file_size,
-            date=get_timestamp(message.audio.date),
+            file_unique_id=_audio.file_unique_id,
+            duration=getattr(_audio, "duration", None),
+            performer=getattr(_audio, "performer", None),
+            title=title,
+            file_name=_audio.file_name,
+            mime_type=_audio.mime_type,
+            file_size=_audio.file_size,
+            date=get_timestamp(_audio.date),
             download_count=0,
+            valid_for_inline_search=valid_for_inline,
+            is_audio_file=is_audio_file,
         )
 
     @classmethod
@@ -161,6 +194,7 @@ class Audio(BaseDocument):
     def get_query(
         cls,
         query: Optional[str],
+        valid_for_inline_search: Optional[bool] = True,
     ):
         return {
             "bool": {

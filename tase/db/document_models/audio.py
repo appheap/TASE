@@ -20,7 +20,13 @@ class Audio(BaseDocument):
         message: "pyrogram.types.Message",
         telegram_client_id: int,
     ):
-        return f"{str(telegram_client_id)}:{message.audio.file_unique_id}:{message.chat.id}:{message.id}"
+        if message.audio:
+            _audio = message.audio
+        elif message.document:
+            _audio = message.document
+        else:
+            raise ValueError("Unexpected value for `message`: nor audio nor document")
+        return f"{str(telegram_client_id)}:{_audio.file_unique_id}:{message.chat.id}:{message.id}"
 
     @staticmethod
     def get_key_from_audio(
@@ -34,14 +40,22 @@ class Audio(BaseDocument):
         message: "pyrogram.types.Message",
         telegram_client_id: int,
     ) -> Optional["Audio"]:
-        if not message or not message.audio or telegram_client_id is None:
+        if not message or (message.audio is None and message.document is None) or telegram_client_id is None:
             return None
 
         key = Audio.get_key(message, telegram_client_id)
+
+        if message.audio:
+            _audio = message.audio
+        elif message.document:
+            _audio = message.document
+        else:
+            raise ValueError("Unexpected value for `message`: nor audio nor document")
+
         return Audio(
             key=key,
             chat_id=message.chat.id,
             message_id=message.id,
-            file_id=message.audio.file_id,
-            file_unique_id=message.audio.file_unique_id,
+            file_id=_audio.file_id,
+            file_unique_id=_audio.file_unique_id,
         )

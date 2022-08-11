@@ -50,11 +50,34 @@ class BaseCommand(BaseModel):
         return cls._registry.get(str(bot_command_type.value), None)
 
     @classmethod
+    def run_command_from_callback_query(
+        cls,
+        client: pyrogram.Client,
+        callback_query: pyrogram.types.CallbackQuery,
+        handler: "tase.telegram.update_handlers.base.BaseHandler",
+        db_from_user: "tase.db.graph_models.vertices.User",
+        bot_command_type: BotCommandType,
+    ) -> None:
+        if not all((client, callback_query, handler, callback_query.message, db_from_user, bot_command_type)):
+            return
+
+        command = BaseCommand.get_command(bot_command_type)
+        if command:
+            cls._authorize_and_execute(
+                client,
+                command,
+                db_from_user,
+                handler,
+                callback_query.message,
+                True,
+            )
+
+    @classmethod
     def run_command(
         cls,
         client: pyrogram.Client,
         message: pyrogram.types.Message,
-        handler: "tase.telegram.update_handlers.BaseHandler",
+        handler: "tase.telegram.update_handlers.base.BaseHandler",
         bot_command_type: Optional[BotCommandType] = None,
     ) -> None:
         if client is None or message is None or handler is None or message.from_user is None:
@@ -77,31 +100,79 @@ class BaseCommand(BaseModel):
             if db_from_user is None:
                 raise Exception(f"Could not get/create user vertex from: {message.from_user}")
 
+            cls._authorize_and_execute(
+                client,
+                command,
+                db_from_user,
+                handler,
+                message,
+                False,
+            )
+
+    @classmethod
+    def _authorize_and_execute(
+        cls,
+        client: pyrogram.Client,
+        command: "BaseCommand",
+        db_from_user: "tase.db.graph_models.vertices.User",
+        handler: "tase.telegram.update_handlers.base.BaseHandler",
+        message: "pyrogram.types.Message",
+        from_callback_query: bool,
+    ) -> None:
+        """
+        Authorize and execute a given command.
+
+        Parameters
+        ----------
+        client : pyrogram.Client
+            Client which received this command
+        command : BaseCommand
+            Command to be executed
+        db_from_user : tase.db.graph_models.vertices.User
+            User who requested this command
+        handler : tase.telegram.update_handlers.BaseHandler
+            Update handler which originally received the update
+        message : pyrogram.types.Message
+            Message containing the command
+        from_callback_query : bool
+            Whether this command came from a direct bot command or was originated from a callback query function.
+            Note that when this argument is true, the `message.from_user` is no longer the user, but it's the client
+            (most likely a BOT) who sent this message as a reply to an earlier query of the user.
+
+        Returns
+        -------
+        None:
+            This method does not return anything.
+        """
+        if from_callback_query is None:
+            return
+
             # check if the user has permission to execute this command
-            if db_from_user.role.value >= command.required_role_level.value:
-                try:
-                    command.command_function(client, message, handler, db_from_user)
-                except NotImplementedError:
-                    pass
-                except Exception as e:
-                    logger.exception(e)
-            else:
-                # todo: log users who query these commands without having permission
-                message.reply_text(
-                    _trans(
-                        "You don't have the required permission to execute this command!",
-                        db_from_user.chosen_language_code,
-                    ),
-                    quote=True,
-                    disable_web_page_preview=True,
-                )
+        if db_from_user.role.value >= command.required_role_level.value:
+            try:
+                command.command_function(client, message, handler, db_from_user, from_callback_query)
+            except NotImplementedError:
+                pass
+            except Exception as e:
+                logger.exception(e)
+        else:
+            # todo: log users who query these commands without having permission
+            message.reply_text(
+                _trans(
+                    "You don't have the required permission to execute this command!",
+                    db_from_user.chosen_language_code,
+                ),
+                quote=True,
+                disable_web_page_preview=True,
+            )
 
     def command_function(
         self,
         client: pyrogram.Client,
         message: pyrogram.types.Message,
-        handler: "tase.telegram.update_handlers.BaseHandler",
+        handler: "tase.telegram.update_handlers.base.BaseHandler",
         db_from_user: "tase.db.graph_models.vertices.User",
+        from_callback_query: bool,
     ) -> None:
         raise NotImplementedError
 

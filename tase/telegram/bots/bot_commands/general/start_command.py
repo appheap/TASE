@@ -19,29 +19,10 @@ class StartCommand(BaseCommand):
         self,
         client: pyrogram.Client,
         message: pyrogram.types.Message,
-        handler: "tase.telegram.update_handlers.BaseHandler",
+        handler: "tase.telegram.update_handlers.base.BaseHandler",
         db_from_user: "tase.db.graph_models.vertices.User",
+        from_callback_query: bool,
     ) -> None:
-        self.say_welcome(client, db_from_user, message)
-
-        # show language choosing menu if user hasn't chosen one yet
-        if db_from_user.chosen_language_code is None:
-            BaseCommand.run_command(client, message, handler, BotCommandType.LANGUAGE)
-
-    def say_welcome(
-        self,
-        client: "pyrogram.Client",
-        db_from_user: "tase.db.graph_models.vertices.User",
-        message: "pyrogram.types.Message",
-    ) -> None:
-        """
-        Shows a welcome message to the user after hitting 'start'
-
-        :param client: Telegram client
-        :param db_from_user: User Object from the graph database
-        :param message: Telegram message object
-        :return:
-        """
         data = WelcomeData(
             name=message.from_user.first_name or message.from_user.last_name,
             lang_code=db_from_user.chosen_language_code,
@@ -52,3 +33,7 @@ class StartCommand(BaseCommand):
             text=BaseTemplate.registry.welcome_template.render(data),
             parse_mode=ParseMode.HTML,
         )
+
+        # show language choosing menu if user hasn't chosen one yet
+        if db_from_user.chosen_language_code is None:
+            BaseCommand.run_command(client, message, handler, BotCommandType.LANGUAGE)

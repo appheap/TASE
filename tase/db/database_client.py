@@ -107,8 +107,6 @@ class DatabaseClient:
         message: "pyrogram.types.Message",
         telegram_client_id: int,
     ):
-        if message is None or message.audio is None or telegram_client_id is None:
-            return
         try:
             self._es_db.update_or_create_audio(message)
             self._graph_db.update_or_create_audio(message)
@@ -175,6 +173,7 @@ class DatabaseClient:
         query: str,
         from_: int = 0,
         size: int = 50,
+        valid_for_inline_search: Optional[bool] = True,
     ) -> Optional[Tuple[List[graph_models.vertices.Audio], dict]]:
         if query is None or from_ is None or size is None:
             return None
@@ -183,6 +182,7 @@ class DatabaseClient:
             query,
             from_,
             size,
+            valid_for_inline_search,
         )
 
     def get_chat_by_chat_id(

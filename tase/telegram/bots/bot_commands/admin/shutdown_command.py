@@ -22,11 +22,11 @@ class ShutdownCommand(BaseCommand):
         self,
         client: pyrogram.Client,
         message: pyrogram.types.Message,
-        handler: "tase.telegram.update_handlers.BaseHandler",
+        handler: "tase.telegram.update_handlers.base.BaseHandler",
         db_from_user: "tase.db.graph_models.vertices.User",
+        from_callback_query: bool,
     ) -> None:
         # todo: translate me
-
         message.reply_text("Starting to shutdown the system...")
         tase_globals.broadcast_worker_command_task(worker_commands.ShutdownCommand())
         message.reply_text("Shutdown command completed successfully.")

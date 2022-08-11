@@ -208,6 +208,7 @@ class BaseDocument(BaseModel):
         query: str,
         from_: int = 0,
         size: int = 50,
+        valid_for_inline_search: Optional[bool] = True,
     ):
         if es is None or query is None or from_ is None or size is None:
             return None
@@ -225,7 +226,7 @@ class BaseDocument(BaseModel):
                 index=cls._index_name,
                 from_=from_,
                 size=size,
-                query=cls.get_query(query),
+                query=cls.get_query(query, valid_for_inline_search),
                 sort=cls.get_sort(),
             )
 
@@ -259,6 +260,7 @@ class BaseDocument(BaseModel):
     def get_query(
         cls,
         query: Optional[str],
+        valid_for_inline_search: Optional[bool] = True,
     ):
         return {
             "multi_match": {

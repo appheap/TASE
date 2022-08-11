@@ -4,9 +4,9 @@ from typing import Coroutine, Iterable, List, Optional, Union
 import pyrogram
 from pyrogram.handlers.handler import Handler
 
+import tase
 from tase.configs import ClientConfig, ClientTypes
 from tase.my_logger import logger
-from tase.telegram import update_handlers
 from tase.telegram.client.raw_methods import search_messages
 
 
@@ -88,7 +88,7 @@ class TelegramClient:
 
     def add_handlers(
         self,
-        handlers_list: List["update_handlers.BaseHandler"],
+        handlers_list: List["tase.telegram.update_handlers.base.BaseHandler"],
     ):
         for handler in handlers_list:
             for h in handler.init_handlers():
@@ -104,24 +104,6 @@ class TelegramClient:
                     h.group,
                 )
 
-    def iter_audios(
-        self,
-        chat_id: Union["str", "int"],
-        query: str = "",
-        offset: int = 0,
-        offset_id: int = 0,
-        only_newer_messages: bool = True,
-    ):
-        yield from search_messages(
-            client=self._client,
-            chat_id=chat_id,
-            filter="audio",
-            query=query,
-            offset=offset,
-            offset_id=offset_id,
-            only_newer_messages=only_newer_messages,
-        )
-
     def iter_messages(
         self,
         chat_id: Union["str", "int"],
@@ -129,6 +111,7 @@ class TelegramClient:
         offset: int = 0,
         offset_id: int = 0,
         only_newer_messages: bool = True,
+        filter: str = "empty",
     ):
         yield from search_messages(
             client=self._client,
@@ -137,6 +120,7 @@ class TelegramClient:
             offset=offset,
             offset_id=offset_id,
             only_newer_messages=only_newer_messages,
+            filter=filter,
         )
 
     @staticmethod
