@@ -36,6 +36,7 @@ class BotMessageHandler(BaseHandler):
                 filters=filters.command(
                     BaseCommand.get_command_strings(
                         [
+                            BotCommandType.DUMMY,
                             BotCommandType.START,
                             BotCommandType.LANGUAGE,
                             BotCommandType.HELP,

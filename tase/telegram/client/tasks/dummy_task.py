@@ -17,4 +17,6 @@ class DummyTask(BaseTask):
         db: "DatabaseClient",
     ):
         logger.info(f"{telegram_client.name}: {self.kwargs}")
-        time.sleep(1)
+        logger.info(f"Running Dummy Task with client: {telegram_client.name}")
+        time.sleep(5)
+        logger.info(f"Finished Dummy Task with client: {telegram_client.name}")

@@ -4,6 +4,7 @@ from typing import List, Optional
 import pyrogram
 from pydantic import BaseModel, Field
 
+import tase
 from tase.db.graph_models.vertices import UserRole, User
 from tase.my_logger import logger
 from tase.utils import _trans
@@ -53,7 +54,7 @@ class BaseCommand(BaseModel):
         cls,
         client: pyrogram.Client,
         message: pyrogram.types.Message,
-        handler: "tase.telegram.handlers.BaseHandler",
+        handler: "tase.telegram.update_handlers.BaseHandler",
         bot_command_type: Optional[BotCommandType] = None,
     ) -> None:
         if client is None or message is None or handler is None or message.from_user is None:
@@ -99,7 +100,7 @@ class BaseCommand(BaseModel):
         self,
         client: pyrogram.Client,
         message: pyrogram.types.Message,
-        handler: "tase.telegram.handlers.BaseHandler",
+        handler: "tase.telegram.update_handlers.BaseHandler",
         db_from_user: "tase.db.graph_models.vertices.User",
     ) -> None:
         raise NotImplementedError

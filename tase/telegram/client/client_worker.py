@@ -7,7 +7,7 @@ from kombu import Consumer, Queue, Connection
 from kombu.mixins import ConsumerProducerMixin
 from kombu.transport import pyamqp
 
-from tase import globals
+from tase import tase_globals
 from tase.configs import ClientTypes
 from tase.db.database_client import DatabaseClient
 from tase.my_logger import logger
@@ -32,7 +32,7 @@ class ClientTaskConsumer(ConsumerProducerMixin):
 
         task_queue = Queue(
             f"{self.telegram_client.get_session_name()}_queue",
-            exchange=globals.tase_telegram_exchange,
+            exchange=tase_globals.tase_telegram_exchange,
             routing_key=f"{self.telegram_client.get_session_name()}_queue",
         )
         self.task_queue = task_queue
@@ -54,7 +54,7 @@ class ClientTaskConsumer(ConsumerProducerMixin):
                     accept=["pickle"],
                 ),
                 Consumer(
-                    queues=[globals.tase_telegram_queue],
+                    queues=[tase_globals.tase_telegram_queue],
                     callbacks=[self.on_task],
                     channel=channel,
                     prefetch_count=1,

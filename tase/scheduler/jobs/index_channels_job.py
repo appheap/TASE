@@ -2,10 +2,11 @@ import apscheduler.triggers.interval
 import arrow
 
 import tase
-from .base_job import BaseJob
-from tase.telegram.client.tasks import IndexAudiosTask
+from tase import tase_globals
 from tase.my_logger import logger
-from tase import globals
+from tase.telegram.client.tasks import IndexAudiosTask
+from .base_job import BaseJob
+
 
 class IndexChannelsJob(BaseJob):
     name = "index_channels_job"
@@ -18,7 +19,6 @@ class IndexChannelsJob(BaseJob):
         self,
         db: "tase.db.DatabaseClient",
     ) -> None:
-
         db_chats = db.get_chats_sorted_by_audio_indexer_score()
 
         # fixme: remove this later
@@ -26,7 +26,7 @@ class IndexChannelsJob(BaseJob):
 
         # todo: blocking or non-blocking? which one is better suited for this case?
         for db_chat in db_chats:
-            globals.publish_client_task(
+            tase_globals.publish_client_task(
                 IndexAudiosTask(
                     kwargs={
                         "db_chat": db_chat,

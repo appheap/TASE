@@ -2,7 +2,7 @@ import pyrogram
 from pydantic import Field
 
 import tase
-from tase import globals
+from tase import tase_globals
 from tase.db.graph_models.vertices import UserRole
 from tase.telegram.client.tasks import AddChannelTask
 from ..base_command import BaseCommand
@@ -34,9 +34,9 @@ class AddChannelCommand(BaseCommand):
             # todo: translate me
             message.reply_text("This channel already exists in the Database!")
         else:
-            globals.publish_client_task(
+            tase_globals.publish_client_task(
                 AddChannelTask(kwargs={"channel_username": channel_username}),
-                globals.tase_telegram_queue,
+                tase_globals.tase_telegram_queue,
             )
             # todo: translate me
             message.reply_text("Added Channel to the Database for indexing.")

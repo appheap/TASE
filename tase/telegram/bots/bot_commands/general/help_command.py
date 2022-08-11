@@ -3,6 +3,7 @@ from pydantic import Field
 from pyrogram.enums import ParseMode
 from pyrogram.types import InlineKeyboardMarkup
 
+import tase
 from tase.telegram.bots.bot_commands.base_command import BaseCommand
 from tase.telegram.bots.bot_commands.bot_command_type import BotCommandType
 from tase.telegram.bots.ui.inline_buttons import InlineButton
@@ -20,7 +21,7 @@ class HelpCommand(BaseCommand):
         self,
         client: pyrogram.Client,
         message: pyrogram.types.Message,
-        handler: "tase.telegram.handlers.BaseHandler",
+        handler: "tase.telegram.update_handlers.BaseHandler",
         db_from_user: "tase.db.graph_models.vertices.User",
     ) -> None:
         data = HelpData(

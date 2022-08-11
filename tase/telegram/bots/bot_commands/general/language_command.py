@@ -2,10 +2,11 @@ import pyrogram
 from pydantic import Field
 from pyrogram.enums import ParseMode
 
-from tase.utils import languages_object
+import tase
 from tase.telegram.bots.bot_commands.base_command import BaseCommand
 from tase.telegram.bots.bot_commands.bot_command_type import BotCommandType
 from tase.telegram.bots.ui.templates import BaseTemplate, ChooseLanguageData
+from tase.utils import languages_object
 
 
 class LanguageCommand(BaseCommand):
@@ -19,7 +20,7 @@ class LanguageCommand(BaseCommand):
         self,
         client: pyrogram.Client,
         message: pyrogram.types.Message,
-        handler: "tase.telegram.handlers.BaseHandler",
+        handler: "tase.telegram.update_handlers.BaseHandler",
         db_from_user: "tase.db.graph_models.vertices.User",
     ) -> None:
         data = ChooseLanguageData(

@@ -9,7 +9,7 @@ from kombu.mixins import ConsumerProducerMixin
 from kombu.transport import pyamqp
 
 import tase
-from tase import globals
+from tase import tase_globals
 from tase.my_logger import logger
 from tase.scheduler.jobs import BaseJob
 from tase.utils import exception_handler
@@ -56,7 +56,7 @@ class SchedulerJobConsumer(ConsumerProducerMixin):
         self.db = db
         self.task_queues = task_queues
 
-        self.scheduler_queue = globals.scheduler_queue
+        self.scheduler_queue = tase_globals.scheduler_queue
 
         self.scheduler = BackgroundScheduler()
         self.scheduler.start()

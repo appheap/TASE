@@ -2,10 +2,11 @@ import apscheduler.triggers.interval
 import arrow
 
 import tase
-from .base_job import BaseJob
-from tase.telegram.client.tasks import ExtractUsernamesTask
+from tase import tase_globals
 from tase.my_logger import logger
-from tase import globals
+from tase.telegram.client.tasks import ExtractUsernamesTask
+from .base_job import BaseJob
+
 
 class ExtractUsernamesJob(BaseJob):
     name = "extract_usernames_job"
@@ -25,7 +26,7 @@ class ExtractUsernamesJob(BaseJob):
 
         for db_chat in db_chats:
             # todo: blocking or non-blocking? which one is better suited for this case?
-            globals.publish_client_task(
+            tase_globals.publish_client_task(
                 ExtractUsernamesTask(
                     kwargs={
                         "db_chat": db_chat,

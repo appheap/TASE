@@ -7,6 +7,7 @@ class BotCommandType(Enum):
     INVALID = "invalid"
 
     BASE = "base"
+    DUMMY = "dummy"
 
     START = "start"
     HOME = "home"
