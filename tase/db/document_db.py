@@ -12,7 +12,6 @@ from tase.db.document_models import (
     BotTask,
     BotTaskStatus,
     BotTaskType,
-    ChatBuffer,
     docs,
 )
 
@@ -93,68 +92,6 @@ class DocumentDatabase:
         if audio is None or telegram_client_id is None:
             return None
         return Audio.find_by_key(Audio.get_key_from_audio(audio, telegram_client_id))
-
-    def create_chat_buffer(
-        self,
-        chat: "pyrogram.types.Chat",
-    ) -> Optional[ChatBuffer]:
-        if chat is None:
-            return None
-
-        chat_buffer, successful = ChatBuffer.create(ChatBuffer.parse_from_chat(chat))
-        return chat_buffer
-
-    def get_or_create_chat_buffer(
-        self,
-        chat: "pyrogram.types.Chat",
-    ) -> Optional[ChatBuffer]:
-        if chat is None:
-            return None
-
-        chat_buffer = ChatBuffer.find_by_key(ChatBuffer.get_key(chat))
-        if not chat_buffer:
-            # chat_buffer does not exist in the database, create it
-            chat_buffer = self.create_chat_buffer(chat)
-
-        return chat_buffer
-
-    def update_or_create_chat_buffer(
-        self,
-        chat: "pyrogram.types.Chat",
-    ) -> Optional[Audio]:
-        if chat is None:
-            return None
-
-        chat_buffer = ChatBuffer.find_by_key(ChatBuffer.get_key(chat))
-        if chat_buffer:
-            # chat_buffer exists in the database, update the chat_buffer
-            chat_buffer, successful = Audio.update(chat_buffer, ChatBuffer.parse_from_chat(chat))
-        else:
-            # chat_buffer does not exist in the database, create it
-            chat_buffer = self.create_chat_buffer(chat)
-
-        return chat_buffer
-
-    def get_chat_buffer_from_chat(
-        self,
-        chat: pyrogram.types.Chat,
-    ) -> Optional[Audio]:
-        """
-        Get a ChatBuffer by key from the provided Chat
-
-        Parameters
-        ----------
-        chat : pyrogram.types.Chat
-            Chat to get the key from
-
-        Returns
-        -------
-        A ChatBuffer if it exists otherwise returns None
-        """
-        if chat is None:
-            return None
-
-        return ChatBuffer.find_by_key(ChatBuffer.get_key(chat))
 
     def create_bot_task(
         self,
