@@ -126,9 +126,21 @@ class BaseCommand(BaseModel):
 
         lst = collections.deque()
         for bot_command_type in bot_command_types:
-            if bot_command_type not in (BotCommandType.INVALID, BotCommandType.UNKNOWN):
+            if bot_command_type not in (BotCommandType.INVALID, BotCommandType.UNKNOWN, BotCommandType.BASE):
                 command = BaseCommand.get_command(bot_command_type)
                 if command:
                     lst.append(str(command.command_type.value))
 
         return list(lst)
+
+    @classmethod
+    def get_all_valid_commands(cls) -> List[str]:
+        """
+        Get list of all valid command type string.
+
+        Returns
+        -------
+        List[str]
+            List of all command types
+        """
+        return cls.get_command_strings(list(BotCommandType))

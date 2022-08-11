@@ -33,18 +33,7 @@ class BotMessageHandler(BaseHandler):
             HandlerMetadata(
                 cls=handlers.MessageHandler,
                 callback=self.commands_handler,
-                filters=filters.command(
-                    BaseCommand.get_command_strings(
-                        [
-                            BotCommandType.DUMMY,
-                            BotCommandType.START,
-                            BotCommandType.LANGUAGE,
-                            BotCommandType.HELP,
-                            BotCommandType.HOME,
-                            BotCommandType.ADD_CHANNEL,
-                        ]
-                    )
-                ),
+                filters=filters.command(BaseCommand.get_all_valid_commands()),
                 group=0,
             ),
             HandlerMetadata(

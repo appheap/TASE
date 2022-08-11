@@ -1,30 +1,34 @@
 import kombu
 from decouple import config
-from kombu import Connection, Exchange, Queue, uuid
 
-from tase.my_logger import logger
 from tase.scheduler.jobs import BaseJob
 from tase.telegram.client.tasks.base_task import BaseTask
-from tase.utils import prettify
+from tase.telegram.client.worker_commands import BaseWorkerCommand
 
-tase_telegram_exchange = Exchange(
+tase_telegram_exchange = kombu.Exchange(
     "tase_telegram_exchange",
     "direct",
     durable=True,
 )
 
+client_worker_controller_broadcast_exchange = kombu.Exchange(
+    "client_worker_controller_broadcast_exchange",
+    "fanout",
+    durable=False,
+)
+
 # this queue is for distributing general tasks among all client workers
-tase_telegram_client_worker_general_queue = Queue(
-    "tase_telegram_queue",
+telegram_workers_general_task_queue = kombu.Queue(
+    "telegram_workers_general_task_queue",
     exchange=tase_telegram_exchange,
     routing_key="tase_telegram_queue",
 )
-callback_queue = Queue(
-    uuid(),
+callback_queue = kombu.Queue(
+    kombu.uuid(),
     auto_delete=True,
 )
 
-scheduler_queue = Queue(
+scheduler_queue = kombu.Queue(
     f"scheduler_queue",
     exchange=tase_telegram_exchange,
     routing_key="scheduler_queue",
@@ -48,10 +52,8 @@ def publish_client_task(
         Queue to send to task to. If no queue is provided, then the task will be broadcasted to all available workers
         and only one of them will process this task.
     """
-    logger.info(f"@publish_client_task: {prettify(task)}")
-
     if target_queue is None:
-        target_queue = tase_telegram_client_worker_general_queue
+        target_queue = telegram_workers_general_task_queue
 
     publish(task, target_queue)
 
@@ -65,14 +67,27 @@ def publish_job_to_scheduler(job: BaseJob) -> None:
     job : tase.telegram.jobs.BaseJob
         Job to be scheduled
     """
-    logger.info(f"@publish_job_to_scheduler: {prettify(job)}")
-
     publish(job, scheduler_queue)
+
+
+def broadcast_worker_command_task(
+    task: BaseWorkerCommand,
+) -> None:
+    """
+    Broadcasts a command on a queue to be executed by all consumers.
+
+    Parameters
+    ----------
+    task : tase.telegram.client.worker_commands.BaseWorkerCommand
+        Command to be executed
+    """
+    publish(task, exchange=client_worker_controller_broadcast_exchange)
 
 
 def publish(
     body: object,
-    target_queue: kombu.Queue,
+    target_queue: kombu.Queue = None,
+    exchange: kombu.Exchange = None,
 ) -> None:
     """
     Publishes an object on a queue to be processed
@@ -81,10 +96,23 @@ def publish(
     ----------
     body : object
         Object to be sent as input for the worker to process
-    target_queue : Queue
+    target_queue : kombu.Queue
         Queue to send the body to
+    exchange : kombu.Exchange
+        Exchange to send the body to
     """
-    with Connection(
+    if target_queue is None and exchange is None:
+        raise Exception("Both `target_queue` and `exchange` cannot be None at the same time")
+
+    if target_queue is not None and exchange is not None:
+        raise Exception("Both `target_queue` and `exchange` cannot be set at the same time")
+
+    routing_key = "" if exchange else target_queue.routing_key
+    exchange_ = tase_telegram_exchange if not exchange else exchange
+    priority = 0 if not exchange else 9
+    declare = [target_queue] if target_queue else []
+
+    with kombu.Connection(
         config("RABBITMQ_URL"),
         userid=config("RABBITMQ_DEFAULT_USER"),
         password=config("RABBITMQ_DEFAULT_PASS"),
@@ -93,12 +121,11 @@ def publish(
         producer = conn.Producer(serializer="pickle")
         producer.publish(
             body=body,
-            exchange=tase_telegram_exchange,
-            routing_key=target_queue.routing_key,
-            declare=[
-                target_queue,
-            ],
+            exchange=exchange_,
+            routing_key=routing_key,
+            declare=declare,
             retry=True,
+            priority=priority,
             retry_policy={
                 "interval_start": 0,
                 "interval_step": 2,

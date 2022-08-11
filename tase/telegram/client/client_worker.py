@@ -13,6 +13,7 @@ from tase.db.database_client import DatabaseClient
 from tase.my_logger import logger
 from tase.telegram.client import TelegramClient
 from tase.telegram.client.tasks import BaseTask
+from tase.telegram.client.worker_commands import BaseWorkerCommand
 from tase.utils import exception_handler
 
 
@@ -30,14 +31,21 @@ class ClientTaskConsumer(ConsumerProducerMixin):
         self.db = db
         self.client_worker_queues = client_worker_queues
 
-        client_worker_private_queue = Queue(
-            f"{self.telegram_client.get_session_name()}_queue",
+        client_worker_task_queue = Queue(
+            f"{self.telegram_client.get_session_name()}_task_queue",
             exchange=tase_globals.tase_telegram_exchange,
-            routing_key=f"{self.telegram_client.get_session_name()}_queue",
+            routing_key=f"{self.telegram_client.get_session_name()}_task_queue",
         )
-        self.client_worker_private_queue = client_worker_private_queue
-        self.client_worker_queues[self.telegram_client.name] = client_worker_private_queue
+        self.client_worker_task_queue = client_worker_task_queue
+        self.client_worker_queues[self.telegram_client.name] = client_worker_task_queue
         logger.info(f"client_worker_queues: {self.client_worker_queues}")
+
+        client_worker_command_queue = Queue(
+            f"{self.telegram_client.get_session_name()}_command_queue",
+            exchange=tase_globals.client_worker_controller_broadcast_exchange,
+            routing_key=f"{self.telegram_client.get_session_name()}_command_queue",
+        )
+        self.client_worker_command_queue = client_worker_command_queue
 
     def get_consumers(
         self,
@@ -47,14 +55,21 @@ class ClientTaskConsumer(ConsumerProducerMixin):
         if self.telegram_client.client_type == ClientTypes.USER:
             return [
                 Consumer(
-                    queues=[self.client_worker_private_queue],
+                    queues=[self.client_worker_command_queue],
                     callbacks=[self.on_task],
                     channel=channel,
                     prefetch_count=1,
                     accept=["pickle"],
                 ),
                 Consumer(
-                    queues=[tase_globals.tase_telegram_client_worker_general_queue],
+                    queues=[self.client_worker_task_queue],
+                    callbacks=[self.on_task],
+                    channel=channel,
+                    prefetch_count=1,
+                    accept=["pickle"],
+                ),
+                Consumer(
+                    queues=[tase_globals.telegram_workers_general_task_queue],
                     callbacks=[self.on_task],
                     channel=channel,
                     prefetch_count=1,
@@ -64,7 +79,14 @@ class ClientTaskConsumer(ConsumerProducerMixin):
         else:
             return [
                 Consumer(
-                    queues=[self.client_worker_private_queue],
+                    queues=[self.client_worker_command_queue],
+                    callbacks=[self.on_task],
+                    channel=channel,
+                    prefetch_count=1,
+                    accept=["pickle"],
+                ),
+                Consumer(
+                    queues=[self.client_worker_task_queue],
                     callbacks=[self.on_task],
                     channel=channel,
                     prefetch_count=1,
@@ -80,11 +102,17 @@ class ClientTaskConsumer(ConsumerProducerMixin):
     ):
         message.ack()
 
-        task: BaseTask = body
-        logger.info(f"client_task_consumer_on_task : {self.telegram_client.get_session_name()}")
+        if isinstance(body, BaseWorkerCommand):
+            body.run_command(self, self.telegram_client, self.db)
+            logger.info(f"Worker got a new command: {body.name} @{self.telegram_client.get_session_name()}")
+        elif isinstance(body, BaseTask):
+            logger.info(f"Worker got a new task: {body.name} @ {self.telegram_client.get_session_name()}")
 
-        if self.telegram_client.is_connected() and task.name:
-            task.run_task(self.telegram_client, self.db)
+            if self.telegram_client.is_connected() and body.name:
+                body.run_task(self.telegram_client, self.db)
+        else:
+            # todo: unknown type for body detected, what now?
+            raise TypeError(f"Unknown type for `body`: {type(body)}")
 
 
 class ClientWorkerThread(Thread):

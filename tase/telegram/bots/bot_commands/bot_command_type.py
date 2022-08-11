@@ -5,16 +5,20 @@ from pydantic.types import Enum
 class BotCommandType(Enum):
     UNKNOWN = "unknown"
     INVALID = "invalid"
-
     BASE = "base"
+
+    # commands intended for testing purposes
     DUMMY = "dummy"
 
+    # general commands
     START = "start"
     HOME = "home"
     HELP = "help"
     LANGUAGE = "lang"
 
+    # admin/creator commands
     ADD_CHANNEL = "add_channel"
+    SHUTDOWN_SYSTEM = "shutdown_system"
 
     @classmethod
     def get_from_message(

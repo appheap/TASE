@@ -16,4 +16,4 @@ class BaseTask(BaseModel):
         telegram_client: "TelegramClient",
         db: "DatabaseClient",
     ):
-        pass
+        raise NotImplementedError

@@ -25,5 +25,4 @@ class DummyCommand(BaseCommand):
         handler: "tase.telegram.update_handlers.BaseHandler",
         db_from_user: "tase.db.graph_models.vertices.User",
     ) -> None:
-        logger.info(f"Got dummy command")
         tase_globals.publish_client_task(DummyTask())
