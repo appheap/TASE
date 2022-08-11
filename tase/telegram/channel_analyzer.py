@@ -63,8 +63,13 @@ class ChannelAnalyzer(BaseModel):
 
         deleted_message_count = all_messages_count - media_count
 
-        audio_density = audio_count / (all_messages_count - deleted_message_count - link_count)
-        member_density = math.log(chat.members_count, 10**10)
+        try:
+            audio_density = audio_count / (all_messages_count - deleted_message_count - link_count)
+        except ZeroDivisionError:
+            audio_density = 0.0
+
+        member_density = math.log(chat.members_count, 10_000_000_000)
+
         logger.debug(f"audio_density: {audio_density}")
         logger.debug(f"member_density: {member_density}")
 

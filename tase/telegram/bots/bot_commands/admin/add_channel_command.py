@@ -36,7 +36,6 @@ class AddChannelCommand(BaseCommand):
         else:
             tase_globals.publish_client_task(
                 AddChannelTask(kwargs={"channel_username": channel_username}),
-                tase_globals.tase_telegram_queue,
             )
             # todo: translate me
             message.reply_text("Added Channel to the Database for indexing.")

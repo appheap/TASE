@@ -2,7 +2,6 @@ import kombu
 from decouple import config
 from kombu import Connection, Exchange, Queue, uuid
 
-import tase
 from tase.my_logger import logger
 from tase.scheduler.jobs import BaseJob
 from tase.telegram.client.tasks.base_task import BaseTask
@@ -46,7 +45,8 @@ def publish_client_task(
     task : tase.telegram.tasks.BaseTask
         Task to be executed
     target_queue : kombu.Queue
-        Queue to send to task to. If no queue is provided, then the task will be broadcasted to all available workers.
+        Queue to send to task to. If no queue is provided, then the task will be broadcasted to all available workers
+        and only one of them will process this task.
     """
     logger.info(f"@publish_client_task: {prettify(task)}")
 
