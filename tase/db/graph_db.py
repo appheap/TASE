@@ -1289,7 +1289,7 @@ class GraphDatabase:
             {
                 "key": chat.key,
                 "rev": chat.rev,
-                "metadata": metadata.dict(),
+                "metadata": (chat.username_extractor_metadata + metadata).dict(),
             }
         )
 
