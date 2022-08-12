@@ -268,7 +268,7 @@ class BotMessageHandler(BaseHandler):
                 db_audio_docs, query_metadata = self.db.search_audio(
                     query,
                     size=10,
-                    valid_for_inline_search=True,
+                    valid_for_inline_search=False,  # todo: is this a good idea?
                 )
                 if not db_audio_docs or not len(db_audio_docs) or not len(query_metadata):
                     found_any = False
@@ -308,7 +308,7 @@ class BotMessageHandler(BaseHandler):
                     "index": f"{index + 1:02}",
                     "name": textwrap.shorten(name, width=35, placeholder="..."),
                     "file_size": round(db_audio_doc.file_size / 1000_000, 1),
-                    "time": f"{str(d.hour) + ':' if d.hour > 0 else ''}{d.minute:02}:{d.second:02}",
+                    "time": f"{str(d.hour) + ':' if d.hour > 0 else ''}{d.minute:02}:{d.second:02}" if duration else "",
                     "url": db_hit.download_url,
                     "sep": f"{40 * '-' if index != 0 else ''}",
                 }

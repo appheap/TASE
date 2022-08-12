@@ -29,7 +29,7 @@ class Audio(BaseDocument):
             "file_size": {"type": "integer"},
             "date": {"type": "date"},
             "download_count": {"type": "long"},
-            "is_audio_file": {"type": "bool"},
+            "is_audio_file": {"type": "boolean"},
             "valid_for_inline_search": {"type": "bool"},
         }
     }
