@@ -25,6 +25,7 @@ from .graph_models.edges import (
     ToBot,
     edges,
 )
+from .graph_models.helper_models import UsernameExtractorMetadata, AudioIndexerMetadata
 from .graph_models.vertices import (
     Audio,
     Chat,
@@ -1210,8 +1211,7 @@ class GraphDatabase:
     def update_audio_indexer_metadata(
         self,
         chat: Chat,
-        offset_id: int,
-        offset_date: int,
+        metadata: AudioIndexerMetadata,
     ) -> bool:
         """
         Updates audio indexer offset attributes of the chat after being indexed
@@ -1220,32 +1220,28 @@ class GraphDatabase:
         ----------
         chat : Chat
             Chat to update its metadata
-        offset_id : int
+        metadata : AudioIndexerMetadata
             New offset id
-        offset_date : int
-            New offset date (it's a timestamp)
 
         Returns
         -------
         Whether the update was successful or not
         """
-        if offset_id is None or offset_date is None:
+        if not all((chat, metadata)):
             return False
 
         query_template = Template(
             "for chat in chats"
             "   filter chat._key=='$key'"
             "   update chat with {"
-            "       audio_indexer_metadata: "
-            "       {last_message_offset_id: $offset_id,last_message_offset_date: $offset_date }"
+            "       audio_indexer_metadata: $metadata"
             "   } in chats options {mergeObjects: true}"
             "   return chat"
         )
         query = query_template.substitute(
             {
                 "key": chat.key,
-                "offset_id": offset_id,
-                "offset_date": offset_date,
+                "metadata": metadata.dict(),
             }
         )
 
@@ -1259,41 +1255,37 @@ class GraphDatabase:
     def update_username_extractor_metadata(
         self,
         chat: Chat,
-        offset_id: int,
-        offset_date: int,
+        metadata: UsernameExtractorMetadata,
     ) -> bool:
         """
-        Updates username extractor  offset attributes of the chat after being indexed
+        Updates username extractor metadata of the chat after being indexed
 
         Parameters
         ----------
         chat : Chat
             Chat to update its metadata
-        offset_id : int
-            New offset id
-        offset_date : int
-            New offset date (it's a timestamp)
+        metadata : UsernameExtractorMetadata
+            Updated metadata
 
         Returns
         -------
         Whether the update was successful or not
         """
-        if offset_id is None or offset_date is None:
+        if not all((chat, metadata)):
             return False
 
         query_template = Template(
             "for chat in chats"
-            "   filter chat._key==$key"
+            "   filter chat._key=='$key'"
             "   update chat with {"
-            "       username_extractor_metadata:{last_message_offset_id: $offset_id,last_message_offset_date: $offset_date }"
+            "       username_extractor_metadata: $metadata"
             "   } in chats options {mergeObjects: true}"
             "   return chat"
         )
         query = query_template.substitute(
             {
                 "key": chat.key,
-                "offset_id": offset_id,
-                "offset_date": offset_date,
+                "metadata": metadata.dict(),
             }
         )
 

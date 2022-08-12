@@ -1,14 +1,19 @@
+from typing import Optional
+
 from pydantic import Field
 
 from tase.db import DatabaseClient, graph_models
+from tase.db.graph_models.helper_models import AudioIndexerMetadata
 from tase.my_logger import logger
 from tase.telegram.client import TelegramClient
-from tase.utils import get_timestamp
+from tase.utils import get_timestamp, prettify
 from .base_task import BaseTask
 
 
 class IndexAudiosTask(BaseTask):
     name: str = Field(default="index_audios_task")
+
+    metadata: Optional[AudioIndexerMetadata]
 
     def run_task(
         self,
@@ -36,25 +41,27 @@ class IndexAudiosTask(BaseTask):
             db_chat = db.update_or_create_chat(tg_chat, creator)
 
             if creator and db_chat:
-                last_offset_id = db_chat.audio_indexer_metadata.last_message_offset_id
-                last_offset_date = db_chat.audio_indexer_metadata.last_message_offset_date
+                self.metadata = db_chat.audio_indexer_metadata
 
                 for message in telegram_client.iter_messages(
                     chat_id=chat_id,
-                    offset_id=last_offset_id,
+                    offset_id=self.metadata.last_message_offset_id,
                     only_newer_messages=True,
                     filter="audio",
                 ):
+                    self.metadata.message_count += 1
+
                     db.update_or_create_audio(
                         message,
                         telegram_client.telegram_id,
                     )
 
-                    if message.id > last_offset_id:
-                        last_offset_id = message.id
-                        last_offset_date = get_timestamp(message.date)
+                    if message.id > self.metadata.last_message_offset_id:
+                        self.metadata.last_message_offset_id = message.id
+                        self.metadata.last_message_offset_date = get_timestamp(message.date)
 
-                db.update_audio_indexer_metadata(db_chat, last_offset_id, last_offset_date)
+                db.update_audio_indexer_metadata(db_chat, self.metadata)
+                logger.info(f"{prettify(self.metadata)}")
                 logger.debug(f"Finished {title}")
             else:
                 logger.debug(f"Error occurred: {title}")

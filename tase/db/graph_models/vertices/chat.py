@@ -4,7 +4,12 @@ import pyrogram
 from pydantic import Field
 
 from .base_vertex import BaseVertex
-from ..helper_models import IndexerMetadata, Restriction
+from ..helper_models import (
+    Restriction,
+    AudioIndexerMetadata,
+    UsernameExtractorMetadata,
+    AudioDocIndexerMetadata,
+)
 from ...enums import ChatType
 
 
@@ -40,8 +45,9 @@ class Chat(BaseVertex):
     member_count: Optional[int]
     distance: Optional[int]
 
-    audio_indexer_metadata: IndexerMetadata = Field(default=IndexerMetadata())
-    username_extractor_metadata: IndexerMetadata = Field(default=IndexerMetadata())
+    audio_indexer_metadata: AudioIndexerMetadata = Field(default=AudioIndexerMetadata())
+    audio_doc_indexer_metadata: AudioDocIndexerMetadata = Field(default=AudioDocIndexerMetadata())
+    username_extractor_metadata: UsernameExtractorMetadata = Field(default=UsernameExtractorMetadata())
 
     @staticmethod
     def get_key(

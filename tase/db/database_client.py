@@ -449,24 +449,6 @@ class DatabaseClient:
         """
         return self._graph_db.get_chats_sorted_by_username_extractor_score()
 
-    def get_chat_buffer_from_chat(
-        self,
-        chat: pyrogram.types.Chat,
-    ) -> Optional[document_models.ChatBuffer]:
-        """
-        Get a ChatBuffer by key from the provided Chat
-
-        Parameters
-        ----------
-        chat : pyrogram.types.Chat
-            Chat to get the from
-
-        Returns
-        -------
-        A ChatBuffer if it exists otherwise returns None
-        """
-        return self._document_db.get_chat_buffer_from_chat(chat)
-
     def get_username(
         self,
         username: str,
@@ -508,20 +490,17 @@ class DatabaseClient:
     def update_username_extractor_metadata(
         self,
         chat: graph_models.vertices.Chat,
-        offset_id: int,
-        offset_date: int,
+        metadata: graph_models.helper_models.UsernameExtractorMetadata,
     ) -> bool:
         """
-        Updates username extractor  offset attributes of the chat after being indexed
+        Updates username extractor metadata of the chat after being indexed
 
         Parameters
         ----------
         chat : Chat
             Chat to update its metadata
-        offset_id : int
-            New offset id
-        offset_date : int
-            New offset date (it's a timestamp)
+        metadata : graph_models.helper_models.UsernameExtractorMetadata
+            Updated metadata
 
         Returns
         -------
@@ -529,15 +508,13 @@ class DatabaseClient:
         """
         return self._graph_db.update_username_extractor_metadata(
             chat,
-            offset_id,
-            offset_date,
+            metadata,
         )
 
     def update_audio_indexer_metadata(
         self,
         chat: graph_models.vertices.Chat,
-        offset_id: int,
-        offset_date: int,
+        metadata: graph_models.helper_models.AudioIndexerMetadata,
     ) -> bool:
         """
         Updates audio indexer offset attributes of the chat after being indexed
@@ -546,10 +523,8 @@ class DatabaseClient:
         ----------
         chat : Chat
             Chat to update its metadata
-        offset_id : int
-            New offset id
-        offset_date : int
-            New offset date (it's a timestamp)
+        metadata : graph_models.helper_models.AudioIndexerMetadata
+            Updated metadata
 
         Returns
         -------
@@ -557,8 +532,7 @@ class DatabaseClient:
         """
         return self._graph_db.update_audio_indexer_metadata(
             chat,
-            offset_id,
-            offset_date,
+            metadata,
         )
 
     def update_audio_indexer_score(

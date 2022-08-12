@@ -8,9 +8,10 @@ from pydantic import Field
 import tase.telegram
 from tase.db import DatabaseClient, graph_models
 from tase.db.enums import MentionSource
+from tase.db.graph_models.helper_models import UsernameExtractorMetadata
 from tase.my_logger import logger
 from tase.telegram.client import TelegramClient
-from tase.utils import get_timestamp
+from tase.utils import get_timestamp, prettify
 from .base_task import BaseTask
 
 username_pattern = re.compile(r"(?:@|(?:(?:(?:https?://)?t(?:elegram)?)\.me\/))(?P<username>[a-zA-Z0-9_]{5,32})")
@@ -23,12 +24,7 @@ class ExtractUsernamesTask(BaseTask):
     chat: Optional[tase.db.graph_models.vertices.Chat] = Field(default=None)
 
     chat_username: Optional[str]
-    last_offset_id: Optional[int] = Field(default=1)
-    last_offset_date: Optional[int] = Field(default=0)
-
-    message_count: Optional[int] = Field(default=0)
-    self_mention_count: Optional[int] = Field(default=0)
-    mention_count: Optional[int] = Field(default=0)
+    metadata: Optional[UsernameExtractorMetadata]
 
     def find_usernames_in_text(
         self,
@@ -105,24 +101,47 @@ class ExtractUsernamesTask(BaseTask):
 
         if self.chat_username:
             if username == self.chat_username:
-                self.self_mention_count += 1
+                if is_direct_mention:
+                    self.metadata.direct_self_mention_count += 1
+                else:
+                    self.metadata.undirect_self_mention_count += 1
             else:
-                self.mention_count += 1
+                if is_direct_mention:
+                    self.metadata.direct_raw_mention_count += 1
+                    if db_username_buffer.is_checked and db_username_buffer.is_valid:
+                        self.metadata.direct_valid_mention_count += 1
+                else:
+                    self.metadata.undirect_raw_mention_count += 1
+                    if db_username_buffer.is_checked and db_username_buffer.is_valid:
+                        self.metadata.undirect_valid_mention_count += 1
+
         else:
-            self.mention_count += 1
+            if is_direct_mention:
+                self.metadata.direct_raw_mention_count += 1
+                if db_username_buffer.is_checked and db_username_buffer.is_valid:
+                    self.metadata.direct_valid_mention_count += 1
+            else:
+                self.metadata.undirect_raw_mention_count += 1
+                if db_username_buffer.is_checked and db_username_buffer.is_valid:
+                    self.metadata.undirect_valid_mention_count += 1
 
     def update_metadata(
         self,
     ) -> None:
-        mention_ratio = self.mention_count / (self.mention_count + self.self_mention_count)
-        score = (math.log(self.mention_count, 1000_000_000_000) * 2 + mention_ratio) / 3
+        try:
+            mention_ratio = self.metadata.direct_raw_mention_count / (
+                self.metadata.direct_raw_mention_count + self.metadata.direct_self_mention_count
+            )
+        except ZeroDivisionError:
+            mention_ratio = 0.0
+        score = (math.log(self.metadata.direct_raw_mention_count, 1000_000_000_000) * 2 + mention_ratio) / 3
 
-        # todo: find a better way for updating metadata attributes
-        self.db.update_username_extractor_metadata(self.chat, self.last_offset_id, self.last_offset_date)
-        self.db.update_username_extractor_score(self.chat, score)
+        self.metadata.score = score
+
+        self.db.update_username_extractor_metadata(self.chat, self.metadata)
 
         logger.info(f"Ratio: {mention_ratio} : {score}")
-        logger.info(f"Count: {self.message_count} : {self.self_mention_count} : {self.mention_count}")
+        logger.info(f"Metadata: {prettify(self.metadata)}")
 
     def run_task(
         self,
@@ -151,22 +170,20 @@ class ExtractUsernamesTask(BaseTask):
             creator = db.update_or_create_user(tg_user)
             db_chat = db.update_or_create_chat(tg_chat, creator)
 
+            self.metadata = db_chat.username_extractor_metadata
+
             self.chat = db_chat
             self.db = db
 
             if creator and db_chat:
-                self.last_offset_id = db_chat.username_extractor_metadata.last_message_offset_id
-                self.last_offset_date = db_chat.username_extractor_metadata.last_message_offset_date
-
                 for message in telegram_client.iter_messages(
                     chat_id=chat_id,
-                    offset_id=self.last_offset_id,
+                    offset_id=self.metadata.last_message_offset_id,
                     only_newer_messages=True,
                 ):
                     message: pyrogram.types.Message = message
 
-                    self.message_count += 1
-                    # lst.append(message.id)
+                    self.metadata.message_count += 1
 
                     self.find_usernames_in_text(
                         message.text if message.text else message.caption,
@@ -200,9 +217,9 @@ class ExtractUsernamesTask(BaseTask):
                             [MentionSource.AUDIO_TITLE, MentionSource.AUDIO_PERFORMER, MentionSource.AUDIO_FILE_NAME],
                         )
 
-                    if message.id > self.last_offset_id:
-                        self.last_offset_id = message.id
-                        self.last_offset_date = get_timestamp(message.date)
+                    if message.id > self.metadata.last_message_offset_id:
+                        self.metadata.last_message_offset_id = message.id
+                        self.metadata.last_message_offset_date = get_timestamp(message.date)
 
                 logger.info(f"Finished extracting usernames from chat: {title}")
 
