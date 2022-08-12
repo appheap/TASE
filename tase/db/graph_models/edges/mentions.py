@@ -1,5 +1,7 @@
 from typing import Optional
 
+from pydantic import Field
+
 from .base_edge import BaseEdge
 from ..vertices import Chat, Username
 from ...enums import MentionSource
@@ -19,6 +21,11 @@ class Mentions(BaseEdge):
     mentioned_at: int
     mention_source: MentionSource
     from_message_id: int
+
+    is_checked: bool = Field(default=False)
+    """
+    whether this mention has been checked and, its effect has been calculated on the chat username extractor metadata
+    """
 
     @staticmethod
     def parse_from_chat_and_username(

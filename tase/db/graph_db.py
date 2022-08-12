@@ -3,7 +3,7 @@ from string import Template
 from typing import List, Optional, Tuple
 
 import pyrogram
-from arango import ArangoClient
+from arango import ArangoClient, AQLQueryExecuteError
 from arango.database import StandardDatabase
 from arango.graph import Graph
 
@@ -43,6 +43,7 @@ from .graph_models.vertices import (
     vertices,
 )
 from ..configs import ArangoDBConfig
+from ..my_logger import logger
 
 
 class GraphDatabase:
@@ -1256,6 +1257,7 @@ class GraphDatabase:
         self,
         chat: Chat,
         metadata: UsernameExtractorMetadata,
+        run_depth: int = 1,
     ) -> bool:
         """
         Updates username extractor metadata of the chat after being indexed
@@ -1266,6 +1268,8 @@ class GraphDatabase:
             Chat to update its metadata
         metadata : UsernameExtractorMetadata
             Updated metadata
+        run_depth : int
+            Depth of running the function. stop and return False after 10 runs.
 
         Returns
         -------
@@ -1275,26 +1279,46 @@ class GraphDatabase:
             return False
 
         query_template = Template(
-            "for chat in chats"
-            "   filter chat._key=='$key'"
-            "   update chat with {"
+            "update {_key:'$key', _rev:'$rev'}"
+            "   with {"
             "       username_extractor_metadata: $metadata"
-            "   } in chats options {mergeObjects: true}"
-            "   return chat"
+            "   } in chats options {mergeObjects: true, ignoreRevs:false}"
+            "return NEW"
         )
         query = query_template.substitute(
             {
                 "key": chat.key,
+                "rev": chat.rev,
                 "metadata": metadata.dict(),
             }
         )
 
-        cursor = self.aql.execute(
-            query,
-            count=True,
-        )
+        try:
+            cursor = self.aql.execute(
+                query,
+                count=True,
+            )
+            return True if len(cursor) else False
+        except AQLQueryExecuteError as e:
+            # 'AQL: conflict, _rev values do not match (while executing)'
 
-        return True if len(cursor) else False
+            if e.http_code == 409 and e.error_code == 1200:
+                if run_depth > 10:
+                    return False
+
+                db_chat = self.get_chat_by_chat_id(chat.chat_id)
+                if db_chat:
+                    return self.update_username_extractor_metadata(
+                        db_chat,
+                        metadata + db_chat.username_extractor_metadata,
+                        run_depth + 1,
+                    )
+                else:
+                    return False
+        except Exception as e:
+            logger.exception(e)
+
+        return False
 
     def update_audio_indexer_score(
         self,

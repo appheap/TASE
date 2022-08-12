@@ -171,6 +171,7 @@ class ExtractUsernamesTask(BaseTask):
             db_chat = db.update_or_create_chat(tg_chat, creator)
 
             self.metadata = db_chat.username_extractor_metadata
+            self.metadata.reset_counters()
 
             self.chat = db_chat
             self.db = db
