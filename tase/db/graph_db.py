@@ -1310,7 +1310,7 @@ class GraphDatabase:
                 if db_chat:
                     return self.update_username_extractor_metadata(
                         db_chat,
-                        metadata + db_chat.username_extractor_metadata,
+                        db_chat.username_extractor_metadata + metadata,
                         run_depth + 1,
                     )
                 else:

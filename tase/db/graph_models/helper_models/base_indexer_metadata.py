@@ -15,10 +15,21 @@ class BaseIndexerMetadata(BaseModel):
         self.message_count = 0
 
     def __add__(self, other: "BaseIndexerMetadata"):
-        self.message_count += other.message_count
         if self.last_message_offset_id < other.last_message_offset_id:
-            self.last_message_offset_id = other.last_message_offset_id
-            self.last_message_offset_date = other.last_message_offset_date
-            self.score = other.score
+            older = self
+            newer = other
+        elif self.last_message_offset_id > other.last_message_offset_id:
+            older = other
+            newer = self
+        else:
+            return self
 
-        return self
+        older.last_message_offset_id = newer.last_message_offset_id
+        older.last_message_offset_date = newer.last_message_offset_date
+        older.score = newer.score
+        older.message_count += newer.message_count
+
+        return older
+
+    def update_score(self):
+        raise NotImplementedError
