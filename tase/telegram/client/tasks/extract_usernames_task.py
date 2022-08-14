@@ -1,4 +1,3 @@
-import math
 import re
 from typing import List, Optional, Union
 
@@ -88,8 +87,25 @@ class ExtractUsernamesTask(BaseTask):
         if username in ("joinchat",):
             return
 
+        if self.chat_username:
+            if username == self.chat_username:
+                if is_direct_mention:
+                    self.metadata.direct_self_mention_count += 1
+                else:
+                    self.metadata.indirect_self_mention_count += 1
+            else:
+                if is_direct_mention:
+                    self.metadata.direct_raw_mention_count += 1
+                else:
+                    self.metadata.indirect_raw_mention_count += 1
+        else:
+            if is_direct_mention:
+                self.metadata.direct_raw_mention_count += 1
+            else:
+                self.metadata.indirect_raw_mention_count += 1
+
         mentioned_at = get_timestamp(message.date)
-        db_username_buffer, created = self.db.get_or_create_username(
+        db_username, created = self.db.get_or_create_username(
             self.chat,
             username,
             is_direct_mention,
@@ -98,50 +114,6 @@ class ExtractUsernamesTask(BaseTask):
             mention_start_index,
             message.id,
         )
-
-        if self.chat_username:
-            if username == self.chat_username:
-                if is_direct_mention:
-                    self.metadata.direct_self_mention_count += 1
-                else:
-                    self.metadata.undirect_self_mention_count += 1
-            else:
-                if is_direct_mention:
-                    self.metadata.direct_raw_mention_count += 1
-                    if db_username_buffer.is_checked and db_username_buffer.is_valid:
-                        self.metadata.direct_valid_mention_count += 1
-                else:
-                    self.metadata.undirect_raw_mention_count += 1
-                    if db_username_buffer.is_checked and db_username_buffer.is_valid:
-                        self.metadata.undirect_valid_mention_count += 1
-
-        else:
-            if is_direct_mention:
-                self.metadata.direct_raw_mention_count += 1
-                if db_username_buffer.is_checked and db_username_buffer.is_valid:
-                    self.metadata.direct_valid_mention_count += 1
-            else:
-                self.metadata.undirect_raw_mention_count += 1
-                if db_username_buffer.is_checked and db_username_buffer.is_valid:
-                    self.metadata.undirect_valid_mention_count += 1
-
-    def update_metadata(
-        self,
-    ) -> None:
-        try:
-            mention_ratio = self.metadata.direct_raw_mention_count / (
-                self.metadata.direct_raw_mention_count + self.metadata.direct_self_mention_count
-            )
-        except ZeroDivisionError:
-            mention_ratio = 0.0
-        score = (math.log(self.metadata.direct_raw_mention_count, 1000_000_000_000) * 2 + mention_ratio) / 3
-
-        self.metadata.score = score
-
-        self.db.update_username_extractor_metadata(self.chat, self.metadata)
-
-        logger.info(f"Ratio: {mention_ratio} : {score}")
-        logger.info(f"Metadata: {prettify(self.metadata)}")
 
     def run_task(
         self,
@@ -152,7 +124,7 @@ class ExtractUsernamesTask(BaseTask):
         if db_chat is None:
             return
 
-        self.chat_username = db_chat.username
+        self.chat_username = db_chat.username.lower() if db_chat.username else None
 
         chat_id = db_chat.username if db_chat.username else db_chat.invite_link
         title = db_chat.title
@@ -170,7 +142,7 @@ class ExtractUsernamesTask(BaseTask):
             creator = db.update_or_create_user(tg_user)
             db_chat = db.update_or_create_chat(tg_chat, creator)
 
-            self.metadata = db_chat.username_extractor_metadata
+            self.metadata = db_chat.username_extractor_metadata.copy()
             self.metadata.reset_counters()
 
             self.chat = db_chat
@@ -225,7 +197,8 @@ class ExtractUsernamesTask(BaseTask):
                 logger.info(f"Finished extracting usernames from chat: {title}")
 
                 # check gathered usernames if they match the current policy of indexing and them to the Database
-                self.update_metadata()
+                logger.info(f"Metadata: {prettify(self.metadata)}")
+                self.db.update_username_extractor_metadata(self.chat, self.metadata)
             else:
                 logger.error(f"Error occurred: {title}")
 

@@ -14,15 +14,26 @@ class LinkedChat(BaseEdge):
 
     @staticmethod
     def parse_from_chat_and_chat(
-        chat: "Chat",
-        linked_chat: "Chat",
+        chat: Chat,
+        linked_chat: Chat,
     ) -> Optional["LinkedChat"]:
-        if chat is None and linked_chat is None:
+        key = LinkedChat.get_key(chat, linked_chat)
+        if not key:
             return None
 
-        key = f"{chat.key}@{linked_chat.key}"
         return LinkedChat(
             key=key,
             from_node=chat,
             to_node=linked_chat,
         )
+
+    @classmethod
+    def get_key(
+        cls,
+        chat: Chat,
+        linked_chat: Chat,
+    ):
+        if chat is None or linked_chat is None:
+            return ""
+
+        return f"{chat.key}@{linked_chat.key}"

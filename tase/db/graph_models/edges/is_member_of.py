@@ -16,15 +16,27 @@ class IsMemberOf(BaseEdge):
 
     @staticmethod
     def parse_from_user_and_chat(
-        user: "User",
-        chat: "Chat",
+        user: User,
+        chat: Chat,
     ) -> Optional["IsMemberOf"]:
-        if chat is None or user is None:
+
+        key = IsMemberOf.get_key(user, chat)
+        if not key:
             return None
 
-        key = f"{user.key}@{chat.key}"
         return IsMemberOf(
             key=key,
             from_node=user,
             to_node=chat,
         )
+
+    @classmethod
+    def get_key(
+        cls,
+        user: User,
+        chat: Chat,
+    ) -> str:
+        if chat is None or user is None:
+            return ""
+
+        return f"{user.key}@{chat.key}"

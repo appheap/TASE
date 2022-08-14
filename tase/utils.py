@@ -180,6 +180,7 @@ def get_timestamp(
     date=None,
 ) -> int:
     if date is not None:
+        # fixme: make sure this returns utc timestamp
         return int(arrow.get(date).timestamp())
     return int(arrow.utcnow().timestamp())
 

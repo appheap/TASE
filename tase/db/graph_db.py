@@ -1,6 +1,6 @@
 import uuid
 from string import Template
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 
 import pyrogram
 from arango import ArangoClient, AQLQueryExecuteError
@@ -44,6 +44,7 @@ from .graph_models.vertices import (
 )
 from ..configs import ArangoDBConfig
 from ..my_logger import logger
+from ..utils import get_timestamp
 
 
 class GraphDatabase:
@@ -192,21 +193,77 @@ class GraphDatabase:
                 # todo: fix this
                 linked_chat = self.get_or_create_chat(telegram_chat.linked_chat, creator, member)
                 if linked_chat:
-                    linked_chat_edge, successful = LinkedChat.create(
-                        LinkedChat.parse_from_chat_and_chat(chat, linked_chat)
-                    )
+                    db_linked_chat_edge, successful = self.get_or_create_linked_chat_edge(chat, linked_chat)
                 else:
                     pass
         else:
             pass
 
-        if chat and telegram_chat.is_creator and creator:
-            is_creator_of, successful = IsCreatorOf.create(IsCreatorOf.parse_from_chat_and_user(chat, creator))
-
-        if chat and member:
-            is_member_of, successful = IsMemberOf.create(IsMemberOf.parse_from_user_and_chat(user=member, chat=chat))
+        self.get_or_create_is_creator_of_edge(chat, creator, telegram_chat)
+        self.get_or_create_is_member_of_edge(chat, member)
 
         return chat
+
+    def get_or_create_is_member_of_edge(
+        self,
+        chat: Chat,
+        member: User,
+    ) -> Tuple[Optional[IsMemberOf], bool]:
+        is_member_of_edge = None
+        successful = False
+
+        if chat and member:
+            is_member_of_edge = IsMemberOf.find_by_key(IsMemberOf.get_key(member, chat))
+            successful = True
+
+            if not is_member_of_edge:
+                is_member_of_edge, successful = IsMemberOf.create(
+                    IsMemberOf.parse_from_user_and_chat(
+                        user=member,
+                        chat=chat,
+                    )
+                )
+
+        return is_member_of_edge, successful
+
+    def get_or_create_is_creator_of_edge(
+        self,
+        chat: Chat,
+        creator: User,
+        telegram_chat: pyrogram.types.Chat,
+    ) -> Tuple[Optional[IsCreatorOf], bool]:
+        is_creator_of_edge = None
+        successful = False
+
+        if chat and telegram_chat.is_creator and creator:
+            is_creator_of_edge = IsCreatorOf.find_by_key(IsCreatorOf.get_key(chat, creator))
+            successful = True
+
+            if not is_creator_of_edge:
+                is_creator_of_edge, successful = IsCreatorOf.create(
+                    IsCreatorOf.parse_from_chat_and_user(
+                        chat,
+                        creator,
+                    )
+                )
+
+        return is_creator_of_edge, successful
+
+    def get_or_create_linked_chat_edge(
+        self,
+        chat: Chat,
+        linked_chat: Chat,
+    ) -> Tuple[Optional[LinkedChat], bool]:
+        if chat is None or linked_chat is None:
+            return None, False
+
+        db_linked_chat_edge = LinkedChat.find_by_key(LinkedChat.get_key(chat, linked_chat))
+        successful = False
+
+        if not db_linked_chat_edge:
+            db_linked_chat_edge, successful = LinkedChat.create(LinkedChat.parse_from_chat_and_chat(chat, linked_chat))
+
+        return db_linked_chat_edge, successful
 
     def update_or_create_audio(
         self,
@@ -357,30 +414,48 @@ class GraphDatabase:
                 )
 
                 for audio_doc, db_audio in zip(audio_docs, db_audios):
-                    db_hit, successful = Hit.create(
-                        Hit.parse_from_inline_query_and_audio(
-                            db_inline_query,
-                            db_audio,
-                            audio_doc.search_metadata,
-                        )
-                    )
+                    db_hit, successful = self.get_or_create_hit(audio_doc, db_audio, db_inline_query)
 
                     if db_hit and successful:
                         hits.append(db_hit)
 
-                    db_has_hit, successful = Has.create(
-                        Has.parse_from_inline_query_and_hit(
-                            db_inline_query,
-                            db_hit,
+                        db_has_hit, successful = Has.create(
+                            Has.parse_from_inline_query_and_hit(
+                                db_inline_query,
+                                db_hit,
+                            )
                         )
-                    )
-                    db_has_audio, successful = Has.create(
-                        Has.parse_from_hit_and_audio(
-                            db_hit,
-                            db_audio,
+                        db_has_audio, successful = Has.create(
+                            Has.parse_from_hit_and_audio(
+                                db_hit,
+                                db_audio,
+                            )
                         )
-                    )
         return db_inline_query, hits
+
+    def get_or_create_hit(
+        self,
+        audio_doc: elasticsearch_db.Audio,
+        db_audio: Audio,
+        db_inline_query: InlineQuery,
+    ) -> Tuple[Optional[Hit], bool]:
+        successful = False
+
+        db_hit = Hit.find_by_key(
+            Hit.get_key(
+                db_inline_query,
+                db_audio,
+            )
+        )
+        if not db_hit:
+            db_hit, successful = Hit.create(
+                Hit.parse_from_inline_query_and_audio(
+                    db_inline_query,
+                    db_audio,
+                    audio_doc.search_metadata,
+                )
+            )
+        return db_hit, successful
 
     def get_or_create_query(
         self,
@@ -462,18 +537,18 @@ class GraphDatabase:
                     if db_hit and successful:
                         hits.append(db_hit)
 
-                    db_has_hit, successful = Has.create(
-                        Has.parse_from_query_and_hit(
-                            db_query,
-                            db_hit,
+                        db_has_hit, successful = Has.create(
+                            Has.parse_from_query_and_hit(
+                                db_query,
+                                db_hit,
+                            )
                         )
-                    )
-                    db_has_audio, successful = Has.create(
-                        Has.parse_from_hit_and_audio(
-                            db_hit,
-                            db_audio,
+                        db_has_audio, successful = Has.create(
+                            Has.parse_from_hit_and_audio(
+                                db_hit,
+                                db_audio,
+                            )
                         )
-                    )
         return db_query, hits
 
     def get_chat_by_chat_id(
@@ -1209,6 +1284,37 @@ class GraphDatabase:
             results.append(Chat.parse_from_graph(aud))
         return results
 
+    def get_unchecked_usernames(self) -> List[Username]:
+        """
+        Gets the list of usernames sorted by their creation date in a ascending order
+
+        Returns
+        -------
+        A list of Username objects
+        """
+        now = get_timestamp() - 60
+        query_template = Template(
+            "for username in usernames"
+            "   filter username.is_checked == false and username.created_at < $now"
+            "   sort username.created_at desc"
+            "   return username"
+        )
+
+        query = query_template.substitute(
+            {
+                "now": now,
+            }
+        )
+
+        # fixme: use a generator instead of returning all results
+        results = []
+        for username in self.aql.execute(
+            query,
+            count=True,
+        ):
+            results.append(Username.parse_from_graph(username))
+        return results
+
     def update_audio_indexer_metadata(
         self,
         chat: Chat,
@@ -1278,6 +1384,9 @@ class GraphDatabase:
         if not all((chat, metadata)):
             return False
 
+        updated_metadata = chat.username_extractor_metadata.update_metadata(metadata)
+        updated_metadata.update_score()
+
         query_template = Template(
             "update {_key:'$key', _rev:'$rev'}"
             "   with {"
@@ -1289,7 +1398,7 @@ class GraphDatabase:
             {
                 "key": chat.key,
                 "rev": chat.rev,
-                "metadata": (chat.username_extractor_metadata + metadata).dict(),
+                "metadata": updated_metadata.dict(),
             }
         )
 
@@ -1302,15 +1411,15 @@ class GraphDatabase:
         except AQLQueryExecuteError as e:
             # 'AQL: conflict, _rev values do not match (while executing)'
 
-            if e.http_code == 409 and e.error_code == 1200:
-                if run_depth > 10:
+            if e.error_code == 1200:
+                if run_depth > 20:
                     return False
 
                 db_chat = self.get_chat_by_chat_id(chat.chat_id)
                 if db_chat:
                     return self.update_username_extractor_metadata(
                         db_chat,
-                        db_chat.username_extractor_metadata + metadata,
+                        metadata,
                         run_depth + 1,
                     )
                 else:
@@ -1474,38 +1583,67 @@ class GraphDatabase:
             created = True
 
         if chat.username is not None:
-            if chat.username != username.lower():
+            if chat.username.lower() != username.lower():
+                # this is not a self-mention edge, so it should be created
                 create_mention_edge = True
             else:
+                # don't create self-mention edges
                 create_mention_edge = False
         else:
+            # the username is mentioned from a chat that doesn't have a username itself
             create_mention_edge = True
 
         if create_mention_edge:
-            db_mentions = Mentions.find_by_key(
-                Mentions.get_key(
-                    chat,
-                    db_username,
+            self.get_or_create_mentions_edge(
+                chat,
+                db_username,
+                from_message_id,
+                is_direct_mention,
+                mention_source,
+                mention_start_index,
+                mentioned_at,
+            )
+
+        return db_username, created
+
+    def get_or_create_mentions_edge(
+        self,
+        from_: Union[Chat, Username],
+        to_: Union[Chat, Username],
+        from_message_id: int,
+        is_direct_mention: bool,
+        mention_source: MentionSource,
+        mention_start_index: int,
+        mentioned_at: int,
+    ) -> Tuple[Mentions, bool]:
+        created = False
+        # successful = False
+
+        db_mentions = Mentions.find_by_key(
+            Mentions.get_key(
+                from_,
+                to_,
+                mentioned_at,
+                mention_source,
+                mention_start_index,
+                from_message_id,
+            )
+        )
+        if db_mentions is None:
+            db_mentions, successful = Mentions.create(
+                Mentions.parse(
+                    from_,
+                    to_,
+                    is_direct_mention,
                     mentioned_at,
                     mention_source,
                     mention_start_index,
                     from_message_id,
                 )
             )
-            if db_mentions is None:
-                db_mentions, _ = Mentions.create(
-                    Mentions.parse_from_chat_and_username(
-                        chat,
-                        db_username,
-                        is_direct_mention,
-                        mentioned_at,
-                        mention_source,
-                        mention_start_index,
-                        from_message_id,
-                    )
-                )
+            created = successful
 
-        return db_username, created
+        return db_mentions, created
 
     def get_username(
         self,
@@ -1527,3 +1665,160 @@ class GraphDatabase:
             return None
 
         return Username.find_by_key(Username.get_key(username))
+
+    def update_mentions_edges_from_chat_to_username(
+        self,
+        db_username: Username,
+    ) -> bool:
+        """
+        Update mentions edges based on the data provided from `db_username` parameter
+
+        Parameters
+        ----------
+        db_username : Username
+            Username object to get data from for this update
+        Returns
+        -------
+        bool
+            Whether this update was successful or not
+
+        """
+        if db_username is None or not isinstance(db_username, Username):
+            return False
+
+        query_template = Template(
+            "for v,e in 1..1 inbound '$to' graph 'tase' options {order:'dfs', edgeCollections:['mentions'], vertexCollections:['chats']}"
+            "   filter e.is_checked != $is_checked"
+            "   sort e.created_at ASC"
+            "   update e with {"
+            "       is_checked:$is_checked, checked_at:$checked_at"
+            "   } in mentions options {mergeObjects: true}"
+            "   return NEW"
+        )
+        query = query_template.substitute(
+            {
+                "to": db_username.id,
+                "is_checked": db_username.is_checked,
+                "checked_at": db_username.checked_at,
+            }
+        )
+
+        try:
+            cursor = self.aql.execute(
+                query,
+                count=True,
+            )
+            return True if len(cursor) else False
+        except Exception as e:
+            logger.exception(e)
+            return False
+
+    def create_mentions_edges_after_username_check(
+        self,
+        db_mentioned_chat: Chat,
+        db_username: Username,
+    ) -> None:
+        """
+        Update mentions edges based on the data provided from `db_username` parameter and create new edges from
+        `db_username` to `db_chat` and from `db_chat` to `db_mentioned_chat`.
+
+        Parameters
+        ----------
+        db_mentioned_chat: Chat
+            Mentioned chat
+        db_username : Username
+            Username object to get data from for this update
+        Returns
+        -------
+        None
+            This method does not return anything
+
+        """
+        if db_mentioned_chat is None or db_username is None or db_username.checked_at is None:
+            return
+
+        query_template = Template(
+            "for v,e in 1..1 inbound '$to' graph 'tase' options {order:'dfs', edgeCollections:['mentions'], vertexCollections:['chats']}"
+            "   filter e.is_checked == false"
+            "   sort e.created_at ASC"
+            "   update e with {"
+            "       is_checked:true, checked_at:$checked_at"
+            "   } in mentions options {mergeObjects: true}"
+            "   return {chat:v, mention_:NEW}"
+        )
+        query = query_template.substitute(
+            {
+                "to": db_username.id,
+                "checked_at": db_username.checked_at,
+            }
+        )
+        for obj_dict in self.aql.execute(
+            query,
+            count=True,
+        ):
+            db_mentions_edge = Mentions.parse_from_graph(obj_dict["mention_"])
+            db_source_chat = Chat.parse_from_graph(obj_dict["chat"])
+
+            if db_mentions_edge and db_source_chat:
+                if (
+                    not db_source_chat.username
+                    or not db_mentioned_chat.username
+                    or db_source_chat.username != db_mentioned_chat.username
+                ):
+                    self.get_or_create_mentions_edge(
+                        db_username,
+                        db_mentioned_chat,
+                        db_mentions_edge.from_message_id,
+                        db_mentions_edge.is_direct_mention,
+                        db_mentions_edge.mention_source,
+                        db_mentions_edge.mention_start_index,
+                        db_mentions_edge.mentioned_at,
+                    )
+                    self.get_or_create_mentions_edge(
+                        db_source_chat,
+                        db_mentioned_chat,
+                        db_mentions_edge.from_message_id,
+                        db_mentions_edge.is_direct_mention,
+                        db_mentions_edge.mention_source,
+                        db_mentions_edge.mention_start_index,
+                        db_mentions_edge.mentioned_at,
+                    )
+
+                    metadata = db_source_chat.username_extractor_metadata.copy()
+                    metadata.reset_counters()
+
+                    if db_mentions_edge.is_direct_mention:
+                        metadata.direct_valid_mention_count += 1
+
+                        if db_mentioned_chat.chat_type == ChatType.BOT:
+                            metadata.direct_valid_bot_mention_count += 1
+                        elif db_mentioned_chat.chat_type == ChatType.PRIVATE:
+                            metadata.direct_valid_user_mention_count += 1
+                        elif db_mentioned_chat.chat_type == ChatType.SUPERGROUP:
+                            metadata.direct_valid_supergroup_mention_count += 1
+                        elif db_mentioned_chat.chat_type == ChatType.CHANNEL:
+                            metadata.direct_valid_channel_mention_count += 1
+
+                    else:
+                        metadata.indirect_valid_mention_count += 1
+
+                        if db_mentioned_chat.chat_type == ChatType.BOT:
+                            metadata.indirect_valid_bot_mention_count += 1
+                        elif db_mentioned_chat.chat_type == ChatType.PRIVATE:
+                            metadata.indirect_valid_user_mention_count += 1
+                        elif db_mentioned_chat.chat_type == ChatType.SUPERGROUP:
+                            metadata.indirect_valid_supergroup_mention_count += 1
+                        elif db_mentioned_chat.chat_type == ChatType.CHANNEL:
+                            metadata.indirect_valid_channel_mention_count += 1
+
+                    successful = self.update_username_extractor_metadata(db_source_chat, metadata)
+                    if not successful:
+                        # todo: the update wasn't successful, uncheck the edge so it could be updated later
+                        db_mentions_edge.check(False, None)
+                        pass
+
+                else:
+                    # do not create self-loop mentions for chats
+                    pass
+            else:
+                pass

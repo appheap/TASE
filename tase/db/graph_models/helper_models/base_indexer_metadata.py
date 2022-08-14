@@ -14,22 +14,17 @@ class BaseIndexerMetadata(BaseModel):
     def reset_counters(self):
         self.message_count = 0
 
-    def __add__(self, other: "BaseIndexerMetadata"):
-        if self.last_message_offset_id < other.last_message_offset_id:
-            older = self
-            newer = other
-        elif self.last_message_offset_id > other.last_message_offset_id:
-            older = other
-            newer = self
-        else:
-            return self
-
-        older.last_message_offset_id = newer.last_message_offset_id
-        older.last_message_offset_date = newer.last_message_offset_date
-        older.score = newer.score
-        older.message_count += newer.message_count
-
-        return older
-
     def update_score(self):
         raise NotImplementedError
+
+    def update_metadata(self, metadata: "BaseIndexerMetadata") -> "BaseIndexerMetadata":
+        if metadata is None or not isinstance(metadata, BaseIndexerMetadata):
+            return self
+
+        self.message_count += metadata.message_count
+
+        if self.last_message_offset_id < metadata.last_message_offset_id:
+            self.last_message_offset_id = metadata.last_message_offset_id
+            self.last_message_offset_date = metadata.last_message_offset_date
+
+        return self

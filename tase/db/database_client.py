@@ -576,3 +576,60 @@ class DatabaseClient:
         Whether the update was successful or not
         """
         return self._graph_db.update_username_extractor_score(chat, score)
+
+    def get_unchecked_usernames(
+        self,
+    ) -> List[graph_models.vertices.Username]:
+        """
+        Gets the list of unchecked usernames sorted by their creation date in a ascending order
+
+        Returns
+        -------
+        A list of Usernames objects
+        """
+        return self._graph_db.get_unchecked_usernames()
+
+    def update_mentions_edges_from_chat_to_username(
+        self,
+        db_username: graph_models.vertices.Username,
+    ) -> bool:
+        """
+        Update mentions edges based on the data provided from `db_username` parameter
+
+        Parameters
+        ----------
+        db_username : graph_models.vertices.Username
+            Username object to get data from for this update
+        Returns
+        -------
+        bool
+            Whether this update was successful or not
+
+        """
+        return self._graph_db.update_mentions_edges_from_chat_to_username(db_username)
+
+    def create_mentions_edges_after_username_check(
+        self,
+        db_mentioned_chat: graph_models.vertices.Chat,
+        db_username: graph_models.vertices.Username,
+    ) -> None:
+        """
+        Update mentions edges based on the data provided from `db_username` parameter and create new edges from
+        `db_username` to `db_chat` and from `db_chat` to `db_mentioned_chat`.
+
+        Parameters
+        ----------
+        db_mentioned_chat: graph_models.vertices.Chat
+            Mentioned chat
+        db_username : graph_models.vertices.Username
+            Username object to get data from for this update
+        Returns
+        -------
+        None
+            This method does not return anything
+
+        """
+        return self._graph_db.create_mentions_edges_after_username_check(
+            db_mentioned_chat,
+            db_username,
+        )

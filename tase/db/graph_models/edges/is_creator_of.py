@@ -16,15 +16,26 @@ class IsCreatorOf(BaseEdge):
 
     @staticmethod
     def parse_from_chat_and_user(
-        chat: "Chat",
-        creator: "User",
+        chat: Chat,
+        creator: User,
     ) -> Optional["IsCreatorOf"]:
-        if chat is None or creator is None:
+        key = IsCreatorOf.get_key(chat, creator)
+        if not key:
             return None
 
-        key = f"{chat.key}@{creator.key}"
         return IsCreatorOf(
             key=key,
             from_node=chat,
             to_node=creator,
         )
+
+    @classmethod
+    def get_key(
+        cls,
+        chat: Chat,
+        creator: User,
+    ) -> str:
+        if chat is None or creator is None:
+            return ""
+
+        return f"{chat.key}@{creator.key}"
