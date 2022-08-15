@@ -1,0 +1,2 @@
+class ArangoDocumentMethods():
+    pass
