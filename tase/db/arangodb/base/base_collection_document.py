@@ -164,7 +164,7 @@ class BaseCollectionDocument(BaseModel):
     class Config:
         arbitrary_types_allowed = True
 
-    def to_graph(self) -> Optional[Dict[str, Any]]:
+    def to_collection(self) -> Optional[Dict[str, Any]]:
         """
         Converts the object to a dictionary to be saved into the ArangoDB.
 
@@ -192,7 +192,7 @@ class BaseCollectionDocument(BaseModel):
         return attr_value_dict
 
     @classmethod
-    def from_graph(
+    def from_collection(
         cls,
         doc: Dict[str, Any],
     ) -> Optional["BaseCollectionDocument"]:
@@ -264,7 +264,7 @@ class BaseCollectionDocument(BaseModel):
 
         successful = False
         try:
-            graph_doc = doc.to_graph()
+            graph_doc = doc.to_collection()
             if graph_doc is None:
                 return None, False
 
@@ -305,7 +305,7 @@ class BaseCollectionDocument(BaseModel):
 
         successful = False
         try:
-            graph_doc = doc._update_metadata_from_old_document(old_doc)._update_non_updatable_fields(old_doc).to_graph()
+            graph_doc = doc._update_metadata_from_old_document(old_doc)._update_non_updatable_fields(old_doc).to_collection()
             if graph_doc is None:
                 return None, False
 
@@ -408,7 +408,7 @@ class BaseCollectionDocument(BaseModel):
         try:
             cursor = cls._collection.find({"_key": key})
             if cursor is not None and len(cursor):
-                return cls.from_graph(cursor.pop())
+                return cls.from_collection(cursor.pop())
             else:
                 return None
         except CursorEmptyError as e:
