@@ -1,4 +1,4 @@
-from arango import DocumentInsertError, DocumentRevisionError, DocumentUpdateError
+from arango import DocumentInsertError, DocumentRevisionError, DocumentUpdateError, CursorEmptyError, DocumentGetError
 from arango.collection import VertexCollection, EdgeCollection, StandardCollection
 from pydantic import BaseModel, Field, ValidationError
 from pydantic.types import Enum
@@ -405,8 +405,15 @@ class BaseCollectionDocument(BaseModel):
         if key is None:
             return None
 
-        cursor = cls._collection.find({"_key": key})
-        if cursor is not None and len(cursor):
-            return cls.from_graph(cursor.pop())
-        else:
-            return None
+        try:
+            cursor = cls._collection.find({"_key": key})
+            if cursor is not None and len(cursor):
+                return cls.from_graph(cursor.pop())
+            else:
+                return None
+        except CursorEmptyError as e:
+            logger.exception(e)
+        except DocumentGetError as e:
+            logger.exception(e)
+
+        return None
