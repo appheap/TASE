@@ -1,7 +1,7 @@
 from arango.collection import VertexCollection
 from pydantic.typing import Optional
 
-from .base_collection_document import BaseCollectionDocument
+from tase.db.arangodb.models.base import BaseCollectionDocument
 
 
 class BaseVertex(BaseCollectionDocument):

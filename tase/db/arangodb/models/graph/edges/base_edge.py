@@ -3,8 +3,12 @@ from typing import Dict, Any
 from arango.collection import EdgeCollection
 from pydantic.typing import List, Type, Optional
 
-from .base_collection_document import BaseCollectionDocument, ToGraphBaseProcessor, FromGraphBaseProcessor
-from .base_vertex import BaseVertex
+from tase.db.arangodb.models.base import (
+    BaseCollectionDocument,
+    ToGraphBaseProcessor,
+    FromGraphBaseProcessor,
+)
+from tase.db.arangodb.models.graph.vertices import BaseVertex
 
 
 class ToVertexMapper(ToGraphBaseProcessor):
