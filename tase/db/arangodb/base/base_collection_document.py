@@ -16,7 +16,7 @@ class ToGraphBaseProcessor(BaseModel):
         attr_value_dict: Dict[str, Any],
     ) -> None:
         """
-        Executes some operations on the attribute value dictionary.
+        Execute some operations on the attribute value dictionary.
 
         Parameters
         ----------
@@ -41,7 +41,7 @@ class FromGraphBaseProcessor(BaseModel):
         graph_doc: Dict[str, Any],
     ) -> None:
         """
-        Executes some operations on the attribute value dictionary.
+        Execute some operations on the attribute value dictionary.
 
         Parameters
         ----------
@@ -63,7 +63,7 @@ class FromGraphBaseProcessor(BaseModel):
 
 class ToGraphAttributeMapper(ToGraphBaseProcessor):
     """
-    Prepares the attribute value mapping to be saved into the database.
+    Prepare the attribute value mapping to be saved into the database.
     """
 
     @classmethod
@@ -84,7 +84,7 @@ class ToGraphAttributeMapper(ToGraphBaseProcessor):
 
 class ToGraphEnumConverter(ToGraphBaseProcessor):
     """
-    Converts enum types to their values because `Enum` types cannot be directly saved into ArangoDB.
+    Convert enum types to their values because `Enum` types cannot be directly saved into ArangoDB.
 
     """
 
@@ -166,7 +166,7 @@ class BaseCollectionDocument(BaseModel):
 
     def to_collection(self) -> Optional[Dict[str, Any]]:
         """
-        Converts the object to a dictionary to be saved into the ArangoDB.
+        Convert the object to a dictionary to be saved into the ArangoDB.
 
         Returns
         -------
@@ -197,7 +197,7 @@ class BaseCollectionDocument(BaseModel):
         doc: Dict[str, Any],
     ) -> Optional["BaseCollectionDocument"]:
         """
-        Converts a database document dictionary to be converted into a python object.
+        Convert a database document dictionary to be converted into a python object.
 
         Parameters
         ----------
