@@ -115,6 +115,8 @@ class FromGraphAttributeMapper(FromGraphBaseProcessor):
 
 
 class BaseCollectionDocument(BaseModel):
+    schema_version: int = Field(default=1)
+
     _collection_name = "base_documents"
     _collection: Optional[Union[VertexCollection, EdgeCollection]]
 
@@ -146,7 +148,6 @@ class BaseCollectionDocument(BaseModel):
     key: Optional[str]
     rev: Optional[str]
 
-    schema_version: int = Field(default=1)
     created_at: int = Field(default_factory=get_timestamp)
     modified_at: int = Field(default_factory=get_timestamp)
 
