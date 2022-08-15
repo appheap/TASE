@@ -1,4 +1,7 @@
+from .dummy_vertex import DummyVertexMethods
 
 
-class ArangoVertexMethods():
+class ArangoVertexMethods(
+    DummyVertexMethods,
+):
     pass
