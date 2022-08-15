@@ -24,6 +24,11 @@ class ToGraphBaseProcessor(BaseModel):
             Document this processing is done for
         attr_value_dict : Dict[str, Any]
             Attribute value mapping dictionary to be processed
+
+        Raises
+        ------
+        Exception
+            if there was any error with processing
         """
         raise NotImplementedError
 
@@ -44,6 +49,11 @@ class FromGraphBaseProcessor(BaseModel):
             Class of this document. (It's not an instance of the class)
         graph_doc : Dict[str, Any]
             Attribute value mapping dictionary to be processed
+
+        Raises
+        ------
+        Exception
+            if there was any error with processing
         """
         raise NotImplementedError
 
@@ -154,7 +164,7 @@ class BaseCollectionDocument(BaseModel):
     class Config:
         arbitrary_types_allowed = True
 
-    def to_graph(self) -> Dict[str, Any]:
+    def to_graph(self) -> Optional[Dict[str, Any]]:
         """
         Converts the object to a dictionary to be saved into the ArangoDB.
 
@@ -167,11 +177,17 @@ class BaseCollectionDocument(BaseModel):
         attr_value_dict = self.dict()
 
         for attrib_processor in self._to_graph_db_base_processors:
-            attrib_processor.process(self, attr_value_dict)
+            try:
+                attrib_processor.process(self, attr_value_dict)
+            except Exception as e:
+                return None
 
         if self._to_graph_db_extra_processors is not None:
             for doc_processor in self._to_graph_db_extra_processors:
-                doc_processor.process(self, attr_value_dict)
+                try:
+                    doc_processor.process(self, attr_value_dict)
+                except Exception as e:
+                    return None
 
         return attr_value_dict
 
@@ -198,11 +214,17 @@ class BaseCollectionDocument(BaseModel):
             return None
 
         for doc_processor in cls._from_graph_db_base_processors:
-            doc_processor.process(cls, doc)
+            try:
+                doc_processor.process(cls, doc)
+            except Exception as e:
+                return None
 
         if cls._from_graph_db_extra_processors is not None:
             for doc_processor in cls._from_graph_db_extra_processors:
-                doc_processor.process(cls, doc)
+                try:
+                    doc_processor.process(cls, doc)
+                except Exception as e:
+                    return None
 
         try:
             obj = cls(**doc)
@@ -242,7 +264,11 @@ class BaseCollectionDocument(BaseModel):
 
         successful = False
         try:
-            metadata = cls._collection.insert(doc.to_graph())
+            graph_doc = doc.to_graph()
+            if graph_doc is None:
+                return None, False
+
+            metadata = cls._collection.insert(graph_doc)
             doc._update_metadata(metadata)
             successful = True
         except DocumentInsertError as e:
@@ -279,9 +305,11 @@ class BaseCollectionDocument(BaseModel):
 
         successful = False
         try:
-            metadata = cls._collection.update(
-                doc._update_metadata_from_old_document(old_doc)._update_non_updatable_fields(old_doc).to_graph()
-            )
+            graph_doc = doc._update_metadata_from_old_document(old_doc)._update_non_updatable_fields(old_doc).to_graph()
+            if graph_doc is None:
+                return None, False
+
+            metadata = cls._collection.update(graph_doc)
             doc._update_metadata(metadata)
             successful = True
         except DocumentUpdateError as e:
