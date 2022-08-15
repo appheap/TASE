@@ -1,4 +1,11 @@
-from arango import DocumentInsertError, DocumentRevisionError, DocumentUpdateError, CursorEmptyError, DocumentGetError
+from arango import (
+    DocumentInsertError,
+    DocumentRevisionError,
+    DocumentUpdateError,
+    DocumentReplaceError,
+    DocumentDeleteError,
+    DocumentGetError,
+)
 from arango.collection import VertexCollection, EdgeCollection, StandardCollection
 from pydantic import BaseModel, Field, ValidationError
 from pydantic.types import Enum
@@ -240,7 +247,7 @@ class BaseCollectionDocument(BaseModel):
         return None
 
     @classmethod
-    def create(
+    def insert(
         cls,
         doc: "BaseCollectionDocument",
     ) -> Tuple[Optional["BaseCollectionDocument"], bool]:
@@ -277,6 +284,77 @@ class BaseCollectionDocument(BaseModel):
         except Exception as e:
             logger.exception(f"{cls.__name__} : {e}")
         return doc, successful
+
+    @classmethod
+    def get(
+        cls,
+        doc_key: str,
+    ) -> Optional["BaseCollectionDocument"]:
+        """
+        Get a document in a collection by its `Key`
+
+        Parameters
+        ----------
+        doc_key : str
+            Key of the document in the collection
+
+        Returns
+        -------
+        Optional[BaseCollectionDocument]
+            Document matching the specified `Key` if it exists in the collection, otherwise return `None`
+
+        """
+        if doc_key is None:
+            return None
+
+        try:
+            graph_doc = cls._collection.get(doc_key)
+            if graph_doc is not None:
+                return cls.from_collection(graph_doc)
+            else:
+                return None
+        except DocumentGetError as e:
+            logger.exception(e)
+        except DocumentRevisionError as e:
+            logger.exception(e)
+
+        return None
+
+    @classmethod
+    def delete(
+        cls,
+        doc: Union["BaseCollectionDocument", str],
+    ) -> bool:
+        """
+        Delete an object in ArangoDB
+
+        Parameters
+        ----------
+        doc : Union["BaseCollectionDocument", str]
+            Object to inserted into the ArangoDB or the Key of the document to be deleted
+
+        Returns
+        -------
+        bool
+            Whether the operation was successful or not
+        """
+
+        if doc is None or doc.key is None:
+            return False
+
+        successful = False
+        key = doc.key if isinstance(doc, BaseCollectionDocument) else doc
+        try:
+            successful = cls._collection.delete(key, ignore_missing=True)
+        except DocumentDeleteError as e:
+            # Failed to delete the document
+            logger.exception(f"{cls.__name__} : {e}")
+        except DocumentRevisionError as e:
+            # The expected and actual document revisions mismatched.
+            logger.exception(f"{cls.__name__} : {e}")
+        except Exception as e:
+            logger.exception(f"{cls.__name__} : {e}")
+        return successful
 
     @classmethod
     def update(
@@ -316,6 +394,52 @@ class BaseCollectionDocument(BaseModel):
             successful = True
         except DocumentUpdateError as e:
             # Failed to update document.
+            logger.exception(f"{cls.__name__} : {e}")
+        except DocumentRevisionError as e:
+            # The expected and actual document revisions mismatched.
+            logger.exception(f"{cls.__name__} : {e}")
+        except Exception as e:
+            logger.exception(f"{cls.__name__} : {e}")
+        return doc, successful
+
+    @classmethod
+    def replace(
+        cls,
+        old_doc: "BaseCollectionDocument",
+        doc: "BaseCollectionDocument",
+    ) -> Tuple[Optional["BaseCollectionDocument"], bool]:
+        """
+        Replace an object in the database with the new one
+
+        Parameters
+        ----------
+        old_doc : BaseCollectionDocument
+            Document that is already in the database
+        doc: BaseCollectionDocument
+            Document used for replacing the object in the database
+
+        """
+        if not isinstance(doc, BaseCollectionDocument):
+            raise Exception(
+                f"{doc.__class__.__name__} is not an instance of {BaseCollectionDocument.__class__.__name__} class"
+            )
+
+        if old_doc is None or doc is None:
+            return None, False
+
+        successful = False
+        try:
+            graph_doc = (
+                doc._update_metadata_from_old_document(old_doc)._update_non_updatable_fields(old_doc).to_collection()
+            )
+            if graph_doc is None:
+                return None, False
+
+            metadata = cls._collection.replace(graph_doc)
+            doc._update_metadata(metadata)
+            successful = True
+        except DocumentReplaceError as e:
+            # Failed to replace document.
             logger.exception(f"{cls.__name__} : {e}")
         except DocumentRevisionError as e:
             # The expected and actual document revisions mismatched.
@@ -388,34 +512,19 @@ class BaseCollectionDocument(BaseModel):
 
         return self
 
+    ########################################################################
     @classmethod
-    def find_by_key(cls, key: str) -> Optional["BaseCollectionDocument"]:
-        """
-        Find a document in a collection by its `key`
+    def parse(
+        cls,
+        *args,
+        **kwargs,
+    ) -> Optional["BaseCollectionDocument"]:
+        raise NotImplementedError
 
-        Parameters
-        ----------
-        key : str
-            Key of the document in the collection
-
-        Returns
-        -------
-        Optional[BaseCollectionDocument]
-            Document matching the specified key if it exists in the collection, otherwise return `None`
-
-        """
-        if key is None:
-            return None
-
-        try:
-            cursor = cls._collection.find({"_key": key})
-            if cursor is not None and len(cursor):
-                return cls.from_collection(cursor.pop())
-            else:
-                return None
-        except CursorEmptyError as e:
-            logger.exception(e)
-        except DocumentGetError as e:
-            logger.exception(e)
-
-        return None
+    @classmethod
+    def parse_key(
+        cls,
+        *args,
+        **kwargs,
+    ) -> Optional["BaseCollectionDocument"]:
+        raise NotImplementedError

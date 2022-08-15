@@ -1,7 +1,8 @@
 from typing import Dict, Any
 
+from arango import DocumentInsertError
 from arango.collection import EdgeCollection
-from pydantic.typing import List, Type, Optional
+from pydantic.typing import List, Type, Optional, Tuple
 
 from tase.db.arangodb.models.base import (
     BaseCollectionDocument,
@@ -9,6 +10,7 @@ from tase.db.arangodb.models.base import (
     FromGraphBaseProcessor,
 )
 from tase.db.arangodb.models.graph.vertices import BaseVertex
+from tase.my_logger import logger
 
 
 class ToVertexMapper(ToGraphBaseProcessor):
@@ -90,3 +92,79 @@ class BaseEdge(BaseCollectionDocument):
     @classmethod
     def from_vertex_collections(cls) -> List[str]:
         return cls._get_vertices_collection_names(cls._to_vertex_collections)
+
+    @classmethod
+    def link(
+        cls,
+        from_vertex: BaseVertex,
+        to_vertex: BaseVertex,
+        *args,
+        **kwargs,
+    ) -> Tuple[Optional["BaseEdge"], bool]:
+        """
+        Insert a new edge document linking the given vertices.
+
+        Parameters
+        ----------
+        from_vertex : BaseVertex
+            Vertex at the start of the link
+        to_vertex : BaseVertex
+            Vertex at the end of the link
+
+        Returns
+        -------
+        Tuple[Optional[BaseEdge], bool]
+            Updated edge with returned metadata from ArangoDB and `True` if the operation was successful,
+            old object and `False` otherwise
+        """
+
+        if from_vertex is None or to_vertex is None or from_vertex.id is None or to_vertex.id is None:
+            return None, False
+
+        successful = False
+        edge = None
+        try:
+            edge = cls.parse(from_vertex, to_vertex, *args, **kwargs)
+            if edge is None:
+                return None, False
+
+            graph_doc = edge.to_collection()
+            if graph_doc is None:
+                return None, False
+
+            metadata = cls._collection.link(
+                from_vertex=from_vertex.id,
+                to_vertex=to_vertex.id,
+                data=graph_doc,
+            )
+            edge._update_metadata(metadata)
+            successful = True
+        except DocumentInsertError as e:
+            # Failed to insert the document
+            logger.exception(f"{cls.__name__} : {e}")
+        except NotImplementedError as e:
+            logger.exception(f"{cls.__name__} : {e}")
+        except Exception as e:
+            logger.exception(f"{cls.__name__} : {e}")
+        return edge, successful
+
+    ####################################################################
+    @classmethod
+    def parse(
+        cls,
+        from_vertex: BaseVertex,
+        to_vertex: BaseVertex,
+        *args,
+        **kwargs,
+    ) -> Optional["BaseEdge"]:
+        raise NotImplementedError
+
+    @classmethod
+    def parse_key(
+        cls,
+        from_vertex: BaseVertex,
+        to_vertex: BaseVertex,
+        *args,
+        **kwargs,
+    ) -> Optional["BaseEdge"]:
+        raise NotImplementedError
