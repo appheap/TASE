@@ -1,5 +1,5 @@
 from arango import DocumentInsertError, DocumentRevisionError, DocumentUpdateError
-from arango.collection import VertexCollection, EdgeCollection
+from arango.collection import VertexCollection, EdgeCollection, StandardCollection
 from pydantic import BaseModel, Field, ValidationError
 from pydantic.types import Enum
 from pydantic.typing import Dict, List, Optional, Any, Type, Union, Tuple
@@ -118,7 +118,7 @@ class BaseCollectionDocument(BaseModel):
     schema_version: int = Field(default=1)
 
     _collection_name = "base_documents"
-    _collection: Optional[Union[VertexCollection, EdgeCollection]]
+    _collection: Optional[Union[VertexCollection, EdgeCollection, StandardCollection]]
 
     _from_graph_db_mapping = {
         "_id": "id",
