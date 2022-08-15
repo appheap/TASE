@@ -305,7 +305,9 @@ class BaseCollectionDocument(BaseModel):
 
         successful = False
         try:
-            graph_doc = doc._update_metadata_from_old_document(old_doc)._update_non_updatable_fields(old_doc).to_collection()
+            graph_doc = (
+                doc._update_metadata_from_old_document(old_doc)._update_non_updatable_fields(old_doc).to_collection()
+            )
             if graph_doc is None:
                 return None, False
 
