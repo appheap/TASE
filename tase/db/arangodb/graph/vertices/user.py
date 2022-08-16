@@ -94,7 +94,7 @@ class User(BaseVertex):
 
         self_copy = self.copy(deep=True)
         self_copy.chosen_language_code = chosen_language_code
-        return self.update(self_copy)
+        return self.update(self_copy, reserve_non_updatable_fields=False)
 
 
 class UserMethods:

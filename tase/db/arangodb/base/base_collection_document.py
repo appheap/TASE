@@ -359,6 +359,7 @@ class BaseCollectionDocument(BaseModel):
     def update(
         self,
         doc: "BaseCollectionDocument",
+        reserve_non_updatable_fields: bool = True,
         check_rev: Optional[bool] = True,
         sync: Optional[bool] = None,
     ) -> bool:
@@ -369,6 +370,8 @@ class BaseCollectionDocument(BaseModel):
         ----------
         doc: BaseCollectionDocument
             Document used for updating the object in the database
+        reserve_non_updatable_fields : bool
+            Whether to keep the non-updatable fields from the old document or not
         check_rev : Optional[bool]
             If set to True, revision of current document (if given) is compared against the revision of target document. Default to `True`.
         sync : Optional[bool]
@@ -390,7 +393,12 @@ class BaseCollectionDocument(BaseModel):
 
         successful = False
         try:
-            graph_doc = doc._update_metadata_from_old_document(self)._update_non_updatable_fields(self).to_collection()
+            if reserve_non_updatable_fields:
+                graph_doc = (
+                    doc._update_metadata_from_old_document(self)._update_non_updatable_fields(self).to_collection()
+                )
+            else:
+                graph_doc = doc._update_metadata_from_old_document(self).to_collection()
             if graph_doc is None:
                 return False
 
