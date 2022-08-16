@@ -1,7 +1,14 @@
 from pydantic.typing import Optional
 
-from tase.db.arangodb.models.graph.vertices import DummyVertex
 from tase.utils import get_timestamp
+from .base_vertex import BaseVertex
+
+
+class DummyVertex(BaseVertex):
+    _collection_name = "dummy_vertices"
+
+    dummy_int: int
+    dummy_str: str
 
 
 class DummyVertexMethods:

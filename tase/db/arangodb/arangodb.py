@@ -6,8 +6,8 @@ from pydantic import BaseModel
 from pydantic.typing import Optional
 
 from tase.configs import ArangoDBConfig
-from tase.db.arangodb.methods import ArangoMethods
-from tase.db.arangodb.models.graph.vertices import vertex_classes
+from tase.db.arangodb import ArangoMethods
+from tase.db.arangodb.graph.vertices import vertex_classes
 
 
 class ArangoDB(BaseModel, ArangoMethods):

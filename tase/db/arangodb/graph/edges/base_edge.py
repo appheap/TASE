@@ -4,12 +4,12 @@ from arango import DocumentInsertError
 from arango.collection import EdgeCollection
 from pydantic.typing import List, Type, Optional, Tuple
 
-from tase.db.arangodb.models.base import (
+from tase.db.arangodb.base import (
     BaseCollectionDocument,
     ToGraphBaseProcessor,
     FromGraphBaseProcessor,
 )
-from tase.db.arangodb.models.graph.vertices import BaseVertex
+from tase.db.arangodb.graph.vertices import BaseVertex
 from tase.my_logger import logger
 
 
@@ -166,5 +166,5 @@ class BaseEdge(BaseCollectionDocument):
         to_vertex: BaseVertex,
         *args,
         **kwargs,
-    ) -> Optional["BaseEdge"]:
+    ) -> Optional[str]:
         raise NotImplementedError

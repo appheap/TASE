@@ -526,5 +526,5 @@ class BaseCollectionDocument(BaseModel):
         cls,
         *args,
         **kwargs,
-    ) -> Optional["BaseCollectionDocument"]:
+    ) -> Optional[str]:
         raise NotImplementedError
