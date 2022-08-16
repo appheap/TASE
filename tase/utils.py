@@ -8,6 +8,7 @@ from typing import Optional
 
 import arrow
 import tomli
+from pydantic import BaseModel
 
 from tase.languages import Language, Languages
 from tase.my_logger import logger
@@ -208,3 +209,44 @@ def exception_handler(func: "typing.Callable"):
             logger.exception(e)
 
     return wrap
+
+
+def copy_attrs_from_new_document(
+    old_doc: BaseModel,
+    new_doc: BaseModel,
+) -> Optional[BaseModel]:
+    """
+    Copy an object attributes recursively from another object.
+
+    Parameters
+    ----------
+    old_doc : BaseModel
+        Object to update its attributes
+
+    new_doc : BaseModel
+        Object to get the new attributes from
+
+    Returns
+    -------
+    Optional[BaseModel]
+        Updated object if successful, otherwise return `None`
+    """
+    if old_doc is None or new_doc is None:
+        return None
+    for attr_name in old_doc.__dict__:
+        old_value = getattr(old_doc, attr_name, None)
+        new_value = getattr(new_doc, attr_name, None)
+
+        # logger.info(f"{attr_name} : {old_value} : {new_value}")
+        if new_value is None:
+            setattr(old_doc, attr_name, None)
+        else:
+            if isinstance(new_value, BaseModel):
+                if old_value is None:
+                    setattr(old_doc, attr_name, new_value)
+                else:
+                    setattr(old_doc, attr_name, copy_attrs_from_new_document(old_value, new_value))
+            else:
+                setattr(old_doc, attr_name, new_value)
+
+    return old_doc

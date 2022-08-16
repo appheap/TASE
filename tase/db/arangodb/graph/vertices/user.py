@@ -86,14 +86,10 @@ class User(BaseVertex):
     def update_chosen_language(
         self,
         chosen_language_code: str,
-    ):
+    ) -> bool:
         if chosen_language_code is None:
-            return None
+            return False
 
-        self._collection.update(
-            {
-                "_key": self.key,
-                "chosen_language_code": chosen_language_code,
-            },
-            silent=True,
-        )
+        self_copy = self.copy(deep=True)
+        self_copy.chosen_language_code = chosen_language_code
+        return self.update(self_copy)

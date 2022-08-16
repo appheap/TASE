@@ -12,7 +12,7 @@ from pydantic.types import Enum
 from pydantic.typing import Dict, List, Optional, Any, Type, Union, Tuple
 
 from tase.my_logger import logger
-from tase.utils import get_timestamp
+from tase.utils import get_timestamp, copy_attrs_from_new_document
 
 
 class ToGraphBaseProcessor(BaseModel):
@@ -356,21 +356,28 @@ class BaseCollectionDocument(BaseModel):
             logger.exception(f"{cls.__name__} : {e}")
         return successful
 
-    @classmethod
     def update(
-        cls,
-        old_doc: "BaseCollectionDocument",
+        self,
         doc: "BaseCollectionDocument",
-    ) -> Tuple[Optional["BaseCollectionDocument"], bool]:
+        check_rev: Optional[bool] = True,
+        sync: Optional[bool] = None,
+    ) -> bool:
         """
         Update an object in the database
 
         Parameters
         ----------
-        old_doc : BaseCollectionDocument
-            Document that is already in the database
         doc: BaseCollectionDocument
             Document used for updating the object in the database
+        check_rev : Optional[bool]
+            If set to True, revision of current document (if given) is compared against the revision of target document. Default to `True`.
+        sync : Optional[bool]
+            sync: Block until operation is synchronized to disk. Default to `None`
+
+        Returns
+        -------
+        bool
+            Whether the update was successful or not
 
         """
         if not isinstance(doc, BaseCollectionDocument):
@@ -378,29 +385,35 @@ class BaseCollectionDocument(BaseModel):
                 f"{doc.__class__.__name__} is not an instance of {BaseCollectionDocument.__class__.__name__} class"
             )
 
-        if old_doc is None or doc is None:
-            return None, False
+        if doc is None:
+            return False
 
         successful = False
         try:
-            graph_doc = (
-                doc._update_metadata_from_old_document(old_doc)._update_non_updatable_fields(old_doc).to_collection()
-            )
+            graph_doc = doc._update_metadata_from_old_document(self)._update_non_updatable_fields(self).to_collection()
             if graph_doc is None:
-                return None, False
+                return False
 
-            metadata = cls._collection.update(graph_doc)
+            metadata = self._collection.update(
+                graph_doc,
+                check_rev=check_rev,
+                keep_none=True,
+                sync=sync,
+                silent=False,
+                return_old=False,
+                return_new=False,
+            )
             doc._update_metadata(metadata)
-            successful = True
+            successful = True if copy_attrs_from_new_document(self, doc) is not None else False
         except DocumentUpdateError as e:
             # Failed to update document.
-            logger.exception(f"{cls.__name__} : {e}")
+            logger.exception(f"{self.__class__.__name__} : {e}")
         except DocumentRevisionError as e:
             # The expected and actual document revisions mismatched.
-            logger.exception(f"{cls.__name__} : {e}")
+            logger.exception(f"{self.__class__.__name__} : {e}")
         except Exception as e:
-            logger.exception(f"{cls.__name__} : {e}")
-        return doc, successful
+            logger.exception(f"{self.__class__.__name__} : {e}")
+        return successful
 
     @classmethod
     def replace(
