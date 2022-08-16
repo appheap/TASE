@@ -262,8 +262,8 @@ class BaseCollectionDocument(BaseModel):
         Returns
         -------
         Tuple[Optional[BaseCollectionDocument], bool]
-            Updated object with returned metadata from ArangoDB and `True` if the operation was successful,
-            old object and `False` otherwise
+            Document object with returned metadata from ArangoDB and `True` if the operation was successful,
+            otherwise return `None` and `False`.
         """
 
         if doc is None:

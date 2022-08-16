@@ -1,7 +1,7 @@
 import pyrogram
 from pydantic import Field
 from pydantic.types import Enum
-from pydantic.typing import Optional, List
+from pydantic.typing import Optional, List, Tuple
 
 from .base_vertex import BaseVertex
 from ...helpers import Restriction
@@ -23,13 +23,14 @@ class User(BaseVertex):
 
     user_id: int
     # is_contact : contact_of => User
-    is_deleted: bool
-    is_bot: bool
-    is_verified: bool
-    is_restricted: bool
-    is_scam: bool
-    is_fake: bool
-    is_support: bool
+    is_deleted: Optional[bool]
+    is_bot: Optional[bool]
+    is_verified: Optional[bool]
+    is_restricted: Optional[bool]
+    is_scam: Optional[bool]
+    is_fake: Optional[bool]
+    is_support: Optional[bool]
+    is_premium: Optional[bool]
     first_name: Optional[str]
     last_name: Optional[str]
     username: Optional[str]
@@ -55,32 +56,33 @@ class User(BaseVertex):
     @classmethod
     def parse(
         cls,
-        user: pyrogram.types.User,
+        telegram_user: pyrogram.types.User,
     ) -> Optional["User"]:
-        if user is None:
+        if telegram_user is None:
             return None
 
-        key = cls.parse_key(user)
+        key = cls.parse_key(telegram_user)
         if key is None:
             return None
 
         return User(
             key=key,
-            user_id=user.id,
-            is_deleted=user.is_deleted,
-            is_bot=user.is_bot,
-            is_verified=user.is_verified,
-            is_restricted=user.is_restricted,
-            is_scam=user.is_scam,
-            is_fake=user.is_fake,
-            is_support=user.is_support,
-            first_name=user.first_name,
-            last_name=user.last_name,
-            username=user.username,
-            language_code=user.language_code,
-            dc_id=user.dc_id,
-            phone_number=user.phone_number,
-            restrictions=Restriction.parse_from_restrictions(user.restrictions),
+            user_id=telegram_user.id,
+            is_deleted=telegram_user.is_deleted,
+            is_bot=telegram_user.is_bot,
+            is_verified=telegram_user.is_verified,
+            is_restricted=telegram_user.is_restricted,
+            is_scam=telegram_user.is_scam,
+            is_fake=telegram_user.is_fake,
+            is_support=telegram_user.is_support,
+            is_premium=telegram_user.is_premium,
+            first_name=telegram_user.first_name,
+            last_name=telegram_user.last_name,
+            username=telegram_user.username,
+            language_code=telegram_user.language_code,
+            dc_id=telegram_user.dc_id,
+            phone_number=telegram_user.phone_number,
+            restrictions=Restriction.parse_from_restrictions(telegram_user.restrictions),
         )
 
     def update_chosen_language(
@@ -93,3 +95,27 @@ class User(BaseVertex):
         self_copy = self.copy(deep=True)
         self_copy.chosen_language_code = chosen_language_code
         return self.update(self_copy)
+
+
+class UserMethods:
+    def create_user(
+        self,
+        telegram_user: pyrogram.types.User,
+    ) -> Tuple[Optional[User], bool]:
+        """
+        Create a user in the database from a telegram user object.
+
+        Parameters
+        ----------
+        telegram_user : pyrogram.types.User
+            Telegram user
+
+        Returns
+        -------
+        Tuple[Optional[User], bool]
+            User object `True` if the operation was successful, otherwise return `None` and `False`
+        """
+        if telegram_user is None:
+            return None, False
+
+        return User.insert(User.parse(telegram_user))
