@@ -47,11 +47,11 @@ class User(BaseVertex):
     @classmethod
     def parse_key(
         cls,
-        user: pyrogram.types.User,
+        telegram_user: pyrogram.types.User,
     ) -> Optional[str]:
-        if user is None:
+        if telegram_user is None:
             return None
-        return str(user.id)
+        return str(telegram_user.id)
 
     @classmethod
     def parse(
@@ -113,9 +113,70 @@ class UserMethods:
         Returns
         -------
         Tuple[Optional[User], bool]
-            User object `True` if the operation was successful, otherwise return `None` and `False`
+            User object and  `True` if the operation was successful, otherwise return `None` and `False`
         """
         if telegram_user is None:
             return None, False
 
         return User.insert(User.parse(telegram_user))
+
+    def get_or_create_user(
+        self,
+        telegram_user: pyrogram.types.User,
+    ) -> Optional[User]:
+        """
+        Get a user from the database if it exists, otherwise create a user in the database from a telegram user object.
+
+        Parameters
+        ----------
+        telegram_user : pyrogram.types.User
+            Telegram user
+
+        Returns
+        -------
+        Optional[User]
+            User object if the operation was successful, otherwise return `None`
+        """
+        if telegram_user is None:
+            return None
+
+        user = User.get(User.parse_key(telegram_user))
+        if not user:
+            # user does not exist in the database, create it
+            user, successful = self.create_user(telegram_user)
+
+        return user
+
+    def update_or_create_user(
+        self,
+        telegram_user: pyrogram.types.User,
+    ) -> Optional[User]:
+        """
+        Update a user in the database if it exists, otherwise create a user in the database from a telegram user
+        object.
+
+        Parameters
+        ----------
+        telegram_user : pyrogram.types.User
+            Telegram user
+
+        Returns
+        -------
+        Optional[User]
+            User object if the operation was successful, otherwise return `None`
+        """
+        if telegram_user is None:
+            return None
+
+        user = User.get(User.parse_key(telegram_user))
+        if user is not None:
+            # user exists in the database, update it
+            user, successful = user.update(User.parse(telegram_user))
+        else:
+            # user does not exist in the database, create it
+            user, successful = self.create_user(telegram_user)
+
+        if not user.is_bot:
+            self.get_or_create_user_favorite_playlist(user)
+
+        return user
