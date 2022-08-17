@@ -1,3 +1,5 @@
+import typing
+
 from arango import (
     DocumentInsertError,
     DocumentRevisionError,
@@ -317,8 +319,48 @@ class BaseCollectionDocument(BaseModel):
             logger.exception(e)
         except DocumentRevisionError as e:
             logger.exception(e)
+        except Exception as e:
+            logger.exception(e)
 
         return None
+
+    @classmethod
+    def find(
+        cls,
+        filters: Dict[str, Any],
+        offset: Optional[int] = 0,
+        limit: Optional[int] = None,
+    ) -> typing.Generator["BaseCollectionDocument", None, None]:
+        """
+        Find all documents that match the given filters.
+
+        Parameters
+        ----------
+        filters : Dict[str, Any]
+            Document filters
+        offset : Optional[int]
+            Number of documents to skip
+        limit : Optional[int]
+            Max number of documents returned
+        """
+        if filters is None or not isinstance(filters, dict):
+            return
+
+        try:
+            cursor = cls._collection.find(filters, skip=offset, limit=limit)
+            if cursor is not None and len(cursor):
+                for graph_doc in cursor:
+                    yield cls.from_collection(graph_doc)
+            else:
+                return
+        except AssertionError as e:
+            logger.exception(e)
+        except DocumentGetError as e:
+            logger.exception(e)
+        except Exception as e:
+            logger.exception(e)
+
+        return
 
     @classmethod
     def delete(
