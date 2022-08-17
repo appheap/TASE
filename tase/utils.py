@@ -1,5 +1,6 @@
 import gettext
 import json
+import secrets
 import typing
 from collections import OrderedDict
 from functools import wraps
@@ -250,3 +251,14 @@ def copy_attrs_from_new_document(
                 setattr(old_doc, attr_name, new_value)
 
     return old_doc
+
+
+def generate_token_urlsafe(
+    nbytes: int = 6,
+):
+    while True:
+        # todo: make sure the generated token is unique
+        download_url = secrets.token_urlsafe(nbytes)
+        if download_url.find("-") == -1:
+            break
+    return download_url

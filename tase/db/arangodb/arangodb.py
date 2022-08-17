@@ -2,27 +2,34 @@ from arango import ArangoClient
 from arango.aql import AQL
 from arango.database import StandardDatabase
 from arango.graph import Graph
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from pydantic.typing import Optional
 
 from tase.configs import ArangoDBConfig
 from tase.db.arangodb.graph.vertices import vertex_classes
-from .document import ArangoDocumentMethods
-from .graph import ArangoGraphModels
+from .document import document_classes, ArangoDocumentMethods
+from .graph import ArangoGraphMethods
+from .graph.edges import edge_classes
 
 
 class ArangoMethods(
-    ArangoDocumentMethods,
-    ArangoGraphModels,
+    BaseModel,
 ):
-    pass
+    graph_methods: ArangoGraphMethods = Field(default=ArangoGraphMethods())
+    document_methods: ArangoDocumentMethods = Field(default=ArangoDocumentMethods())
 
 
-class ArangoDB(BaseModel, ArangoMethods):
+class ArangoDB(
+    BaseModel,
+    # ArangoMethods,
+):
     arango_client: Optional[ArangoClient]
     db: Optional[StandardDatabase]
     graph: Optional[Graph]
     aql: Optional[AQL]
+
+    graph_methods: ArangoGraphMethods = Field(default=ArangoGraphMethods())
+    document_methods: ArangoDocumentMethods = Field(default=ArangoDocumentMethods())
 
     class Config:
         arbitrary_types_allowed = True
@@ -30,10 +37,9 @@ class ArangoDB(BaseModel, ArangoMethods):
     def __init__(
         self,
         arangodb_config: ArangoDBConfig,
-        *args,
         **kwargs,
     ):
-        super().__init__(*args, **kwargs)
+        super().__init__(**kwargs)
 
         # Initialize the client for ArangoDB.
         self.arango_client = ArangoClient(hosts=arangodb_config.db_host_url)
@@ -67,3 +73,21 @@ class ArangoDB(BaseModel, ArangoMethods):
             else:
                 _collection = self.graph.vertex_collection(v_class._collection_name)
             v_class._collection = _collection
+
+        for e_class in edge_classes:
+            if not self.graph.has_edge_definition(e_class._collection_name):
+                _collection = self.graph.create_edge_definition(
+                    edge_collection=e_class._collection_name,
+                    from_vertex_collections=e_class.from_vertex_collections(),
+                    to_vertex_collections=e_class.to_vertex_collections(),
+                )
+            else:
+                _collection = self.graph.vertex_collection(e_class._collection_name)
+            e_class._collection = _collection
+
+        for doc in document_classes:
+            if not self.db.has_collection(doc._collection_name):
+                _collection = self.db.create_collection(doc._collection_name)
+            else:
+                _collection = self.db.collection(doc._collection_name)
+            doc._collection = _collection

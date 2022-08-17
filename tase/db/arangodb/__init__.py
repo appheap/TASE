@@ -1,1 +1,1 @@
-from .arangodb import ArangoDB, ArangoMethods
+from .arangodb import ArangoDB
