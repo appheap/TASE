@@ -1,7 +1,6 @@
-from typing import Optional
-
 import pyrogram
 from pydantic.types import Enum
+from pydantic.typing import Optional
 
 
 class ChatType(Enum):
@@ -24,7 +23,7 @@ class ChatType(Enum):
 
     @staticmethod
     def parse_from_pyrogram(
-        chat_type: "pyrogram.enums.ChatType",
+        chat_type: pyrogram.enums.ChatType,
     ) -> Optional["ChatType"]:
         if chat_type is None:
             # fixme: how to avoid this?

@@ -159,7 +159,7 @@ class BaseCollectionDocument(BaseModel):
     _from_graph_db_extra_processors: Optional[List[FromGraphBaseProcessor]] = None
 
     _base_do_not_update_fields: Optional[List[str]] = ["created_at"]
-    _extra_do_not_update_fields = None
+    _extra_do_not_update_fields: Optional[List[str]] = None
 
     id: Optional[str]
     key: Optional[str]

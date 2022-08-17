@@ -18,10 +18,13 @@ class MentionSource(Enum):
     "mention source is forwarded chat bio / description"
 
     AUDIO_TITLE = 4
-    "mention source is audio file's title"
+    "mention source is audio file title"
 
     AUDIO_PERFORMER = 5
-    "mention source is audio file's performer"
+    "mention source is audio file performer"
 
     AUDIO_FILE_NAME = 6
-    "mention source is audio file's name"
+    "mention source is audio file name"
+
+    DOCUMENT_FILE_NAME = 7
+    "mention source is document file name"
