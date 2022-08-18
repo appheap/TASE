@@ -2,6 +2,7 @@ from .archived_audio import ArchivedAudio, ArchivedAudioMethods
 from .base_edge import BaseEdge
 from .downloaded import Downloaded, DownloadedMethods
 from .file_ref import FileRef, FileRefMethods
+from .forwarded_from import ForwardedFrom, ForwardedFromMethods
 from .from_bot import FromBot, FromBotMethods
 from .from_hit import FromHit, FromHitMethods
 from .had import Had, HadMethods
@@ -19,6 +20,7 @@ edge_classes = [
     ArchivedAudio,
     Downloaded,
     FileRef,
+    ForwardedFrom,
     FromBot,
     FromHit,
     Had,
@@ -38,6 +40,7 @@ class ArangoEdgeMethods(
     ArchivedAudioMethods,
     DownloadedMethods,
     FileRefMethods,
+    ForwardedFromMethods,
     FromBotMethods,
     FromHitMethods,
     HadMethods,
