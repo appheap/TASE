@@ -191,8 +191,8 @@ class UserMethods:
             user, successful = self.create_user(telegram_user)
 
         if not user.is_bot:
-            fav_playlist = self.get_or_create_favorite_playlist(user)
-            if not fav_playlist:
+            fav_playlist, successful = self.get_or_create_favorite_playlist(user)
+            if not fav_playlist or not successful:
                 # fixme: could not create/get favorite playlist.
                 logger.error(f"could not create/get favorite playlist for user: {prettify(user)}")
 

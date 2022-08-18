@@ -400,6 +400,34 @@ class BaseCollectionDocument(BaseModel):
 
         return
 
+    @classmethod
+    def find_one(
+        cls,
+        filters: Dict[str, Any],
+    ) -> Optional["BaseCollectionDocument"]:
+        """
+        Find one document that match the given filters.
+
+        Parameters
+        ----------
+        filters : Dict[str, Any]
+            Document filters
+
+        Returns
+        -------
+        Optional[BaseCollectionDocument]
+            Document matching given filters if it exists, otherwise return `None`.
+        """
+        documents = cls.find(filters, limit=1)
+        if documents is None:
+            return None
+        else:
+            documents = list(documents)
+            if not len(documents):
+                return None
+            else:
+                return documents[0]
+
     def delete(
         self,
     ) -> bool:

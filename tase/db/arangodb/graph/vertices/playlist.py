@@ -44,6 +44,21 @@ class Playlist(BaseVertex):
 
 
 class PlaylistMethods:
+    def get_user_playlist_by_title(
+        self,
+        user: User,
+        title: str,
+    ) -> Optional[Playlist]:
+        if user is None or title is None:
+            return None
+
+        return Playlist.find_one(
+            filters={
+                "_from": user.id,
+                "title": title,
+            },
+        )
+
     def get_user_favorite_playlist(
         self,
         user: User,
@@ -51,34 +66,22 @@ class PlaylistMethods:
         if user is None:
             return None
 
-        playlists = Playlist.find(
+        playlist: Playlist = Playlist.find_one(
             filters={
                 "_from": user.id,
                 "is_favorite": True,
             },
-            limit=1,
         )
-        if playlists is None:
-            return None
-        else:
-            playlists = list(playlists)
-            if not len(playlists):
-                return None
-            else:
-                return playlists[0]
+        return playlist
 
     def create_playlist(
         self,
         user: User,
         title: str,
-        description: str = None,
-        is_favorite: bool = False,
+        description: str,
+        is_favorite: bool,
     ) -> Tuple[Optional[Playlist], bool]:
-        if user is None or title is None:
-            return None, False
-
-        key = None
-        # making sure the `key` is unique
+        # making sure of the `key` uniqueness
         while True:
             key = generate_token_urlsafe(10)
             key_exists = Playlist.has(key)
@@ -87,13 +90,6 @@ class PlaylistMethods:
 
         if key is None:
             return None, False
-
-        if is_favorite:
-            # check if there is a favorite playlist already, one favorite playlist is allowed per user
-            user_fav_playlist = self.get_user_favorite_playlist(user)
-            if user_fav_playlist:
-                # the user has a favorite playlist already
-                return None, False
 
         v = Playlist(
             key=key,
@@ -121,11 +117,38 @@ class PlaylistMethods:
 
         return playlist, successful
 
+    def get_or_create_playlist(
+        self,
+        user: User,
+        title: str,
+        description: str = None,
+        is_favorite: bool = False,
+    ) -> Tuple[Optional[Playlist], bool]:
+        if user is None or title is None:
+            return None, False
+
+        if is_favorite:
+            # check if there is a favorite playlist already, one favorite playlist is allowed per user
+            user_fav_playlist = self.get_user_favorite_playlist(user)
+            if user_fav_playlist:
+                # the user has a favorite playlist already
+                return user_fav_playlist, False
+        else:
+            # non-favorite playlists with reserved names aren't allowed
+            if title == "Favorite":
+                return None, False
+
+        playlist = self.get_user_playlist_by_title(user, title)
+        if playlist:
+            return playlist, False
+
+        return self.create_playlist(user, title, description, is_favorite)
+
     def create_favorite_playlist(
         self,
         user: User,
     ) -> Tuple[Optional[Playlist], bool]:
-        return self.create_playlist(
+        return self.get_or_create_playlist(
             user,
             title="Favorite",
             description="Favorite Playlist",
