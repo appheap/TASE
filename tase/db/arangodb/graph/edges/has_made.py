@@ -16,19 +16,6 @@ class HasMade(BaseEdge):
     _to_vertex_collections = [InlineQuery, Query]
 
     @classmethod
-    def parse_key(
-        cls,
-        from_vertex: User,
-        to_vertex: Union[InlineQuery, Query],
-        *args,
-        **kwargs,
-    ) -> Optional[str]:
-        if from_vertex is None or to_vertex is None:
-            return None
-
-        return f"{from_vertex.key}:{to_vertex.key}"
-
-    @classmethod
     def parse(
         cls,
         from_vertex: User,
@@ -36,7 +23,7 @@ class HasMade(BaseEdge):
         *args,
         **kwargs,
     ) -> Optional["HasMade"]:
-        key = HasMade.parse_key(from_vertex, to_vertex)
+        key = HasMade.parse_key(from_vertex, to_vertex, *args, **kwargs)
         if key is None:
             return None
 

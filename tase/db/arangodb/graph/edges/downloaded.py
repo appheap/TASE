@@ -16,19 +16,6 @@ class Downloaded(BaseEdge):
     _to_vertex_collections = [Download]
 
     @classmethod
-    def parse_key(
-        cls,
-        from_vertex: User,
-        to_vertex: Download,
-        *args,
-        **kwargs,
-    ) -> Optional[str]:
-        if from_vertex is None or to_vertex is None:
-            return None
-
-        return f"{from_vertex.key}:{to_vertex.key}"
-
-    @classmethod
     def parse(
         cls,
         from_vertex: User,
@@ -36,7 +23,7 @@ class Downloaded(BaseEdge):
         *args,
         **kwargs,
     ) -> Optional["Downloaded"]:
-        key = Downloaded.parse_key(from_vertex, to_vertex)
+        key = Downloaded.parse_key(from_vertex, to_vertex, *args, **kwargs)
         if key is None:
             return None
 

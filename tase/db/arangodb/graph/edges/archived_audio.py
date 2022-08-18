@@ -1,7 +1,7 @@
 from pydantic.typing import Optional
 
 from .base_edge import BaseEdge
-from ..vertices import Audio, BaseVertex
+from ..vertices import Audio
 
 
 class ArchivedAudio(BaseEdge):
@@ -16,19 +16,6 @@ class ArchivedAudio(BaseEdge):
     _to_vertex_collections = [Audio]
 
     @classmethod
-    def parse_key(
-        cls,
-        from_vertex: BaseVertex,
-        to_vertex: BaseVertex,
-        *args,
-        **kwargs,
-    ) -> Optional[str]:
-        if from_vertex is None or to_vertex is None:
-            return None
-
-        return f"{from_vertex.key}:{to_vertex.key}"
-
-    @classmethod
     def parse(
         cls,
         from_vertex: Audio,
@@ -36,7 +23,7 @@ class ArchivedAudio(BaseEdge):
         *args,
         **kwargs,
     ) -> Optional["ArchivedAudio"]:
-        key = ArchivedAudio.parse_key(from_vertex, to_vertex)
+        key = ArchivedAudio.parse_key(from_vertex, to_vertex, *args, **kwargs)
         if key is None:
             return None
 

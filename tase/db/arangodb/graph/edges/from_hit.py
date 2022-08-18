@@ -16,19 +16,6 @@ class FromHit(BaseEdge):
     _to_vertex_collections = [Hit]
 
     @classmethod
-    def parse_key(
-        cls,
-        from_vertex: Download,
-        to_vertex: Hit,
-        *args,
-        **kwargs,
-    ) -> Optional[str]:
-        if from_vertex is None or to_vertex is None:
-            return None
-
-        return f"{from_vertex.key}:{to_vertex.key}"
-
-    @classmethod
     def parse(
         cls,
         from_vertex: Download,
@@ -36,7 +23,7 @@ class FromHit(BaseEdge):
         *args,
         **kwargs,
     ) -> Optional["FromHit"]:
-        key = FromHit.parse_key(from_vertex, to_vertex)
+        key = FromHit.parse_key(from_vertex, to_vertex, *args, **kwargs)
         if key is None:
             return None
 

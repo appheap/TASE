@@ -16,19 +16,6 @@ class FileRef(BaseEdge):
     _to_vertex_collections = [File]
 
     @classmethod
-    def parse_key(
-        cls,
-        from_vertex: Audio,
-        to_vertex: File,
-        *args,
-        **kwargs,
-    ) -> Optional[str]:
-        if from_vertex is None or to_vertex is None:
-            return None
-
-        return f"{from_vertex.key}:{to_vertex.key}"
-
-    @classmethod
     def parse(
         cls,
         from_vertex: Audio,
@@ -36,7 +23,7 @@ class FileRef(BaseEdge):
         *args,
         **kwargs,
     ) -> Optional["FileRef"]:
-        key = FileRef.parse_key(from_vertex, to_vertex)
+        key = FileRef.parse_key(from_vertex, to_vertex, *args, **kwargs)
         if key is None:
             return None
 

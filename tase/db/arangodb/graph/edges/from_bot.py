@@ -16,26 +16,14 @@ class FromBot(BaseEdge):
     _to_vertex_collections = [User]
 
     @classmethod
-    def parse_key(
+    def parse(
         cls,
         from_vertex: Download,
         to_vertex: User,
         *args,
         **kwargs,
-    ) -> Optional[str]:
-        if from_vertex is None or to_vertex is None:
-            return None
-
-        return f"{from_vertex.key}@{to_vertex.key}"
-
-    @classmethod
-    def parse(
-        cls,
-        from_vertex: Download,
-        to_vertex: User,
-        **kwargs,
     ) -> Optional["FromBot"]:
-        key = FromBot.parse_key(from_vertex, to_vertex)
+        key = FromBot.parse_key(from_vertex, to_vertex, *args, **kwargs)
         if key is None:
             return None
 

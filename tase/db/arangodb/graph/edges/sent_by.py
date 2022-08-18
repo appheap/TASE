@@ -14,19 +14,6 @@ class SentBy(BaseEdge):
     _to_vertex_collections = [Chat]
 
     @classmethod
-    def parse_key(
-        cls,
-        from_vertex: Audio,
-        to_vertex: Chat,
-        *args,
-        **kwargs,
-    ) -> Optional[str]:
-        if from_vertex is None and to_vertex is None:
-            return None
-
-        return f"{from_vertex.key}:{to_vertex.key}"
-
-    @classmethod
     def parse(
         cls,
         from_vertex: Audio,
@@ -34,7 +21,7 @@ class SentBy(BaseEdge):
         *args,
         **kwargs,
     ) -> Optional["SentBy"]:
-        key = SentBy.parse_key(from_vertex, to_vertex)
+        key = SentBy.parse_key(from_vertex, to_vertex, *args, **kwargs)
         if key is None:
             return None
 

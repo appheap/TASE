@@ -16,19 +16,6 @@ class IsMemberOf(BaseEdge):
     _to_vertex_collections = [Chat]
 
     @classmethod
-    def parse_key(
-        cls,
-        from_vertex: User,
-        to_vertex: Chat,
-        *args,
-        **kwargs,
-    ) -> Optional[str]:
-        if from_vertex is None or to_vertex is None:
-            return None
-
-        return f"{from_vertex.key}:{to_vertex.key}"
-
-    @classmethod
     def parse(
         cls,
         from_vertex: User,
@@ -36,8 +23,7 @@ class IsMemberOf(BaseEdge):
         *args,
         **kwargs,
     ) -> Optional["IsMemberOf"]:
-
-        key = IsMemberOf.parse_key(from_vertex, to_vertex)
+        key = IsMemberOf.parse_key(from_vertex, to_vertex, *args, **kwargs)
         if not key:
             return None
 

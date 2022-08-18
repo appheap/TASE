@@ -16,19 +16,6 @@ class IsCreatorOf(BaseEdge):
     _to_vertex_collections = [User]
 
     @classmethod
-    def get_key(
-        cls,
-        from_vertex: Chat,
-        to_vertex: User,
-        *args,
-        **kwargs,
-    ) -> Optional[str]:
-        if from_vertex is None or to_vertex is None:
-            return None
-
-        return f"{from_vertex.key}:{to_vertex.key}"
-
-    @classmethod
     def parse(
         cls,
         from_vertex: Chat,
@@ -36,7 +23,7 @@ class IsCreatorOf(BaseEdge):
         *args,
         **kwargs,
     ) -> Optional["IsCreatorOf"]:
-        key = IsCreatorOf.parse_key(from_vertex, to_vertex)
+        key = IsCreatorOf.parse_key(from_vertex, to_vertex, *args, **kwargs)
         if key is None:
             return None
 

@@ -16,19 +16,6 @@ class IsContactOf(BaseEdge):
     _to_vertex_collections = [User]
 
     @classmethod
-    def parse_key(
-        cls,
-        from_vertex: User,
-        to_vertex: User,
-        *args,
-        **kwargs,
-    ) -> Optional[str]:
-        if from_vertex is None or to_vertex is None:
-            return None
-
-        return f"{from_vertex.key}:{to_vertex.key}"
-
-    @classmethod
     def parse(
         cls,
         from_vertex: User,
@@ -36,7 +23,7 @@ class IsContactOf(BaseEdge):
         *args,
         **kwargs,
     ) -> Optional["IsContactOf"]:
-        key = IsContactOf.parse_key(from_vertex, to_vertex)
+        key = IsContactOf.parse_key(from_vertex, to_vertex, *args, **kwargs)
         if key is None:
             return None
 
