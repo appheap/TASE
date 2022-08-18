@@ -10,8 +10,8 @@ class LinkedChat(BaseEdge):
     _collection_name = "linked_chat"
     schema_version = 1
 
-    _from_vertex_collections = [Chat]
-    _to_vertex_collections = [Chat]
+    _from_vertex_collections = (Chat,)
+    _to_vertex_collections = (Chat,)
 
     @classmethod
     def parse(

@@ -8,20 +8,20 @@ class Has(BaseEdge):
     _collection_name = "has"
     schema_version = 1
 
-    _from_vertex_collections = [
+    _from_vertex_collections = (
         User,
         Playlist,
         Query,
         InlineQuery,
         Hit,
         Download,
-    ]
-    _to_vertex_collections = [
+    )
+    _to_vertex_collections = (
         Playlist,
         Audio,
         Hit,
         Keyword,
-    ]
+    )
 
     @classmethod
     def parse(

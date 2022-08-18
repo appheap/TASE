@@ -12,8 +12,8 @@ class Downloaded(BaseEdge):
     _collection_name = "downloaded"
     schema_version = 1
 
-    _from_vertex_collections = [User]
-    _to_vertex_collections = [Download]
+    _from_vertex_collections = (User,)
+    _to_vertex_collections = (Download,)
 
     @classmethod
     def parse(

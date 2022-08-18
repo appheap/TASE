@@ -12,8 +12,8 @@ class IsCreatorOf(BaseEdge):
     _collection_name = "is_creator_of"
     schema_version = 1
 
-    _from_vertex_collections = [Chat]
-    _to_vertex_collections = [User]
+    _from_vertex_collections = (Chat,)
+    _to_vertex_collections = (User,)
 
     @classmethod
     def parse(

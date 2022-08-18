@@ -12,8 +12,8 @@ class FileRef(BaseEdge):
     _collection_name = "file_ref"
     schema_version = 1
 
-    _from_vertex_collections = [Audio]
-    _to_vertex_collections = [File]
+    _from_vertex_collections = (Audio,)
+    _to_vertex_collections = (File,)
 
     @classmethod
     def parse(

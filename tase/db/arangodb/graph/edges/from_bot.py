@@ -12,8 +12,8 @@ class FromBot(BaseEdge):
     _collection_name = "from_bot"
     schema_version = 1
 
-    _from_vertex_collections = [Download]
-    _to_vertex_collections = [User]
+    _from_vertex_collections = (Download,)
+    _to_vertex_collections = (User,)
 
     @classmethod
     def parse(

@@ -12,8 +12,11 @@ class ToBot(BaseEdge):
     _collection_name = "to_bot"
     schema_version = 1
 
-    _from_vertex_collections = [InlineQuery, Query]
-    _to_vertex_collections = [User]
+    _from_vertex_collections = (
+        InlineQuery,
+        Query,
+    )
+    _to_vertex_collections = (User,)
 
     @classmethod
     def parse(

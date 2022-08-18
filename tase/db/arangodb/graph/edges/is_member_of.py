@@ -12,8 +12,8 @@ class IsMemberOf(BaseEdge):
     _collection_name = "is_member_of"
     schema_version = 1
 
-    _from_vertex_collections = [User]
-    _to_vertex_collections = [Chat]
+    _from_vertex_collections = (User,)
+    _to_vertex_collections = (Chat,)
 
     @classmethod
     def parse(

@@ -10,8 +10,8 @@ class SentBy(BaseEdge):
     _collection_name = "sent_by"
     schema_version = 1
 
-    _from_vertex_collections = [Audio]
-    _to_vertex_collections = [Chat]
+    _from_vertex_collections = (Audio,)
+    _to_vertex_collections = (Chat,)
 
     @classmethod
     def parse(

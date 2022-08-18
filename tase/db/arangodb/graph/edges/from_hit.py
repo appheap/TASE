@@ -12,8 +12,8 @@ class FromHit(BaseEdge):
     _collection_name = "from_hit"
     schema_version = 1
 
-    _from_vertex_collections = [Download]
-    _to_vertex_collections = [Hit]
+    _from_vertex_collections = (Download,)
+    _to_vertex_collections = (Hit,)
 
     @classmethod
     def parse(

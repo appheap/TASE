@@ -12,8 +12,11 @@ class HasMade(BaseEdge):
     _collection_name = "has_made"
     schema_version = 1
 
-    _from_vertex_collections = [User]
-    _to_vertex_collections = [InlineQuery, Query]
+    _from_vertex_collections = (User,)
+    _to_vertex_collections = (
+        InlineQuery,
+        Query,
+    )
 
     @classmethod
     def parse(

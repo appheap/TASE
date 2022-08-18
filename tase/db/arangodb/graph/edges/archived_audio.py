@@ -12,8 +12,8 @@ class ArchivedAudio(BaseEdge):
     _collection_name = "archived_audio"
     schema_version = 1
 
-    _from_vertex_collections = [Audio]
-    _to_vertex_collections = [Audio]
+    _from_vertex_collections = (Audio,)
+    _to_vertex_collections = (Audio,)
 
     @classmethod
     def parse(

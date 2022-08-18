@@ -13,8 +13,11 @@ class Mentions(BaseEdge):
     _collection_name = "mentions"
     schema_version = 1
 
-    _from_vertex_collections = [Chat]
-    _to_vertex_collections = [Chat, Username]
+    _from_vertex_collections = (Chat,)
+    _to_vertex_collections = (
+        Chat,
+        Username,
+    )
 
     is_direct_mention: bool
     mentioned_at: int
