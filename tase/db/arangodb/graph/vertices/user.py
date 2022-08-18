@@ -99,6 +99,17 @@ class User(BaseVertex):
         self_copy.chosen_language_code = chosen_language_code
         return self.update(self_copy, reserve_non_updatable_fields=False)
 
+    def update_role(
+        self,
+        role: UserRole,
+    ) -> bool:
+        if role is None:
+            return False
+
+        self_copy = self.copy(deep=True)
+        self_copy.role = role
+        return self.update(self_copy, reserve_non_updatable_fields=False)
+
 
 class UserMethods:
     def create_user(
