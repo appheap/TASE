@@ -35,7 +35,7 @@ edge_classes = [
 
 
 class ArangoEdgeMethods(
-    ArchivedAudio,
+    ArchivedAudioMethods,
     DownloadedMethods,
     FileRefMethods,
     FromBotMethods,
