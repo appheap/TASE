@@ -65,8 +65,8 @@ class BaseEdge(BaseCollectionDocument):
         "to_node": "_to",
     }
 
-    _from_vertex_collections = [BaseVertex]
-    _to_vertex_collections = [BaseVertex]
+    _from_vertex_collections: Tuple[Type[BaseVertex]] = (BaseVertex,)
+    _to_vertex_collections: Tuple[Type[BaseVertex]] = (BaseVertex,)
 
     _to_graph_db_extra_processors = [
         ToVertexMapper,
@@ -87,11 +87,11 @@ class BaseEdge(BaseCollectionDocument):
 
     @classmethod
     def to_vertex_collections(cls) -> List[str]:
-        return cls._get_vertices_collection_names(cls._to_vertex_collections)
+        return cls._get_vertices_collection_names(list(cls._to_vertex_collections))
 
     @classmethod
     def from_vertex_collections(cls) -> List[str]:
-        return cls._get_vertices_collection_names(cls._to_vertex_collections)
+        return cls._get_vertices_collection_names(list(cls._to_vertex_collections))
 
     @classmethod
     def link(
@@ -167,4 +167,73 @@ class BaseEdge(BaseCollectionDocument):
         *args,
         **kwargs,
     ) -> Optional[str]:
-        raise NotImplementedError
+        if from_vertex is None or to_vertex is None:
+            return None
+
+        return f"{from_vertex.key}:{to_vertex.key}"
+
+    @classmethod
+    def _create_edge(
+        cls,
+        from_vertex: BaseVertex,
+        to_vertex: BaseVertex,
+        *args,
+        **kwargs,
+    ) -> Tuple[Optional["BaseEdge"], bool]:
+        if from_vertex is None or to_vertex is None:
+            return None, False
+
+        # validate edge ends before creating it
+        cls._validate_edge_ends(from_vertex, to_vertex)
+
+        return cls.insert(cls.parse(from_vertex, to_vertex, *args, **kwargs))
+
+    @classmethod
+    def _validate_edge_ends(cls, from_vertex:BaseVertex, to_vertex:BaseVertex)->None:
+        # todo: find a better way for doing this validation
+        if not isinstance(from_vertex, cls._from_vertex_collections):
+            raise Exception(f"`from_vertex` {from_vertex.__class__.__name__} is not an valid ")
+        if not isinstance(to_vertex, cls._to_vertex_collections):
+            raise Exception(f"`to_vertex` {from_vertex.__class__.__name__} is not an valid ")
+
+    @classmethod
+    def get_or_create_edge(
+        cls,
+        from_vertex: BaseVertex,
+        to_vertex: BaseVertex,
+        *args,
+        **kwargs,
+    ) -> Optional["BaseEdge"]:
+        if from_vertex is None or to_vertex is None:
+            return None
+
+        edge = cls.get(cls.parse_key(from_vertex, to_vertex, *args, **kwargs))
+        if not edge:
+            # edge does not exist in the database, create it
+            edge, successful = cls._create_edge(from_vertex, to_vertex, *args, **kwargs)
+
+        return edge
+
+    @classmethod
+    def update_or_create_edge(
+        cls,
+        from_vertex: BaseVertex,
+        to_vertex: BaseVertex,
+        *args,
+        **kwargs,
+    ) -> Optional["BaseEdge"]:
+        if from_vertex is None or to_vertex is None:
+            return None
+
+        edge = cls.get(cls.parse_key(from_vertex, to_vertex, *args, **kwargs))
+        if edge is not None:
+            # validate the edge ends before updating it
+            cls._validate_edge_ends(from_vertex, to_vertex)
+
+            # edge exists in the database, update it
+            edge, successful = edge.update(cls.parse(from_vertex, to_vertex, *args, **kwargs))
+        else:
+            # edge does not exist in the database, create it
+            edge, successful = cls._create_edge(from_vertex, to_vertex, *args, **kwargs)
+
+        return edge
