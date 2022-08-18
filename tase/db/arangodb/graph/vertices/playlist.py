@@ -81,8 +81,8 @@ class PlaylistMethods:
         # making sure the `key` is unique
         while True:
             key = generate_token_urlsafe(10)
-            has_key = Playlist.has(key)
-            if has_key is not None and not has_key:
+            key_exists = Playlist.has(key)
+            if key_exists is not None and not key_exists:
                 break
 
         if key is None:
