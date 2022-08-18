@@ -15,6 +15,7 @@ class Has(BaseEdge):
         InlineQuery,
         Hit,
         Download,
+        Audio,
     )
     _to_vertex_collections = (
         Playlist,
@@ -26,7 +27,7 @@ class Has(BaseEdge):
     @classmethod
     def parse(
         cls,
-        from_vertex: Union[User, Playlist, Query, InlineQuery, Hit, Download],
+        from_vertex: Union[User, Playlist, Query, InlineQuery, Hit, Download, Audio],
         to_vertex: Union[Playlist, Audio, Hit, Keyword],
         *args,
         **kwargs,

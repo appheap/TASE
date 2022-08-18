@@ -15,6 +15,7 @@ from .linked_chat import LinkedChat, LinkedChatMethods
 from .mentions import Mentions, MentionsMethods
 from .sent_by import SentBy, SentByMethods
 from .to_bot import ToBot, ToBotMethods
+from .via_bot import ViaBot, ViaBotMethods
 
 edge_classes = [
     ArchivedAudio,
@@ -33,6 +34,7 @@ edge_classes = [
     Mentions,
     SentBy,
     ToBot,
+    ViaBot,
 ]
 
 
@@ -53,5 +55,6 @@ class ArangoEdgeMethods(
     MentionsMethods,
     SentByMethods,
     ToBotMethods,
+    ViaBotMethods,
 ):
     pass

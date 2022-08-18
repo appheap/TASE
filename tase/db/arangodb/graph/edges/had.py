@@ -6,6 +6,7 @@ from ..vertices import (
     Audio,
     Playlist,
     User,
+    Keyword,
 )
 
 
@@ -20,17 +21,19 @@ class Had(BaseEdge):
     _from_vertex_collections = (
         User,
         Playlist,
+        Audio,
     )
     _to_vertex_collections = (
         Playlist,
         Audio,
+        Keyword,
     )
 
     @classmethod
     def parse_key(
         cls,
-        from_vertex: Union[User, Playlist],
-        to_vertex: Union[Playlist, Audio],
+        from_vertex: Union[User, Playlist, Audio],
+        to_vertex: Union[Playlist, Audio, Keyword],
         *args,
         **kwargs,
     ) -> Optional[str]:
