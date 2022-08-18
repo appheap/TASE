@@ -3,7 +3,10 @@ from pydantic import Field
 from pydantic.types import Enum
 from pydantic.typing import Optional, List, Tuple
 
+from tase.my_logger import logger
+from tase.utils import prettify
 from .base_vertex import BaseVertex
+from .. import ArangoGraphMethods
 from ...helpers import Restriction
 
 
@@ -148,7 +151,7 @@ class UserMethods:
         return user
 
     def update_or_create_user(
-        self,
+        self: ArangoGraphMethods,
         telegram_user: pyrogram.types.User,
     ) -> Optional[User]:
         """
@@ -177,6 +180,9 @@ class UserMethods:
             user, successful = self.create_user(telegram_user)
 
         if not user.is_bot:
-            self.get_or_create_user_favorite_playlist(user)
+            fav_playlist = self.get_or_create_favorite_playlist(user)
+            if not fav_playlist:
+                # fixme: could not create/get favorite playlist.
+                logger.error(f"could not create/get favorite playlist for user: {prettify(user)}")
 
         return user

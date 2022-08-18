@@ -325,6 +325,44 @@ class BaseCollectionDocument(BaseModel):
         return None
 
     @classmethod
+    def has(
+        cls,
+        doc_key: str,
+    ) -> Optional[bool]:
+        """
+        Check if a document exists in the collection.
+
+        Parameters
+        ----------
+        doc_key : str
+            Key of the document in the collection
+
+        Returns
+        -------
+        Optional[bool]
+            Document matching the specified `Key` if it exists in the collection, otherwise return `None`
+
+        """
+        if doc_key is None:
+            return None
+
+        try:
+            return cls._collection.has(doc_key)
+        except DocumentGetError as e:
+            # If check fails.
+            caught_error = True
+            logger.exception(e)
+        except DocumentRevisionError as e:
+            # If revisions mismatch.
+            caught_error = True
+            logger.exception(e)
+        except Exception as e:
+            caught_error = True
+            logger.exception(e)
+
+        return None if caught_error else False
+
+    @classmethod
     def find(
         cls,
         filters: Dict[str, Any],
@@ -362,8 +400,22 @@ class BaseCollectionDocument(BaseModel):
 
         return
 
-    @classmethod
     def delete(
+        self,
+    ) -> bool:
+        """
+        Delete the object in ArangoDB
+
+        Returns
+        -------
+        bool
+            Whether the operation was successful or not
+        """
+
+        return self.delete_document(self)
+
+    @classmethod
+    def delete_document(
         cls,
         doc: Union["BaseCollectionDocument", str],
     ) -> bool:

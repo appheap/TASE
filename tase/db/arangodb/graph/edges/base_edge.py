@@ -115,7 +115,13 @@ class BaseEdge(BaseCollectionDocument):
         -------
         Tuple[Optional[BaseEdge], bool]
             Updated edge with returned metadata from ArangoDB and `True` if the operation was successful,
-            old object and `False` otherwise
+            old object and `False` otherwise.
+
+        Raises
+        ------
+        ValueError
+            When the start or the end vertex provided to the function does not match the edge definition in the
+            database.
         """
 
         if from_vertex is None or to_vertex is None or from_vertex.id is None or to_vertex.id is None:
@@ -179,7 +185,8 @@ class BaseEdge(BaseCollectionDocument):
         Raises
         ------
         ValueError
-            When the start or the end vertex provided to the function does not match the edge definition in the database
+            When the start or the end vertex provided to the function does not match the edge definition in the
+            database.
         """
 
         # todo: what's the alternative location for checking this?
