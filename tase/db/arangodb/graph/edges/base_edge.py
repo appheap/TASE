@@ -157,7 +157,33 @@ class BaseEdge(BaseCollectionDocument):
         *args,
         **kwargs,
     ) -> Optional["BaseEdge"]:
-        raise NotImplementedError
+        """
+        Create an `Edge` object with the arguments provided
+
+        Parameters
+        ----------
+        from_vertex : BaseVertex
+            Start of the edge
+        to_vertex : BaseVertex
+            End of the edge
+        args : Any
+            Arguments provided to this function
+        kwargs : Dict[str, Any]
+            Keyword arguments provided to this function
+
+        Returns
+        -------
+        BaseEdge
+            Edge object if given arguments are valid, otherwise return `None`
+
+        Raises
+        ------
+        ValueError
+            When the start or the end vertex provided to the function does not match the edge definition in the database
+        """
+
+        # todo: what's the alternative location for checking this?
+        cls._validate_edge_ends(from_vertex, to_vertex)
 
     @classmethod
     def parse_key(
@@ -173,28 +199,55 @@ class BaseEdge(BaseCollectionDocument):
         return f"{from_vertex.key}:{to_vertex.key}"
 
     @classmethod
-    def _create_edge(
+    def create_edge(
         cls,
         from_vertex: BaseVertex,
         to_vertex: BaseVertex,
         *args,
         **kwargs,
     ) -> Tuple[Optional["BaseEdge"], bool]:
+        """
+        Create a new edge from `from_vertex` vertex to `to_vertex` vertex with given arguments and return it if
+        successful.
+
+        Parameters
+        ----------
+        from_vertex : BaseVertex
+            Start of the edge
+        to_vertex : BaseVertex
+            End of the edge
+        args : Optional[List[Any]]
+            Arguments passed to this function
+        kwargs : Dict[str, Any]
+            Keyword arguments passed to this function
+
+        Returns
+        -------
+        Tuple[Optional[BaseEdge], bool]
+            Created edge and whether the creation was successful.
+
+        Raises
+        ------
+        ValueError
+            When the start or the end vertex provided to the function does not match the edge definition in the
+            database.
+        """
         if from_vertex is None or to_vertex is None:
             return None, False
-
-        # validate edge ends before creating it
-        cls._validate_edge_ends(from_vertex, to_vertex)
 
         return cls.insert(cls.parse(from_vertex, to_vertex, *args, **kwargs))
 
     @classmethod
-    def _validate_edge_ends(cls, from_vertex:BaseVertex, to_vertex:BaseVertex)->None:
+    def _validate_edge_ends(
+        cls,
+        from_vertex: BaseVertex,
+        to_vertex: BaseVertex,
+    ) -> None:
         # todo: find a better way for doing this validation
         if not isinstance(from_vertex, cls._from_vertex_collections):
-            raise Exception(f"`from_vertex` {from_vertex.__class__.__name__} is not an valid ")
+            raise ValueError(f"`from_vertex` {from_vertex.__class__.__name__} is not an valid ")
         if not isinstance(to_vertex, cls._to_vertex_collections):
-            raise Exception(f"`to_vertex` {from_vertex.__class__.__name__} is not an valid ")
+            raise ValueError(f"`to_vertex` {from_vertex.__class__.__name__} is not an valid ")
 
     @classmethod
     def get_or_create_edge(
@@ -204,13 +257,39 @@ class BaseEdge(BaseCollectionDocument):
         *args,
         **kwargs,
     ) -> Optional["BaseEdge"]:
+        """
+        Get an Edge if it exists in the database, and create it otherwise.
+
+        Parameters
+        ----------
+        from_vertex : BaseVertex
+            Start of the edge
+        to_vertex : BaseVertex
+            End of the edge
+        args : List[Any]
+            Arguments passed to the function
+        kwargs : Dict[str, Any]
+            Keywords passed to the function
+
+        Returns
+        --------
+        Optional[BaseEdge]
+            The created/existing Edge if successful, otherwise, return `None`.
+
+        Raises
+        ------
+        ValueError
+            When the start or the end vertex provided to the function does not match the edge definition in the
+            database.
+
+        """
         if from_vertex is None or to_vertex is None:
             return None
 
         edge = cls.get(cls.parse_key(from_vertex, to_vertex, *args, **kwargs))
         if not edge:
             # edge does not exist in the database, create it
-            edge, successful = cls._create_edge(from_vertex, to_vertex, *args, **kwargs)
+            edge, successful = cls.create_edge(from_vertex, to_vertex, *args, **kwargs)
 
         return edge
 
@@ -222,18 +301,42 @@ class BaseEdge(BaseCollectionDocument):
         *args,
         **kwargs,
     ) -> Optional["BaseEdge"]:
+        """
+        Update an Edge if it exists in the database, and create it otherwise. Return the created/updated if
+        successful and return `None` otherwise
+
+        Parameters
+        ----------
+        from_vertex : BaseVertex
+            Start of the edge
+        to_vertex : BaseVertex
+            End of the edge
+        args : List[Any]
+            Arguments passed to the function
+        kwargs : Dict[str, Any]
+            Keywords passed to the function
+
+        Returns
+        -------
+        Optional[BaseEdge]
+            The created/updated if successful, otherwise, return `None`.
+
+        Raises
+        ------
+        ValueError
+            When the start or the end vertex provided to the function does not match the edge definition in the
+            database.
+
+        """
         if from_vertex is None or to_vertex is None:
             return None
 
         edge = cls.get(cls.parse_key(from_vertex, to_vertex, *args, **kwargs))
         if edge is not None:
-            # validate the edge ends before updating it
-            cls._validate_edge_ends(from_vertex, to_vertex)
-
             # edge exists in the database, update it
             edge, successful = edge.update(cls.parse(from_vertex, to_vertex, *args, **kwargs))
         else:
             # edge does not exist in the database, create it
-            edge, successful = cls._create_edge(from_vertex, to_vertex, *args, **kwargs)
+            edge, successful = cls.create_edge(from_vertex, to_vertex, *args, **kwargs)
 
         return edge
