@@ -774,6 +774,10 @@ class BaseCollectionDocument(BaseModel):
         Optional[BaseCollectionDocument]
             Document object if parsing was successful, otherwise, return `None`.
 
+        Raises
+        ------
+        NotImplementedError
+            If the `class` calling this or any of superclasses haven't implemented this method.
         """
         raise NotImplementedError
 
@@ -798,5 +802,10 @@ class BaseCollectionDocument(BaseModel):
         -------
         Optional[str]
             Key string if parsing was successful, otherwise, return `None`.
+
+        Raises
+        ------
+        NotImplementedError
+            If the `class` calling this or any of superclasses haven't implemented this method.
         """
         raise NotImplementedError
