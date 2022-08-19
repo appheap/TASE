@@ -7,9 +7,11 @@ from arango import (
     DocumentReplaceError,
     DocumentDeleteError,
     DocumentGetError,
+    AQLQueryExecuteError,
 )
 from arango.aql import AQL
 from arango.collection import VertexCollection, EdgeCollection, StandardCollection
+from arango.cursor import Cursor
 from pydantic import BaseModel, Field, ValidationError
 from pydantic.types import Enum
 from pydantic.typing import Dict, List, Optional, Any, Type, Union, Tuple
@@ -711,6 +713,27 @@ class BaseCollectionDocument(BaseModel):
                 setattr(self, field_name, getattr(old_doc, field_name, None))
 
         return self
+
+    @classmethod
+    def execute_query(
+        cls,
+        query: str,
+        bind_vars: Dict[str, Any],
+    ) -> Optional[Cursor]:
+        try:
+            bind_vars["graph_name"] = cls._graph_name
+
+            return cls._aql.execute(
+                query,
+                bind_vars=bind_vars,
+                count=True,
+            )
+        except AQLQueryExecuteError as e:
+            logger.exception(e)
+        except Exception as e:
+            logger.exception(e)
+
+        return None
 
     ########################################################################
     @classmethod

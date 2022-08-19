@@ -5,7 +5,7 @@ from tase.my_logger import logger
 from tase.utils import generate_token_urlsafe, prettify
 from .base_vertex import BaseVertex
 from .user import User
-from ..edges import Has
+from ..edges import Has, Had
 from ...base import BaseSoftDeletableDocument
 
 
@@ -48,18 +48,31 @@ class PlaylistMethods:
         self,
         user: User,
         title: str,
-        filter_out_soft_deleted: Optional[bool] = None,
+        filter_out_soft_deleted: Optional[bool] = False,
     ) -> Optional[Playlist]:
         if user is None or title is None:
             return None
 
-        return Playlist.find_one(
-            filters={
-                "_from": user.id,
+        query = (
+            "for v,e in 1..1 outbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@has'],vertexCollections:['@playlists']}"
+            "   filter v.is_soft_deleted == not @filter_out and v.title == '@title'"
+            "   limit 1"
+            "   return v"
+        )
+        cursor = Playlist.execute_query(
+            query,
+            bind_vars={
+                "start_vertex": user.id,
+                "has": Has._collection_name,
+                "playlists": Playlist._collection_name,
+                "filter_out": filter_out_soft_deleted,
                 "title": title,
             },
-            filter_out_soft_deleted=filter_out_soft_deleted,
         )
+        if cursor is not None and len(cursor):
+            return Playlist.from_collection(cursor.pop())
+
+        return None
 
     def get_user_favorite_playlist(
         self,
@@ -68,13 +81,24 @@ class PlaylistMethods:
         if user is None:
             return None
 
-        playlist: Playlist = Playlist.find_one(
-            filters={
-                "_from": user.id,
+        query = (
+            "for v,e in 1..1 outbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@has'],vertexCollections:['@playlists']}"
+            "   filter v.is_favorite == @is_favorite"
+            "   limit 1"
+            "   return v"
+        )
+        cursor = Playlist.execute_query(
+            query,
+            bind_vars={
+                "start_vertex": user.id,
+                "has": Has._collection_name,
+                "playlists": Playlist._collection_name,
                 "is_favorite": True,
             },
         )
-        return playlist
+        if cursor is not None and len(cursor):
+            return Playlist.from_collection(cursor.pop())
+        return None
 
     def create_playlist(
         self,
@@ -166,3 +190,43 @@ class PlaylistMethods:
             playlist = self.create_favorite_playlist(user)
 
         return playlist
+
+    def remove_playlist(
+        self,
+        user: User,
+        playlist_key: str,
+        deleted_at: int,
+    ) -> bool:
+        if user is None or playlist_key is None or deleted_at is None:
+            return False
+
+        playlist: Playlist = Playlist.get(playlist_key)
+        if not playlist:
+            raise KeyError(f"Playlist was not found with key : {playlist_key}")
+
+        has_edge: Has = Has.get(Has.parse_key(user, playlist))
+        if has_edge:
+            try:
+                had_edge = Had.get_or_create_edge(user, playlist, has=has_edge, deleted_at=deleted_at)
+            except ValueError:
+                # fixme: check if the user or playlist are listed in had edge ends.
+                pass
+            else:
+                if had_edge:
+                    is_has_deleted = has_edge.delete()
+                    is_playlist_deleted = playlist.delete(
+                        soft_delete=True,
+                        is_exact_date=True,
+                        deleted_at=deleted_at,
+                    )
+                    if is_has_deleted and is_playlist_deleted:
+                        return True
+                    else:
+                        # todo: check which one couldn't be deleted
+                        pass
+                else:
+                    pass
+        else:
+            pass
+
+        return False
