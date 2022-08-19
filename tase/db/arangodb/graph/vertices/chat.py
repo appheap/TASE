@@ -1,12 +1,12 @@
 import pyrogram
+from arango import CursorEmptyError
 from pydantic import Field
 from pydantic.typing import Optional, List, Tuple
 
 from tase.my_logger import logger
 from tase.utils import prettify
-from . import User
 from .base_vertex import BaseVertex
-from ..edges import LinkedChat, IsMemberOf, IsCreatorOf
+from ..edges import LinkedChat
 from ...enums import ChatType
 from ...helpers import Restriction, AudioIndexerMetadata, AudioDocIndexerMetadata, UsernameExtractorMetadata
 
@@ -129,11 +129,14 @@ class Chat(BaseVertex):
 
 
 class ChatMethods:
+    _get_chat_linked_chat_with_edge_query = (
+        "for v,e in 1..1 outbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@linked_chat'],vertexCollections:['@chat']}"
+        "   return {linked_chat:v, edge:e}"
+    )
+
     def create_chat(
         self,
         telegram_chat: pyrogram.types.Chat,
-        creator: Optional[User] = None,
-        member: Optional[User] = None,
     ) -> Optional[Chat]:
         if telegram_chat is None:
             return None
@@ -141,30 +144,22 @@ class ChatMethods:
         chat, successful = Chat.insert(Chat.parse(telegram_chat))
         if chat and successful:
             if telegram_chat.linked_chat:
-                linked_chat = self.get_or_create_chat(telegram_chat.linked_chat, creator, member)
+                linked_chat = self.get_or_create_chat(telegram_chat.linked_chat)
                 if linked_chat:
                     chat: Chat = chat
                     try:
-                        linked_chat_edge = LinkedChat.get_or_create_edge(chat, linked_chat)
+                        LinkedChat.get_or_create_edge(chat, linked_chat)
                     except ValueError as e:
                         pass
                 else:
                     # todo: could not create linked_chat
                     logger.error(f"Could not create linked_chat: {prettify(telegram_chat.linked_chat)}")
 
-            try:
-                IsMemberOf.get_or_create_edge(member, chat)
-                IsCreatorOf.get_or_create_edge(creator, chat)
-            except ValueError as e:
-                pass
-
         return chat
 
     def get_or_create_chat(
         self,
         telegram_chat: pyrogram.types.Chat,
-        creator: Optional[User] = None,
-        member: Optional[User] = None,
     ) -> Optional[Chat]:
         if telegram_chat is None:
             return None
@@ -172,15 +167,13 @@ class ChatMethods:
         chat = Chat.get(Chat.parse_key(telegram_chat))
         if chat is None:
             # chat does not exist in the database, create it
-            chat, successful = self.create_chat(telegram_chat, creator, member)
+            chat, successful = self.create_chat(telegram_chat)
 
         return chat
 
     def update_or_create_chat(
         self,
         telegram_chat: pyrogram.types.Chat,
-        creator: Optional[User] = None,
-        member: Optional[User] = None,
     ) -> Optional[Chat]:
         if telegram_chat is None:
             return None
@@ -191,21 +184,82 @@ class ChatMethods:
             if successful:
                 if telegram_chat.linked_chat:
                     # check if an update of connected vertices is needed
+                    linked_chat, linked_chat_edge = self.get_chat_linked_chat(chat)
 
-                    linked_chat = self.update_or_create_chat(telegram_chat, creator, member)
-                    if linked_chat:
-                        chat: Chat = chat
-                        try:
-                            linked_chat_edge = LinkedChat.get_or_create_edge(chat, linked_chat)
-                        except ValueError as e:
-                            pass
+                    if linked_chat and linked_chat_edge:
+                        # chat has linked chat already, check if it needs to create/update the existing one or delete
+                        # the old one and add a new one.
+                        if linked_chat.chat_id == telegram_chat.linked_chat.id:
+                            # update the linked chat
+                            linked_chat.update(Chat.parse(telegram_chat.linked_chat))
+                        else:
+                            # delete the old link
+                            linked_chat_edge.delete()
+
+                            # create the new link and new chat
+                            linked_chat = self.update_or_create_chat(telegram_chat.linked_chat)
+                            try:
+                                LinkedChat.get_or_create_edge(chat, linked_chat)
+                            except ValueError:
+                                logger.error(f"Could not create linked_chat: {prettify(telegram_chat.linked_chat)}")
                     else:
-                        # todo: could not create linked_chat
-                        logger.error(f"Could not create linked_chat: {prettify(telegram_chat.linked_chat)}")
+                        # chat did not have any linked chat before, create it
+                        linked_chat = self.get_or_create_chat(telegram_chat.linked_chat)
+                        try:
+                            LinkedChat.get_or_create_edge(chat, linked_chat)
+                        except ValueError:
+                            logger.error(f"Could not create linked_chat: {prettify(telegram_chat.linked_chat)}")
+
                 else:
-                    pass
-                pass
+                    # the chat doesn't have any linked chat, check if it had any before and delete the link
+                    linked_chat, linked_chat_edge = self.get_chat_linked_chat(chat)
+                    if linked_chat and linked_chat_edge:
+                        # chat had linked chat before, remove the link
+                        linked_chat_edge.delete()
         else:
-            chat, successful = self.create_chat(telegram_chat, creator, member)
+            chat = self.create_chat(telegram_chat)
 
         return chat
+
+    def get_chat_linked_chat(
+        self,
+        chat: Chat,
+    ) -> Tuple[Optional[Chat], Optional[LinkedChat]]:
+        """
+        Get linked `Chat` s for the given `Chat`.
+
+        Parameters
+        ----------
+        chat : Chat
+            Chat to get its linked chats
+
+        Returns
+        -------
+        Tuple[Optional[Chat], Optional[LinkedChat]]
+            Linked chat
+
+        """
+        if chat is None or chat.id is None:
+            return None, None
+
+        cursor = Chat.execute_query(
+            self._get_chat_linked_chat_with_edge_query,
+            bind_vars={
+                "start_vertex": chat.id,
+                "linked_chat": LinkedChat._collection_name,
+                "chat": Chat._collection_name,
+            },
+        )
+        if cursor is not None and len(cursor):
+            try:
+                doc = cursor.pop()
+            except CursorEmptyError:
+                pass
+            except Exception as e:
+                logger.exception(e)
+            else:
+                linked_chat: Chat = Chat.from_collection(doc["linked_chat"])
+                edge: LinkedChat = LinkedChat.from_collection(doc["edge"])
+                return linked_chat, edge
+
+        return None, None
