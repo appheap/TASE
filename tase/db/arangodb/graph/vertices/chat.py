@@ -134,9 +134,9 @@ class ChatMethods:
         telegram_chat: pyrogram.types.Chat,
         creator: Optional[User] = None,
         member: Optional[User] = None,
-    ) -> Tuple[Optional[Chat], bool]:
+    ) -> Optional[Chat]:
         if telegram_chat is None:
-            return None, False
+            return None
 
         chat, successful = Chat.insert(Chat.parse(telegram_chat))
         if chat and successful:
@@ -158,7 +158,7 @@ class ChatMethods:
             except ValueError as e:
                 pass
 
-        return chat, successful
+        return chat
 
     def get_or_create_chat(
         self,

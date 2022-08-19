@@ -115,7 +115,7 @@ class UserMethods:
     def create_user(
         self,
         telegram_user: pyrogram.types.User,
-    ) -> Tuple[Optional[User], bool]:
+    ) -> Optional[User]:
         """
         Create a user in the database from a telegram user object.
 
@@ -130,9 +130,13 @@ class UserMethods:
             User object and  `True` if the operation was successful, otherwise return `None` and `False`
         """
         if telegram_user is None:
-            return None, False
+            return None
 
-        return User.insert(User.parse(telegram_user))
+        user, successful = User.insert(User.parse(telegram_user))
+        if user and successful:
+            return user
+
+        return None
 
     def get_or_create_user(
         self,
@@ -157,7 +161,7 @@ class UserMethods:
         user = User.get(User.parse_key(telegram_user))
         if not user:
             # user does not exist in the database, create it
-            user, successful = self.create_user(telegram_user)
+            user = self.create_user(telegram_user)
 
         return user
 
@@ -185,14 +189,14 @@ class UserMethods:
         user: User = User.get(User.parse_key(telegram_user))
         if user is not None:
             # user exists in the database, update it
-            successful = user.update(User.parse(telegram_user))
+            updated = user.update(User.parse(telegram_user))
         else:
             # user does not exist in the database, create it
-            user, successful = self.create_user(telegram_user)
+            user = self.create_user(telegram_user)
 
         if not user.is_bot:
-            fav_playlist, successful = self.get_or_create_favorite_playlist(user)
-            if not fav_playlist or not successful:
+            fav_playlist = self.get_or_create_favorite_playlist(user)
+            if not fav_playlist:
                 # fixme: could not create/get favorite playlist.
                 logger.error(f"could not create/get favorite playlist for user: {prettify(user)}")
 

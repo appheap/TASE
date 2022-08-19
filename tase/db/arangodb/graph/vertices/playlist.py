@@ -1,5 +1,5 @@
 from pydantic import Field
-from pydantic.typing import Optional, Tuple
+from pydantic.typing import Optional
 
 from tase.my_logger import logger
 from tase.utils import generate_token_urlsafe, prettify
@@ -82,7 +82,7 @@ class PlaylistMethods:
         title: str,
         description: str,
         is_favorite: bool,
-    ) -> Tuple[Optional[Playlist], bool]:
+    ) -> Optional[Playlist]:
         # making sure of the `key` uniqueness
         while True:
             key = generate_token_urlsafe(10)
@@ -91,7 +91,7 @@ class PlaylistMethods:
                 break
 
         if key is None:
-            return None, False
+            return None
 
         v = Playlist(
             key=key,
@@ -106,7 +106,6 @@ class PlaylistMethods:
 
         if playlist and successful:
             try:
-                has_edge = None
                 has_edge = Has.get_or_create_edge(user, playlist)
             except ValueError:
                 # todo: could not create the has_edge, abort the transaction
@@ -115,9 +114,9 @@ class PlaylistMethods:
                     # todo: could not delete the playlist, what now?
                     logger.error(f"Could not delete playlist: {prettify(playlist)}")
             else:
-                return playlist, successful if has_edge else False
+                return playlist if has_edge else None
 
-        return playlist, successful
+        return playlist
 
     def get_or_create_playlist(
         self,
@@ -125,31 +124,31 @@ class PlaylistMethods:
         title: str,
         description: str = None,
         is_favorite: bool = False,
-    ) -> Tuple[Optional[Playlist], bool]:
+    ) -> Optional[Playlist]:
         if user is None or title is None:
-            return None, False
+            return None
 
         if is_favorite:
             # check if there is a favorite playlist already, one favorite playlist is allowed per user
             user_fav_playlist = self.get_user_favorite_playlist(user)
             if user_fav_playlist:
                 # the user has a favorite playlist already
-                return user_fav_playlist, True
+                return user_fav_playlist
         else:
             # non-favorite playlists with reserved names aren't allowed
             if title == "Favorite":
-                return None, False
+                return None
 
         playlist = self.get_user_playlist_by_title(user, title)
         if playlist:
-            return playlist, True
+            return playlist
 
         return self.create_playlist(user, title, description, is_favorite)
 
     def create_favorite_playlist(
         self,
         user: User,
-    ) -> Tuple[Optional[Playlist], bool]:
+    ) -> Optional[Playlist]:
         return self.get_or_create_playlist(
             user,
             title="Favorite",
@@ -160,10 +159,9 @@ class PlaylistMethods:
     def get_or_create_favorite_playlist(
         self,
         user: User,
-    ) -> Tuple[Optional[Playlist], bool]:
+    ) -> Optional[Playlist]:
         playlist = self.get_user_favorite_playlist(user)
-        successful = False
         if playlist is None:
-            playlist, successful = self.create_favorite_playlist(user)
+            playlist = self.create_favorite_playlist(user)
 
-        return playlist, successful
+        return playlist
