@@ -1,8 +1,12 @@
 import pyrogram
 from pydantic import Field
-from pydantic.typing import Optional, List
+from pydantic.typing import Optional, List, Tuple
 
+from tase.my_logger import logger
+from tase.utils import prettify
+from . import User
 from .base_vertex import BaseVertex
+from ..edges import LinkedChat, IsMemberOf, IsCreatorOf
 from ...enums import ChatType
 from ...helpers import Restriction, AudioIndexerMetadata, AudioDocIndexerMetadata, UsernameExtractorMetadata
 
@@ -125,4 +129,83 @@ class Chat(BaseVertex):
 
 
 class ChatMethods:
-    pass
+    def create_chat(
+        self,
+        telegram_chat: pyrogram.types.Chat,
+        creator: Optional[User] = None,
+        member: Optional[User] = None,
+    ) -> Tuple[Optional[Chat], bool]:
+        if telegram_chat is None:
+            return None, False
+
+        chat, successful = Chat.insert(Chat.parse(telegram_chat))
+        if chat and successful:
+            if telegram_chat.linked_chat:
+                linked_chat = self.get_or_create_chat(telegram_chat.linked_chat, creator, member)
+                if linked_chat:
+                    chat: Chat = chat
+                    try:
+                        linked_chat_edge = LinkedChat.get_or_create_edge(chat, linked_chat)
+                    except ValueError as e:
+                        pass
+                else:
+                    # todo: could not create linked_chat
+                    logger.error(f"Could not create linked_chat: {prettify(telegram_chat.linked_chat)}")
+
+            try:
+                IsMemberOf.get_or_create_edge(member, chat)
+                IsCreatorOf.get_or_create_edge(creator, chat)
+            except ValueError as e:
+                pass
+
+        return chat, successful
+
+    def get_or_create_chat(
+        self,
+        telegram_chat: pyrogram.types.Chat,
+        creator: Optional[User] = None,
+        member: Optional[User] = None,
+    ) -> Optional[Chat]:
+        if telegram_chat is None:
+            return None
+
+        chat = Chat.get(Chat.parse_key(telegram_chat))
+        if chat is None:
+            # chat does not exist in the database, create it
+            chat, successful = self.create_chat(telegram_chat, creator, member)
+
+        return chat
+
+    def update_or_create_chat(
+        self,
+        telegram_chat: pyrogram.types.Chat,
+        creator: Optional[User] = None,
+        member: Optional[User] = None,
+    ) -> Optional[Chat]:
+        if telegram_chat is None:
+            return None
+
+        chat: Chat = Chat.get(Chat.parse_key(telegram_chat))
+        if chat is not None:
+            successful = chat.update(Chat.parse(telegram_chat))
+            if successful:
+                if telegram_chat.linked_chat:
+                    # check if an update of connected vertices is needed
+
+                    linked_chat = self.update_or_create_chat(telegram_chat, creator, member)
+                    if linked_chat:
+                        chat: Chat = chat
+                        try:
+                            linked_chat_edge = LinkedChat.get_or_create_edge(chat, linked_chat)
+                        except ValueError as e:
+                            pass
+                    else:
+                        # todo: could not create linked_chat
+                        logger.error(f"Could not create linked_chat: {prettify(telegram_chat.linked_chat)}")
+                else:
+                    pass
+                pass
+        else:
+            chat, successful = self.create_chat(telegram_chat, creator, member)
+
+        return chat

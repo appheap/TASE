@@ -182,10 +182,10 @@ class UserMethods:
         if telegram_user is None:
             return None
 
-        user = User.get(User.parse_key(telegram_user))
+        user: User = User.get(User.parse_key(telegram_user))
         if user is not None:
             # user exists in the database, update it
-            user, successful = user.update(User.parse(telegram_user))
+            successful = user.update(User.parse(telegram_user))
         else:
             # user does not exist in the database, create it
             user, successful = self.create_user(telegram_user)
