@@ -134,10 +134,27 @@ class ChatMethods:
         "   return {linked_chat:v, edge:e}"
     )
 
-    def create_chat(
+    def _create_chat(
         self,
         telegram_chat: pyrogram.types.Chat,
     ) -> Optional[Chat]:
+        """
+        Create a `Chat` from `telegram_chat` argument.
+
+        Parameters
+        ----------
+        telegram_chat : pyrogram.types.Chat
+            Telegram Chat to create `Chat` document from.
+
+        Returns
+        -------
+        Optional[Chat]
+            Chat if the operation was successful, otherwise, return `None`.
+
+        Notes
+        -----
+        This method is not meant to be accessed directly, it is only to be used inside other methods.
+        """
         if telegram_chat is None:
             return None
 
@@ -146,7 +163,6 @@ class ChatMethods:
             if telegram_chat.linked_chat:
                 linked_chat = self.get_or_create_chat(telegram_chat.linked_chat)
                 if linked_chat:
-                    chat: Chat = chat
                     try:
                         LinkedChat.get_or_create_edge(chat, linked_chat)
                     except ValueError as e:
@@ -155,7 +171,9 @@ class ChatMethods:
                     # todo: could not create linked_chat
                     logger.error(f"Could not create linked_chat: {prettify(telegram_chat.linked_chat)}")
 
-        return chat
+            return chat
+
+        return None
 
     def get_or_create_chat(
         self,
@@ -167,7 +185,7 @@ class ChatMethods:
         chat = Chat.get(Chat.parse_key(telegram_chat))
         if chat is None:
             # chat does not exist in the database, create it
-            chat, successful = self.create_chat(telegram_chat)
+            chat, successful = self._create_chat(telegram_chat)
 
         return chat
 
@@ -175,17 +193,31 @@ class ChatMethods:
         self,
         telegram_chat: pyrogram.types.Chat,
     ) -> Optional[Chat]:
+        """
+        Update or create a `Chat` and return it if the operation was successful, otherwise, return `None`.
+
+        Parameters
+        ----------
+        telegram_chat : pyrogram.types.Chat
+            Telegram chat object to create the `Chat` document from
+
+        Returns
+        -------
+        Optional[Chat]
+            Updated/Created `Chat` if successful, otherwise return `None`.
+
+        """
         if telegram_chat is None:
             return None
 
-        chat: Chat = Chat.get(Chat.parse_key(telegram_chat))
+        chat = Chat.get(Chat.parse_key(telegram_chat))
         if chat is not None:
             successful = chat.update(Chat.parse(telegram_chat))
             if successful:
                 if telegram_chat.linked_chat:
                     # check if an update of connected vertices is needed
                     try:
-                        linked_chat, linked_chat_edge = self.get_chat_linked_chat(chat)
+                        linked_chat, linked_chat_edge = self.get_chat_linked_chat_with_edge(chat)
                     except ValueError as e:
                         logger.exception(e)
                     else:
@@ -216,25 +248,24 @@ class ChatMethods:
                 else:
                     # the chat doesn't have any linked chat, check if it had any before and delete the link
                     try:
-                        linked_chat, linked_chat_edge = self.get_chat_linked_chat(chat)
+                        linked_chat, linked_chat_edge = self.get_chat_linked_chat_with_edge(chat)
                     except ValueError as e:
                         logger.exception(e)
                     else:
                         if linked_chat and linked_chat_edge:
                             # chat had linked chat before, remove the link
                             linked_chat_edge.delete()
-
         else:
-            chat = self.create_chat(telegram_chat)
+            chat: Chat = self._create_chat(telegram_chat)
 
         return chat
 
-    def get_chat_linked_chat(
+    def get_chat_linked_chat_with_edge(
         self,
         chat: Chat,
     ) -> Tuple[Optional[Chat], Optional[LinkedChat]]:
         """
-        Get linked `Chat` s for the given `Chat`.
+        Get linked `Chat` with `LinkedChat` edge for the given `Chat`.
 
         Parameters
         ----------
@@ -244,7 +275,7 @@ class ChatMethods:
         Returns
         -------
         Tuple[Optional[Chat], Optional[LinkedChat]]
-            Linked chat
+            Chat and Linked Chat edge
 
         Raises
         ------

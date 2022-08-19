@@ -259,8 +259,8 @@ class BaseEdge(BaseCollectionDocument):
     @classmethod
     def get_or_create_edge(
         cls,
-        from_vertex: BaseVertex,
-        to_vertex: BaseVertex,
+        from_vertex: Optional[BaseVertex],
+        to_vertex: Optional[BaseVertex],
         *args,
         **kwargs,
     ) -> Optional["BaseEdge"]:
@@ -269,9 +269,9 @@ class BaseEdge(BaseCollectionDocument):
 
         Parameters
         ----------
-        from_vertex : BaseVertex
+        from_vertex : Optional[BaseVertex]
             Start of the edge
-        to_vertex : BaseVertex
+        to_vertex : Optional[BaseVertex]
             End of the edge
         args : List[Any]
             Arguments passed to the function
