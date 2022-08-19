@@ -12,14 +12,14 @@ class IsCreatorOf(BaseEdge):
     _collection_name = "is_creator_of"
     schema_version = 1
 
-    _from_vertex_collections = (Chat,)
-    _to_vertex_collections = (User,)
+    _from_vertex_collections = (User,)
+    _to_vertex_collections = (Chat,)
 
     @classmethod
     def parse(
         cls,
-        from_vertex: Chat,
-        to_vertex: User,
+        from_vertex: User,
+        to_vertex: Chat,
         *args,
         **kwargs,
     ) -> Optional["IsCreatorOf"]:
