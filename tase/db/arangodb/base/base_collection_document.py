@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field, ValidationError
 from pydantic.types import Enum
 from pydantic.typing import Dict, List, Optional, Any, Type, Union, Tuple
 
+from tase.db.arangodb.base import BaseSoftDeletableDocument
 from tase.my_logger import logger
 from tase.utils import get_timestamp, copy_attrs_from_new_document
 
@@ -160,11 +161,7 @@ class BaseCollectionDocument(BaseModel):
     _from_graph_db_base_processors: Optional[List[FromGraphBaseProcessor]] = (FromGraphAttributeMapper,)
     _from_graph_db_extra_processors: Optional[List[FromGraphBaseProcessor]] = None
 
-    _base_do_not_update_fields: Optional[List[str]] = (
-        "created_at",
-        "is_deleted",
-        "deleted_at",
-    )
+    _base_do_not_update_fields: Optional[List[str]] = ("created_at",)
     _extra_do_not_update_fields: Optional[List[str]] = None
 
     id: Optional[str]
@@ -173,9 +170,6 @@ class BaseCollectionDocument(BaseModel):
 
     created_at: int = Field(default_factory=get_timestamp)
     modified_at: int = Field(default_factory=get_timestamp)
-
-    is_deleted: bool = Field(default=False)
-    deleted_at: Optional[int] = Field(default=None)
 
     class Config:
         arbitrary_types_allowed = True
@@ -246,7 +240,7 @@ class BaseCollectionDocument(BaseModel):
             obj = cls(**doc)
         except ValidationError as e:
             # Attribute value mapping cannot be validated, and it cannot be converted to a python object
-            logger.debug(e)
+            logger.debug(e.json())
         except Exception as e:
             # todo: check if this happens
             logger.exception(e)
@@ -375,6 +369,7 @@ class BaseCollectionDocument(BaseModel):
         filters: Dict[str, Any],
         offset: Optional[int] = 0,
         limit: Optional[int] = None,
+        filter_out_soft_deleted: Optional[bool] = None,
     ) -> typing.Generator["BaseCollectionDocument", None, None]:
         """
         Find all documents that match the given filters.
@@ -387,9 +382,26 @@ class BaseCollectionDocument(BaseModel):
             Number of documents to skip
         limit : Optional[int]
             Max number of documents returned
+        filter_out_soft_deleted : Optional[bool]
+            Whether to filter out by soft-deleted documents or not.
+
+        Raises
+        ------
+        TypeError
+            If the document calling this method is not a subclass of `BaseSoftDeletableDocument`.
         """
         if filters is None or not isinstance(filters, dict):
             return
+
+        if filter_out_soft_deleted is not None:
+            if issubclass(cls, BaseSoftDeletableDocument):
+                filters.update(
+                    {
+                        "is_soft_deleted": not filter_out_soft_deleted,
+                    }
+                )
+            else:
+                raise TypeError(f"{cls.__name__} is not an subclass of {BaseSoftDeletableDocument.__class__.__name__}")
 
         try:
             cursor = cls._collection.find(filters, skip=offset, limit=limit)
@@ -411,6 +423,7 @@ class BaseCollectionDocument(BaseModel):
     def find_one(
         cls,
         filters: Dict[str, Any],
+        filter_out_soft_deleted: Optional[bool] = None,
     ) -> Optional["BaseCollectionDocument"]:
         """
         Find one document that match the given filters.
@@ -419,13 +432,24 @@ class BaseCollectionDocument(BaseModel):
         ----------
         filters : Dict[str, Any]
             Document filters
+        filter_out_soft_deleted : Optional[bool]
+            Whether to filter out the soft-deleted documents.
 
         Returns
         -------
         Optional[BaseCollectionDocument]
             Document matching given filters if it exists, otherwise return `None`.
+
+        Raises
+        ------
+        TypeError
+            If the document calling this method is not a subclass of `BaseSoftDeletableDocument`.
         """
-        documents = cls.find(filters, limit=1)
+        documents = cls.find(
+            filters,
+            limit=1,
+            filter_out_soft_deleted=filter_out_soft_deleted,
+        )
         if documents is None:
             return None
         else:
@@ -438,14 +462,17 @@ class BaseCollectionDocument(BaseModel):
     def delete(
         self,
         soft_delete: Optional[bool] = False,
+        is_exact_date: Optional[bool] = False,
     ) -> bool:
         """
-        Delete / Soft Delete the object in ArangoDB
+        Delete / Soft Delete the document in ArangoDB
 
         Parameters
         ----------
         soft_delete : Optional[bool]
             If this parameter is set to `True`, the document will not be deleted, but, it will be marked as deleted.
+        is_exact_date : Optional[bool]
+            Whether the time of deletion is exact or an estimation.
 
         Returns
         -------
@@ -453,10 +480,16 @@ class BaseCollectionDocument(BaseModel):
             Whether the operation was successful or not
         """
         if soft_delete:
-            self_copy = self.copy(deep=True)
-            self_copy.is_deleted = True
-            self_copy.deleted_at = get_timestamp()
-            return self.update(self_copy, reserve_non_updatable_fields=False)
+            if issubclass(type(self), BaseSoftDeletableDocument):
+                self_copy: BaseSoftDeletableDocument = self.copy(deep=True)
+                self_copy.is_soft_deleted = True
+                self_copy.is_soft_deleted_time_precise = is_exact_date
+                self_copy.soft_deleted_at = get_timestamp()
+                return self.update(self_copy, reserve_non_updatable_fields=False)
+            else:
+                raise TypeError(
+                    f"{self.__class__.__name__} is not an subclass of {BaseSoftDeletableDocument.__class__.__name__}"
+                )
         else:
             return self.delete_document(self)
 

@@ -6,13 +6,13 @@ from tase.utils import generate_token_urlsafe, prettify
 from .base_vertex import BaseVertex
 from .user import User
 from ..edges import Has
+from ...base import BaseSoftDeletableDocument
 
 
-class Playlist(BaseVertex):
+class Playlist(BaseVertex, BaseSoftDeletableDocument):
     _collection_name = "playlists"
-    _extra_do_not_update_fields = [
-        "is_favorite",
-    ]
+    schema_version = 1
+    _extra_do_not_update_fields = ("is_favorite",)
 
     title: str
     description: Optional[str]
@@ -48,7 +48,7 @@ class PlaylistMethods:
         self,
         user: User,
         title: str,
-        is_deleted: Optional[bool] = False,
+        filter_out_soft_deleted: Optional[bool] = None,
     ) -> Optional[Playlist]:
         if user is None or title is None:
             return None
@@ -57,8 +57,8 @@ class PlaylistMethods:
             filters={
                 "_from": user.id,
                 "title": title,
-                "is_deleted": is_deleted,
             },
+            filter_out_soft_deleted=filter_out_soft_deleted,
         )
 
     def get_user_favorite_playlist(
@@ -139,7 +139,8 @@ class PlaylistMethods:
             if title == "Favorite":
                 return None
 
-        playlist = self.get_user_playlist_by_title(user, title)
+        # only check the playlists that haven't been soft-deleted.
+        playlist = self.get_user_playlist_by_title(user, title, filter_out_soft_deleted=True)
         if playlist:
             return playlist
 
