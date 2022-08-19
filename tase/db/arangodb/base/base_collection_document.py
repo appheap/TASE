@@ -160,7 +160,11 @@ class BaseCollectionDocument(BaseModel):
     _from_graph_db_base_processors: Optional[List[FromGraphBaseProcessor]] = (FromGraphAttributeMapper,)
     _from_graph_db_extra_processors: Optional[List[FromGraphBaseProcessor]] = None
 
-    _base_do_not_update_fields: Optional[List[str]] = ["created_at"]
+    _base_do_not_update_fields: Optional[List[str]] = (
+        "created_at",
+        "is_deleted",
+        "deleted_at",
+    )
     _extra_do_not_update_fields: Optional[List[str]] = None
 
     id: Optional[str]
@@ -169,6 +173,9 @@ class BaseCollectionDocument(BaseModel):
 
     created_at: int = Field(default_factory=get_timestamp)
     modified_at: int = Field(default_factory=get_timestamp)
+
+    is_deleted: bool = Field(default=False)
+    deleted_at: Optional[int] = Field(default=None)
 
     class Config:
         arbitrary_types_allowed = True
@@ -430,17 +437,28 @@ class BaseCollectionDocument(BaseModel):
 
     def delete(
         self,
+        soft_delete: Optional[bool] = False,
     ) -> bool:
         """
-        Delete the object in ArangoDB
+        Delete / Soft Delete the object in ArangoDB
+
+        Parameters
+        ----------
+        soft_delete : Optional[bool]
+            If this parameter is set to `True`, the document will not be deleted, but, it will be marked as deleted.
 
         Returns
         -------
         bool
             Whether the operation was successful or not
         """
-
-        return self.delete_document(self)
+        if soft_delete:
+            self_copy = self.copy(deep=True)
+            self_copy.is_deleted = True
+            self_copy.deleted_at = get_timestamp()
+            return self.update(self_copy, reserve_non_updatable_fields=False)
+        else:
+            return self.delete_document(self)
 
     @classmethod
     def delete_document(
