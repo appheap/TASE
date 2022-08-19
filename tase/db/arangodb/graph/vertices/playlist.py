@@ -48,6 +48,7 @@ class PlaylistMethods:
         self,
         user: User,
         title: str,
+        is_deleted: Optional[bool] = False,
     ) -> Optional[Playlist]:
         if user is None or title is None:
             return None
@@ -56,6 +57,7 @@ class PlaylistMethods:
             filters={
                 "_from": user.id,
                 "title": title,
+                "is_deleted": is_deleted,
             },
         )
 
@@ -132,7 +134,7 @@ class PlaylistMethods:
             user_fav_playlist = self.get_user_favorite_playlist(user)
             if user_fav_playlist:
                 # the user has a favorite playlist already
-                return user_fav_playlist, False
+                return user_fav_playlist, True
         else:
             # non-favorite playlists with reserved names aren't allowed
             if title == "Favorite":
@@ -140,7 +142,7 @@ class PlaylistMethods:
 
         playlist = self.get_user_playlist_by_title(user, title)
         if playlist:
-            return playlist, False
+            return playlist, True
 
         return self.create_playlist(user, title, description, is_favorite)
 
