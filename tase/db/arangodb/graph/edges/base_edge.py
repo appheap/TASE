@@ -1,8 +1,8 @@
-from typing import Dict, Any
+from typing import Dict
 
 from arango import DocumentInsertError
 from arango.collection import EdgeCollection
-from pydantic.typing import List, Type, Optional, Tuple
+from pydantic.typing import List, Type, Optional, Tuple, Any
 
 from tase.db.arangodb.base import (
     BaseCollectionDocument,

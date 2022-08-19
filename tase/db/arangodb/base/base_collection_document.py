@@ -8,6 +8,7 @@ from arango import (
     DocumentDeleteError,
     DocumentGetError,
 )
+from arango.aql import AQL
 from arango.collection import VertexCollection, EdgeCollection, StandardCollection
 from pydantic import BaseModel, Field, ValidationError
 from pydantic.types import Enum
@@ -139,6 +140,8 @@ class BaseCollectionDocument(BaseModel):
 
     _collection_name = "base_documents"
     _collection: Optional[Union[VertexCollection, EdgeCollection, StandardCollection]]
+    _aql: Optional[AQL]
+    _graph_name: Optional[str]
 
     _from_graph_db_mapping = {
         "_id": "id",
@@ -463,6 +466,7 @@ class BaseCollectionDocument(BaseModel):
         self,
         soft_delete: Optional[bool] = False,
         is_exact_date: Optional[bool] = False,
+        deleted_at: Optional[int] = None,
     ) -> bool:
         """
         Delete / Soft Delete the document in ArangoDB
@@ -473,6 +477,8 @@ class BaseCollectionDocument(BaseModel):
             If this parameter is set to `True`, the document will not be deleted, but, it will be marked as deleted.
         is_exact_date : Optional[bool]
             Whether the time of deletion is exact or an estimation.
+        deleted_at : Optional[int]
+            Timestamp of deletion.
 
         Returns
         -------
@@ -484,7 +490,7 @@ class BaseCollectionDocument(BaseModel):
                 self_copy: BaseSoftDeletableDocument = self.copy(deep=True)
                 self_copy.is_soft_deleted = True
                 self_copy.is_soft_deleted_time_precise = is_exact_date
-                self_copy.soft_deleted_at = get_timestamp()
+                self_copy.soft_deleted_at = get_timestamp() if deleted_at is None else deleted_at
                 return self.update(self_copy, reserve_non_updatable_fields=False)
             else:
                 raise TypeError(
