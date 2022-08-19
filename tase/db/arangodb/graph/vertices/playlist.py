@@ -44,6 +44,20 @@ class Playlist(BaseVertex, BaseSoftDeletableDocument):
 
 
 class PlaylistMethods:
+    _get_user_playlist_by_title_query = (
+        "for v,e in 1..1 outbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@has'],vertexCollections:['@playlists']}"
+        "   filter v.is_soft_deleted == not @filter_out and v.title == '@title'"
+        "   limit 1"
+        "   return v"
+    )
+
+    _get_user_favorite_playlist_query = (
+        "for v,e in 1..1 outbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@has'],vertexCollections:['@playlists']}"
+        "   filter v.is_favorite == @is_favorite"
+        "   limit 1"
+        "   return v"
+    )
+
     def get_user_playlist_by_title(
         self,
         user: User,
@@ -53,14 +67,8 @@ class PlaylistMethods:
         if user is None or title is None:
             return None
 
-        query = (
-            "for v,e in 1..1 outbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@has'],vertexCollections:['@playlists']}"
-            "   filter v.is_soft_deleted == not @filter_out and v.title == '@title'"
-            "   limit 1"
-            "   return v"
-        )
         cursor = Playlist.execute_query(
-            query,
+            self._get_user_playlist_by_title_query,
             bind_vars={
                 "start_vertex": user.id,
                 "has": Has._collection_name,
@@ -81,14 +89,8 @@ class PlaylistMethods:
         if user is None:
             return None
 
-        query = (
-            "for v,e in 1..1 outbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@has'],vertexCollections:['@playlists']}"
-            "   filter v.is_favorite == @is_favorite"
-            "   limit 1"
-            "   return v"
-        )
         cursor = Playlist.execute_query(
-            query,
+            self._get_user_favorite_playlist_query,
             bind_vars={
                 "start_vertex": user.id,
                 "has": Has._collection_name,
