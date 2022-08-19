@@ -184,38 +184,46 @@ class ChatMethods:
             if successful:
                 if telegram_chat.linked_chat:
                     # check if an update of connected vertices is needed
-                    linked_chat, linked_chat_edge = self.get_chat_linked_chat(chat)
+                    try:
+                        linked_chat, linked_chat_edge = self.get_chat_linked_chat(chat)
+                    except ValueError as e:
+                        logger.exception(e)
+                    else:
+                        if linked_chat and linked_chat_edge:
+                            # chat has linked chat already, check if it needs to create/update the existing one or delete
+                            # the old one and add a new one.
+                            if linked_chat.chat_id == telegram_chat.linked_chat.id:
+                                # update the linked chat
+                                linked_chat.update(Chat.parse(telegram_chat.linked_chat))
+                            else:
+                                # delete the old link
+                                linked_chat_edge.delete()
 
-                    if linked_chat and linked_chat_edge:
-                        # chat has linked chat already, check if it needs to create/update the existing one or delete
-                        # the old one and add a new one.
-                        if linked_chat.chat_id == telegram_chat.linked_chat.id:
-                            # update the linked chat
-                            linked_chat.update(Chat.parse(telegram_chat.linked_chat))
+                                # create the new link and new chat
+                                linked_chat = self.update_or_create_chat(telegram_chat.linked_chat)
+                                try:
+                                    LinkedChat.get_or_create_edge(chat, linked_chat)
+                                except ValueError:
+                                    logger.error(f"Could not create linked_chat: {prettify(telegram_chat.linked_chat)}")
                         else:
-                            # delete the old link
-                            linked_chat_edge.delete()
-
-                            # create the new link and new chat
-                            linked_chat = self.update_or_create_chat(telegram_chat.linked_chat)
+                            # chat did not have any linked chat before, create it
+                            linked_chat = self.get_or_create_chat(telegram_chat.linked_chat)
                             try:
                                 LinkedChat.get_or_create_edge(chat, linked_chat)
                             except ValueError:
                                 logger.error(f"Could not create linked_chat: {prettify(telegram_chat.linked_chat)}")
-                    else:
-                        # chat did not have any linked chat before, create it
-                        linked_chat = self.get_or_create_chat(telegram_chat.linked_chat)
-                        try:
-                            LinkedChat.get_or_create_edge(chat, linked_chat)
-                        except ValueError:
-                            logger.error(f"Could not create linked_chat: {prettify(telegram_chat.linked_chat)}")
 
                 else:
                     # the chat doesn't have any linked chat, check if it had any before and delete the link
-                    linked_chat, linked_chat_edge = self.get_chat_linked_chat(chat)
-                    if linked_chat and linked_chat_edge:
-                        # chat had linked chat before, remove the link
-                        linked_chat_edge.delete()
+                    try:
+                        linked_chat, linked_chat_edge = self.get_chat_linked_chat(chat)
+                    except ValueError as e:
+                        logger.exception(e)
+                    else:
+                        if linked_chat and linked_chat_edge:
+                            # chat had linked chat before, remove the link
+                            linked_chat_edge.delete()
+
         else:
             chat = self.create_chat(telegram_chat)
 
@@ -238,6 +246,11 @@ class ChatMethods:
         Tuple[Optional[Chat], Optional[LinkedChat]]
             Linked chat
 
+        Raises
+        ------
+        ValueError
+            If the given `Chat` has more than one linked chats.
+
         """
         if chat is None or chat.id is None:
             return None, None
@@ -251,15 +264,18 @@ class ChatMethods:
             },
         )
         if cursor is not None and len(cursor):
-            try:
-                doc = cursor.pop()
-            except CursorEmptyError:
-                pass
-            except Exception as e:
-                logger.exception(e)
+            if len(cursor) > 1:
+                raise ValueError(f"Chat with id `{chat.id}` have more than one linked chats.")
             else:
-                linked_chat: Chat = Chat.from_collection(doc["linked_chat"])
-                edge: LinkedChat = LinkedChat.from_collection(doc["edge"])
-                return linked_chat, edge
+                try:
+                    doc = cursor.pop()
+                except CursorEmptyError:
+                    pass
+                except Exception as e:
+                    logger.exception(e)
+                else:
+                    linked_chat: Chat = Chat.from_collection(doc["linked_chat"])
+                    edge: LinkedChat = LinkedChat.from_collection(doc["edge"])
+                    return linked_chat, edge
 
         return None, None
