@@ -326,6 +326,7 @@ class PlaylistMethods:
         if not playlist:
             raise KeyError(f"Playlist was not found with key : {playlist_key}")
 
+        # check if the user owns the given playlist
         has_edge: Has = Has.get(Has.parse_key(user, playlist))
         if has_edge:
             try:
