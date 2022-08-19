@@ -179,6 +179,20 @@ class ChatMethods:
         self,
         telegram_chat: pyrogram.types.Chat,
     ) -> Optional[Chat]:
+        """
+        Get a `Chat` document if it exists, otherwise create it.
+
+        Parameters
+        ----------
+        telegram_chat : pyrogram.types.Chat
+            Telegram chat to create the `Chat` document from.
+
+        Returns
+        -------
+        Optional[Chat]
+            `Chat` document if it was successful, otherwise, return `None`.
+
+        """
         if telegram_chat is None:
             return None
 

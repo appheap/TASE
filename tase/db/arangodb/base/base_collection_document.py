@@ -720,6 +720,22 @@ class BaseCollectionDocument(BaseModel):
         query: str,
         bind_vars: Dict[str, Any],
     ) -> Optional[Cursor]:
+        """
+        Execute a query and return a `Cursor` object if did not catch any errors, otherwise, return `None`.
+
+        Parameters
+        ----------
+        query : str
+            Query string to execute
+        bind_vars : Dict[str, Any]
+            Dictionary of variables to be bound to the query before running
+
+        Returns
+        -------
+        Optional[Cursor]
+            `Cursor` object if successful, otherwise, return `None`.
+
+        """
         try:
             bind_vars["graph_name"] = cls._graph_name
 
@@ -742,6 +758,23 @@ class BaseCollectionDocument(BaseModel):
         *args,
         **kwargs,
     ) -> Optional["BaseCollectionDocument"]:
+        """
+        Parse a subclass of `BaseCollectionDocument` document from given arguments and keyword arguments and return
+        parsed `BaseCollectionDocument` if successful, otherwise return `None`.
+
+        Parameters
+        ----------
+        args : List[Any]
+            List of arguments
+        kwargs : Dict[str, Any]
+            Dictionary of keyword arguments
+
+        Returns
+        -------
+        Optional[BaseCollectionDocument]
+            Document object if parsing was successful, otherwise, return `None`.
+
+        """
         raise NotImplementedError
 
     @classmethod
@@ -750,4 +783,20 @@ class BaseCollectionDocument(BaseModel):
         *args,
         **kwargs,
     ) -> Optional[str]:
+        """
+        Parse a key from the given arguments and keyword arguments and return a key if successful, otherwise,
+        return `None`.
+
+        Parameters
+        ----------
+        args : List[Any]
+            List of arguments
+        kwargs : Dict[str, Any]
+            List of keyword arguments
+
+        Returns
+        -------
+        Optional[str]
+            Key string if parsing was successful, otherwise, return `None`.
+        """
         raise NotImplementedError
