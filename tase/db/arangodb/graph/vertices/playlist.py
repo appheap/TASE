@@ -64,6 +64,23 @@ class PlaylistMethods:
         title: str,
         filter_out_soft_deleted: Optional[bool] = False,
     ) -> Optional[Playlist]:
+        """
+        Get a `Playlist` with the given `title` if exists, otherwise, return `None`.
+
+        Parameters
+        ----------
+        user : User
+            User with this playlist
+        title : str
+            Playlist title to check
+        filter_out_soft_deleted : Optional[bool]
+            Whether to filter out soft-deleted documents in this query
+
+        Returns
+        -------
+        Optional[Playlist]
+            `Playlist` with the given title if it exists, return `None` otherwise.
+        """
         if user is None or title is None:
             return None
 
@@ -86,6 +103,20 @@ class PlaylistMethods:
         self,
         user: User,
     ) -> Optional[Playlist]:
+        """
+        Get a user favorite `Playlist` if exists, otherwise, return `None`.
+
+        Parameters
+        ----------
+        user : User
+            User with this playlist
+
+        Returns
+        -------
+        Optional[Playlist]
+            Favorite `Playlist` of the `user` if it exists, return `None` otherwise.
+
+        """
         if user is None:
             return None
 
@@ -109,6 +140,30 @@ class PlaylistMethods:
         description: str,
         is_favorite: bool,
     ) -> Optional[Playlist]:
+        """
+        Create a `Playlist` for the given `user` and return it the operation was successful, otherwise, return `None`.
+
+        Parameters
+        ----------
+        user : User
+            User to create the playlist for
+        title : str
+            Title of the playlist
+        description : Optional[str]
+            Description of the playlist
+        is_favorite : bool
+            Whether the created playlist is favorite or not.
+
+        Returns
+        -------
+        Optional[Playlist]
+            Favorite `Playlist` of the `user` if it exists, return `None` otherwise.
+
+        Notes
+        -----
+            Only `1` favorite playlist is allowed per user.
+        """
+
         # making sure of the `key` uniqueness
         while True:
             key = generate_token_urlsafe(10)
@@ -151,6 +206,25 @@ class PlaylistMethods:
         description: str = None,
         is_favorite: bool = False,
     ) -> Optional[Playlist]:
+        """
+        Get a `Playlist` with the given `title` if it exists, otherwise, create it and return it.
+
+        Parameters
+        ----------
+        user : User
+            User to get/create this playlist.
+        title : str
+            Title of the Playlist
+        description : Optional[str]
+            Description of the playlist
+        is_favorite : bool
+            Whether this playlist is favorite or not.
+
+        Returns
+        -------
+        Optional[Playlist]
+            Created/Retrieved `Playlist` if the operation successful, return `None` otherwise.
+        """
         if user is None or title is None:
             return None
 
@@ -176,6 +250,20 @@ class PlaylistMethods:
         self,
         user: User,
     ) -> Optional[Playlist]:
+        """
+        Create a favorite `Playlist` for the given `User` if possible, otherwise, return `None`.
+
+        Parameters
+        ----------
+        user : User
+            User to create the playlist for
+
+        Returns
+        -------
+        Optional[Playlist]
+            Favorite `Playlist` of the `user` if the operation was successful, return `None` otherwise.
+
+        """
         return self.get_or_create_playlist(
             user,
             title="Favorite",
@@ -187,6 +275,20 @@ class PlaylistMethods:
         self,
         user: User,
     ) -> Optional[Playlist]:
+        """
+        Get the favorite `Playlist` of the `User` if it exists, otherwise, Create it and return it.
+
+        Parameters
+        ----------
+        user : User
+            User to get/create the favorite playlist for
+
+        Returns
+        -------
+        Optional[Playlist]
+            Retrieved/Created `Playlist` for the given `User`, return `None` if the operation wasn't successful.
+
+        """
         playlist = self.get_user_favorite_playlist(user)
         if playlist is None:
             playlist = self.create_favorite_playlist(user)
@@ -199,6 +301,24 @@ class PlaylistMethods:
         playlist_key: str,
         deleted_at: int,
     ) -> bool:
+        """
+        Remove the `Playlist` with the given `playlist_key` and return whether the deletion was successful or not.
+
+        Parameters
+        ----------
+        user : User
+            User that playlist belongs to
+        playlist_key : str
+            Key of the playlist to delete
+        deleted_at : int
+            Timestamp of the deletion
+
+        Returns
+        -------
+        bool
+            Whether the deletion operation was successful or not.
+
+        """
         if user is None or playlist_key is None or deleted_at is None:
             return False
 
