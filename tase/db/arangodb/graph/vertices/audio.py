@@ -2,7 +2,7 @@ from typing import Optional, List
 
 import pyrogram
 
-from tase.utils import get_timestamp, generate_token_urlsafe
+from tase.utils import datetime_to_timestamp, generate_token_urlsafe
 from .base_vertex import BaseVertex
 
 
@@ -120,13 +120,11 @@ class Audio(BaseVertex):
             chat_id=telegram_message.chat.id,
             message_id=telegram_message.id,
             message_caption=telegram_message.caption,
-            message_date=get_timestamp(telegram_message.date) if telegram_message.date else None,
-            message_edit_date=get_timestamp(telegram_message.edit_date) if telegram_message.edit_date else None,
+            message_date=datetime_to_timestamp(telegram_message.date),
+            message_edit_date=datetime_to_timestamp(telegram_message.edit_date),
             views=telegram_message.views,
             reactions=telegram_message.reactions,
-            forward_date=get_timestamp(telegram_message.forward_date)
-            if telegram_message.forward_date is not None
-            else None,
+            forward_date=datetime_to_timestamp(telegram_message.forward_date),
             forward_from_chat_id=forwarded_from_chat_id,
             forward_from_message_id=telegram_message.forward_from_message_id,
             forward_signature=telegram_message.forward_signature,
@@ -141,7 +139,7 @@ class Audio(BaseVertex):
             file_name=_audio.file_name,
             mime_type=_audio.mime_type,
             file_size=_audio.file_size,
-            date=get_timestamp(_audio.date) if _audio.date else None,
+            date=datetime_to_timestamp(_audio.date),
             ################################
             download_url=generate_token_urlsafe(),
             valid_for_inline_search=valid_for_inline,
@@ -164,12 +162,4 @@ class AudioMethods:
         if download_url is None:
             return None
 
-        audios = Audio.find({"download_url": download_url}, limit=1)
-        if audios is None:
-            return None
-        else:
-            audios = list(audios)
-            if not len(audios):
-                return None
-            else:
-                return audios[0]
+        return Audio.find_one({"download_url": download_url})

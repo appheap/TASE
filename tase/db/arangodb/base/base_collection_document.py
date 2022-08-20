@@ -19,7 +19,7 @@ from pydantic import BaseModel, Field, ValidationError
 
 from tase.db.arangodb.base import BaseSoftDeletableDocument
 from tase.my_logger import logger
-from tase.utils import get_timestamp, copy_attrs_from_new_document
+from tase.utils import get_now_timestamp, copy_attrs_from_new_document
 
 TBaseCollectionDocument = typing.TypeVar("TBaseCollectionDocument", bound="BaseCollectionDocument")
 
@@ -176,8 +176,8 @@ class BaseCollectionDocument(BaseModel):
     key: Optional[str]
     rev: Optional[str]
 
-    created_at: int = Field(default_factory=get_timestamp)
-    modified_at: int = Field(default_factory=get_timestamp)
+    created_at: int = Field(default_factory=get_now_timestamp)
+    modified_at: int = Field(default_factory=get_now_timestamp)
 
     class Config:
         arbitrary_types_allowed = True
@@ -396,7 +396,8 @@ class BaseCollectionDocument(BaseModel):
         Raises
         ------
         TypeError
-            If the document calling this method is not a subclass of `BaseSoftDeletableDocument`.
+            If the document calling this method uses the `filter_out_soft_deleted` argument and is not a subclass of
+            `BaseSoftDeletableDocument`.
         """
         if filters is None or not isinstance(filters, dict):
             return
@@ -451,7 +452,8 @@ class BaseCollectionDocument(BaseModel):
         Raises
         ------
         TypeError
-            If the document calling this method is not a subclass of `BaseSoftDeletableDocument`.
+            If the document calling this method uses the `filter_out_soft_deleted` argument and is not a subclass of
+            `BaseSoftDeletableDocument`.
         """
         documents = cls.find(
             filters,
@@ -495,7 +497,7 @@ class BaseCollectionDocument(BaseModel):
                 self_copy = self.copy(deep=True)
                 self_copy.is_soft_deleted = True
                 self_copy.is_soft_deleted_time_precise = is_exact_date
-                self_copy.soft_deleted_at = get_timestamp() if deleted_at is None else deleted_at
+                self_copy.soft_deleted_at = get_now_timestamp() if deleted_at is None else deleted_at
                 return self.update(self_copy, reserve_non_updatable_fields=False)
             else:
                 raise TypeError(

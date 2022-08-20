@@ -3,7 +3,7 @@ from typing import Optional
 
 from pydantic import BaseModel, Field
 
-from tase.utils import get_timestamp
+from tase.utils import datetime_to_timestamp
 from .base_vertex import BaseVertex
 
 
@@ -37,7 +37,7 @@ class DummyVertexMethods:
     ) -> Optional[DummyVertex]:
         v, success = DummyVertex.insert(
             DummyVertex(
-                key=str(get_timestamp()),
+                key=str(datetime_to_timestamp()),
                 dummy_int=dummy_int,
                 dummy_str="this is a dummy string",
             )

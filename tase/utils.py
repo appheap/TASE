@@ -3,6 +3,7 @@ import json
 import secrets
 import typing
 from collections import OrderedDict
+from datetime import datetime
 from functools import wraps
 from time import time
 from typing import Optional
@@ -178,12 +179,14 @@ def prettify(
     )
 
 
-def get_timestamp(
-    date=None,
-) -> int:
+def datetime_to_timestamp(date: Optional[datetime]) -> Optional[int]:
     if date is not None:
         # fixme: make sure this returns utc timestamp
-        return int(arrow.get(date).timestamp())
+        return int(date.timestamp())
+    return None
+
+
+def get_now_timestamp() -> int:
     return int(arrow.utcnow().timestamp())
 
 
