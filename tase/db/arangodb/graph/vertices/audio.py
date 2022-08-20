@@ -1,5 +1,6 @@
+from typing import Optional, List
+
 import pyrogram
-from pydantic.typing import Optional, List
 
 from tase.utils import get_timestamp, generate_token_urlsafe
 from .base_vertex import BaseVertex

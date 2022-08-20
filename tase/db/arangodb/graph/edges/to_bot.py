@@ -1,6 +1,6 @@
-from pydantic.typing import Optional, Union
+from typing import Optional, Union
 
-from .base_edge import BaseEdge
+from .base_edge import BaseEdge, EdgeEndsValidator
 from ..vertices import InlineQuery, Query, User
 
 
@@ -19,6 +19,7 @@ class ToBot(BaseEdge):
     _to_vertex_collections = (User,)
 
     @classmethod
+    @EdgeEndsValidator
     def parse(
         cls,
         from_vertex: Union[InlineQuery, Query],

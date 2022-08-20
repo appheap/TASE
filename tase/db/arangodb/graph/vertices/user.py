@@ -1,7 +1,8 @@
+from enum import Enum
+from typing import Optional, List, Tuple
+
 import pyrogram
 from pydantic import Field
-from pydantic.types import Enum
-from pydantic.typing import Optional, List, Tuple
 
 from tase.my_logger import logger
 from tase.utils import prettify

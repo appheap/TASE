@@ -1,5 +1,6 @@
+from typing import Union, Optional
+
 import pyrogram
-from pydantic.typing import Union, Optional
 
 from tase.my_logger import logger
 from .base_document import BaseDocument

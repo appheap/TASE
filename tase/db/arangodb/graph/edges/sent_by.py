@@ -1,6 +1,6 @@
-from pydantic.typing import Optional
+from typing import Optional
 
-from .base_edge import BaseEdge
+from .base_edge import BaseEdge, EdgeEndsValidator
 from ..vertices import Audio, Chat
 
 
@@ -14,6 +14,7 @@ class SentBy(BaseEdge):
     _to_vertex_collections = (Chat,)
 
     @classmethod
+    @EdgeEndsValidator
     def parse(
         cls,
         from_vertex: Audio,

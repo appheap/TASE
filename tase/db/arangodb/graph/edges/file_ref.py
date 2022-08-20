@@ -1,6 +1,6 @@
 from typing import Optional
 
-from .base_edge import BaseEdge
+from .base_edge import BaseEdge, EdgeEndsValidator
 from ..vertices import Audio, File
 
 
@@ -16,6 +16,7 @@ class FileRef(BaseEdge):
     _to_vertex_collections = (File,)
 
     @classmethod
+    @EdgeEndsValidator
     def parse(
         cls,
         from_vertex: Audio,

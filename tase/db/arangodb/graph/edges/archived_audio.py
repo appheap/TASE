@@ -1,6 +1,6 @@
-from pydantic.typing import Optional
+from typing import Optional
 
-from .base_edge import BaseEdge
+from .base_edge import BaseEdge, EdgeEndsValidator
 from ..vertices import Audio
 
 
@@ -16,6 +16,7 @@ class ArchivedAudio(BaseEdge):
     _to_vertex_collections = (Audio,)
 
     @classmethod
+    @EdgeEndsValidator
     def parse(
         cls,
         from_vertex: Audio,

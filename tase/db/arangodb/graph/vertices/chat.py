@@ -1,7 +1,8 @@
+from typing import Optional, List, Tuple
+
 import pyrogram
 from arango import CursorEmptyError
 from pydantic import Field
-from pydantic.typing import Optional, List, Tuple
 
 from tase.my_logger import logger
 from tase.utils import prettify

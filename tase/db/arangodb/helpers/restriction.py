@@ -1,7 +1,7 @@
+from typing import Optional, List
 
 import pyrogram
 from pydantic import BaseModel
-from pydantic.typing import Optional, List
 
 
 class Restriction(BaseModel):
@@ -9,10 +9,9 @@ class Restriction(BaseModel):
     reason: Optional[str]
     text: Optional[str]
 
-
     @staticmethod
     def parse_from_restriction(
-        restriction: "pyrogram.types.Restriction",
+        restriction: pyrogram.types.Restriction,
     ) -> Optional["Restriction"]:
         if restriction is None:
             return None
@@ -25,7 +24,7 @@ class Restriction(BaseModel):
 
     @staticmethod
     def parse_from_restrictions(
-        restrictions: List["pyrogram.types.Restriction"],
+        restrictions: List[pyrogram.types.Restriction],
     ) -> Optional[List["Restriction"]]:
         if restrictions is None:
             return None

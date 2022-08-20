@@ -1,7 +1,7 @@
 import random
+from typing import Optional
 
 from pydantic import BaseModel, Field
-from pydantic.typing import Optional
 
 from tase.utils import get_timestamp
 from .base_vertex import BaseVertex

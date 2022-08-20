@@ -1,4 +1,4 @@
-from pydantic.types import Enum
+from enum import Enum
 
 
 class MentionSource(Enum):

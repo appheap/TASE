@@ -1,6 +1,7 @@
+from enum import Enum
+from typing import Optional
+
 import pyrogram
-from pydantic.types import Enum
-from pydantic.typing import Optional
 
 
 class ChatType(Enum):

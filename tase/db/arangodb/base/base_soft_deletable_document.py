@@ -1,5 +1,6 @@
+from typing import Optional
+
 from pydantic import BaseModel, Field
-from pydantic.typing import Optional
 
 
 class BaseSoftDeletableDocument(BaseModel):

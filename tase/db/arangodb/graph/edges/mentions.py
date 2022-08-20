@@ -1,6 +1,6 @@
-from pydantic.typing import Optional, Union
+from typing import Optional, Union
 
-from .base_edge import BaseEdge
+from .base_edge import BaseEdge, EdgeEndsValidator
 from ..vertices import Chat, Username
 from ...enums import MentionSource
 
@@ -57,6 +57,7 @@ class Mentions(BaseEdge):
         return f"{from_vertex.key}:{to_vertex.key}:{mentioned_at}:{from_message_id}:{mention_source.value}:{mention_start_index}"
 
     @classmethod
+    @EdgeEndsValidator
     def parse(
         cls,
         from_vertex: Union[Chat, Username],

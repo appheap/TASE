@@ -1,4 +1,6 @@
 import typing
+from enum import Enum
+from typing import Dict, List, Optional, Any, Type, Union, Tuple
 
 from arango import (
     DocumentInsertError,
@@ -12,20 +14,21 @@ from arango import (
 from arango.aql import AQL
 from arango.collection import VertexCollection, EdgeCollection, StandardCollection
 from arango.cursor import Cursor
+from arango.result import Result
 from pydantic import BaseModel, Field, ValidationError
-from pydantic.types import Enum
-from pydantic.typing import Dict, List, Optional, Any, Type, Union, Tuple
 
 from tase.db.arangodb.base import BaseSoftDeletableDocument
 from tase.my_logger import logger
 from tase.utils import get_timestamp, copy_attrs_from_new_document
+
+TBaseCollectionDocument = typing.TypeVar("TBaseCollectionDocument", bound="BaseCollectionDocument")
 
 
 class ToGraphBaseProcessor(BaseModel):
     @classmethod
     def process(
         cls,
-        document: "BaseCollectionDocument",
+        document: TBaseCollectionDocument,
         attr_value_dict: Dict[str, Any],
     ) -> None:
         """
@@ -50,7 +53,7 @@ class FromGraphBaseProcessor(BaseModel):
     @classmethod
     def process(
         cls,
-        document_class: Type["BaseCollectionDocument"],
+        document_class: Type[TBaseCollectionDocument],
         graph_doc: Dict[str, Any],
     ) -> None:
         """
@@ -82,7 +85,7 @@ class ToGraphAttributeMapper(ToGraphBaseProcessor):
     @classmethod
     def process(
         cls,
-        document: "BaseCollectionDocument",
+        document: TBaseCollectionDocument,
         attr_value_dict: Dict[str, Any],
     ) -> None:
         for obj_attr, graph_doc_attr in document._to_graph_db_mapping.items():
@@ -104,7 +107,7 @@ class ToGraphEnumConverter(ToGraphBaseProcessor):
     @classmethod
     def process(
         cls,
-        document: "BaseCollectionDocument",
+        document: TBaseCollectionDocument,
         attr_value_dict: Dict[str, Any],
     ) -> None:
         for attr_name, attr_value in attr_value_dict.copy().items():
@@ -122,7 +125,7 @@ class FromGraphAttributeMapper(FromGraphBaseProcessor):
     @classmethod
     def process(
         cls,
-        document_class: Type["BaseCollectionDocument"],
+        document_class: Type[TBaseCollectionDocument],
         graph_doc: Dict[str, Any],
     ) -> None:
         for graph_doc_attr, obj_attr in document_class._from_graph_db_mapping.items():
@@ -157,17 +160,17 @@ class BaseCollectionDocument(BaseModel):
         "rev": "_rev",
     }
 
-    _to_graph_db_base_processors: Optional[List[ToGraphBaseProcessor]] = (
+    _to_graph_db_base_processors: Optional[Tuple[ToGraphBaseProcessor]] = (
         ToGraphEnumConverter,
         ToGraphAttributeMapper,
     )
-    _to_graph_db_extra_processors: Optional[List[ToGraphBaseProcessor]] = None
+    _to_graph_db_extra_processors: Optional[Tuple[ToGraphBaseProcessor]] = None
 
-    _from_graph_db_base_processors: Optional[List[FromGraphBaseProcessor]] = (FromGraphAttributeMapper,)
-    _from_graph_db_extra_processors: Optional[List[FromGraphBaseProcessor]] = None
+    _from_graph_db_base_processors: Optional[Tuple[FromGraphBaseProcessor]] = (FromGraphAttributeMapper,)
+    _from_graph_db_extra_processors: Optional[Tuple[FromGraphBaseProcessor]] = None
 
-    _base_do_not_update_fields: Optional[List[str]] = ("created_at",)
-    _extra_do_not_update_fields: Optional[List[str]] = None
+    _base_do_not_update_fields: Optional[Tuple[str]] = ("created_at",)
+    _extra_do_not_update_fields: Optional[Tuple[str]] = None
 
     id: Optional[str]
     key: Optional[str]
@@ -208,9 +211,9 @@ class BaseCollectionDocument(BaseModel):
 
     @classmethod
     def from_collection(
-        cls,
+        cls: Type[TBaseCollectionDocument],
         doc: Dict[str, Any],
-    ) -> Optional["BaseCollectionDocument"]:
+    ) -> Optional[TBaseCollectionDocument]:
         """
         Convert a database document dictionary to be converted into a python object.
 
@@ -256,9 +259,9 @@ class BaseCollectionDocument(BaseModel):
 
     @classmethod
     def insert(
-        cls,
-        doc: "BaseCollectionDocument",
-    ) -> Tuple[Optional["BaseCollectionDocument"], bool]:
+        cls: Type[TBaseCollectionDocument],
+        doc: TBaseCollectionDocument,
+    ) -> Tuple[Optional[TBaseCollectionDocument], bool]:
         """
         Insert an object into the ArangoDB
 
@@ -295,9 +298,9 @@ class BaseCollectionDocument(BaseModel):
 
     @classmethod
     def get(
-        cls,
+        cls: Type[TBaseCollectionDocument],
         doc_key: str,
-    ) -> Optional["BaseCollectionDocument"]:
+    ) -> Optional[TBaseCollectionDocument]:
         """
         Get a document in a collection by its `Key`
 
@@ -332,7 +335,7 @@ class BaseCollectionDocument(BaseModel):
 
     @classmethod
     def has(
-        cls,
+        cls: Type[TBaseCollectionDocument],
         doc_key: str,
     ) -> Optional[bool]:
         """
@@ -370,12 +373,12 @@ class BaseCollectionDocument(BaseModel):
 
     @classmethod
     def find(
-        cls,
+        cls: Type[TBaseCollectionDocument],
         filters: Dict[str, Any],
         offset: Optional[int] = 0,
         limit: Optional[int] = None,
         filter_out_soft_deleted: Optional[bool] = None,
-    ) -> typing.Generator["BaseCollectionDocument", None, None]:
+    ) -> typing.Generator[TBaseCollectionDocument, None, None]:
         """
         Find all documents that match the given filters.
 
@@ -426,10 +429,10 @@ class BaseCollectionDocument(BaseModel):
 
     @classmethod
     def find_one(
-        cls,
+        cls: Type[TBaseCollectionDocument],
         filters: Dict[str, Any],
         filter_out_soft_deleted: Optional[bool] = None,
-    ) -> Optional["BaseCollectionDocument"]:
+    ) -> Optional[TBaseCollectionDocument]:
         """
         Find one document that match the given filters.
 
@@ -503,15 +506,15 @@ class BaseCollectionDocument(BaseModel):
 
     @classmethod
     def delete_document(
-        cls,
-        doc: Union["BaseCollectionDocument", str],
+        cls: Type[TBaseCollectionDocument],
+        doc: Union[TBaseCollectionDocument, str],
     ) -> bool:
         """
         Delete an object in ArangoDB
 
         Parameters
         ----------
-        doc : Union["BaseCollectionDocument", str]
+        doc : Union[TBaseCollectionDocument, str]
             Object to inserted into the ArangoDB or the Key of the document to be deleted
 
         Returns
@@ -520,7 +523,7 @@ class BaseCollectionDocument(BaseModel):
             Whether the operation was successful or not
         """
 
-        if doc is None or doc.key is None:
+        if doc is None:
             return False
 
         successful = False
@@ -539,7 +542,7 @@ class BaseCollectionDocument(BaseModel):
 
     def update(
         self,
-        doc: "BaseCollectionDocument",
+        doc: TBaseCollectionDocument,
         reserve_non_updatable_fields: bool = True,
         check_rev: Optional[bool] = True,
         sync: Optional[bool] = None,
@@ -606,10 +609,10 @@ class BaseCollectionDocument(BaseModel):
 
     @classmethod
     def replace(
-        cls,
-        old_doc: "BaseCollectionDocument",
-        doc: "BaseCollectionDocument",
-    ) -> Tuple[Optional["BaseCollectionDocument"], bool]:
+        cls: Type[TBaseCollectionDocument],
+        old_doc: TBaseCollectionDocument,
+        doc: TBaseCollectionDocument,
+    ) -> Tuple[Optional[TBaseCollectionDocument], bool]:
         """
         Replace an object in the database with the new one
 
@@ -668,8 +671,8 @@ class BaseCollectionDocument(BaseModel):
 
     def _update_metadata_from_old_document(
         self,
-        old_doc: "BaseCollectionDocument",
-    ) -> "BaseCollectionDocument":
+        old_doc: TBaseCollectionDocument,
+    ) -> TBaseCollectionDocument:
         """
         Update the metadata of this document from an old document metadata
 
@@ -689,8 +692,8 @@ class BaseCollectionDocument(BaseModel):
 
     def _update_non_updatable_fields(
         self,
-        old_doc: "BaseCollectionDocument",
-    ) -> "BaseCollectionDocument":
+        old_doc: TBaseCollectionDocument,
+    ) -> TBaseCollectionDocument:
         """
         Update the non-updatable field values of a document from an old document
 
@@ -716,10 +719,10 @@ class BaseCollectionDocument(BaseModel):
 
     @classmethod
     def execute_query(
-        cls,
+        cls: Type[TBaseCollectionDocument],
         query: str,
         bind_vars: Dict[str, Any],
-    ) -> Optional[Cursor]:
+    ) -> Optional[Result[Cursor]]:
         """
         Execute a query and return a `Cursor` object if did not catch any errors, otherwise, return `None`.
 
@@ -754,10 +757,10 @@ class BaseCollectionDocument(BaseModel):
     ########################################################################
     @classmethod
     def parse(
-        cls,
+        cls: Type[TBaseCollectionDocument],
         *args,
         **kwargs,
-    ) -> Optional["BaseCollectionDocument"]:
+    ) -> Optional[TBaseCollectionDocument]:
         """
         Parse a subclass of `BaseCollectionDocument` document from given arguments and keyword arguments and return
         parsed `BaseCollectionDocument` if successful, otherwise return `None`.
@@ -783,7 +786,7 @@ class BaseCollectionDocument(BaseModel):
 
     @classmethod
     def parse_key(
-        cls,
+        cls: Type[TBaseCollectionDocument],
         *args,
         **kwargs,
     ) -> Optional[str]:

@@ -1,7 +1,7 @@
-from pydantic.typing import Optional, Union
+from typing import Optional, Union
 
 from . import Has
-from .base_edge import BaseEdge
+from .base_edge import BaseEdge, EdgeEndsValidator
 from ..vertices import (
     Audio,
     Playlist,
@@ -52,6 +52,7 @@ class Had(BaseEdge):
         return f"{from_vertex.key}:{to_vertex.key}:{deleted_at}"
 
     @classmethod
+    @EdgeEndsValidator
     def parse(
         cls,
         from_vertex: Union[User, Playlist],
@@ -90,7 +91,6 @@ class Had(BaseEdge):
 
 
         """
-        super(Had, cls).parse(from_vertex, to_vertex, *args, **kwargs)
 
         # check if the required keyword arguments are present
         deleted_at = kwargs.get("deleted_at", None)

@@ -1,6 +1,6 @@
-from pydantic.typing import Optional
+from typing import Optional
 
-from .base_edge import BaseEdge
+from .base_edge import BaseEdge, EdgeEndsValidator
 from ..vertices import Download, User
 
 
@@ -16,6 +16,7 @@ class FromBot(BaseEdge):
     _to_vertex_collections = (User,)
 
     @classmethod
+    @EdgeEndsValidator
     def parse(
         cls,
         from_vertex: Download,

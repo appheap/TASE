@@ -1,8 +1,7 @@
-from typing import Dict
+from typing import Dict, List, Type, Optional, Tuple, Any, Callable
 
 from arango import DocumentInsertError
 from arango.collection import EdgeCollection
-from pydantic.typing import List, Type, Optional, Tuple, Any
 
 from tase.db.arangodb.base import (
     BaseCollectionDocument,
@@ -50,6 +49,23 @@ class FromVertexMapper(FromGraphBaseProcessor):
 
 
 ##############################################################################
+
+
+class EdgeEndsValidator:
+    def __init__(self, func: Callable):
+        self.func = func
+
+    def __call__(self, *args, **kwargs):
+        cls = args[0]
+        from_vertex: BaseVertex = args[1]
+        to_vertex: BaseVertex = args[2]
+
+        if not isinstance(from_vertex, cls._from_vertex_collections):
+            raise ValueError(f"`from_vertex` {from_vertex.__class__.__name__} is not an valid ")
+        if not isinstance(to_vertex, cls._to_vertex_collections):
+            raise ValueError(f"`to_vertex` {from_vertex.__class__.__name__} is not an valid ")
+
+        return self.func(*args, **kwargs)
 
 
 class BaseEdge(BaseCollectionDocument):
@@ -156,6 +172,7 @@ class BaseEdge(BaseCollectionDocument):
 
     ####################################################################
     @classmethod
+    @EdgeEndsValidator
     def parse(
         cls,
         from_vertex: BaseVertex,
@@ -188,9 +205,7 @@ class BaseEdge(BaseCollectionDocument):
             When the start or the end vertex provided to the function does not match the edge definition in the
             database.
         """
-
-        # todo: what's the alternative location for checking this?
-        cls._validate_edge_ends(from_vertex, to_vertex)
+        raise NotImplementedError
 
     @classmethod
     def parse_key(
@@ -243,18 +258,6 @@ class BaseEdge(BaseCollectionDocument):
             return None, False
 
         return cls.insert(cls.parse(from_vertex, to_vertex, *args, **kwargs))
-
-    @classmethod
-    def _validate_edge_ends(
-        cls,
-        from_vertex: BaseVertex,
-        to_vertex: BaseVertex,
-    ) -> None:
-        # todo: find a better way for doing this validation
-        if not isinstance(from_vertex, cls._from_vertex_collections):
-            raise ValueError(f"`from_vertex` {from_vertex.__class__.__name__} is not an valid ")
-        if not isinstance(to_vertex, cls._to_vertex_collections):
-            raise ValueError(f"`to_vertex` {from_vertex.__class__.__name__} is not an valid ")
 
     @classmethod
     def get_or_create_edge(

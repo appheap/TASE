@@ -1,6 +1,6 @@
-from pydantic.typing import Optional, Union
+from typing import Optional, Union
 
-from .base_edge import BaseEdge
+from .base_edge import BaseEdge, EdgeEndsValidator
 from ..vertices import User, Playlist, Query, InlineQuery, Hit, Download, Audio, Keyword
 
 
@@ -25,6 +25,7 @@ class Has(BaseEdge):
     )
 
     @classmethod
+    @EdgeEndsValidator
     def parse(
         cls,
         from_vertex: Union[User, Playlist, Query, InlineQuery, Hit, Download, Audio],

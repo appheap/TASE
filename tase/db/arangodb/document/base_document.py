@@ -1,5 +1,6 @@
+from typing import Optional
+
 from arango.collection import StandardCollection
-from pydantic.typing import Optional
 
 from tase.db.arangodb.base import BaseCollectionDocument
 
