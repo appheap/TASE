@@ -272,18 +272,18 @@ class BaseEdge(BaseCollectionDocument):
 
         Parameters
         ----------
-        from_vertex : Optional[BaseVertex]
+        from_vertex : BaseVertex, optional
             Start of the edge
-        to_vertex : Optional[BaseVertex]
+        to_vertex : BaseVertex, optional
             End of the edge
-        args : List[Any]
+        args : list
             Arguments passed to the function
-        kwargs : Dict[str, Any]
+        kwargs : dict
             Keywords passed to the function
 
         Returns
         --------
-        Optional[BaseEdge]
+        BaseEdge, optional
             The created/existing Edge if successful, otherwise, return `None`.
 
         Raises
@@ -321,14 +321,14 @@ class BaseEdge(BaseCollectionDocument):
             Start of the edge
         to_vertex : BaseVertex
             End of the edge
-        args : List[Any]
+        args : list
             Arguments passed to the function
-        kwargs : Dict[str, Any]
+        kwargs : dict
             Keywords passed to the function
 
         Returns
         -------
-        Optional[BaseEdge]
+        BaseEdge, optional
             The created/updated if successful, otherwise, return `None`.
 
         Raises
