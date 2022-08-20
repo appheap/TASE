@@ -492,7 +492,7 @@ class BaseCollectionDocument(BaseModel):
         """
         if soft_delete:
             if issubclass(type(self), BaseSoftDeletableDocument):
-                self_copy: BaseSoftDeletableDocument = self.copy(deep=True)
+                self_copy = self.copy(deep=True)
                 self_copy.is_soft_deleted = True
                 self_copy.is_soft_deleted_time_precise = is_exact_date
                 self_copy.soft_deleted_at = get_timestamp() if deleted_at is None else deleted_at
