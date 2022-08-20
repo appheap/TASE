@@ -1,5 +1,6 @@
+from typing import Optional
+
 from pydantic import Field
-from pydantic.typing import Optional
 
 from tase.my_logger import logger
 from tase.utils import generate_token_urlsafe, prettify
@@ -183,7 +184,6 @@ class PlaylistMethods:
         )
 
         playlist, successful = Playlist.insert(v)
-        playlist: Playlist = playlist  # todo: what's the fix?
 
         if playlist and successful:
             try:
@@ -236,6 +236,7 @@ class PlaylistMethods:
                 return user_fav_playlist
         else:
             # non-favorite playlists with reserved names aren't allowed
+            # todo: raise an error instead of returning `None`
             if title == "Favorite":
                 return None
 
