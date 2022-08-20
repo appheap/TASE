@@ -16,11 +16,11 @@ class Chat(BaseVertex):
     _collection_name = "chats"
     schema_version = 1
 
-    _extra_do_not_update_fields = [
+    _extra_do_not_update_fields = (
         "audio_indexer_metadata",
         "audio_doc_indexer_metadata",
         "username_extractor_metadata",
-    ]
+    )
 
     chat_id: int
     is_public: bool
@@ -113,7 +113,8 @@ class Chat(BaseVertex):
 
         Returns
         -------
-        Whether the chat is public or not
+        bool
+            Whether the chat is public or not
         """
         is_public = False
         if chat_type in (ChatType.PRIVATE, ChatType.BOT):
@@ -149,7 +150,7 @@ class ChatMethods:
 
         Returns
         -------
-        Optional[Chat]
+        Chat, optional
             Chat if the operation was successful, otherwise, return `None`.
 
         Notes
@@ -190,7 +191,7 @@ class ChatMethods:
 
         Returns
         -------
-        Optional[Chat]
+        Chat, optional
             `Chat` document if it was successful, otherwise, return `None`.
 
         """
@@ -218,7 +219,7 @@ class ChatMethods:
 
         Returns
         -------
-        Optional[Chat]
+        Chat, optional
             Updated/Created `Chat` if successful, otherwise return `None`.
 
         """
@@ -289,7 +290,7 @@ class ChatMethods:
 
         Returns
         -------
-        Tuple[Optional[Chat], Optional[LinkedChat]]
+        tuple
             Chat and Linked Chat edge
 
         Raises
