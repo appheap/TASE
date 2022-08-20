@@ -1,6 +1,6 @@
 import typing
 from enum import Enum
-from typing import Dict, List, Optional, Any, Type, Union, Tuple
+from typing import Dict, Optional, Any, Type, Union, Tuple
 
 from arango import (
     DocumentInsertError,
@@ -188,7 +188,7 @@ class BaseCollectionDocument(BaseModel):
 
         Returns
         -------
-        Dict[str, Any]
+        dict
             Dictionary mapping attribute names to attribute values
 
         """
@@ -219,12 +219,12 @@ class BaseCollectionDocument(BaseModel):
 
         Parameters
         ----------
-        doc : Dict[str, Any]
+        doc : dict
             Dictionary mapping attribute names to attribute values
 
         Returns
         -------
-        BaseCollectionDocument
+        TBaseCollectionDocument, optional
             Python object converted from the database document dictionary
 
         """
@@ -267,12 +267,12 @@ class BaseCollectionDocument(BaseModel):
 
         Parameters
         ----------
-        doc : BaseCollectionDocument
+        doc : TBaseCollectionDocument
             Object to inserted into the ArangoDB
 
         Returns
         -------
-        Tuple[Optional[BaseCollectionDocument], bool]
+        tuple
             Document object with returned metadata from ArangoDB and `True` if the operation was successful,
             otherwise return `None` and `False`.
         """
@@ -311,7 +311,7 @@ class BaseCollectionDocument(BaseModel):
 
         Returns
         -------
-        Optional[BaseCollectionDocument]
+        TBaseCollectionDocument, optional
             Document matching the specified `Key` if it exists in the collection, otherwise return `None`
 
         """
@@ -348,7 +348,7 @@ class BaseCollectionDocument(BaseModel):
 
         Returns
         -------
-        Optional[bool]
+        bool, optional
             Document matching the specified `Key` if it exists in the collection, otherwise return `None`
 
         """
@@ -384,13 +384,13 @@ class BaseCollectionDocument(BaseModel):
 
         Parameters
         ----------
-        filters : Dict[str, Any]
-            Document filters
-        offset : Optional[int]
+        filters : dict
+            Filters to be applied
+        offset : int, default: 0
             Number of documents to skip
-        limit : Optional[int]
+        limit : int, default: None
             Max number of documents returned
-        filter_out_soft_deleted : Optional[bool]
+        filter_out_soft_deleted : bool, default: None
             Whether to filter out by soft-deleted documents or not.
 
         Raises
@@ -439,14 +439,14 @@ class BaseCollectionDocument(BaseModel):
 
         Parameters
         ----------
-        filters : Dict[str, Any]
+        filters : dict
             Document filters
-        filter_out_soft_deleted : Optional[bool]
+        filter_out_soft_deleted : bool, default: None
             Whether to filter out the soft-deleted documents.
 
         Returns
         -------
-        Optional[BaseCollectionDocument]
+        TBaseCollectionDocument, optional
             Document matching given filters if it exists, otherwise return `None`.
 
         Raises
@@ -480,17 +480,24 @@ class BaseCollectionDocument(BaseModel):
 
         Parameters
         ----------
-        soft_delete : Optional[bool]
+        soft_delete : bool, default: False
             If this parameter is set to `True`, the document will not be deleted, but, it will be marked as deleted.
-        is_exact_date : Optional[bool]
+        is_exact_date : bool, default: False
             Whether the time of deletion is exact or an estimation.
-        deleted_at : Optional[int]
+        deleted_at : int, default: None
             Timestamp of deletion.
 
         Returns
         -------
         bool
             Whether the operation was successful or not
+
+
+        Raises
+        ------
+        TypeError
+            If the document calling this method uses the `filter_out_soft_deleted` argument and is not a subclass of
+            `BaseSoftDeletableDocument`.
         """
         if soft_delete:
             if issubclass(type(self), BaseSoftDeletableDocument):
@@ -516,7 +523,7 @@ class BaseCollectionDocument(BaseModel):
 
         Parameters
         ----------
-        doc : Union[TBaseCollectionDocument, str]
+        doc : TBaseCollectionDocument or str
             Object to inserted into the ArangoDB or the Key of the document to be deleted
 
         Returns
@@ -543,7 +550,7 @@ class BaseCollectionDocument(BaseModel):
         return successful
 
     def update(
-        self,
+        self: TBaseCollectionDocument,
         doc: TBaseCollectionDocument,
         reserve_non_updatable_fields: bool = True,
         check_rev: Optional[bool] = True,
@@ -554,13 +561,13 @@ class BaseCollectionDocument(BaseModel):
 
         Parameters
         ----------
-        doc: BaseCollectionDocument
+        doc: TBaseCollectionDocument
             Document used for updating the object in the database
         reserve_non_updatable_fields : bool
             Whether to keep the non-updatable fields from the old document or not
-        check_rev : Optional[bool]
+        check_rev : bool, default: True
             If set to True, revision of current document (if given) is compared against the revision of target document. Default to `True`.
-        sync : Optional[bool]
+        sync : bool, default: None
             sync: Block until operation is synchronized to disk. Default to `None`
 
         Returns
@@ -620,11 +627,20 @@ class BaseCollectionDocument(BaseModel):
 
         Parameters
         ----------
-        old_doc : BaseCollectionDocument
+        old_doc : TBaseCollectionDocument
             Document that is already in the database
-        doc: BaseCollectionDocument
+        doc: TBaseCollectionDocument
             Document used for replacing the object in the database
 
+        Returns
+        -------
+        tuple
+            Replaced document and whether the operation was successful.
+
+        Raises
+        ------
+        Exception
+            If the new document is not instance of `BaseCollectionDocument` class.
         """
         if not isinstance(doc, BaseCollectionDocument):
             raise Exception(
@@ -664,7 +680,7 @@ class BaseCollectionDocument(BaseModel):
 
         Parameters
         ----------
-        metadata : Dict[str, str]
+        metadata : dict
             Metadata returned from the database query
 
         """
@@ -680,11 +696,12 @@ class BaseCollectionDocument(BaseModel):
 
         Parameters
         ----------
-        old_doc : The document to get the metadata from
+        old_doc : TBaseCollectionDocument
+            The document to get the metadata from
 
         Returns
         -------
-        BaseCollectionDocument
+        TBaseCollectionDocument
             Updated document
         """
         for field_name in self._to_graph_db_mapping.keys():
@@ -701,12 +718,12 @@ class BaseCollectionDocument(BaseModel):
 
         Parameters
         ----------
-        old_doc : BaseCollectionDocument
+        old_doc : TBaseCollectionDocument
             Document to update the fields from
 
         Returns
         -------
-        BaseCollectionDocument
+        TBaseCollectionDocument
             Updated document
 
         """
@@ -724,7 +741,7 @@ class BaseCollectionDocument(BaseModel):
         cls: Type[TBaseCollectionDocument],
         query: str,
         bind_vars: Dict[str, Any],
-    ) -> Optional[Result[Cursor]]:
+    ) -> Result[Cursor]:
         """
         Execute a query and return a `Cursor` object if did not catch any errors, otherwise, return `None`.
 
@@ -732,27 +749,32 @@ class BaseCollectionDocument(BaseModel):
         ----------
         query : str
             Query string to execute
-        bind_vars : Dict[str, Any]
+        bind_vars : dict
             Dictionary of variables to be bound to the query before running
 
         Returns
         -------
-        Optional[Cursor]
+        Result[Cursor]
             `Cursor` object if successful, otherwise, return `None`.
 
         """
         try:
             bind_vars["graph_name"] = cls._graph_name
 
-            return cls._aql.execute(
+            cursor = cls._aql.execute(
                 query,
                 bind_vars=bind_vars,
                 count=True,
             )
+            if not len(cursor):
+                return None
+
         except AQLQueryExecuteError as e:
             logger.exception(e)
         except Exception as e:
             logger.exception(e)
+        else:
+            return cursor
 
         return None
 
@@ -769,14 +791,14 @@ class BaseCollectionDocument(BaseModel):
 
         Parameters
         ----------
-        args : List[Any]
+        args : list
             List of arguments
-        kwargs : Dict[str, Any]
+        kwargs : dict
             Dictionary of keyword arguments
 
         Returns
         -------
-        Optional[BaseCollectionDocument]
+        TBaseCollectionDocument, optional
             Document object if parsing was successful, otherwise, return `None`.
 
         Raises
@@ -798,14 +820,14 @@ class BaseCollectionDocument(BaseModel):
 
         Parameters
         ----------
-        args : List[Any]
+        args : list
             List of arguments
-        kwargs : Dict[str, Any]
+        kwargs : dict
             List of keyword arguments
 
         Returns
         -------
-        Optional[str]
+        str, optional
             Key string if parsing was successful, otherwise, return `None`.
 
         Raises
