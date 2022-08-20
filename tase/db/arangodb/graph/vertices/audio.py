@@ -23,7 +23,6 @@ class Audio(BaseVertex):
     message_edit_date: Optional[int]
     views: Optional[int]
     reactions: Optional[List[str]]
-    is_forwarded: bool
     forward_date: Optional[int]
     forward_from_chat_id: Optional[int]
     forward_from_message_id: Optional[int]
@@ -60,6 +59,7 @@ class Audio(BaseVertex):
     has_checked_forwarded_message: Optional[bool]
     has_checked_forwarded_message_at: Optional[int]
 
+    is_forwarded: bool
     is_deleted: bool
     deleted_at: Optional[int]  # this is not always accurate
     is_edited: bool
@@ -124,7 +124,6 @@ class Audio(BaseVertex):
             message_edit_date=get_timestamp(telegram_message.edit_date) if telegram_message.edit_date else None,
             views=telegram_message.views,
             reactions=telegram_message.reactions,
-            is_forwarded=is_forwarded,
             forward_date=get_timestamp(telegram_message.forward_date)
             if telegram_message.forward_date is not None
             else None,
@@ -148,6 +147,7 @@ class Audio(BaseVertex):
             valid_for_inline_search=valid_for_inline,
             is_audio_file=is_audio_file,
             has_checked_forwarded_message=has_checked_forwarded_message,
+            is_forwarded=is_forwarded,
             is_deleted=True if telegram_message.empty else False,
             is_edited=True if telegram_message.edit_date else False,
         )
