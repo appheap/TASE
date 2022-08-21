@@ -201,7 +201,7 @@ class ChatMethods:
         chat = Chat.get(Chat.parse_key(telegram_chat))
         if chat is None:
             # chat does not exist in the database, create it
-            chat, successful = self._create_chat(telegram_chat)
+            chat = self._create_chat(telegram_chat)
 
         return chat
 
