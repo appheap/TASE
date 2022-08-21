@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Optional, List, Tuple
+from typing import Optional, List
 
 import pyrogram
 from pydantic import Field
@@ -127,7 +127,7 @@ class UserMethods:
 
         Returns
         -------
-        Tuple[Optional[User], bool]
+        User, optional
             User object and  `True` if the operation was successful, otherwise return `None` and `False`
         """
         if telegram_user is None:
@@ -153,7 +153,7 @@ class UserMethods:
 
         Returns
         -------
-        Optional[User]
+        User, optional
             User object if the operation was successful, otherwise return `None`
         """
         if telegram_user is None:
@@ -181,7 +181,7 @@ class UserMethods:
 
         Returns
         -------
-        Optional[User]
+        User, optional
             User object if the operation was successful, otherwise return `None`
         """
         if telegram_user is None:
