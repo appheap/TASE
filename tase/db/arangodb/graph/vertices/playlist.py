@@ -79,7 +79,7 @@ class PlaylistMethods:
 
         Returns
         -------
-        Optional[Playlist]
+        Playlist, optional
             `Playlist` with the given title if it exists, return `None` otherwise.
         """
         if user is None or title is None:
@@ -95,7 +95,7 @@ class PlaylistMethods:
                 "title": title,
             },
         )
-        if cursor is not None and len(cursor):
+        if cursor is not None:
             return Playlist.from_collection(cursor.pop())
 
         return None
@@ -114,7 +114,7 @@ class PlaylistMethods:
 
         Returns
         -------
-        Optional[Playlist]
+        Playlist, optional
             Favorite `Playlist` of the `user` if it exists, return `None` otherwise.
 
         """
@@ -130,7 +130,7 @@ class PlaylistMethods:
                 "is_favorite": True,
             },
         )
-        if cursor is not None and len(cursor):
+        if cursor is not None:
             return Playlist.from_collection(cursor.pop())
         return None
 
@@ -150,14 +150,14 @@ class PlaylistMethods:
             User to create the playlist for
         title : str
             Title of the playlist
-        description : Optional[str]
+        description : str, optional
             Description of the playlist
         is_favorite : bool
             Whether the created playlist is favorite or not.
 
         Returns
         -------
-        Optional[Playlist]
+        Playlist, optional
             Favorite `Playlist` of the `user` if it exists, return `None` otherwise.
 
         Notes
@@ -222,7 +222,7 @@ class PlaylistMethods:
 
         Returns
         -------
-        Optional[Playlist]
+        Playlist, optional
             Created/Retrieved `Playlist` if the operation successful, return `None` otherwise.
         """
         if user is None or title is None:
@@ -261,7 +261,7 @@ class PlaylistMethods:
 
         Returns
         -------
-        Optional[Playlist]
+        Playlist, optional
             Favorite `Playlist` of the `user` if the operation was successful, return `None` otherwise.
 
         """
@@ -286,7 +286,7 @@ class PlaylistMethods:
 
         Returns
         -------
-        Optional[Playlist]
+        Playlist, optional
             Retrieved/Created `Playlist` for the given `User`, return `None` if the operation wasn't successful.
 
         """
@@ -323,7 +323,7 @@ class PlaylistMethods:
         if user is None or playlist_key is None or deleted_at is None:
             return False
 
-        playlist: Playlist = Playlist.get(playlist_key)
+        playlist = Playlist.get(playlist_key)
         if not playlist:
             raise KeyError(f"Playlist was not found with key : {playlist_key}")
 
