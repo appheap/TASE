@@ -1,7 +1,7 @@
 from typing import Optional, Union
 
 from .base_edge import BaseEdge, EdgeEndsValidator
-from ..vertices import Audio, Chat
+from ..vertices import Audio, Chat, User
 
 
 class ForwardedFrom(BaseEdge):
@@ -11,7 +11,7 @@ class ForwardedFrom(BaseEdge):
     schema_version = 1
 
     _from_vertex_collections = (Audio,)
-    _to_vertex_collections = (Chat, Audio)
+    _to_vertex_collections = (User, Chat, Audio)
 
     signature: Optional[str]
     from_message_id: Optional[int]

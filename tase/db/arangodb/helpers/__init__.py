@@ -6,4 +6,5 @@ from .audio_doc_indexer_metadata import AudioDocIndexerMetadata
 from .audio_indexer_metadata import AudioIndexerMetadata
 from .base_indexer_metadata import BaseIndexerMetadata
 from .restriction import Restriction
+from .telegram_audio_type import TelegramAudioType
 from .username_extractor_metadata import UsernameExtractorMetadata

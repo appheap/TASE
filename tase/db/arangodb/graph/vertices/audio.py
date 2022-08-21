@@ -2,8 +2,12 @@ from typing import Optional, List
 
 import pyrogram
 
-from tase.utils import datetime_to_timestamp, generate_token_urlsafe
+from tase.db.db_utils import get_telegram_message_media_type
+from tase.utils import datetime_to_timestamp, generate_token_urlsafe, get_now_timestamp
 from .base_vertex import BaseVertex
+from .. import ArangoGraphMethods
+from ..edges import SentBy, FileRef, ForwardedFrom, ViaBot
+from ...helpers import TelegramAudioType
 
 
 class Audio(BaseVertex):
@@ -24,6 +28,7 @@ class Audio(BaseVertex):
     views: Optional[int]
     reactions: Optional[List[str]]
     forward_date: Optional[int]
+    forward_from_user_id: Optional[int]
     forward_from_chat_id: Optional[int]
     forward_from_message_id: Optional[int]
     forward_signature: Optional[str]
@@ -35,7 +40,7 @@ class Audio(BaseVertex):
     # via_bot : via_bot => User
 
     # file_id: str # todo: is it necessary?
-    file_unique_id: str
+    file_unique_id: Optional[str]
     duration: Optional[int]
     performer: Optional[str]
     title: Optional[str]
@@ -46,7 +51,7 @@ class Audio(BaseVertex):
 
     ####################################################
     download_url: str
-    is_audio_file: bool  # whether the audio file is shown in the `audios` or `files/documents` section of telegram app
+    audio_type: TelegramAudioType  # whether the audio file is shown in the `audios` or `files/documents` section of telegram app
     valid_for_inline_search: bool
     """
      when an audio's title is None or the audio is shown in document section of
@@ -67,50 +72,79 @@ class Audio(BaseVertex):
     @classmethod
     def parse_key(
         cls,
-        message: pyrogram.types.Message,
-    ) -> str:
-        if message.audio:
-            _audio = message.audio
-        elif message.document:
-            _audio = message.document
-        else:
-            raise ValueError("Unexpected value for `message`: nor audio nor document")
-        return f"{_audio.file_unique_id}:{message.chat.id}:{message.id}"
+        telegram_message: pyrogram.types.Message,
+    ) -> Optional[str]:
+        """
+        Parse the `key` from the given `telegram_message` argument if it contains a valid audio file, otherwise raise
+        an `ValueError` exception.
+
+        Parameters
+        ----------
+        telegram_message : pyrogram.types.Message
+            Telegram message to parse the key from
+
+        Returns
+        -------
+        str, optional
+            Parsed key if the parsing was successful, otherwise return `None` if the `telegram_message` is `None`.
+
+        """
+        if telegram_message is None:
+            return None
+
+        return f"{telegram_message.chat.id}:{telegram_message.id}"
 
     @classmethod
     def parse(
         cls,
         telegram_message: pyrogram.types.Message,
     ) -> Optional["Audio"]:
-        if not telegram_message or (telegram_message.audio is None and telegram_message.document is None):
+        """
+        Parse an `Audio` from the given `telegram_message` argument.
+
+        Parameters
+        ----------
+        telegram_message : pyrogram.types.Message
+            Telegram message to parse the `Audio` from
+
+        Returns
+        -------
+        Audio, optional
+            Parsed `Audio` if parsing was successful, otherwise, return `None`.
+
+        Raises
+        ------
+        ValueError
+            If `telegram_message` argument does not contain any valid audio file.
+        """
+        if telegram_message is None:
             return None
 
+        # do not catch `ValueError` exception from the following line
         key = Audio.parse_key(telegram_message)
 
-        if telegram_message.audio:
-            _audio = telegram_message.audio
-            is_audio_file = True
-        elif telegram_message.document:
-            _audio = telegram_message.document
-            is_audio_file = False
-        else:
+        audio, audio_type = get_telegram_message_media_type(telegram_message)
+        if audio is None or audio_type == TelegramAudioType.NON_AUDIO:
             raise ValueError("Unexpected value for `message`: nor audio nor document")
 
-        title = getattr(_audio, "title", None)
+        title = getattr(audio, "title", None)
 
         # todo: check if the following statement is actually true
-        valid_for_inline = True if title is not None and is_audio_file is not None else False
+        valid_for_inline = True if title is not None and audio_type == TelegramAudioType.AUDIO_FILE else False
 
         is_forwarded = True if telegram_message.forward_date else False
 
-        if telegram_message.forward_from:
-            forwarded_from_chat_id = telegram_message.forward_from.id
-        elif telegram_message.forward_from_chat:
+        if telegram_message.forward_from_chat:
             forwarded_from_chat_id = telegram_message.forward_from_chat.id
         else:
             forwarded_from_chat_id = None
 
-        if is_forwarded:
+        if telegram_message.forward_from:
+            forwarded_from_user_id = telegram_message.forward_from.id
+        else:
+            forwarded_from_user_id = None
+
+        if is_forwarded and forwarded_from_chat_id is not None:
             has_checked_forwarded_message = False
         else:
             has_checked_forwarded_message = None
@@ -125,6 +159,7 @@ class Audio(BaseVertex):
             views=telegram_message.views,
             reactions=telegram_message.reactions,
             forward_date=datetime_to_timestamp(telegram_message.forward_date),
+            forward_from_user_id=forwarded_from_user_id,
             forward_from_chat_id=forwarded_from_chat_id,
             forward_from_message_id=telegram_message.forward_from_message_id,
             forward_signature=telegram_message.forward_signature,
@@ -132,29 +167,142 @@ class Audio(BaseVertex):
             via_bot=True if telegram_message.via_bot else False,
             has_protected_content=telegram_message.has_protected_content,
             ################################
-            file_unique_id=_audio.file_unique_id,
-            duration=getattr(_audio, "duration", None),
-            performer=getattr(_audio, "performer", None),
+            file_unique_id=audio.file_unique_id,
+            duration=getattr(audio, "duration", None),
+            performer=getattr(audio, "performer", None),
             title=title,
-            file_name=_audio.file_name,
-            mime_type=_audio.mime_type,
-            file_size=_audio.file_size,
-            date=datetime_to_timestamp(_audio.date),
+            file_name=audio.file_name,
+            mime_type=audio.mime_type,
+            file_size=audio.file_size,
+            date=datetime_to_timestamp(audio.date),
             ################################
             download_url=generate_token_urlsafe(),
             valid_for_inline_search=valid_for_inline,
-            is_audio_file=is_audio_file,
+            audio_type=audio_type,
             has_checked_forwarded_message=has_checked_forwarded_message,
             is_forwarded=is_forwarded,
             is_deleted=True if telegram_message.empty else False,
             is_edited=True if telegram_message.edit_date else False,
         )
 
+    def mark_as_deleted(self) -> bool:
+        self_copy = self.copy(deep=True)
+        self_copy.is_deleted = True
+        self_copy.deleted_at = get_now_timestamp()
+        return self.update(self_copy, reserve_non_updatable_fields=False)
+
+    def mark_as_invalid(
+        self,
+        telegram_message: pyrogram.types.Message,
+    ) -> bool:
+        if telegram_message is None:
+            return False
+
+        self_copy = self.copy(deep=True)
+        self_copy.audio_type = TelegramAudioType.NON_AUDIO
+        return self.update(self_copy, reserve_non_updatable_fields=True)
+
 
 ######################################################################
 
 
 class AudioMethods:
+    def create_audio(
+        self: ArangoGraphMethods,
+        telegram_message: pyrogram.types.Message,
+    ) -> Optional[Audio]:
+        if telegram_message is None:
+            return None
+
+        try:
+            audio, successful = Audio.insert(Audio.parse(telegram_message))
+        except ValueError as e:
+            # this message doesn't contain any valid audio file
+            pass
+        else:
+            if audio and successful:
+                audio: Audio = audio
+
+                chat = self.get_or_create_chat(telegram_message.chat)
+                sent_by_edge = SentBy.get_or_create_edge(audio, chat)
+
+                file = self.get_or_create_file(telegram_message)
+                file_ref_edge = FileRef.get_or_create_edge(audio, file)
+
+                if audio.is_forwarded:
+                    if telegram_message.forward_from:
+                        forwarded_from = self.get_or_create_user(telegram_message.forward_from)
+                    elif telegram_message.forward_from_chat:
+                        forwarded_from = self.get_or_create_chat(telegram_message.forward_from_chat)
+                    else:
+                        forwarded_from = None
+
+                    if forwarded_from is not None:
+                        forwarded_from_edge = ForwardedFrom.get_or_create_edge(audio, forwarded_from)
+
+                    # todo: the `forwarded_from` edge from `audio` to the `original audio` must be checked later
+
+                if audio.via_bot:
+                    bot = self.get_or_create_user(telegram_message.via_bot)
+                    via_bot_edge = ViaBot.get_or_create_edge(audio, bot)
+
+                return audio
+
+        return None
+
+    def get_or_create_audio(
+        self,
+        telegram_message: pyrogram.types.Message,
+    ) -> Optional[Audio]:
+        if telegram_message is None:
+            return None
+
+        try:
+            audio = Audio.get(Audio.parse_key(telegram_message))
+        except ValueError as e:
+            # telegram message does not contain any valid audio file
+            pass
+        else:
+            if audio is None:
+                audio = self.create_audio(telegram_message)
+            return audio
+
+        return None
+
+    def update_or_create_audio(
+        self,
+        telegram_message: pyrogram.types.Message,
+    ) -> Optional[Audio]:
+        if telegram_message is None:
+            return None
+
+        audio: Optional[Audio] = Audio.get(Audio.parse_key(telegram_message))
+
+        if audio is not None:
+            telegram_audio, audio_type = get_telegram_message_media_type(telegram_message)
+            if telegram_audio is None or audio_type == TelegramAudioType.NON_AUDIO:
+                # this message doesn't contain any valid audio file, check if there is a previous audio in the database
+                # and check it as invalid audio.
+                successful = audio.mark_as_invalid(telegram_message)
+                if not successful:
+                    # fixme: could not mark the audio as invalid, why?
+                    pass
+            else:
+                # update the audio and its edges
+                if telegram_message.empty:
+                    # the message has been deleted, mark the audio as deleted in the database
+                    deleted = audio.mark_as_deleted()
+                    if not deleted:
+                        # fixme: could not mark the audio as deleted, why?
+                        pass
+                else:
+                    # the message has not been `deleted`, update remaining attributes
+                    updated = audio.update(Audio.parse(telegram_message))
+        else:
+            audio = self.create_audio(telegram_message)
+
+        return audio
+
     def find_audio_by_download_url(
         self,
         download_url: str,
