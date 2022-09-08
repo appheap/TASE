@@ -3,6 +3,7 @@ from typing import Optional, Union, List
 import pyrogram
 
 from tase.db.helpers import SearchMetaData
+from tase.my_logger import logger
 from . import Audio
 from .base_vertex import BaseVertex
 from .chat import ChatType
@@ -129,9 +130,6 @@ class QueryMethods:
         ------
         Exception
             If creation of any connected edges and vertices has not been successful.
-        ValueError
-            When the start or the end vertex provided to the function does not match the edge definition in the
-            database.
         """
         if bot_id is None or user is None or query is None or query_date is None:
             return None
@@ -156,13 +154,19 @@ class QueryMethods:
             # todo: get/create a keyword vertex from this query and link them together
 
             # link the user to this query
-            has_made_edge = HasMade.get_or_create_edge(user, db_query)
-            if has_made_edge is None:
-                raise Exception("Could not create the `has_made` edge")
+            try:
+                has_made_edge = HasMade.get_or_create_edge(user, db_query)
+                if has_made_edge is None:
+                    raise Exception("Could not create the `has_made` edge")
+            except ValueError:
+                logger.error("ValueError: Could not create the `has_made` edge")
 
-            to_bot_edge = ToBot.get_or_create_edge(db_query, bot)
-            if to_bot_edge is None:
-                raise Exception("Could not create the `to_bot` edge")
+            try:
+                to_bot_edge = ToBot.get_or_create_edge(db_query, bot)
+                if to_bot_edge is None:
+                    raise Exception("Could not create the `to_bot` edge")
+            except ValueError:
+                logger.error("ValueError: Could not create the `to_bot` edge")
 
             for audio, search_metadata in zip(audios, search_metadata_list):
                 if audio is None or search_metadata is None:
@@ -173,9 +177,12 @@ class QueryMethods:
                 if hit is None:
                     raise Exception("Could not create `hit` vertex")
 
-                has_hit_edge = Has.get_or_create_edge(db_query, hit)
-                if has_hit_edge is None:
-                    raise Exception("Could not create `has` edge from `query` vertex to `hit` vertex")
+                try:
+                    has_hit_edge = Has.get_or_create_edge(db_query, hit)
+                    if has_hit_edge is None:
+                        raise Exception("Could not create `has` edge from `query` vertex to `hit` vertex")
+                except ValueError:
+                    logger.error("ValueError: Could not create `has` edge from `query` vertex to `hit` vertex")
 
             return db_query
 
@@ -232,9 +239,6 @@ class QueryMethods:
         ------
         Exception
             If creation of any connected edges and vertices has not been successful.
-        ValueError
-            When the start or the end vertex provided to the function does not match the edge definition in the
-            database.
         """
         if bot_id is None or user is None or query is None or query_date is None:
             return None
