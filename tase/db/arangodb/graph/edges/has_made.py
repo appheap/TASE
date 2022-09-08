@@ -1,29 +1,26 @@
 from typing import Optional, Union
 
 from .base_edge import BaseEdge, EdgeEndsValidator
-from ..vertices import InlineQuery, Query, User
+from ..vertices import Query, User
 
 
 class HasMade(BaseEdge):
     """
-    Connection from `User` to `InlineQuery` or `Query
+    Connection from `User` to `Query
     """
 
     _collection_name = "has_made"
     schema_version = 1
 
     _from_vertex_collections = (User,)
-    _to_vertex_collections = (
-        InlineQuery,
-        Query,
-    )
+    _to_vertex_collections = (Query,)
 
     @classmethod
     @EdgeEndsValidator
     def parse(
         cls,
         from_vertex: User,
-        to_vertex: Union[InlineQuery, Query],
+        to_vertex: Query,
         *args,
         **kwargs,
     ) -> Optional["HasMade"]:

@@ -1,7 +1,7 @@
-from typing import Optional, Union
+from typing import Optional
 
 from .base_edge import BaseEdge, EdgeEndsValidator
-from ..vertices import InlineQuery, Query, User
+from ..vertices import Query, User
 
 
 class ToBot(BaseEdge):
@@ -12,17 +12,14 @@ class ToBot(BaseEdge):
     _collection_name = "to_bot"
     schema_version = 1
 
-    _from_vertex_collections = (
-        InlineQuery,
-        Query,
-    )
+    _from_vertex_collections = (Query,)
     _to_vertex_collections = (User,)
 
     @classmethod
     @EdgeEndsValidator
     def parse(
         cls,
-        from_vertex: Union[InlineQuery, Query],
+        from_vertex: Query,
         to_vertex: User,
         *args,
         **kwargs,

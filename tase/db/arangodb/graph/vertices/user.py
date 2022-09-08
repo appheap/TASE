@@ -20,6 +20,8 @@ class UserRole(Enum):
 
 class User(BaseVertex):
     _collection_name = "users"
+    schema_version = 1
+
     _extra_do_not_update_fields = [
         "chosen_language_code",
         "role",
@@ -202,3 +204,26 @@ class UserMethods:
                 logger.error(f"could not create/get favorite playlist for user: {prettify(user)}")
 
         return user
+
+    def get_user_by_telegram_id(
+        self,
+        user_id: int,
+    ) -> Optional[User]:
+        """
+        Get User by Telegram user ID
+
+        Parameters
+        ----------
+        user_id : int
+            Telegram user ID
+
+        Returns
+        -------
+        User, optional
+            User if it exists in the ArangoDB, otherwise, return None.
+
+        """
+        if user_id is None:
+            return None
+
+        return User.get(str(user_id))

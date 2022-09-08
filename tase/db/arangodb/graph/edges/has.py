@@ -1,7 +1,7 @@
 from typing import Optional, Union
 
 from .base_edge import BaseEdge, EdgeEndsValidator
-from ..vertices import User, Playlist, Query, InlineQuery, Hit, Download, Audio, Keyword
+from ..vertices import User, Playlist, Query, Hit, Download, Audio, Keyword
 
 
 class Has(BaseEdge):
@@ -12,7 +12,6 @@ class Has(BaseEdge):
         User,
         Playlist,
         Query,
-        InlineQuery,
         Hit,
         Download,
         Audio,
@@ -28,7 +27,7 @@ class Has(BaseEdge):
     @EdgeEndsValidator
     def parse(
         cls,
-        from_vertex: Union[User, Playlist, Query, InlineQuery, Hit, Download, Audio],
+        from_vertex: Union[User, Playlist, Query, Hit, Download, Audio],
         to_vertex: Union[Playlist, Audio, Hit, Keyword],
         *args,
         **kwargs,
