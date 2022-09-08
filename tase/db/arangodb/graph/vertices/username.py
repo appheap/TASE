@@ -1,6 +1,5 @@
 from typing import Optional
 
-from arango import DocumentUpdateError, DocumentRevisionError
 from pydantic import Field
 
 from .base_vertex import BaseVertex
@@ -12,27 +11,32 @@ class Username(BaseVertex):
     database for indexing
     """
 
-    _vertex_name = "usernames"
+    _collection_name = "usernames"
+    schema_version = 1
 
     username: Optional[str]
     is_checked: bool = Field(default=False)
     checked_at: Optional[int]
     is_valid: Optional[bool]
 
-    @staticmethod
-    def parse_from_username(
+    @classmethod
+    def parse(
+        cls,
         username: str,
     ) -> Optional["Username"]:
         if username is None:
             return None
 
         return Username(
-            key=Username.get_key(username),
+            key=Username.parse_key(username),
             username=username.lower(),
         )
 
-    @staticmethod
-    def get_key(username: str) -> str:
+    @classmethod
+    def parse_key(
+        cls,
+        username: str,
+    ) -> str:
         return username.lower()
 
     def check(
@@ -44,20 +48,13 @@ class Username(BaseVertex):
         if is_checked is None or checked_at is None or is_valid is None:
             return False
 
-        try:
-            self._db.update(
-                {
-                    "_key": self.key,
-                    "is_checked": is_checked,
-                    "checked_at": checked_at,
-                    "is_valid": is_valid,
-                },
-                silent=True,
-            )
-            return True
-        except DocumentUpdateError as e:
-            pass
-        except DocumentRevisionError as e:
-            pass
+        self_copy: Username = self.copy(deep=True)
+        self_copy.is_checked = is_checked
+        self_copy.checked_at = checked_at
+        self_copy.is_valid = is_valid
 
-        return False
+        return self.update(self_copy)
+
+
+class UsernameMethods:
+    pass
