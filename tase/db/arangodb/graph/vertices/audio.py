@@ -273,6 +273,7 @@ class AudioMethods:
                 except ValueError:
                     logger.error("ValueError: Could not create `sent_by` edge")
 
+                # since checking for audio file validation is done above, there is no need to it again.
                 file = self.get_or_create_file(telegram_message)
                 try:
                     file_ref_edge = FileRef.get_or_create_edge(audio, file)
