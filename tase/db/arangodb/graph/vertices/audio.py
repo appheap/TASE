@@ -3,6 +3,7 @@ from typing import Optional, List
 import pyrogram
 
 from tase.db.db_utils import get_telegram_message_media_type
+from tase.my_logger import logger
 from tase.utils import datetime_to_timestamp, generate_token_urlsafe, get_now_timestamp
 from .base_vertex import BaseVertex
 from .. import ArangoGraphMethods
@@ -186,6 +187,15 @@ class Audio(BaseVertex):
         )
 
     def mark_as_deleted(self) -> bool:
+        """
+        Mark the Audio the as deleted. This happens when the message is deleted in telegram.
+
+        Returns
+        -------
+        bool
+            Whether the operation was successful or not.
+
+        """
         self_copy = self.copy(deep=True)
         self_copy.is_deleted = True
         self_copy.deleted_at = get_now_timestamp()
@@ -195,6 +205,20 @@ class Audio(BaseVertex):
         self,
         telegram_message: pyrogram.types.Message,
     ) -> bool:
+        """
+        Mark the audio as invalid since it has been edited in telegram and changed to non-audio file.
+
+        Parameters
+        ----------
+        telegram_message : pyrogram.types.Message
+            Telegram message to update the Audio by
+
+        Returns
+        -------
+        bool
+            Whether the update was successful or not.
+
+        """
         if telegram_message is None:
             return False
 
@@ -211,6 +235,24 @@ class AudioMethods:
         self: ArangoGraphMethods,
         telegram_message: pyrogram.types.Message,
     ) -> Optional[Audio]:
+        """
+        Create Audio alongside necessary vertices and edges in the ArangoDB.
+
+        Parameters
+        ----------
+        telegram_message : pyrogram.types.Message
+            Telegram message to create the Audio from
+
+        Returns
+        -------
+        Audio, optional
+            Audio if the creation was successful, otherwise, return None
+
+        Raises
+        ------
+        Exception
+            If creation of the related vertices or edges was unsuccessful.
+        """
         if telegram_message is None:
             return None
 
@@ -224,10 +266,20 @@ class AudioMethods:
                 audio: Audio = audio
 
                 chat = self.get_or_create_chat(telegram_message.chat)
-                sent_by_edge = SentBy.get_or_create_edge(audio, chat)
+                try:
+                    sent_by_edge = SentBy.get_or_create_edge(audio, chat)
+                    if sent_by_edge is None:
+                        raise Exception("Could not create `sent_by` edge")
+                except ValueError:
+                    logger.error("ValueError: Could not create `sent_by` edge")
 
                 file = self.get_or_create_file(telegram_message)
-                file_ref_edge = FileRef.get_or_create_edge(audio, file)
+                try:
+                    file_ref_edge = FileRef.get_or_create_edge(audio, file)
+                    if file_ref_edge is None:
+                        raise Exception("Could not create `file_ref` edge")
+                except ValueError:
+                    logger.error("ValueError: Could not create `file_ref` edge")
 
                 if audio.is_forwarded:
                     if telegram_message.forward_from:
@@ -238,13 +290,23 @@ class AudioMethods:
                         forwarded_from = None
 
                     if forwarded_from is not None:
-                        forwarded_from_edge = ForwardedFrom.get_or_create_edge(audio, forwarded_from)
+                        try:
+                            forwarded_from_edge = ForwardedFrom.get_or_create_edge(audio, forwarded_from)
+                            if forwarded_from_edge is None:
+                                raise Exception("Could not create `forwarded_from` edge")
+                        except ValueError:
+                            logger.error("ValueError: Could not create `forwarded_from` edge")
 
                     # todo: the `forwarded_from` edge from `audio` to the `original audio` must be checked later
 
                 if audio.via_bot:
                     bot = self.get_or_create_user(telegram_message.via_bot)
-                    via_bot_edge = ViaBot.get_or_create_edge(audio, bot)
+                    try:
+                        via_bot_edge = ViaBot.get_or_create_edge(audio, bot)
+                        if via_bot_edge is None:
+                            raise Exception("Could not create `via_bot` edge")
+                    except ValueError:
+                        logger.error("ValueError: Could not create `via_bot` edge")
 
                 return audio
 
@@ -254,6 +316,25 @@ class AudioMethods:
         self,
         telegram_message: pyrogram.types.Message,
     ) -> Optional[Audio]:
+        """
+        Get Audio if it exists in ArangoDB, otherwise, create Audio alongside necessary vertices and edges in the
+        ArangoDB.
+
+        Parameters
+        ----------
+        telegram_message : pyrogram.types.Message
+            Telegram message to create the Audio from
+
+        Returns
+        -------
+        Audio, optional
+            Audio if the creation was successful, otherwise, return None
+
+        Raises
+        ------
+        Exception
+            If creation of the related vertices or edges was unsuccessful.
+        """
         if telegram_message is None:
             return None
 
@@ -273,6 +354,24 @@ class AudioMethods:
         self,
         telegram_message: pyrogram.types.Message,
     ) -> Optional[Audio]:
+        """
+        Update Audio alongside necessary vertices and edges in the ArangoDB if it exists, otherwise, create it.
+
+        Parameters
+        ----------
+        telegram_message : pyrogram.types.Message
+            Telegram message to create the Audio from
+
+        Returns
+        -------
+        Audio, optional
+            Audio if the creation was successful, otherwise, return None
+
+        Raises
+        ------
+        Exception
+            If creation of the related vertices or edges was unsuccessful.
+        """
         if telegram_message is None:
             return None
 
@@ -307,6 +406,20 @@ class AudioMethods:
         self,
         download_url: str,
     ) -> Optional[Audio]:
+        """
+        Get Audio by `download_url` in the ArangoDB
+
+        Parameters
+        ----------
+        download_url : str
+            Download URL to get the Audio from
+
+        Returns
+        -------
+        Audio, optional
+            Audio if it exists with the given `download_url` parameter, otherwise, return None
+
+        """
         if download_url is None:
             return None
 

@@ -252,14 +252,18 @@ class ChatMethods:
                                 try:
                                     LinkedChat.get_or_create_edge(chat, linked_chat)
                                 except ValueError:
-                                    logger.error(f"Could not create linked_chat: {prettify(telegram_chat.linked_chat)}")
+                                    logger.error(
+                                        f"Could not create `linked_chat` edge:" f" {prettify(telegram_chat.linked_chat)}"
+                                    )
                         else:
                             # chat did not have any linked chat before, create it
                             linked_chat = self.get_or_create_chat(telegram_chat.linked_chat)
                             try:
                                 LinkedChat.get_or_create_edge(chat, linked_chat)
                             except ValueError:
-                                logger.error(f"Could not create linked_chat: {prettify(telegram_chat.linked_chat)}")
+                                logger.error(
+                                    f"Could not create `linked_chat` edge:" f" {prettify(telegram_chat.linked_chat)}"
+                                )
 
                 else:
                     # the chat doesn't have any linked chat, check if it had any before and delete the link

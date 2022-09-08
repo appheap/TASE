@@ -1,6 +1,7 @@
 from typing import Optional
 
 from tase.db.helpers import SearchMetaData
+from tase.my_logger import logger
 from tase.utils import generate_token_urlsafe
 from .audio import Audio
 from .base_vertex import BaseVertex
@@ -83,9 +84,12 @@ class HitMethods:
 
         hit, successful = Hit.insert(Hit.parse(query, audio, search_metadata))
         if hit and successful:
-            has_audio_edge = Has.get_or_create_edge(hit, audio)
-            if has_audio_edge is None:
-                raise Exception("Could not create `has` edge from `hit` vertex to `audio` vertex")
+            try:
+                has_audio_edge = Has.get_or_create_edge(hit, audio)
+                if has_audio_edge is None:
+                    raise Exception("Could not create `has` edge from `hit` vertex to `audio` vertex")
+            except ValueError:
+                logger.error("ValueError: Could not create `has` edge from `hit` vertex to `audio` vertex")
 
             return hit
 
