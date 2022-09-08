@@ -5,7 +5,6 @@ from .download import Download, DownloadMethods
 from .dummy_vertex import DummyVertex, DummyVertexMethods
 from .file import File, FileMethods
 from .hit import Hit, HitMethods
-from .inline_query import InlineQuery, InlineQueryMethods
 from .keyword import Keyword, KeywordMethods
 from .playlist import Playlist, PlaylistMethods
 from .query import Query, QueryMethods
@@ -19,7 +18,6 @@ vertex_classes = [
     DummyVertex,
     File,
     Hit,
-    InlineQuery,
     Keyword,
     Playlist,
     Query,
@@ -35,7 +33,6 @@ class ArangoVertexMethods(
     DummyVertexMethods,
     FileMethods,
     HitMethods,
-    InlineQueryMethods,
     KeywordMethods,
     PlaylistMethods,
     QueryMethods,
