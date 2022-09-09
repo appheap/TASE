@@ -238,6 +238,7 @@ class AudioMethods:
         "   limit 1"
         "   return v"
     )
+    _get_audios_by_keys = "return document(@audios, @audio_keys)"
 
     def create_audio(
         self: ArangoGraphMethods,
@@ -481,3 +482,43 @@ class AudioMethods:
                     return Audio.from_collection(doc)
 
         return None
+
+    def get_audios_from_keys(
+        self,
+        keys: List[str],
+    ) -> Optional[List[Audio]]:
+        """
+        Get a list of Audios from a list of keys.
+
+        Parameters
+        ----------
+        keys : List[str]
+            List of keys to get the audios from.
+
+        Returns
+        -------
+        Audio, optional
+            List of Audios if operation was successful, otherwise, return None
+
+        """
+        if keys is None or not len(keys):
+            return None
+
+        cursor = Audio.execute_query(
+            self._get_audios_by_keys,
+            bind_vars={
+                "audios": Audio._collection_name,
+                "audio_keys": Has._collection_name,
+            },
+        )
+        if cursor is not None and len(cursor):
+            try:
+                audios_raw = cursor.pop()
+            except CursorEmptyError:
+                return None
+            except Exception as e:
+                logger.exception(e)
+                return None
+            else:
+                for doc in audios_raw:
+                    yield Audio.from_collection(doc)
