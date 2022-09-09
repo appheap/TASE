@@ -27,6 +27,19 @@ class Playlist(BaseVertex, BaseSoftDeletableDocument):
         self,
         title: str,
     ) -> bool:
+        """
+        Update playlist's title
+
+        Parameters
+        ----------
+        title : str
+            New title for the playlist
+
+        Returns
+        -------
+        bool
+            Whether the update was successful or not.
+        """
         if title is None:
             return False
 
@@ -38,6 +51,19 @@ class Playlist(BaseVertex, BaseSoftDeletableDocument):
         self,
         description: str,
     ) -> bool:
+        """
+        Update playlist's description
+
+        Parameters
+        ----------
+        description : str
+            New description for the playlist
+
+        Returns
+        -------
+        bool
+            Whether the update was successful or not.
+        """
         if description is None:
             return False
 
