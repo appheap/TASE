@@ -97,6 +97,7 @@ class PlaylistMethods:
 
     _get_user_playlists_query = (
         "for v,e in 1..1 outbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@has'],vertexCollections:['@playlists']}"
+        "   sort v.rank ASC, e.created_at DESC"
         "   limit @offset, @limit"
         "   return v"
     )
