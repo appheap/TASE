@@ -471,7 +471,7 @@ class AudioMethods:
             If the given `Hit` vertex has more than one linked `Audio` vertices.
         """
         if hit is None:
-            return None
+            return
 
         cursor = Audio.execute_query(
             self._get_audio_from_hit_query,
@@ -493,8 +493,6 @@ class AudioMethods:
                     logger.exception(e)
                 else:
                     return Audio.from_collection(doc)
-
-        return None
 
     def get_user_download_history(
         self,
@@ -521,7 +519,7 @@ class AudioMethods:
 
         """
         if user is None:
-            return None
+            return
 
         cursor = Audio.execute_query(
             self._get_user_download_history_query,
@@ -542,7 +540,7 @@ class AudioMethods:
     def get_audios_from_keys(
         self,
         keys: List[str],
-    ) -> Optional[List[Audio]]:
+    ) -> Generator[Audio, None, None]:
         """
         Get a list of Audios from a list of keys.
 
@@ -551,14 +549,14 @@ class AudioMethods:
         keys : List[str]
             List of keys to get the audios from.
 
-        Returns
-        -------
-        Audio, optional
+        Yields
+        ------
+        Audio
             List of Audios if operation was successful, otherwise, return None
 
         """
         if keys is None or not len(keys):
-            return None
+            return
 
         cursor = Audio.execute_query(
             self._get_audios_by_keys,
@@ -571,10 +569,9 @@ class AudioMethods:
             try:
                 audios_raw = cursor.pop()
             except CursorEmptyError:
-                return None
+                pass
             except Exception as e:
                 logger.exception(e)
-                return None
             else:
                 for doc in audios_raw:
                     yield Audio.from_collection(doc)
