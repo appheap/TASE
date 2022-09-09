@@ -17,7 +17,6 @@ from arango.cursor import Cursor
 from arango.result import Result
 from pydantic import BaseModel, Field, ValidationError
 
-from tase.db.arangodb.base import BaseSoftDeletableDocument
 from tase.my_logger import logger
 from tase.utils import get_now_timestamp, copy_attrs_from_new_document
 
@@ -403,6 +402,7 @@ class BaseCollectionDocument(BaseModel):
             return
 
         if filter_out_soft_deleted is not None:
+            from tase.db.arangodb.base import BaseSoftDeletableDocument
             if issubclass(cls, BaseSoftDeletableDocument):
                 filters.update(
                     {
@@ -500,6 +500,7 @@ class BaseCollectionDocument(BaseModel):
             `BaseSoftDeletableDocument`.
         """
         if soft_delete:
+            from tase.db.arangodb.base import BaseSoftDeletableDocument
             if issubclass(type(self), BaseSoftDeletableDocument):
                 self_copy = self.copy(deep=True)
                 self_copy.is_soft_deleted = True

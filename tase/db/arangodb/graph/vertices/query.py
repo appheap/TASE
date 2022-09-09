@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import collections
-from typing import Optional, Union, List, Tuple, Generator
+from typing import Optional, Union, List, Tuple, Generator, TYPE_CHECKING
 
 import pyrogram
 
@@ -9,8 +11,9 @@ from . import Audio, Hit
 from .base_vertex import BaseVertex
 from .chat import ChatType
 from .user import User
-from .. import ArangoGraphMethods
-from ..edges import HasMade, Has, ToBot
+
+if TYPE_CHECKING:
+    from .. import ArangoGraphMethods
 from ...enums import InlineQueryType, HitType
 from ...helpers import ElasticQueryMetadata, InlineQueryMetadata
 
@@ -48,7 +51,7 @@ class Query(BaseVertex):
         telegram_inline_query: pyrogram.types.InlineQuery,
         inline_query_type: InlineQueryType,
         next_offset: Optional[str],
-    ) -> Optional["Query"]:
+    ) -> Optional[Query]:
         if bot is None or user is None:
             return None
 
@@ -158,6 +161,9 @@ class QueryMethods:
         )
         if db_query and successful:
             # todo: get/create a keyword vertex from this query and link them together
+            from tase.db.arangodb.graph.edges import HasMade
+            from tase.db.arangodb.graph.edges import ToBot
+            from tase.db.arangodb.graph.edges import Has
 
             # link the user to this query
             try:
@@ -302,6 +308,8 @@ class QueryMethods:
         """
         if query is None:
             return
+
+        from tase.db.arangodb.graph.edges import Has
 
         cursor = Hit.execute_query(
             self._get_query_hits_query,

@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from enum import Enum
-from typing import Optional, List
+from typing import Optional, List, TYPE_CHECKING
 
 import pyrogram
 from pydantic import Field
@@ -7,7 +9,9 @@ from pydantic import Field
 from tase.my_logger import logger
 from tase.utils import prettify
 from .base_vertex import BaseVertex
-from .. import ArangoGraphMethods
+
+if TYPE_CHECKING:
+    from .. import ArangoGraphMethods
 from ...helpers import Restriction
 
 
@@ -63,7 +67,7 @@ class User(BaseVertex):
     def parse(
         cls,
         telegram_user: pyrogram.types.User,
-    ) -> Optional["User"]:
+    ) -> Optional[User]:
         if telegram_user is None:
             return None
 

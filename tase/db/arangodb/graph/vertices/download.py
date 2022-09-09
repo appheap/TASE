@@ -1,11 +1,14 @@
+from __future__ import annotations
+
 import uuid
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
 from tase.my_logger import logger
 from .base_vertex import BaseVertex
 from .user import User
-from .. import ArangoGraphMethods
-from ..edges import Has, FromHit, Downloaded, FromBot
+
+if TYPE_CHECKING:
+    from .. import ArangoGraphMethods
 
 
 class Download(BaseVertex):
@@ -16,7 +19,7 @@ class Download(BaseVertex):
     def parse(
         cls,
         key: str,
-    ) -> Optional["Download"]:
+    ) -> Optional[Download]:
         if key is None:
             return None
 
@@ -73,6 +76,11 @@ class DownloadMethods:
         download = Download.parse(key)
         if download is None:
             return None
+
+        from tase.db.arangodb.graph.edges import Has
+        from tase.db.arangodb.graph.edges import FromHit
+        from tase.db.arangodb.graph.edges import Downloaded
+        from tase.db.arangodb.graph.edges import FromBot
 
         try:
             has_edge = Has.get_or_create_edge(download, audio)

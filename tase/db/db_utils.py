@@ -2,7 +2,7 @@ from typing import Tuple, Union, Optional
 
 import pyrogram
 
-from tase.db.arangodb.helpers import TelegramAudioType
+from tase.db.arangodb.enums import TelegramAudioType
 
 
 def get_telegram_message_media_type(

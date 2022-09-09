@@ -1,7 +1,7 @@
 from typing import Optional, Union
 
-from . import Has
 from .base_edge import BaseEdge, EdgeEndsValidator
+from .has import Has
 from ..vertices import (
     Audio,
     Playlist,

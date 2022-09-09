@@ -1,12 +1,15 @@
-from typing import Optional
+from __future__ import annotations
+
+from typing import Optional, TYPE_CHECKING
 
 from tase.db.helpers import SearchMetaData
 from tase.my_logger import logger
 from tase.utils import generate_token_urlsafe
-from .audio import Audio
+
+if TYPE_CHECKING:
+    from .audio import Audio
+    from .query import Query
 from .base_vertex import BaseVertex
-from .query import Query
-from ..edges import Has
 from ...enums import HitType
 
 
@@ -40,7 +43,7 @@ class Hit(BaseVertex):
         audio: Audio,
         search_metadata: SearchMetaData,
         hit_type: HitType,
-    ) -> Optional["Hit"]:
+    ) -> Optional[Hit]:
         if query is None or audio is None or search_metadata is None or hit_type is None:
             return None
 
@@ -93,6 +96,8 @@ class HitMethods:
         hit, successful = Hit.insert(Hit.parse(query, audio, search_metadata, hit_type))
         if hit and successful:
             try:
+                from tase.db.arangodb.graph.edges import Has
+
                 has_audio_edge = Has.get_or_create_edge(hit, audio)
                 if has_audio_edge is None:
                     raise Exception("Could not create `has` edge from `hit` vertex to `audio` vertex")

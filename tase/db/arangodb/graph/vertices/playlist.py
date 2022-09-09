@@ -1,4 +1,6 @@
-from typing import Optional, Tuple, Generator
+from __future__ import annotations
+
+from typing import Optional, Tuple, Generator, TYPE_CHECKING
 
 from pydantic import Field
 
@@ -7,8 +9,9 @@ from tase.utils import generate_token_urlsafe, prettify
 from . import Audio
 from .base_vertex import BaseVertex
 from .user import User
-from .. import ArangoGraphMethods
-from ..edges import Has, Had
+
+if TYPE_CHECKING:
+    from .. import ArangoGraphMethods
 from ...base import BaseSoftDeletableDocument
 from ...enums import TelegramAudioType
 
@@ -135,6 +138,8 @@ class PlaylistMethods:
         if user is None or title is None:
             return None
 
+        from tase.db.arangodb.graph.edges import Has
+
         cursor = Playlist.execute_query(
             self._get_user_playlist_by_title_query,
             bind_vars={
@@ -176,6 +181,8 @@ class PlaylistMethods:
         if user is None or key is None:
             return None
 
+        from tase.db.arangodb.graph.edges import Has
+
         cursor = Playlist.execute_query(
             self._get_user_playlist_by_key_query,
             bind_vars={
@@ -211,6 +218,8 @@ class PlaylistMethods:
         """
         if user is None:
             return None
+
+        from tase.db.arangodb.graph.edges import Has
 
         cursor = Playlist.execute_query(
             self._get_user_favorite_playlist_query,
@@ -278,6 +287,8 @@ class PlaylistMethods:
 
         if playlist and successful:
             try:
+                from tase.db.arangodb.graph.edges import Has
+
                 has_edge = Has.get_or_create_edge(user, playlist)
             except ValueError:
                 # todo: could not create the has_edge, abort the transaction
@@ -419,6 +430,9 @@ class PlaylistMethods:
             raise KeyError(f"Playlist was not found with key : {playlist_key}")
 
         # check if the user owns the given playlist
+        from tase.db.arangodb.graph.edges import Has
+        from tase.db.arangodb.graph.edges import Had
+
         has_edge: Has = Has.get(Has.parse_key(user, playlist))
         if has_edge:
             try:
@@ -472,6 +486,8 @@ class PlaylistMethods:
         """
         if user is None:
             return None
+
+        from tase.db.arangodb.graph.edges import Has
 
         cursor = Playlist.execute_query(
             self._get_user_playlists_query,
@@ -541,6 +557,8 @@ class PlaylistMethods:
 
         playlist, audio = self._get_playlist_and_audio(user, hit_download_url, playlist_key)
 
+        from tase.db.arangodb.graph.edges import Has
+
         has_edge = Has.get(Has.parse_key(playlist, audio))
         if has_edge is not None:
             # Audio is already on the playlist
@@ -591,6 +609,9 @@ class PlaylistMethods:
             return False, False
 
         playlist, audio = self._get_playlist_and_audio(user, hit_download_url, playlist_key)
+
+        from tase.db.arangodb.graph.edges import Has
+        from tase.db.arangodb.graph.edges import Had
 
         has_edge = Has.get(Has.parse_key(playlist, audio))
         if has_edge is not None:
@@ -643,6 +664,8 @@ class PlaylistMethods:
         playlist = self.get_user_playlist_by_key(user, playlist_key, filter_out_soft_deleted=True)
         if playlist is None:
             raise Exception("User does not have any `Playlist` with the given `playlist_key`")
+
+        from tase.db.arangodb.graph.edges import Has
 
         cursor = Audio.execute_query(
             self._get_playlist_audios_query,

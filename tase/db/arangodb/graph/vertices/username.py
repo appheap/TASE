@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Optional, Generator
 
 from pydantic import Field
@@ -6,7 +8,6 @@ from tase.my_logger import logger
 from tase.utils import get_now_timestamp
 from . import Chat
 from .base_vertex import BaseVertex
-from ..edges import Mentions
 from ...enums import MentionSource
 
 
@@ -28,7 +29,7 @@ class Username(BaseVertex):
     def parse(
         cls,
         username: str,
-    ) -> Optional["Username"]:
+    ) -> Optional[Username]:
         if username is None:
             return None
 
@@ -159,6 +160,7 @@ class UsernameMethods:
 
         db_username, successful = Username.insert(Username.parse(username))
         if db_username and successful:
+            from tase.db.arangodb.graph.edges import Mentions
 
             if chat.username is not None:
                 if chat.username.lower() != username.lower():

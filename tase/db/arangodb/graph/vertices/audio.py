@@ -1,4 +1,6 @@
-from typing import Optional, List, Generator
+from __future__ import annotations
+
+from typing import Optional, List, Generator, TYPE_CHECKING
 
 import pyrogram
 from arango import CursorEmptyError
@@ -10,8 +12,9 @@ from .base_vertex import BaseVertex
 from .download import Download
 from .hit import Hit
 from .user import User
-from .. import ArangoGraphMethods
-from ..edges import SentBy, FileRef, ForwardedFrom, ViaBot, Has, Downloaded
+
+if TYPE_CHECKING:
+    from .. import ArangoGraphMethods
 from ...enums import TelegramAudioType
 
 
@@ -103,7 +106,7 @@ class Audio(BaseVertex):
     def parse(
         cls,
         telegram_message: pyrogram.types.Message,
-    ) -> Optional["Audio"]:
+    ) -> Optional[Audio]:
         """
         Parse an `Audio` from the given `telegram_message` argument.
 
@@ -289,6 +292,8 @@ class AudioMethods:
 
                 chat = self.get_or_create_chat(telegram_message.chat)
                 try:
+                    from tase.db.arangodb.graph.edges import SentBy
+
                     sent_by_edge = SentBy.get_or_create_edge(audio, chat)
                     if sent_by_edge is None:
                         raise Exception("Could not create `sent_by` edge")
@@ -298,6 +303,8 @@ class AudioMethods:
                 # since checking for audio file validation is done above, there is no need to it again.
                 file = self.get_or_create_file(telegram_message)
                 try:
+                    from tase.db.arangodb.graph.edges import FileRef
+
                     file_ref_edge = FileRef.get_or_create_edge(audio, file)
                     if file_ref_edge is None:
                         raise Exception("Could not create `file_ref` edge")
@@ -314,6 +321,8 @@ class AudioMethods:
 
                     if forwarded_from is not None:
                         try:
+                            from tase.db.arangodb.graph.edges import ForwardedFrom
+
                             forwarded_from_edge = ForwardedFrom.get_or_create_edge(audio, forwarded_from)
                             if forwarded_from_edge is None:
                                 raise Exception("Could not create `forwarded_from` edge")
@@ -325,6 +334,8 @@ class AudioMethods:
                 if audio.via_bot:
                     bot = self.get_or_create_user(telegram_message.via_bot)
                     try:
+                        from tase.db.arangodb.graph.edges import ViaBot
+
                         via_bot_edge = ViaBot.get_or_create_edge(audio, bot)
                         if via_bot_edge is None:
                             raise Exception("Could not create `via_bot` edge")
@@ -473,6 +484,8 @@ class AudioMethods:
         if hit is None:
             return
 
+        from tase.db.arangodb.graph.edges import Has
+
         cursor = Audio.execute_query(
             self._get_audio_from_hit_query,
             bind_vars={
@@ -521,6 +534,9 @@ class AudioMethods:
         if user is None:
             return
 
+        from tase.db.arangodb.graph.edges import Has
+        from tase.db.arangodb.graph.edges import Downloaded
+
         cursor = Audio.execute_query(
             self._get_user_download_history_query,
             bind_vars={
@@ -557,6 +573,8 @@ class AudioMethods:
         """
         if keys is None or not len(keys):
             return
+
+        from tase.db.arangodb.graph.edges import Has
 
         cursor = Audio.execute_query(
             self._get_audios_by_keys,

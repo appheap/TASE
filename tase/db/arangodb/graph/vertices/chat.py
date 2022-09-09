@@ -1,4 +1,6 @@
-from typing import Optional, List, Tuple
+from __future__ import annotations
+
+from typing import Optional, List, Tuple, TYPE_CHECKING
 
 import pyrogram
 from arango import CursorEmptyError
@@ -7,7 +9,9 @@ from pydantic import Field
 from tase.my_logger import logger
 from tase.utils import prettify
 from .base_vertex import BaseVertex
-from ..edges import LinkedChat
+
+if TYPE_CHECKING:
+    from ..edges import LinkedChat
 from ...enums import ChatType
 from ...helpers import Restriction, AudioIndexerMetadata, AudioDocIndexerMetadata, UsernameExtractorMetadata
 
@@ -62,7 +66,7 @@ class Chat(BaseVertex):
     def parse(
         cls,
         telegram_chat: pyrogram.types.Chat,
-    ) -> Optional["Chat"]:
+    ) -> Optional[Chat]:
         key = Chat.parse_key(telegram_chat)
         if key is None:
             return None
@@ -297,6 +301,8 @@ class ChatMethods:
                 linked_chat = self.get_or_create_chat(telegram_chat.linked_chat)
                 if linked_chat:
                     try:
+                        from tase.db.arangodb.graph.edges import LinkedChat
+
                         LinkedChat.get_or_create_edge(chat, linked_chat)
                     except ValueError as e:
                         pass
@@ -356,6 +362,8 @@ class ChatMethods:
         """
         if telegram_chat is None:
             return None
+
+        from tase.db.arangodb.graph.edges import LinkedChat
 
         chat = Chat.get(Chat.parse_key(telegram_chat))
         if chat is not None:
@@ -498,11 +506,11 @@ class ChatMethods:
         chat_type = ChatType.CHANNEL.value
 
         cursor = Chat.execute_query(
-                self._get_chats_sorted_by_audio_indexer_score,
-                bind_vars={
-                    "chats": Chat._collection_name,
-                    "chat_type": chat_type,
-                },
+            self._get_chats_sorted_by_audio_indexer_score,
+            bind_vars={
+                "chats": Chat._collection_name,
+                "chat_type": chat_type,
+            },
         )
         if cursor is not None and len(cursor):
             for doc in cursor:
@@ -521,11 +529,11 @@ class ChatMethods:
         chat_type = ChatType.CHANNEL.value
 
         cursor = Chat.execute_query(
-                self._get_chats_sorted_by_audio_doc_indexer_score,
-                bind_vars={
-                    "chats": Chat._collection_name,
-                    "chat_type": chat_type,
-                },
+            self._get_chats_sorted_by_audio_doc_indexer_score,
+            bind_vars={
+                "chats": Chat._collection_name,
+                "chat_type": chat_type,
+            },
         )
         if cursor is not None and len(cursor):
             for doc in cursor:
