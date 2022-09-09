@@ -239,10 +239,32 @@ class Chat(BaseVertex):
 
         return self.update(self_copy, reserve_non_updatable_fields=True)
 
+
 class ChatMethods:
     _get_chat_linked_chat_with_edge_query = (
         "for v,e in 1..1 outbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@linked_chat'],vertexCollections:['@chat']}"
         "   return {linked_chat:v, edge:e}"
+    )
+
+    _get_chats_sorted_by_username_extractor_score_query = (
+        "for chat in @chats"
+        "   filter chat.chat_type == @chat_type"
+        "   sort chat.username_extractor_metadata.score desc, chat.member_count desc"
+        "   return chat"
+    )
+
+    _get_chats_sorted_by_audio_indexer_score = (
+        "for chat in @chats"
+        "   filter chat.chat_type == @chat_type"
+        "   sort chat.audio_indexer_metadata.score desc, chat.member_count desc"
+        "   return chat"
+    )
+
+    _get_chats_sorted_by_audio_doc_indexer_score = (
+        "for chat in @chats"
+        "   filter chat.chat_type == @chat_type"
+        "   sort chat.audio_doc_indexer_metadata.score desc, chat.member_count desc"
+        "   return chat"
     )
 
     def _create_chat(
@@ -439,3 +461,72 @@ class ChatMethods:
                     return linked_chat, edge
 
         return None, None
+
+    def get_chats_sorted_by_username_extractor_score(self) -> List[Chat]:
+        """
+        Gets list of chats sorted by their username extractor importance score in a descending order
+
+        Yields
+        ------
+        Chat
+            List of Chat objects
+        """
+        # todo: only public channels can be indexed for now. add support for other types if necessary
+        chat_type = ChatType.CHANNEL.value
+
+        cursor = Chat.execute_query(
+            self._get_chats_sorted_by_username_extractor_score_query,
+            bind_vars={
+                "chats": Chat._collection_name,
+                "chat_type": chat_type,
+            },
+        )
+        if cursor is not None and len(cursor):
+            for doc in cursor:
+                yield Chat.from_collection(doc)
+
+    def get_chats_sorted_by_audio_indexer_score(self) -> List[Chat]:
+        """
+        Get list of chats sorted by their audio importance score in a descending order
+
+        Yields
+        ------
+        Chat
+            List of Chat objects
+        """
+        # todo: only public channels can be indexed for now. add support for other types if necessary
+        chat_type = ChatType.CHANNEL.value
+
+        cursor = Chat.execute_query(
+                self._get_chats_sorted_by_audio_indexer_score,
+                bind_vars={
+                    "chats": Chat._collection_name,
+                    "chat_type": chat_type,
+                },
+        )
+        if cursor is not None and len(cursor):
+            for doc in cursor:
+                yield Chat.from_collection(doc)
+
+    def get_chats_sorted_by_audio_doc_indexer_score(self) -> List[Chat]:
+        """
+        Gets list of chats sorted by their audio doc importance score in a descending order
+
+        Yields
+        ------
+        Chat
+            List of Chat objects
+        """
+        # todo: only public channels can be indexed for now. add support for other types if necessary
+        chat_type = ChatType.CHANNEL.value
+
+        cursor = Chat.execute_query(
+                self._get_chats_sorted_by_audio_doc_indexer_score,
+                bind_vars={
+                    "chats": Chat._collection_name,
+                    "chat_type": chat_type,
+                },
+        )
+        if cursor is not None and len(cursor):
+            for doc in cursor:
+                yield Chat.from_collection(doc)
