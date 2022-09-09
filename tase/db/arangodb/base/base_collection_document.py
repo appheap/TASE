@@ -791,9 +791,9 @@ class BaseCollectionDocument(BaseModel):
 
         Parameters
         ----------
-        args : list
+        args : tuple
             List of arguments
-        kwargs : dict
+        kwargs : dict, optional
             Dictionary of keyword arguments
 
         Returns
@@ -820,9 +820,9 @@ class BaseCollectionDocument(BaseModel):
 
         Parameters
         ----------
-        args : list
+        args : tuple
             List of arguments
-        kwargs : dict
+        kwargs : dict, optional
             List of keyword arguments
 
         Returns
