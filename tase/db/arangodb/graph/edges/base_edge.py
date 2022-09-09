@@ -276,9 +276,9 @@ class BaseEdge(BaseCollectionDocument):
             Start of the edge
         to_vertex : BaseVertex, optional
             End of the edge
-        args : tuple
+        args
             Arguments passed to the function
-        kwargs : dict, optional
+        kwargs
             Keywords passed to the function
 
         Returns
@@ -321,9 +321,9 @@ class BaseEdge(BaseCollectionDocument):
             Start of the edge
         to_vertex : BaseVertex
             End of the edge
-        args : tuple
+        args
             Arguments passed to the function
-        kwargs : dict, optional
+        kwargs
             Keywords passed to the function
 
         Returns
