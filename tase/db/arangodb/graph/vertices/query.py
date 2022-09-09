@@ -1,10 +1,11 @@
-from typing import Optional, Union, List
+import collections
+from typing import Optional, Union, List, Tuple, Generator
 
 import pyrogram
 
 from tase.db.helpers import SearchMetaData
 from tase.my_logger import logger
-from . import Audio
+from . import Audio, Hit
 from .base_vertex import BaseVertex
 from .chat import ChatType
 from .user import User
@@ -80,6 +81,11 @@ class Query(BaseVertex):
 
 
 class QueryMethods:
+    _get_query_hits_query = (
+        "for v,e in 1..1 outbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@has'], vertexCollections:['@hits']}"
+        "   return v"
+    )
+
     def create_query(
         self: ArangoGraphMethods,
         bot_id: int,
@@ -93,7 +99,7 @@ class QueryMethods:
         telegram_inline_query: Optional[pyrogram.types.InlineQuery],
         inline_query_type: Optional[InlineQueryType],
         next_offset: Optional[str],
-    ) -> Optional[Query]:
+    ) -> Tuple[Optional[Query], Optional[List[Hit]]]:
         """
         Create a Query along with necessary vertices and edges.
 
@@ -123,8 +129,8 @@ class QueryMethods:
 
         Returns
         -------
-        Query, optional
-            Query object if the creation in the DB was successful, otherwise, return None
+        tuple of query and array of hits
+            Query object and list of hits if the creation in the DB was successful, otherwise, return None
 
         Raises
         ------
@@ -132,11 +138,11 @@ class QueryMethods:
             If creation of any connected edges and vertices has not been successful.
         """
         if bot_id is None or user is None or query is None or query_date is None:
-            return None
+            return None, None
 
         bot = self.get_user_by_telegram_id(bot_id)
         if bot is None:
-            return None
+            return None, None
 
         db_query, successful = Query.insert(
             Query.parse(
@@ -180,6 +186,7 @@ class QueryMethods:
             else:
                 hit_type = HitType.SEARCH
 
+            hits = collections.deque()
             for audio, search_metadata in zip(audios, search_metadata_list):
                 if audio is None or search_metadata is None:
                     # todo: what now?
@@ -189,6 +196,8 @@ class QueryMethods:
                 if hit is None:
                     raise Exception("Could not create `hit` vertex")
 
+                hits.append(hit)
+
                 try:
                     has_hit_edge = Has.get_or_create_edge(db_query, hit)
                     if has_hit_edge is None:
@@ -196,9 +205,9 @@ class QueryMethods:
                 except ValueError:
                     logger.error("ValueError: Could not create `has` edge from `query` vertex to `hit` vertex")
 
-            return db_query
+            return db_query, list(hits)
 
-        return None
+        return None, None
 
     def get_or_create_query(
         self,
@@ -213,7 +222,7 @@ class QueryMethods:
         telegram_inline_query: Optional[pyrogram.types.InlineQuery],
         inline_query_type: Optional[InlineQueryType],
         next_offset: Optional[str],
-    ) -> Optional[Query]:
+    ) -> Tuple[Optional[Query], Optional[List[Hit]]]:
         """
         Get Query if it exists in the database, otherwise, create a Query along with necessary vertices and
         edges.
@@ -244,8 +253,9 @@ class QueryMethods:
 
         Returns
         -------
-        Query, optional
-            Query object if the operation in the DB was successful, otherwise, return None
+        tuple of query and list of hits
+        Tuple[Optional[Query], Optional[List[Hit]]
+            Query object and list of hits if the operation in the DB was successful, otherwise, return None
 
         Raises
         ------
@@ -253,11 +263,11 @@ class QueryMethods:
             If creation of any connected edges and vertices has not been successful.
         """
         if bot_id is None or user is None or query is None or query_date is None:
-            return None
+            return None, None
 
         db_query = Query.get(Query.parse_key(bot_id, user, query_date))
         if db_query is None:
-            db_query = self.create_query(
+            db_query, hits = self.create_query(
                 bot_id,
                 user,
                 query,
@@ -269,5 +279,38 @@ class QueryMethods:
                 inline_query_type,
                 next_offset,
             )
+            return db_query, hits
+        else:
+            return db_query, list(self.get_query_hits(db_query))
 
-        return db_query
+    def get_query_hits(
+        self,
+        query: Query,
+    ) -> Generator[Hit, None, None]:
+        """
+        Get an `Audio` vertex from the given `Hit` vertex
+
+        Parameters
+        ----------
+        query : Query
+            Query to get the hits from.
+
+        Yields
+        ------
+        Hit
+            List of hits if operation was successful, otherwise, return None
+        """
+        if query is None:
+            return
+
+        cursor = Hit.execute_query(
+            self._get_query_hits_query,
+            bind_vars={
+                "start_vertex": query.id,
+                "queries": Query._collection_name,
+                "has": Has._collection_name,
+            },
+        )
+        if cursor is not None and len(cursor):
+            for doc in cursor:
+                yield Hit.from_collection(doc)
