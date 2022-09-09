@@ -10,7 +10,7 @@ from .chat import ChatType
 from .user import User
 from .. import ArangoGraphMethods
 from ..edges import HasMade, Has, ToBot
-from ...enums import InlineQueryType
+from ...enums import InlineQueryType, HitType
 from ...helpers import ElasticQueryMetadata, InlineQueryMetadata
 
 
@@ -168,12 +168,24 @@ class QueryMethods:
             except ValueError:
                 logger.error("ValueError: Could not create the `to_bot` edge")
 
+            hit_type = HitType.UNKNOWN
+            if inline_query_type is not None and telegram_inline_query is not None:
+                if inline_query_type == InlineQueryType.SEARCH:
+                    hit_type = HitType.INLINE_SEARCH
+                elif inline_query_type == InlineQueryType.COMMAND:
+                    hit_type = HitType.INLINE_COMMAND
+                else:
+                    # unexpected hit_type
+                    hit_type = HitType.UNKNOWN
+            else:
+                hit_type = HitType.SEARCH
+
             for audio, search_metadata in zip(audios, search_metadata_list):
                 if audio is None or search_metadata is None:
                     # todo: what now?
                     continue
 
-                hit = self.get_or_create_hit(db_query, audio, search_metadata)
+                hit = self.get_or_create_hit(db_query, audio, search_metadata, hit_type)
                 if hit is None:
                     raise Exception("Could not create `hit` vertex")
 
