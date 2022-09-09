@@ -578,7 +578,7 @@ class PlaylistMethods:
         ------
         Exception
             If the user does not have a playlist with the given playlist_key, or no hit exists with the given
-            hit_download_url, or audio is not valid for inline mode ,or the hit does not have any audio linked to it.
+            hit_download_url, or audio is not valid for inline mode ,or the hit does not have any audio linked to it, or could not delete the `has` edge.
 
         """
         if user is None or playlist_key is None or hit_download_url is None:
