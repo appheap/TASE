@@ -102,6 +102,13 @@ class PlaylistMethods:
         "   return v"
     )
 
+    _get_playlist_audios_query = (
+        "for audio_v,e in 1..1 outbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@has'], vertexCollections:['@audios']}"
+        "   sort e.created_at DESC"
+        "   limit @offset, @limit"
+        "   return audio_v"
+    )
+
     def get_user_playlist_by_title(
         self,
         user: User,
@@ -604,3 +611,53 @@ class PlaylistMethods:
         else:
             # Audio does not belong to the playlist
             return True, False
+
+    def get_playlist_audios(
+        self: ArangoGraphMethods,
+        user: User,
+        playlist_key: str,
+        offset: int = 0,
+        limit: int = 10,
+    ) -> Generator[Audio, None, None]:
+        """
+        Get `Playlist` audios.
+
+        Parameters
+        ----------
+        user : User
+            User to get the playlist audios from
+        playlist_key : str
+            Playlist key to get the audios from
+        offset : int, default : 0
+            Offset to get the audios query after
+        limit : int, default : 10
+            Number of `Audio`s to query
+
+        Returns
+        -------
+        Generator[Audio, None, None]
+            Audios that belong to the given playlist
+
+        """
+        if user is None:
+            return None
+
+        playlist = self.get_user_playlist_by_key(user, playlist_key, filter_out_soft_deleted=True)
+        if playlist is None:
+            raise Exception("User does not have any `Playlist` with the given `playlist_key`")
+
+        cursor = Audio.execute_query(
+            self._get_playlist_audios_query,
+            bind_vars={
+                "start_vertex": playlist.id,
+                "has": Has._collection_name,
+                "audios": Audio._collection_name,
+                "offset": offset,
+                "limit": limit,
+            },
+        )
+        if cursor is not None and len(cursor):
+            for doc in cursor:
+                yield Audio.from_collection(doc)
+
+        return None

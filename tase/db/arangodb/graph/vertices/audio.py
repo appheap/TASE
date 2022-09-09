@@ -1,4 +1,4 @@
-from typing import Optional, List, Generator
+from typing import Optional, List
 
 import pyrogram
 from arango import CursorEmptyError
@@ -6,10 +6,10 @@ from arango import CursorEmptyError
 from tase.db.db_utils import get_telegram_message_media_type
 from tase.my_logger import logger
 from tase.utils import datetime_to_timestamp, generate_token_urlsafe, get_now_timestamp
-from . import Hit, User, Download
+from . import Hit
 from .base_vertex import BaseVertex
 from .. import ArangoGraphMethods
-from ..edges import SentBy, FileRef, ForwardedFrom, ViaBot, Has, Downloaded
+from ..edges import SentBy, FileRef, ForwardedFrom, ViaBot, Has
 from ...enums import TelegramAudioType
 
 
@@ -237,15 +237,6 @@ class AudioMethods:
         "for v,e in 1..1 outbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@has'], vertexCollections:['@audios']}"
         "   limit 1"
         "   return v"
-    )
-    _get_user_download_history_query = (
-        "for dl_v,dl_e in 1..1 outbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@downloaded'], vertexCollections:['@downloads']}"
-        "   sort dl_e.created_at DESC"
-        "   limit @offset, @limit"
-        "   for aud_v,has in 1..1 outbound dl_v graph '@graph_name' options {order:'dfs', edgeCollections:['@has'], vertexCollections:['@audios']}"
-        "       collect audios = aud_v"
-        "       for audio in audios"
-        "           return audio"
     )
 
     def create_audio(
@@ -488,50 +479,5 @@ class AudioMethods:
                     logger.exception(e)
                 else:
                     return Audio.from_collection(doc)
-
-        return None
-
-    def get_user_download_history(
-        self,
-        user: User,
-        offset: int = 0,
-        limit: int = 10,
-    ) -> Generator[Audio, None, None]:
-        """
-        Get `User` download history.
-
-        Parameters
-        ----------
-        user : User
-            User to get the download history
-        offset : int, default : 0
-            Offset to get the download history query after
-        limit : int, default : 10
-            Number of `Audio`s to query
-
-        Returns
-        -------
-        Generator[Audio, None, None]
-            Audios that the given user has downloaded
-
-        """
-        if user is None:
-            return None
-
-        cursor = Audio.execute_query(
-            self._get_user_download_history_query,
-            bind_vars={
-                "start_vertex": user.id,
-                "has": Has._collection_name,
-                "audios": Audio._collection_name,
-                "downloaded": Downloaded._collection_name,
-                "downloads": Download._collection_name,
-                "offset": offset,
-                "limit": limit,
-            },
-        )
-        if cursor is not None and len(cursor):
-            for doc in cursor:
-                yield Audio.from_collection(doc)
 
         return None
