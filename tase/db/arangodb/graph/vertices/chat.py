@@ -129,6 +129,115 @@ class Chat(BaseVertex):
 
         return is_public
 
+    def update_username_extractor_metadata(
+        self,
+        metadata: UsernameExtractorMetadata,
+        run_depth: int = 1,
+    ) -> bool:
+        """
+        Update username extractor metadata of the chat after being indexed
+
+        Parameters
+        ----------
+        metadata : UsernameExtractorMetadata
+            Updated metadata
+        run_depth : int
+            Depth of running the function. stop and return False after 10 runs.
+
+        Returns
+        -------
+        bool
+            Whether the update was successful or not
+        """
+        if metadata is None or run_depth > 10:
+            return False
+
+        self_copy = self.copy(deep=True)
+        updated_metadata = self_copy.username_extractor_metadata.update_metadata(metadata)
+        updated_metadata.update_score()
+
+        updated = self.update(self_copy, reserve_non_updatable_fields=True)
+
+        if not updated:
+            chat = Chat.get(self.key)
+            return chat.update_username_extractor_metadata(metadata, run_depth + 1)
+
+        return True
+
+    def update_audio_indexer_score(
+        self,
+        score: float,
+    ) -> bool:
+        """
+        Updates audio indexer score of the chat
+
+        Parameters
+        ----------
+        score : float
+            New score
+
+        Returns
+        -------
+        bool
+            Whether the update was successful or not
+        """
+        if score is None:
+            return False
+
+        self_copy = self.copy(deep=True)
+        self_copy.audio_indexer_metadata.score = score
+
+        return self.update(self_copy, reserve_non_updatable_fields=True)
+
+    def update_audio_doc_indexer_score(
+        self,
+        score: float,
+    ) -> bool:
+        """
+        Updates audio doc indexer score of the chat
+
+        Parameters
+        ----------
+        score : float
+            New score
+
+        Returns
+        -------
+        bool
+            Whether the update was successful or not
+        """
+        if score is None:
+            return False
+
+        self_copy = self.copy(deep=True)
+        self_copy.audio_doc_indexer_metadata.score = score
+
+        return self.update(self_copy, reserve_non_updatable_fields=True)
+
+    def update_username_extractor_score(
+        self,
+        score: float,
+    ) -> bool:
+        """
+        Updates username extractor score of the chat
+
+        Parameters
+        ----------
+        score : float
+            New score
+
+        Returns
+        -------
+        bool
+            Whether the update was successful or not
+        """
+        if score is None:
+            return False
+
+        self_copy = self.copy(deep=True)
+        self_copy.username_extractor_metadata.score = score
+
+        return self.update(self_copy, reserve_non_updatable_fields=True)
 
 class ChatMethods:
     _get_chat_linked_chat_with_edge_query = (
@@ -253,7 +362,7 @@ class ChatMethods:
                                     LinkedChat.get_or_create_edge(chat, linked_chat)
                                 except ValueError:
                                     logger.error(
-                                        f"Could not create `linked_chat` edge:" f" {prettify(telegram_chat.linked_chat)}"
+                                        f"Could not create `linked_chat` edge: {prettify(telegram_chat.linked_chat)}"
                                     )
                         else:
                             # chat did not have any linked chat before, create it

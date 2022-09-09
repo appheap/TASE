@@ -2,7 +2,7 @@ from typing import Optional, Union
 
 from .base_edge import BaseEdge, EdgeEndsValidator
 from ..vertices import Chat, Username
-from ...enums import MentionSource
+from ...enums import MentionSource, ChatType
 
 
 class Mentions(BaseEdge):
@@ -96,7 +96,7 @@ class Mentions(BaseEdge):
     def check(
         self,
         is_checked: bool,
-        checked_at: int,
+        checked_at: Optional[int],
     ) -> bool:
         self_copy = self.copy(deep=True)
         self_copy.is_checked = is_checked
@@ -106,4 +106,148 @@ class Mentions(BaseEdge):
 
 
 class MentionsMethods:
-    pass
+    _create_and_check_mentions_edges_query = (
+        "for v,e in 1..1 inbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@mentions'], vertexCollections:['@chats']}"
+        "   filter e.is_checked == false"
+        "   sort e.created_at ASC"
+        "   update e with {"
+        "       is_checked:true, checked_at:@checked_at"
+        "   } in mentions options {mergeObjects: true}"
+        "   return {chat:v, mention_:NEW}"
+    )
+
+    _update_mentions_edges_from_chat_to_username = (
+        "for v,e in 1..1 inbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@mentions'], vertexCollections:['@chats']}"
+        "   filter e.is_checked != @is_checked"
+        "   sort e.created_at ASC"
+        "   update e with {"
+        "       is_checked:@is_checked, checked_at:@checked_at"
+        "   } in mentions options {mergeObjects: true}"
+        "   return NEW"
+    )
+
+    def create_and_check_mentions_edges_after_username_check(
+        self,
+        mentioned_chat: Chat,
+        username: Username,
+    ) -> None:
+        """
+        Update mentions edges based on the data provided from `username` parameter and create new edges from
+        `Username` to `Chat` and from `Chat` to mentioned `Chat`.
+
+        Parameters
+        ----------
+        mentioned_chat: Chat
+            Mentioned chat
+        username : Username
+            Username object to get data from for this update
+
+        """
+        cursor = Mentions.execute_query(
+            self._create_and_check_mentions_edges_query,
+            bind_vars={
+                "start_vertex": username.id,
+                "chats": Chat._collection_name,
+                "mentions": Mentions._collection_name,
+                "checked_at": username.checked_at,
+            },
+        )
+        if cursor is not None and len(cursor):
+            for doc_dict in cursor:
+                mentions_edge: Mentions = Mentions.from_collection(doc_dict["mention_"])
+                source_chat: Chat = Chat.from_collection(doc_dict["chat"])
+
+                if mentions_edge and source_chat:
+                    if (
+                        source_chat.username is None
+                        or mentioned_chat.username is None
+                        or mentioned_chat.username == source_chat.username
+                    ):
+                        # create the edge from `Username` vertex to mentioned `Chat` vertex
+                        Mentions.get_or_create_edge(
+                            username,
+                            mentioned_chat,
+                            mentions_edge.from_message_id,
+                            mentions_edge.is_direct_mention,
+                            mentions_edge.mention_source,
+                            mentions_edge.mention_start_index,
+                            mentions_edge.mentioned_at,
+                        )
+
+                        # create the edge from `Chat` vertex to mentioned `Chat` vertex
+                        Mentions.get_or_create_edge(
+                            source_chat,
+                            mentioned_chat,
+                            mentions_edge.from_message_id,
+                            mentions_edge.is_direct_mention,
+                            mentions_edge.mention_source,
+                            mentions_edge.mention_start_index,
+                            mentions_edge.mentioned_at,
+                        )
+
+                        metadata = source_chat.username_extractor_metadata.copy()
+                        metadata.reset_counters()
+
+                        if mentions_edge.is_direct_mention:
+                            metadata.direct_valid_mention_count += 1
+
+                            if mentioned_chat.chat_type == ChatType.BOT:
+                                metadata.direct_valid_bot_mention_count += 1
+                            elif mentioned_chat.chat_type == ChatType.PRIVATE:
+                                metadata.direct_valid_user_mention_count += 1
+                            elif mentioned_chat.chat_type == ChatType.SUPERGROUP:
+                                metadata.direct_valid_supergroup_mention_count += 1
+                            elif mentioned_chat.chat_type == ChatType.CHANNEL:
+                                metadata.direct_valid_channel_mention_count += 1
+
+                        else:
+                            metadata.indirect_valid_mention_count += 1
+
+                            if mentioned_chat.chat_type == ChatType.BOT:
+                                metadata.indirect_valid_bot_mention_count += 1
+                            elif mentioned_chat.chat_type == ChatType.PRIVATE:
+                                metadata.indirect_valid_user_mention_count += 1
+                            elif mentioned_chat.chat_type == ChatType.SUPERGROUP:
+                                metadata.indirect_valid_supergroup_mention_count += 1
+                            elif mentioned_chat.chat_type == ChatType.CHANNEL:
+                                metadata.indirect_valid_channel_mention_count += 1
+
+                        successful = source_chat.update_username_extractor_metadata(metadata)
+                        if not successful:
+                            # todo: the update wasn't successful, uncheck the edge so it could be updated later
+                            mentions_edge.check(False, None)
+
+    def update_mentions_edges_from_chat_to_username(
+        self,
+        username: Username,
+    ) -> bool:
+        """
+        Update mentions edges based on the data provided from `username` parameter
+
+        Parameters
+        ----------
+        username : Username
+            Username object to get data from for this update
+        Returns
+        -------
+        bool
+            Whether the update was successful or not
+
+        """
+        if username is None or not isinstance(username, Username):
+            return False
+
+        cursor = Mentions.execute_query(
+            self._update_mentions_edges_from_chat_to_username,
+            bind_vars={
+                "start_vertex": username.id,
+                "chats": Chat._collection_name,
+                "mentions": Mentions._collection_name,
+                "is_checked": username.is_checked,
+                "checked_at": username.checked_at,
+            },
+        )
+        if cursor is not None and len(cursor):
+            return True
+        else:
+            return False
