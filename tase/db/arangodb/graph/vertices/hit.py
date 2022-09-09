@@ -7,11 +7,14 @@ from .audio import Audio
 from .base_vertex import BaseVertex
 from .query import Query
 from ..edges import Has
+from ...enums import HitType
 
 
 class Hit(BaseVertex):
     _collection_name = "hits"
     schema_version = 1
+
+    hit_type: HitType
 
     rank: int
     score: float
@@ -36,13 +39,15 @@ class Hit(BaseVertex):
         query: Query,
         audio: Audio,
         search_metadata: SearchMetaData,
+        hit_type: HitType,
     ) -> Optional["Hit"]:
-        if query is None or audio is None:
+        if query is None or audio is None or search_metadata is None or hit_type is None:
             return None
 
         key = Hit.parse_key(query, audio)
         return Hit(
             key=key,
+            hit_type=hit_type,
             rank=search_metadata.rank,
             score=search_metadata.score,
             query_date=query.query_date,
@@ -56,6 +61,7 @@ class HitMethods:
         query: Query,
         audio: Audio,
         search_metadata: SearchMetaData,
+        hit_type: HitType,
     ) -> Optional[Hit]:
         """
         Create Hit vertex in the ArangoDB.
@@ -68,6 +74,8 @@ class HitMethods:
             Audio this Hit has hit
         search_metadata : SearchMetaData
             Search metadata related to the given Audio returned from ElasticSearch
+        hit_type: HitType
+            Type of `Hit` vertex
 
         Returns
         -------
@@ -79,10 +87,10 @@ class HitMethods:
         Exception
             If could not create the `has` edge from `Hit` vertex to `Audio` vertex
         """
-        if query is None or audio is None or search_metadata is None:
+        if query is None or audio is None or search_metadata is None or hit_type is None:
             return None
 
-        hit, successful = Hit.insert(Hit.parse(query, audio, search_metadata))
+        hit, successful = Hit.insert(Hit.parse(query, audio, search_metadata, hit_type))
         if hit and successful:
             try:
                 has_audio_edge = Has.get_or_create_edge(hit, audio)
@@ -100,6 +108,7 @@ class HitMethods:
         query: Query,
         audio: Audio,
         search_metadata: SearchMetaData,
+        hit_type: HitType,
     ) -> Optional[Hit]:
         """
         Get Hit if it exists in the ArangoDB, otherwise, create it.
@@ -112,6 +121,8 @@ class HitMethods:
             Audio this Hit has hit
         search_metadata : SearchMetaData
             Search metadata related to the given Audio returned from ElasticSearch
+        hit_type: HitType
+            Type of `Hit` vertex
 
         Returns
         -------
@@ -128,7 +139,7 @@ class HitMethods:
 
         hit = Hit.get(Hit.parse_key(query, audio))
         if hit is None:
-            hit = self.create_hit(query, audio, search_metadata)
+            hit = self.create_hit(query, audio, search_metadata, hit_type)
 
         return hit
 
