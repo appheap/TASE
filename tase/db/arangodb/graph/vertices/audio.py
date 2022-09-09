@@ -1,13 +1,15 @@
 from typing import Optional, List
 
 import pyrogram
+from arango import CursorEmptyError
 
 from tase.db.db_utils import get_telegram_message_media_type
 from tase.my_logger import logger
 from tase.utils import datetime_to_timestamp, generate_token_urlsafe, get_now_timestamp
+from . import Hit
 from .base_vertex import BaseVertex
 from .. import ArangoGraphMethods
-from ..edges import SentBy, FileRef, ForwardedFrom, ViaBot
+from ..edges import SentBy, FileRef, ForwardedFrom, ViaBot, Has
 from ...helpers import TelegramAudioType
 
 
@@ -231,6 +233,12 @@ class Audio(BaseVertex):
 
 
 class AudioMethods:
+    _get_audio_from_hit_query = (
+        "for v,e in 1..1 outbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@has'], vertexCollections:['@audios']}"
+        "   limit 1"
+        "   return v"
+    )
+
     def create_audio(
         self: ArangoGraphMethods,
         telegram_message: pyrogram.types.Message,
@@ -425,3 +433,51 @@ class AudioMethods:
             return None
 
         return Audio.find_one({"download_url": download_url})
+
+    def get_audio_from_hit(
+        self,
+        hit: Hit,
+    ) -> Optional[Audio]:
+        """
+        Get an `Audio` vertex from the given `Hit` vertex
+
+        Parameters
+        ----------
+        hit : Hit
+            Hit to get the audio from.
+
+        Returns
+        -------
+        Audio, optional
+            Audio if operation was successful, otherwise, return None
+
+        Raises
+        ------
+        ValueError
+            If the given `Hit` vertex has more than one linked `Audio` vertices.
+        """
+        if hit is None:
+            return None
+
+        cursor = Audio.execute_query(
+            self._get_audio_from_hit_query,
+            bind_vars={
+                "start_vertex": hit.id,
+                "audios": Audio._collection_name,
+                "has": Has._collection_name,
+            },
+        )
+        if cursor is not None and len(cursor):
+            if len(cursor) > 1:
+                raise ValueError(f"Hit with id `{hit.id}` have more than one linked audios.")
+            else:
+                try:
+                    doc = cursor.pop()
+                except CursorEmptyError:
+                    pass
+                except Exception as e:
+                    logger.exception(e)
+                else:
+                    return Audio.from_collection(doc)
+
+        return None

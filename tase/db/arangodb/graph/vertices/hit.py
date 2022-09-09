@@ -132,10 +132,24 @@ class HitMethods:
 
         return hit
 
-    def find_by_download_url(
+    def find_hit_by_download_url(
         self,
         download_url: str,
     ) -> Optional["Hit"]:
+        """
+        Get `Hit` by its `download_url`.
+
+        Parameters
+        ----------
+        download_url : str
+            Download URL of the `Hit` vertex
+
+        Returns
+        -------
+        Hit, optional
+            Hit vertex if found in the ArangoDB, otherwise, return None
+
+        """
         if download_url is None:
             return None
 
