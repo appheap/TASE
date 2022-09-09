@@ -1,4 +1,4 @@
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Generator
 
 from pydantic import Field
 
@@ -444,7 +444,7 @@ class PlaylistMethods:
         user: User,
         offset: int = 0,
         limit: int = 10,
-    ):
+    ) -> Generator[Playlist, None, None]:
         """
         Get `User` playlists.
 
