@@ -59,6 +59,12 @@ class PlaylistMethods:
         "   return v"
     )
 
+    _get_user_playlists_query = (
+        "for v,e in 1..1 outbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@has'],vertexCollections:['@playlists']}"
+        "   limit @offset, @limit"
+        "   return v"
+    )
+
     def get_user_playlist_by_title(
         self,
         user: User,
@@ -354,3 +360,46 @@ class PlaylistMethods:
             pass
 
         return False
+
+    def get_user_playlists(
+        self,
+        user: User,
+        offset: int = 0,
+        limit: int = 10,
+    ):
+        """
+        Get `User` playlists.
+
+        Parameters
+        ----------
+        user : User
+            User to get playlist list for
+        offset : int, default : 0
+            Offset to get the playlists query after
+        limit : int, default : 10
+            Number of `Playlists`s to query
+
+        Returns
+        -------
+        typing.Generator[Audio, None, None]
+            Playlists that the given user has
+
+        """
+        if user is None:
+            return None
+
+        cursor = Playlist.execute_query(
+            self._get_user_playlists_query,
+            bind_vars={
+                "start_vertex": user.id,
+                "has": Has._collection_name,
+                "playlists": Playlist._collection_name,
+                "offset": offset,
+                "limit": limit,
+            },
+        )
+        if cursor is not None and len(cursor):
+            for doc in cursor:
+                yield Playlist.from_collection(doc)
+
+        return None
