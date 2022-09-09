@@ -112,17 +112,17 @@ class MentionsMethods:
         "   sort e.created_at ASC"
         "   update e with {"
         "       is_checked:true, checked_at:@checked_at"
-        "   } in mentions options {mergeObjects: true}"
+        "   } in @mentions options {mergeObjects: true}"
         "   return {chat:v, mention_:NEW}"
     )
 
-    _update_mentions_edges_from_chat_to_username = (
+    _update_mentions_edges_from_chat_to_username_query = (
         "for v,e in 1..1 inbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@mentions'], vertexCollections:['@chats']}"
         "   filter e.is_checked != @is_checked"
         "   sort e.created_at ASC"
         "   update e with {"
         "       is_checked:@is_checked, checked_at:@checked_at"
-        "   } in mentions options {mergeObjects: true}"
+        "   } in @mentions options {mergeObjects: true}"
         "   return NEW"
     )
 
@@ -238,7 +238,7 @@ class MentionsMethods:
             return False
 
         cursor = Mentions.execute_query(
-            self._update_mentions_edges_from_chat_to_username,
+            self._update_mentions_edges_from_chat_to_username_query,
             bind_vars={
                 "start_vertex": username.id,
                 "chats": Chat._collection_name,
