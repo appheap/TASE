@@ -69,14 +69,14 @@ class Had(BaseEdge):
             Start of the edge
         to_vertex : Union[User, Playlist]
             End of the edge
-        args : Any
+        args : tuple
             Arguments provided to this function
-        kwargs : Dict[str, Any]
+        kwargs : dict, optional
             Keyword arguments provided to this function.
 
         Returns
         -------
-        Optional[Had]
+        Had, optional
             Had edge object if given arguments are valid, otherwise return `None`
 
         Raises
