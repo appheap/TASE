@@ -1,8 +1,9 @@
-from typing import Optional
+from typing import Optional, Generator
 
 from pydantic import Field
 
 from tase.my_logger import logger
+from tase.utils import get_now_timestamp
 from . import Chat
 from .base_vertex import BaseVertex
 from ..edges import Mentions
@@ -78,6 +79,13 @@ class Username(BaseVertex):
 
 
 class UsernameMethods:
+    _get_unchecked_usernames_query = (
+        "for username in @usernames"
+        "   filter username.is_checked == false and username.created_at < @now"
+        "   sort username.created_at desc"
+        "   return username"
+    )
+
     def get_username(
         self,
         username: str,
@@ -245,3 +253,26 @@ class UsernameMethods:
             )
 
         return db_username
+
+    def get_unchecked_usernames(self) -> Generator[Username, None, None]:
+        """
+        Get list of Usernames that have not been checked yet, sorted by their creation date in a ascending order
+
+        Yields
+        -------
+        Username
+            List of Username objects that have not been checked yet
+        """
+        now = get_now_timestamp() - 60
+
+        cursor = Username.execute_query(
+            self._get_unchecked_usernames_query,
+            bind_vars={
+                "usernames": Username._collection_name,
+                "now": now,
+            },
+        )
+
+        if cursor is not None and len(cursor):
+            for doc in cursor:
+                yield Username.from_collection(doc)
