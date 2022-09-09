@@ -1,5 +1,4 @@
-import typing
-from typing import Optional, List
+from typing import Optional, List, Generator
 
 import pyrogram
 from arango import CursorEmptyError
@@ -497,7 +496,7 @@ class AudioMethods:
         user: User,
         offset: int = 0,
         limit: int = 10,
-    ) -> typing.Generator[Audio, None, None]:
+    ) -> Generator[Audio, None, None]:
         """
         Get `User` download history.
 
@@ -512,7 +511,7 @@ class AudioMethods:
 
         Returns
         -------
-        typing.Generator[Audio, None, None]
+        Generator[Audio, None, None]
             Audios that the given user has downloaded
 
         """

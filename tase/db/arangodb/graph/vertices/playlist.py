@@ -459,7 +459,7 @@ class PlaylistMethods:
 
         Returns
         -------
-        typing.Generator[Audio, None, None]
+        Generator[Audio, None, None]
             Playlists that the given user has
 
         """
