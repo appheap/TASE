@@ -11,7 +11,7 @@ from . import Hit, User, Download
 from .base_vertex import BaseVertex
 from .. import ArangoGraphMethods
 from ..edges import SentBy, FileRef, ForwardedFrom, ViaBot, Has, Downloaded
-from ...helpers import TelegramAudioType
+from ...enums import TelegramAudioType
 
 
 class Audio(BaseVertex):

@@ -9,6 +9,7 @@ from .user import User
 from .. import ArangoGraphMethods
 from ..edges import Has, Had
 from ...base import BaseSoftDeletableDocument
+from ...enums import TelegramAudioType
 
 
 class Playlist(BaseVertex, BaseSoftDeletableDocument):
@@ -480,7 +481,7 @@ class PlaylistMethods:
         ------
         Exception
             If the user does not have a playlist with the given playlist_key, or no hit exists with the given
-            hit_download_url, or the hit does not have any audio linked to it.
+            hit_download_url, or audio is not valid for inline mode ,or the hit does not have any audio linked to it.
 
         """
         if user is None or playlist_key is None or hit_download_url is None:
@@ -497,6 +498,9 @@ class PlaylistMethods:
         audio = self.get_audio_from_hit(hit)
         if audio is None:
             raise Exception("`Hit` does not have any `Audio` linked to it")
+
+        if audio.audio_type != TelegramAudioType.AUDIO_FILE:
+            raise Exception("`Audio` does not have valid audio type for inline mode")
 
         has_edge = Has.get(Has.parse_key(playlist, audio))
         if has_edge is not None:
