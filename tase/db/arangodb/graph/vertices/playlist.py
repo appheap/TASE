@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Tuple
 
 from pydantic import Field
 
@@ -6,6 +6,7 @@ from tase.my_logger import logger
 from tase.utils import generate_token_urlsafe, prettify
 from .base_vertex import BaseVertex
 from .user import User
+from .. import ArangoGraphMethods
 from ..edges import Has, Had
 from ...base import BaseSoftDeletableDocument
 
@@ -48,6 +49,13 @@ class PlaylistMethods:
     _get_user_playlist_by_title_query = (
         "for v,e in 1..1 outbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@has'],vertexCollections:['@playlists']}"
         "   filter v.is_soft_deleted == not @filter_out and v.title == '@title'"
+        "   limit 1"
+        "   return v"
+    )
+
+    _get_user_playlist_by_key_query = (
+        "for v,e in 1..1 outbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@has'],vertexCollections:['@playlists']}"
+        "   filter v.is_soft_deleted == not @filter_out and v._key == '@key'"
         "   limit 1"
         "   return v"
     )
@@ -99,6 +107,47 @@ class PlaylistMethods:
                 "playlists": Playlist._collection_name,
                 "filter_out": filter_out_soft_deleted,
                 "title": title,
+            },
+        )
+        if cursor is not None:
+            return Playlist.from_collection(cursor.pop())
+
+        return None
+
+    def get_user_playlist_by_key(
+        self,
+        user: User,
+        key: str,
+        filter_out_soft_deleted: Optional[bool] = False,
+    ) -> Optional[Playlist]:
+        """
+        Get a `Playlist` with the given `key` if exists, otherwise, return `None`.
+
+        Parameters
+        ----------
+        user : User
+            User with this playlist
+        key : str
+            Playlist key to check
+        filter_out_soft_deleted : Optional[bool]
+            Whether to filter out soft-deleted documents in this query
+
+        Returns
+        -------
+        Playlist, optional
+            `Playlist` with the given title if it exists, return `None` otherwise.
+        """
+        if user is None or key is None:
+            return None
+
+        cursor = Playlist.execute_query(
+            self._get_user_playlist_by_key_query,
+            bind_vars={
+                "start_vertex": user.id,
+                "has": Has._collection_name,
+                "playlists": Playlist._collection_name,
+                "filter_out": filter_out_soft_deleted,
+                "key": key,
             },
         )
         if cursor is not None:
@@ -403,3 +452,61 @@ class PlaylistMethods:
                 yield Playlist.from_collection(doc)
 
         return None
+
+    def add_audio_to_playlist(
+        self: ArangoGraphMethods,
+        user: User,
+        playlist_key: str,
+        hit_download_url: str,
+    ) -> Tuple[bool, bool]:
+        """
+        Add `Audio` to the user given `Playlist`
+
+        Parameters
+        ----------
+        user : User
+            User to run the query on
+        playlist_key : str
+            Playlist key to add the audio to
+        hit_download_url : str
+            Hit download_url to get the audio from
+
+        Returns
+        -------
+        Tuple[bool,bool]
+            Whether the operation was successful and added the audio to the user's playlist
+
+        Raises
+        ------
+        Exception
+            If the user does not have a playlist with the given playlist_key, or no hit exists with the given
+            hit_download_url, or the hit does not have any audio linked to it.
+
+        """
+        if user is None or playlist_key is None or hit_download_url is None:
+            return False, False
+
+        playlist = self.get_user_playlist_by_key(user, playlist_key, filter_out_soft_deleted=True)
+        if playlist is None:
+            raise Exception("User does not have playlist with the given `key`")
+
+        hit = self.find_hit_by_download_url(hit_download_url)
+        if hit is None:
+            raise Exception("No `Hit` exists with the given `download_url`")
+
+        audio = self.get_audio_from_hit(hit)
+        if audio is None:
+            raise Exception("`Hit` does not have any `Audio` linked to it")
+
+        has_edge = Has.get(Has.parse_key(playlist, audio))
+        if has_edge is not None:
+            # Audio is already on the playlist
+            return True, False
+        else:
+            try:
+                has_edge = Has.get_or_create_edge(playlist, audio)
+            except ValueError:
+                logger.error("ValueError: Could not create the `has` from `Playlist` vertex to `Audio` vertex")
+                return False, False
+            else:
+                return True, False
