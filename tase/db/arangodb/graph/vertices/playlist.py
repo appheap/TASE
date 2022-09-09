@@ -4,6 +4,7 @@ from pydantic import Field
 
 from tase.my_logger import logger
 from tase.utils import generate_token_urlsafe, prettify
+from . import Audio
 from .base_vertex import BaseVertex
 from .user import User
 from .. import ArangoGraphMethods
@@ -480,6 +481,25 @@ class PlaylistMethods:
 
         return None
 
+    def _get_playlist_and_audio(
+        self: ArangoGraphMethods,
+        user: User,
+        hit_download_url: str,
+        playlist_key: str,
+    ) -> Tuple[Playlist, Audio]:
+        playlist = self.get_user_playlist_by_key(user, playlist_key, filter_out_soft_deleted=True)
+        if playlist is None:
+            raise Exception("User does not have playlist with the given `key`")
+        hit = self.find_hit_by_download_url(hit_download_url)
+        if hit is None:
+            raise Exception("No `Hit` exists with the given `download_url`")
+        audio = self.get_audio_from_hit(hit)
+        if audio is None:
+            raise Exception("`Hit` does not have any `Audio` linked to it")
+        if audio.audio_type != TelegramAudioType.AUDIO_FILE:
+            raise Exception("`Audio` does not have valid audio type for inline mode")
+        return playlist, audio
+
     def add_audio_to_playlist(
         self: ArangoGraphMethods,
         user: User,
@@ -513,20 +533,7 @@ class PlaylistMethods:
         if user is None or playlist_key is None or hit_download_url is None:
             return False, False
 
-        playlist = self.get_user_playlist_by_key(user, playlist_key, filter_out_soft_deleted=True)
-        if playlist is None:
-            raise Exception("User does not have playlist with the given `key`")
-
-        hit = self.find_hit_by_download_url(hit_download_url)
-        if hit is None:
-            raise Exception("No `Hit` exists with the given `download_url`")
-
-        audio = self.get_audio_from_hit(hit)
-        if audio is None:
-            raise Exception("`Hit` does not have any `Audio` linked to it")
-
-        if audio.audio_type != TelegramAudioType.AUDIO_FILE:
-            raise Exception("`Audio` does not have valid audio type for inline mode")
+        playlist, audio = self._get_playlist_and_audio(user, hit_download_url, playlist_key)
 
         has_edge = Has.get(Has.parse_key(playlist, audio))
         if has_edge is not None:
@@ -540,3 +547,59 @@ class PlaylistMethods:
                 return False, False
             else:
                 return True, False
+
+    def remove_audio_from_playlist(
+        self: ArangoGraphMethods,
+        user: User,
+        playlist_key: str,
+        hit_download_url: str,
+        remove_timestamp: int,
+    ) -> Tuple[bool, bool]:
+        """
+        Remove `Audio` from the user given `Playlist`
+
+        Parameters
+        ----------
+        user : User
+            User to run the query on
+        playlist_key : str
+            Playlist key to remove the audio from
+        hit_download_url : str
+            Hit download_url to get the audio from
+        remove_timestamp : int
+            Timestamp when the removing happened
+
+        Returns
+        -------
+        Tuple[bool,bool]
+            Whether the operation was successful and removed the audio to the user's playlist
+
+        Raises
+        ------
+        Exception
+            If the user does not have a playlist with the given playlist_key, or no hit exists with the given
+            hit_download_url, or audio is not valid for inline mode ,or the hit does not have any audio linked to it.
+
+        """
+        if user is None or playlist_key is None or hit_download_url is None:
+            return False, False
+
+        playlist, audio = self._get_playlist_and_audio(user, hit_download_url, playlist_key)
+
+        has_edge = Has.get(Has.parse_key(playlist, audio))
+        if has_edge is not None:
+            # Audio is already on the playlist
+            deleted = has_edge.delete()
+            if not deleted:
+                raise Exception("Could not delete the `has` edge from `Playlist` vertex to `Audio` vertex")
+
+            try:
+                had_edge = Had.get_or_create_edge(playlist, audio, has=has_edge, deleted_at=remove_timestamp)
+            except ValueError:
+                logger.error("ValueError: Could not create the `had` from `Playlist` vertex to `Audio` vertex")
+                return False, False
+            else:
+                return True, True
+        else:
+            # Audio does not belong to the playlist
+            return True, False
