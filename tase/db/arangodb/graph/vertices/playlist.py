@@ -306,7 +306,7 @@ class PlaylistMethods:
             User to get/create this playlist.
         title : str
             Title of the Playlist
-        description : Optional[str]
+        description : str, default : None
             Description of the playlist
         is_favorite : bool
             Whether this playlist is favorite or not.

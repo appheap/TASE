@@ -129,7 +129,7 @@ class BaseEdge(BaseCollectionDocument):
 
         Returns
         -------
-        Tuple[Optional[BaseEdge], bool]
+        tuple
             Updated edge with returned metadata from ArangoDB and `True` if the operation was successful,
             old object and `False` otherwise.
 
@@ -189,9 +189,9 @@ class BaseEdge(BaseCollectionDocument):
             Start of the edge
         to_vertex : BaseVertex
             End of the edge
-        args : Any
+        args : tuple
             Arguments provided to this function
-        kwargs : Dict[str, Any]
+        kwargs : dict, optional
             Keyword arguments provided to this function
 
         Returns
@@ -238,14 +238,14 @@ class BaseEdge(BaseCollectionDocument):
             Start of the edge
         to_vertex : BaseVertex
             End of the edge
-        args : Optional[List[Any]]
+        args : tuple
             Arguments passed to this function
-        kwargs : Dict[str, Any]
+        kwargs : dict, optional
             Keyword arguments passed to this function
 
         Returns
         -------
-        Tuple[Optional[BaseEdge], bool]
+        tuple
             Created edge and whether the creation was successful.
 
         Raises
@@ -276,9 +276,9 @@ class BaseEdge(BaseCollectionDocument):
             Start of the edge
         to_vertex : BaseVertex, optional
             End of the edge
-        args : list
+        args : tuple
             Arguments passed to the function
-        kwargs : dict
+        kwargs : dict, optional
             Keywords passed to the function
 
         Returns
@@ -321,9 +321,9 @@ class BaseEdge(BaseCollectionDocument):
             Start of the edge
         to_vertex : BaseVertex
             End of the edge
-        args : list
+        args : tuple
             Arguments passed to the function
-        kwargs : dict
+        kwargs : dict, optional
             Keywords passed to the function
 
         Returns
