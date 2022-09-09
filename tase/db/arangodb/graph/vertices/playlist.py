@@ -464,9 +464,9 @@ class PlaylistMethods:
         limit : int, default : 10
             Number of `Playlists`s to query
 
-        Returns
-        -------
-        Generator[Audio, None, None]
+        Yields
+        ------
+        Playlist
             Playlists that the given user has
 
         """
@@ -486,8 +486,6 @@ class PlaylistMethods:
         if cursor is not None and len(cursor):
             for doc in cursor:
                 yield Playlist.from_collection(doc)
-
-        return None
 
     def _get_playlist_and_audio(
         self: ArangoGraphMethods,
@@ -528,7 +526,7 @@ class PlaylistMethods:
 
         Returns
         -------
-        Tuple[bool,bool]
+        tuple
             Whether the operation was successful and added the audio to the user's playlist
 
         Raises
@@ -579,7 +577,7 @@ class PlaylistMethods:
 
         Returns
         -------
-        Tuple[bool,bool]
+        tuple
             Whether the operation was successful and removed the audio to the user's playlist
 
         Raises
@@ -635,7 +633,7 @@ class PlaylistMethods:
 
         Returns
         -------
-        Generator[Audio, None, None]
+        Audio
             Audios that belong to the given playlist
 
         """
@@ -659,5 +657,3 @@ class PlaylistMethods:
         if cursor is not None and len(cursor):
             for doc in cursor:
                 yield Audio.from_collection(doc)
-
-        return None

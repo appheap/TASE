@@ -514,9 +514,9 @@ class AudioMethods:
         limit : int, default : 10
             Number of `Audio`s to query
 
-        Returns
-        -------
-        Generator[Audio, None, None]
+        Yields
+        ------
+        Audio
             Audios that the given user has downloaded
 
         """
@@ -538,8 +538,6 @@ class AudioMethods:
         if cursor is not None and len(cursor):
             for doc in cursor:
                 yield Audio.from_collection(doc)
-
-        return None
 
     def get_audios_from_keys(
         self,
