@@ -362,7 +362,7 @@ class AudioMethods:
         Returns
         -------
         Audio, optional
-            Audio if the creation was successful, otherwise, return None
+            Audio if the operation was successful, otherwise, return None
 
         Raises
         ------
