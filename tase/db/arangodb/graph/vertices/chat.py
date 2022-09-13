@@ -252,21 +252,21 @@ class ChatMethods:
 
     _get_chats_sorted_by_username_extractor_score_query = (
         "for chat in @chats"
-        "   filter chat.chat_type == @chat_type"
+        "   filter chat.chat_type == @chat_type and chat.username_extractor_metadata != null"
         "   sort chat.username_extractor_metadata.score desc, chat.member_count desc"
         "   return chat"
     )
 
     _get_chats_sorted_by_audio_indexer_score = (
         "for chat in @chats"
-        "   filter chat.chat_type == @chat_type"
+        "   filter chat.chat_type == @chat_type and chat.audio_indexer_metadata != null"
         "   sort chat.audio_indexer_metadata.score desc, chat.member_count desc"
         "   return chat"
     )
 
     _get_chats_sorted_by_audio_doc_indexer_score = (
         "for chat in @chats"
-        "   filter chat.chat_type == @chat_type"
+        "   filter chat.chat_type == @chat_type and chat.audio_doc_indexer_metadata != null "
         "   sort chat.audio_doc_indexer_metadata.score desc, chat.member_count desc"
         "   return chat"
     )
