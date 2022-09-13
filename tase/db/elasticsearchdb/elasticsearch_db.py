@@ -4,11 +4,11 @@ import pyrogram
 from elasticsearch import Elasticsearch
 
 from tase.configs import ElasticConfig
-from tase.db.elasticsearch_models import Audio
+from tase.db.elasticsearchdb.models import Audio
 
 
 class ElasticsearchDatabase:
-    es: "Elasticsearch"
+    es: Elasticsearch
 
     def __init__(
         self,
@@ -27,7 +27,7 @@ class ElasticsearchDatabase:
 
     def get_or_create_audio(
         self,
-        message: "pyrogram.types.Message",
+        message: pyrogram.types.Message,
     ) -> Optional[Audio]:
         if message is None or (message.audio is None and message.document is None):
             return None
@@ -46,7 +46,7 @@ class ElasticsearchDatabase:
 
     def update_or_create_audio(
         self,
-        message: "pyrogram.types.Message",
+        message: pyrogram.types.Message,
     ) -> Optional[Audio]:
         if message is None or (message.audio is None and message.document is None):
             return None

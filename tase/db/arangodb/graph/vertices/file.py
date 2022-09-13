@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Optional
 
 import pyrogram
@@ -32,7 +34,7 @@ class File(BaseVertex):
     def parse(
         cls,
         telegram_message: pyrogram.types.Message,
-    ) -> Optional["File"]:
+    ) -> Optional[File]:
         """
         Parse an `file` from the given `telegram_message` argument.
 

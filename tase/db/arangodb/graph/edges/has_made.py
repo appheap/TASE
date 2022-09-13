@@ -1,4 +1,6 @@
-from typing import Optional, Union
+from __future__ import annotations
+
+from typing import Optional
 
 from .base_edge import BaseEdge, EdgeEndsValidator
 from ..vertices import Query, User
@@ -23,7 +25,7 @@ class HasMade(BaseEdge):
         to_vertex: Query,
         *args,
         **kwargs,
-    ) -> Optional["HasMade"]:
+    ) -> Optional[HasMade]:
         key = HasMade.parse_key(from_vertex, to_vertex, *args, **kwargs)
         if key is None:
             return None

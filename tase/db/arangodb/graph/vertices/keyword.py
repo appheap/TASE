@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from hashlib import sha1
 from typing import Optional
 
@@ -24,7 +26,7 @@ class Keyword(BaseVertex):
     def parse(
         cls,
         keyword: str,
-    ) -> Optional["Keyword"]:
+    ) -> Optional[Keyword]:
         if keyword is None:
             return None
 

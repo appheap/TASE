@@ -35,9 +35,9 @@ class ToGraphBaseProcessor(BaseModel):
 
         Parameters
         ----------
-        document : BaseCollectionDocument
+        document : TBaseCollectionDocument
             Document this processing is done for
-        attr_value_dict : Dict[str, Any]
+        attr_value_dict : dict
             Attribute value mapping dictionary to be processed
 
         Raises
@@ -60,9 +60,9 @@ class FromGraphBaseProcessor(BaseModel):
 
         Parameters
         ----------
-        document_class : BaseCollectionDocument
+        document_class : Type[TBaseCollectionDocument]
             Class of this document. (It's not an instance of the class)
-        graph_doc : Dict[str, Any]
+        graph_doc : dict
             Attribute value mapping dictionary to be processed
 
         Raises

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Optional, Union
 
 from .base_edge import BaseEdge, EdgeEndsValidator
@@ -59,7 +61,7 @@ class Had(BaseEdge):
         to_vertex: Union[User, Playlist],
         *args,
         **kwargs,
-    ) -> Optional["Had"]:
+    ) -> Optional[Had]:
         """
         Create a `Had` edge object with the arguments provided and return it if successful, otherwise return `None`.
 

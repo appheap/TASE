@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Optional
 
 from .base_edge import BaseEdge, EdgeEndsValidator
@@ -23,7 +25,7 @@ class FromHit(BaseEdge):
         to_vertex: Hit,
         *args,
         **kwargs,
-    ) -> Optional["FromHit"]:
+    ) -> Optional[FromHit]:
         key = FromHit.parse_key(from_vertex, to_vertex, *args, **kwargs)
         if key is None:
             return None

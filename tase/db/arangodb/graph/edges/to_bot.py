@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Optional
 
 from .base_edge import BaseEdge, EdgeEndsValidator
@@ -23,7 +25,7 @@ class ToBot(BaseEdge):
         to_vertex: User,
         *args,
         **kwargs,
-    ) -> Optional["ToBot"]:
+    ) -> Optional[ToBot]:
         key = ToBot.parse_key(from_vertex, to_vertex, *args, **kwargs)
         if key is None:
             return None

@@ -6,7 +6,7 @@ import pyrogram
 
 from .base_document import BaseDocument
 from ..enums import TelegramAudioType
-from ... import elasticsearch_models
+from ... import elasticsearchdb
 from ...db_utils import get_telegram_message_media_type
 
 
@@ -23,7 +23,7 @@ class Audio(BaseDocument):
     @classmethod
     def parse_key(
         cls,
-        input_arg: Union[pyrogram.types.Message, elasticsearch_models.Audio],
+        input_arg: Union[pyrogram.types.Message, elasticsearchdb.Audio],
         telegram_client_id: int,
     ) -> Optional[str]:
         """
@@ -56,7 +56,7 @@ class Audio(BaseDocument):
 
             return f"{str(telegram_client_id)}:{audio.file_unique_id}:{input_arg.chat.id}:{input_arg.id}"
 
-        elif isinstance(input_arg, elasticsearch_models.Audio):
+        elif isinstance(input_arg, elasticsearchdb.Audio):
             audio = input_arg
             return f"{str(telegram_client_id)}:{audio.file_unique_id}:{audio.chat_id}:{audio.message_id}"
         else:

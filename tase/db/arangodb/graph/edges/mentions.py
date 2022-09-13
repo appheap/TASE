@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Optional, Union
 
 from .base_edge import BaseEdge, EdgeEndsValidator
@@ -69,7 +71,7 @@ class Mentions(BaseEdge):
         from_message_id: int,
         *args,
         **kwargs,
-    ) -> Optional["Mentions"]:
+    ) -> Optional[Mentions]:
         key = Mentions.parse_key(
             from_vertex,
             to_vertex,

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Optional
 
 from .base_edge import BaseEdge, EdgeEndsValidator
@@ -21,7 +23,7 @@ class LinkedChat(BaseEdge):
         to_vertex: Chat,
         *args,
         **kwargs,
-    ) -> Optional["LinkedChat"]:
+    ) -> Optional[LinkedChat]:
         key = LinkedChat.parse_key(from_vertex, to_vertex, *args, **kwargs)
         if key is None:
             return None

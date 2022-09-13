@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Optional
 
 from .base_edge import BaseEdge, EdgeEndsValidator
@@ -23,7 +25,7 @@ class Downloaded(BaseEdge):
         to_vertex: Download,
         *args,
         **kwargs,
-    ) -> Optional["Downloaded"]:
+    ) -> Optional[Downloaded]:
         key = Downloaded.parse_key(from_vertex, to_vertex, *args, **kwargs)
         if key is None:
             return None

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Optional
 
 from .base_edge import BaseEdge, EdgeEndsValidator
@@ -21,7 +23,7 @@ class ViaBot(BaseEdge):
         to_vertex: User,
         *args,
         **kwargs,
-    ) -> Optional["ViaBot"]:
+    ) -> Optional[ViaBot]:
         key = ViaBot.parse_key(from_vertex, to_vertex, *args, **kwargs)
         if key is None:
             return None

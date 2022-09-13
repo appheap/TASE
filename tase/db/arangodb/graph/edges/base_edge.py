@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Dict, List, Type, Optional, Tuple, Any, Callable
 
 from arango import DocumentInsertError
@@ -16,7 +18,7 @@ class ToVertexMapper(ToGraphBaseProcessor):
     @classmethod
     def process(
         cls,
-        document: "BaseEdge",
+        document: BaseEdge,
         attr_value_dict: Dict[str, Any],
     ) -> None:
         for k, v in document._to_graph_db_mapping_rel.items():
@@ -33,7 +35,7 @@ class FromVertexMapper(FromGraphBaseProcessor):
     @classmethod
     def process(
         cls,
-        document_class: Type["BaseEdge"],
+        document_class: Type[BaseEdge],
         graph_doc: Dict[str, Any],
     ) -> None:
         for graph_doc_attr, obj_attr in document_class._from_graph_db_mapping_rel.items():
@@ -116,7 +118,7 @@ class BaseEdge(BaseCollectionDocument):
         to_vertex: BaseVertex,
         *args,
         **kwargs,
-    ) -> Tuple[Optional["BaseEdge"], bool]:
+    ) -> Tuple[Optional[BaseEdge], bool]:
         """
         Insert a new edge document linking the given vertices.
 
@@ -179,7 +181,7 @@ class BaseEdge(BaseCollectionDocument):
         to_vertex: BaseVertex,
         *args,
         **kwargs,
-    ) -> Optional["BaseEdge"]:
+    ) -> Optional[BaseEdge]:
         """
         Create an `Edge` object with the arguments provided
 
@@ -227,7 +229,7 @@ class BaseEdge(BaseCollectionDocument):
         to_vertex: BaseVertex,
         *args,
         **kwargs,
-    ) -> Tuple[Optional["BaseEdge"], bool]:
+    ) -> Tuple[Optional[BaseEdge], bool]:
         """
         Create a new edge from `from_vertex` vertex to `to_vertex` vertex with given arguments and return it if
         successful.
@@ -266,7 +268,7 @@ class BaseEdge(BaseCollectionDocument):
         to_vertex: Optional[BaseVertex],
         *args,
         **kwargs,
-    ) -> Optional["BaseEdge"]:
+    ) -> Optional[BaseEdge]:
         """
         Get an Edge if it exists in the database, and create it otherwise.
 
@@ -310,7 +312,7 @@ class BaseEdge(BaseCollectionDocument):
         to_vertex: BaseVertex,
         *args,
         **kwargs,
-    ) -> Optional["BaseEdge"]:
+    ) -> Optional[BaseEdge]:
         """
         Update an Edge if it exists in the database, and create it otherwise. Return the created/updated if
         successful and return `None` otherwise

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Optional, Union
 
 from .base_edge import BaseEdge, EdgeEndsValidator
@@ -31,7 +33,7 @@ class Has(BaseEdge):
         to_vertex: Union[Playlist, Audio, Hit, Keyword],
         *args,
         **kwargs,
-    ) -> Optional["Has"]:
+    ) -> Optional[Has]:
         key = Has.parse_key(from_vertex, to_vertex, *args, **kwargs)
         if key is None:
             return None

@@ -4,6 +4,7 @@ from elastic_transport import ObjectApiResponse
 from elasticsearch import ConflictError, Elasticsearch, NotFoundError
 from pydantic import BaseModel, Field
 
+from tase.db.helpers import SearchMetaData
 from tase.my_logger import logger
 from tase.utils import get_timestamp
 
@@ -23,8 +24,8 @@ class BaseDocument(BaseModel):
 
     id: Optional[str]
 
-    created_at: int = Field(default_factory=get_timestamp)
-    modified_at: int = Field(default_factory=get_timestamp)
+    created_at: int = Field(default_factory=get_now_timestamp)
+    modified_at: int = Field(default_factory=get_now_timestamp)
 
     search_metadata: Optional[SearchMetaData]
 
@@ -69,7 +70,7 @@ class BaseDocument(BaseModel):
 
     def _update_doc_from_old_doc(
         self,
-        old_doc: "BaseDocument",
+        old_doc: BaseDocument,
     ):
         for k in self._do_not_update:
             if getattr(self, k, None):
@@ -80,7 +81,7 @@ class BaseDocument(BaseModel):
     @classmethod
     def has_index(
         cls,
-        es: "Elasticsearch",
+        es: Elasticsearch,
     ) -> bool:
         index_exists = False
         try:
@@ -95,7 +96,7 @@ class BaseDocument(BaseModel):
     @classmethod
     def create_index(
         cls,
-        es: "Elasticsearch",
+        es: Elasticsearch,
     ):
         try:
             es.indices.create(
@@ -108,7 +109,7 @@ class BaseDocument(BaseModel):
     @classmethod
     def get(
         cls,
-        es: "Elasticsearch",
+        es: Elasticsearch,
         doc_id: str,
     ):
         if es is None:
@@ -131,8 +132,8 @@ class BaseDocument(BaseModel):
     @classmethod
     def create(
         cls,
-        es: "Elasticsearch",
-        document: "BaseDocument",
+        es: Elasticsearch,
+        document: BaseDocument,
     ):
         """
         Creates a document in the index
@@ -168,9 +169,9 @@ class BaseDocument(BaseModel):
     @classmethod
     def update(
         cls,
-        es: "Elasticsearch",
-        old_document: "BaseDocument",
-        document: "BaseDocument",
+        es: Elasticsearch,
+        old_document: BaseDocument,
+        document: BaseDocument,
     ):
         """
         Updates a document in the index
@@ -204,7 +205,7 @@ class BaseDocument(BaseModel):
     @classmethod
     def search(
         cls,
-        es: "Elasticsearch",
+        es: Elasticsearch,
         query: str,
         from_: int = 0,
         size: int = 50,

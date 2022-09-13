@@ -6,8 +6,8 @@ from elastic_transport import ObjectApiResponse
 from elasticsearch import Elasticsearch
 
 from .base_document import BaseDocument
-from ...my_logger import logger
-from ...utils import get_timestamp
+from tase.my_logger import logger
+from tase.utils import datetime_to_timestamp
 
 
 class Audio(BaseDocument):
@@ -114,7 +114,7 @@ class Audio(BaseDocument):
             chat_id=message.chat.id,
             message_id=message.id,
             message_caption=message.caption,
-            message_date=get_timestamp(message.date),
+            message_date=datetime_to_timestamp(message.date),
             file_unique_id=_audio.file_unique_id,
             duration=getattr(_audio, "duration", None),
             performer=getattr(_audio, "performer", None),
@@ -122,7 +122,7 @@ class Audio(BaseDocument):
             file_name=_audio.file_name,
             mime_type=_audio.mime_type,
             file_size=_audio.file_size,
-            date=get_timestamp(_audio.date),
+            date=datetime_to_timestamp(_audio.date),
             download_count=0,
             valid_for_inline_search=valid_for_inline,
             is_audio_file=is_audio_file,
@@ -196,20 +196,36 @@ class Audio(BaseDocument):
         query: Optional[str],
         valid_for_inline_search: Optional[bool] = True,
     ):
-        return {
-            "bool": {
-                "must": {
-                    "multi_match": {
-                        "query": query,
-                        "fuzziness": "AUTO",
-                        "type": "best_fields",
-                        "minimum_should_match": "65%",
-                        "fields": cls._search_fields,
-                    }
-                },
-                "filter": {"exists": {"field": "title"}},
+        if valid_for_inline_search:
+            return {
+                "bool": {
+                    "must": {
+                        "multi_match": {
+                            "query": query,
+                            "fuzziness": "AUTO",
+                            "type": "best_fields",
+                            "minimum_should_match": "65%",
+                            "fields": cls._search_fields,
+                        }
+                    },
+                    "filter": {"exists": {"field": "title"}},
+                }
             }
-        }
+        else:
+            return {
+                "bool": {
+                    "must": {
+                        "multi_match": {
+                            "query": query,
+                            "fuzziness": "AUTO",
+                            "type": "best_fields",
+                            "minimum_should_match": "65%",
+                            "fields": cls._search_fields,
+                        }
+                    },
+                    "filter": {"exists": {"field": "title"}},
+                }
+            }
 
     @classmethod
     def get_sort(

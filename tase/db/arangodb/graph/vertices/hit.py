@@ -151,7 +151,7 @@ class HitMethods:
     def find_hit_by_download_url(
         self,
         download_url: str,
-    ) -> Optional["Hit"]:
+    ) -> Optional[Hit]:
         """
         Get `Hit` by its `download_url`.
 
