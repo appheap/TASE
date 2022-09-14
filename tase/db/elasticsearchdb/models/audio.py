@@ -10,7 +10,7 @@ from tase.my_logger import logger
 from tase.utils import datetime_to_timestamp
 from .base_document import BaseDocument
 from ...arangodb.enums import TelegramAudioType
-from ...db_utils import get_telegram_message_media_type
+from ...db_utils import get_telegram_message_media_type, parse_audio_key
 
 
 class Audio(BaseDocument):
@@ -112,16 +112,8 @@ class Audio(BaseDocument):
         str, optional
             Parsed ID if the parsing was successful, otherwise return `None` if the `telegram_message` is `None`.
 
-        Raises
-        ------
-        ValueError
-            If `telegram_message` argument does not contain any valid audio file.
         """
-        audio, audio_type = get_telegram_message_media_type(telegram_message)
-        if audio_type == TelegramAudioType.NON_AUDIO:
-            raise ValueError("Unexpected value for `message`: nor audio nor document")
-
-        return f"{audio.file_unique_id}:{telegram_message.chat.id}:{telegram_message.id}"
+        return parse_audio_key(telegram_message)
 
     @classmethod
     def parse(
@@ -313,18 +305,12 @@ class AudioMethods:
         if telegram_message is None:
             return None
 
-        try:
-            audio = Audio.get(Audio.parse_id(telegram_message))
-        except ValueError:
-            # this message doesn't contain any valid audio file
-            pass
-        else:
-            if audio is None:
-                # audio does not exist in the index, create it
-                audio = self.create_audio(telegram_message)
-            return audio
+        audio = Audio.get(Audio.parse_id(telegram_message))
+        if audio is None:
+            # audio does not exist in the index, create it
+            audio = self.create_audio(telegram_message)
 
-        return None
+        return audio
 
     def update_or_create_audio(
         self,
@@ -347,18 +333,34 @@ class AudioMethods:
         if telegram_message is None:
             return None
 
-        try:
-            audio = Audio.get(Audio.parse_id(telegram_message))
-            if audio is None:
-                # audio does not exist in the index, create it
-                audio = self.create_audio(telegram_message)
-            else:
-                # audio exists in the index, update it
-                updated = audio.update(Audio.parse(telegram_message))
-        except ValueError:
-            # this message doesn't contain any valid audio file
-            pass
+        audio = Audio.get(Audio.parse_id(telegram_message))
+        if audio is None:
+            # audio does not exist in the index, create it
+            audio = self.create_audio(telegram_message)
         else:
-            return audio
+            # audio exists in the index, update it
+            try:
+                updated = audio.update(Audio.parse(telegram_message))
+            except ValueError:
+                updated = False
+        return audio
 
-        return None
+    def get_audio_by_id(
+        self,
+        id: str,
+    ) -> Optional[Audio]:
+        """
+        Get `Audio` by its `ID`
+
+        Parameters
+        ----------
+        id : str
+            ID of the `Audio` to get
+
+        Returns
+        -------
+        Audio, optional
+            Audio if it exists in ElasticSearch, otherwise, return None
+
+        """
+        return Audio.get(id)

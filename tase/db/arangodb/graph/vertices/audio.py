@@ -5,7 +5,7 @@ from typing import Optional, List, Generator, TYPE_CHECKING
 import pyrogram
 from arango import CursorEmptyError
 
-from tase.db.db_utils import get_telegram_message_media_type
+from tase.db.db_utils import get_telegram_message_media_type, parse_audio_key
 from tase.my_logger import logger
 from tase.utils import datetime_to_timestamp, generate_token_urlsafe, get_now_timestamp
 from .base_vertex import BaseVertex
@@ -83,8 +83,7 @@ class Audio(BaseVertex):
         telegram_message: pyrogram.types.Message,
     ) -> Optional[str]:
         """
-        Parse the `key` from the given `telegram_message` argument if it contains a valid audio file, otherwise raise
-        an `ValueError` exception.
+        Parse the `key` from the given `telegram_message` argument
 
         Parameters
         ----------
@@ -97,10 +96,7 @@ class Audio(BaseVertex):
             Parsed key if the parsing was successful, otherwise return `None` if the `telegram_message` is `None`.
 
         """
-        if telegram_message is None:
-            return None
-
-        return f"{telegram_message.chat.id}:{telegram_message.id}"
+        return parse_audio_key(telegram_message)
 
     @classmethod
     def parse(
@@ -430,7 +426,11 @@ class AudioMethods:
                         pass
                 else:
                     # the message has not been `deleted`, update remaining attributes
-                    updated = audio.update(Audio.parse(telegram_message))
+                    try:
+                        updated = audio.update(Audio.parse(telegram_message))
+                    except ValueError:
+                        updated = False
+
         else:
             audio = self.create_audio(telegram_message)
 

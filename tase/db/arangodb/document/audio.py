@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-from typing import Union, Optional
+from typing import Optional
 
 import pyrogram
 
 from .base_document import BaseDocument
 from ..enums import TelegramAudioType
-from ... import elasticsearchdb
 from ...db_utils import get_telegram_message_media_type
 
 
@@ -23,7 +22,7 @@ class Audio(BaseDocument):
     @classmethod
     def parse_key(
         cls,
-        input_arg: Union[pyrogram.types.Message, elasticsearchdb.Audio],
+        telegram_message: pyrogram.types.Message,
         telegram_client_id: int,
     ) -> Optional[str]:
         """
@@ -32,7 +31,7 @@ class Audio(BaseDocument):
 
         Parameters
         ----------
-        input_arg : pyrogram.types.Message or elasticsearch_models.Audio
+        telegram_message : pyrogram.types.Message
             Telegram message to parse the key from or `Audio` document from elasticsearchDB
 
         telegram_client_id : int
@@ -43,25 +42,9 @@ class Audio(BaseDocument):
         str, optional
             Parsed key if the parsing was successful, otherwise return `None` if the `telegram_message` is `None`.
 
-        Raises
-        ------
-        ValueError
-            If `input_arg` parameter is `pyrogram.types.Message` instance and does not contain any valid audio file,
-            or when is not an instance of either of `pyrogram.types.Message` or `elastic_models.Audio`
         """
-        if isinstance(input_arg, pyrogram.types.Message):
-            audio, audio_type = get_telegram_message_media_type(input_arg)
-            if audio is None or audio_type == TelegramAudioType.NON_AUDIO:
-                raise ValueError("Unexpected value for `message`: nor audio nor document")
 
-            return f"{str(telegram_client_id)}:{audio.file_unique_id}:{input_arg.chat.id}:{input_arg.id}"
-
-        elif isinstance(input_arg, elasticsearchdb.Audio):
-            audio = input_arg
-            return f"{str(telegram_client_id)}:{audio.file_unique_id}:{audio.chat_id}:{audio.message_id}"
-        else:
-            # this not a valid instance
-            raise ValueError("This is not valid instance")
+        return f"{telegram_client_id}:{telegram_message.chat.id}:{telegram_message.id}"
 
     @classmethod
     def parse(
@@ -93,7 +76,6 @@ class Audio(BaseDocument):
         if telegram_message is None:
             return None
 
-        # do not catch `ValueError` exception from the following line
         key = Audio.parse_key(telegram_message, telegram_client_id)
 
         if key is None:
@@ -178,13 +160,9 @@ class AudioMethods:
         if telegram_message is None:
             return None
 
-        try:
-            audio = Audio.get(Audio.parse_key(telegram_message, telegram_client_id))
-        except ValueError:
-            audio = None
-        else:
-            if audio is None:
-                audio = self.create_audio(telegram_message, telegram_client_id)
+        audio = Audio.get(Audio.parse_key(telegram_message, telegram_client_id))
+        if audio is None:
+            audio = self.create_audio(telegram_message, telegram_client_id)
 
         return audio
 
@@ -221,6 +199,9 @@ class AudioMethods:
             if audio is None:
                 audio = self.create_audio(telegram_message, telegram_client_id)
             else:
-                updated = audio.update(Audio.parse(telegram_message, telegram_client_id))
+                try:
+                    updated = audio.update(Audio.parse(telegram_message, telegram_client_id))
+                except ValueError:
+                    updated = False
 
         return audio

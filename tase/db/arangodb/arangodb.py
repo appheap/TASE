@@ -4,12 +4,11 @@ from arango import ArangoClient
 from arango.aql import AQL
 from arango.database import StandardDatabase
 from arango.graph import Graph
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from tase.configs import ArangoDBConfig
 from tase.db.arangodb.graph.vertices import vertex_classes
-from .document import document_classes, ArangoDocumentMethods
-from .graph import ArangoGraphMethods
+from .document import document_classes
 from .graph.edges import edge_classes
 
 
@@ -20,9 +19,6 @@ class ArangoDB(
     db: Optional[StandardDatabase]
     graph: Optional[Graph]
     aql: Optional[AQL]
-
-    graph_methods: ArangoGraphMethods = Field(default=ArangoGraphMethods())
-    document_methods: ArangoDocumentMethods = Field(default=ArangoDocumentMethods())
 
     class Config:
         arbitrary_types_allowed = True
@@ -87,8 +83,3 @@ class ArangoDB(
                 _collection = self.db.collection(doc._collection_name)
             doc._collection = _collection
             doc._aql = self.aql
-
-        create = True
-        if create:
-            for i in range(100):
-                self.graph_methods.create_a_dummy_vertex(dummy_int=i)

@@ -1,30 +1,30 @@
-from typing import List, Optional, Tuple
+import pyrogram
+from pydantic import Field
 
-import pyrogram.types
-
-from tase.my_logger import logger
-from . import document_models, elasticsearch_models, graph_models
-from .document_db import DocumentDatabase
-from .elasticsearch_db import ElasticsearchDatabase
-from .enums import MentionSource
-from .graph_db import GraphDatabase
+from .arangodb import ArangoDB
+from .arangodb.document import ArangoDocumentMethods
+from .arangodb.graph import ArangoGraphMethods
+from .elasticsearchdb import ElasticsearchDatabase
+from .elasticsearchdb.models import ElasticSearchMethods
 from ..configs import ArangoDBConfig, ElasticConfig
+from ..my_logger import logger
 
 
 class DatabaseClient:
-    _es_db: "ElasticsearchDatabase"
-    _graph_db: "GraphDatabase"
-    _document_db: "DocumentDatabase"
+    es_db: ElasticsearchDatabase
+    arangodb: ArangoDB
+
+    index: ElasticSearchMethods = Field(default=ElasticSearchMethods())
+    graph: ArangoGraphMethods = Field(default=ArangoGraphMethods())
+    document: ArangoDocumentMethods = Field(default=ArangoDocumentMethods())
 
     def __init__(
         self,
         elasticsearch_config: ElasticConfig,
         arangodb_config: ArangoDBConfig,
     ):
-
-        self._es_db = ElasticsearchDatabase(
-            elasticsearch_config=elasticsearch_config,
-        )
+        self.es_db = ElasticsearchDatabase(elasticsearch_config=elasticsearch_config)
+        self.arangodb = ArangoDB(arangodb_config=arangodb_config)
 
         self._graph_db = GraphDatabase(
             arangodb_config=arangodb_config,
