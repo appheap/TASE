@@ -260,3 +260,105 @@ class Audio(BaseDocument):
             "download_count": {"order": "desc"},
             "date": {"order": "desc"},
         }
+
+
+class AudioMethods:
+    def create_audio(
+        self,
+        telegram_message: pyrogram.types.Message,
+    ) -> Optional[Audio]:
+        """
+        Create Audio document in the ElasticSearch.
+
+        Parameters
+        ----------
+        telegram_message : pyrogram.types.Message
+            Telegram message to create the Audio from
+
+        Returns
+        -------
+        Audio, optional
+            Audio if the creation was successful, otherwise, return None
+
+        """
+        try:
+            audio, successful = Audio.create(Audio.parse(telegram_message))
+        except ValueError:
+            # this message doesn't contain any valid audio file
+            pass
+        else:
+            if audio and successful:
+                return audio
+
+        return None
+
+    def get_or_create_audio(
+        self,
+        telegram_message: pyrogram.types.Message,
+    ) -> Optional[Audio]:
+        """
+        Get Audio if it exists in ElasticSearch, otherwise, create Audio document.
+
+        Parameters
+        ----------
+        telegram_message : pyrogram.types.Message
+            Telegram message to create the Audio from
+
+        Returns
+        -------
+        Audio, optional
+            Audio if the operation was successful, otherwise, return None
+
+        """
+        if telegram_message is None:
+            return None
+
+        try:
+            audio = Audio.get(Audio.parse_id(telegram_message))
+        except ValueError:
+            # this message doesn't contain any valid audio file
+            pass
+        else:
+            if audio is None:
+                # audio does not exist in the index, create it
+                audio = self.create_audio(telegram_message)
+            return audio
+
+        return None
+
+    def update_or_create_audio(
+        self,
+        telegram_message: pyrogram.types.Message,
+    ) -> Optional[Audio]:
+        """
+        Update Audio document in the ElasticSearch if it exists, otherwise, create it.
+
+        Parameters
+        ----------
+        telegram_message : pyrogram.types.Message
+            Telegram message to create the Audio from
+
+        Returns
+        -------
+        Audio, optional
+            Audio if the creation was successful, otherwise, return None
+
+        """
+        if telegram_message is None:
+            return None
+
+        try:
+            audio = Audio.get(Audio.parse_id(telegram_message))
+            if audio is None:
+                # audio does not exist in the index, create it
+                audio = self.create_audio(telegram_message)
+            else:
+                # audio exists in the index, update it
+                updated = audio.update(Audio.parse(telegram_message))
+        except ValueError:
+            # this message doesn't contain any valid audio file
+            pass
+        else:
+            return audio
+
+        return None
