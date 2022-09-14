@@ -14,9 +14,12 @@ from ...db_utils import get_telegram_message_media_type
 
 
 class Audio(BaseDocument):
+    schema_version = 1
+
     _index_name = "audios_index"
     _mappings = {
         "properties": {
+            "schema_version": {"type": "integer"},
             "created_at": {"type": "long"},
             "modified_at": {"type": "long"},
             "chat_id": {"type": "long"},
@@ -32,9 +35,12 @@ class Audio(BaseDocument):
             "file_size": {"type": "integer"},
             "date": {"type": "date"},
             "views": {"type": "long"},
-            "download_count": {"type": "long"},
+            "downloads": {"type": "long"},
+            "shares": {"type": "long"},
             "search_hits": {"type": "long"},
             "non_search_hits": {"type": "long"},
+            "likes": {"type": "long"},
+            "dislikes": {"type": "long"},
             "audio_type": {"type": "integer"},
             "valid_for_inline_search": {"type": "bool"},
         }
@@ -42,9 +48,12 @@ class Audio(BaseDocument):
 
     _extra_do_not_update_fields = (
         "views",
-        "download_count",
+        "downloads",
+        "shares",
         "search_hits",
         "non_search_hits",
+        "likes",
+        "dislikes",
     )
     _search_fields = [
         "performer",
@@ -68,9 +77,12 @@ class Audio(BaseDocument):
     date: int
 
     views: int = Field(default=0)
-    download_count: int = Field(default=0)
+    downloads: int = Field(default=0)
+    shares: int = Field(default=0)
     search_hits: int = Field(default=0)
     non_search_hits: int = Field(default=0)
+    likes: int = Field(default=0)
+    dislikes: int = Field(default=0)
     audio_type: TelegramAudioType  # whether the audio file is shown in the `audios` or `files/documents` section of telegram app
     valid_for_inline_search: bool
     """

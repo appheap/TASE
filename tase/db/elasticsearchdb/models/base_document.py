@@ -134,6 +134,8 @@ class FromDocumentAttributeMapper(FromDocumentBaseProcessor):
 
 
 class BaseDocument(BaseModel):
+    schema_version: int = Field(default=1)
+
     _es: Optional[Elasticsearch]
 
     _index_name = "base_index_name"
