@@ -1,26 +1,158 @@
-from typing import Optional, Tuple
+from __future__ import annotations
+
+from enum import Enum
+from typing import Optional, Tuple, TypeVar, Dict, Any, Type, List
 
 from elastic_transport import ObjectApiResponse
 from elasticsearch import ConflictError, Elasticsearch, NotFoundError
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 
+from tase.db.arangodb.helpers import ElasticQueryMetadata
 from tase.db.helpers import SearchMetaData
 from tase.my_logger import logger
-from tase.utils import get_timestamp
+from tase.utils import get_now_timestamp
+
+TBaseDocument = TypeVar("TBaseDocument", bound="BaseDocument")
 
 
-class SearchMetaData(BaseModel):
-    rank: int
-    score: float
+class ToDocumentBaseProcessor(BaseModel):
+    @classmethod
+    def process(
+        cls,
+        document: TBaseDocument,
+        attr_value_dict: Dict[str, Any],
+    ) -> None:
+        """
+        Execute some operations on the attribute value dictionary.
+
+        Parameters
+        ----------
+        document : TBaseDocument
+            Document this processing is done for
+        attr_value_dict : dict
+            Attribute value mapping dictionary to be processed
+
+        Raises
+        ------
+        Exception
+            if there was any error with processing
+        """
+        raise NotImplementedError
+
+
+class FromDocumentBaseProcessor(BaseModel):
+    @classmethod
+    def process(
+        cls,
+        document_class: Type[TBaseDocument],
+        body: dict,
+        response: Optional[ObjectApiResponse],
+        hit: Optional[dict],
+    ) -> None:
+        """
+        Execute some operations on the attribute value dictionary.
+
+        Parameters
+        ----------
+        document_class : Type[TBaseDocument]
+            Class of this document. (It's not an instance of the class)
+        body : dict
+            Dictionary to put the new attributes into
+        response : ObjectApiResponse, optional
+            Attribute value mapping dictionary to be processed
+        hit : dict, optional
+            Hit dictionary from the search
+
+        Raises
+        ------
+        Exception
+            if there was any error with processing
+        """
+        raise NotImplementedError
+
+
+##########################################################################################
+class ToDocumentAttributeMapper(ToDocumentBaseProcessor):
+    """
+    Prepare the attribute value mapping to be saved into the database.
+    """
+
+    @classmethod
+    def process(
+        cls,
+        document: TBaseDocument,
+        attr_value_dict: Dict[str, Any],
+    ) -> None:
+        for obj_attr in document._to_db_mapping:
+            del attr_value_dict[obj_attr]
+
+
+class ToDocumentEnumConverter(ToDocumentBaseProcessor):
+    """
+    Convert enum types to their values because `Enum` types cannot be directly saved into ElasticSearch.
+
+    """
+
+    @classmethod
+    def process(
+        cls,
+        document: TBaseDocument,
+        attr_value_dict: Dict[str, Any],
+    ) -> None:
+        for attr_name, attr_value in attr_value_dict.copy().items():
+            attr_value = getattr(document, attr_name, None)
+            if attr_value:
+                if isinstance(attr_value, Enum):
+                    attr_value_dict[attr_name] = attr_value.value
+
+
+class FromDocumentAttributeMapper(FromDocumentBaseProcessor):
+    """
+    Prepare the attribute value mapping from graph to be converted into a python object.
+    """
+
+    @classmethod
+    def process(
+        cls,
+        document_class: Type[TBaseDocument],
+        body: dict,
+        response: Optional[ObjectApiResponse],
+        hit: Optional[dict],
+    ) -> None:
+        if body is None or (response is None and hit is None):
+            return
+
+        if response is not None:
+            body.update(**response.body["_source"])
+            body.update({"id": response.body["_id"]})
+        else:
+            body = dict(**hit["_source"])
+            body.update({"id": hit["_id"]})
+
+
+##########################################################################################
 
 
 class BaseDocument(BaseModel):
+    _es: Optional[Elasticsearch]
+
     _index_name = "base_index_name"
     _mappings = {}
 
-    _to_db_mapping = ["id", "search_metadata"]
-    _do_not_update = ["created_at"]
+    _to_db_mapping = ("id", "search_metadata")
     _search_fields = []
+
+    _to_index_base_processors: Optional[Tuple[ToDocumentBaseProcessor]] = (
+        ToDocumentEnumConverter,
+        ToDocumentAttributeMapper,
+    )
+    _to_index_extra_processors: Optional[Tuple[ToDocumentBaseProcessor]] = None
+
+    _from_index_base_processors: Optional[Tuple[FromDocumentBaseProcessor]] = (FromDocumentAttributeMapper,)
+    _from_index_extra_processors: Optional[Tuple[FromDocumentBaseProcessor]] = None
+
+    _base_do_not_update_fields: Optional[Tuple[str]] = ("created_at",)
+    _extra_do_not_update_fields: Optional[Tuple[str]] = None
 
     id: Optional[str]
 
@@ -29,120 +161,240 @@ class BaseDocument(BaseModel):
 
     search_metadata: Optional[SearchMetaData]
 
-    def parse_for_db(self) -> Tuple[str, dict]:
-        temp_dict = self.dict()
-        for key in self._to_db_mapping:
-            del temp_dict[key]
+    def to_index(self) -> Tuple[Optional[str], Optional[dict]]:
+        """
+        Convert the object to a dictionary to be saved into the ElasticSearch.
 
-        return self.id, temp_dict
+        Returns
+        -------
+        tuple
+            Tuple of the document ID and dictionary mapping attribute names to attribute values
+
+        """
+        attr_value_dict = self.dict()
+
+        for attrib_processor in self._to_index_base_processors:
+            try:
+                attrib_processor.process(self, attr_value_dict)
+            except Exception as e:
+                return None, None
+
+        if self._to_index_extra_processors is not None:
+            for doc_processor in self._to_index_extra_processors:
+                try:
+                    doc_processor.process(self, attr_value_dict)
+                except Exception as e:
+                    return None, None
+
+        return self.id, attr_value_dict
 
     @classmethod
-    def parse_from_db(
+    def from_index(
         cls,
-        response: ObjectApiResponse,
-    ):
-        if response is None or not len(response.body):
-            return None
+        response: Optional[ObjectApiResponse] = None,
+        hit: Optional[dict] = None,
+        rank: Optional[int] = None,
+    ) -> Optional[TBaseDocument]:
+        """
+        Convert a database document dictionary to be converted into a python object.
 
-        body = dict(**response.body["_source"])
-        body.update({"id": response.body["_id"]})
+        Parameters
+        ----------
+        doc : dict
+            Dictionary mapping attribute names to attribute values
+        response : ObjectApiResponse, optional
+            Attribute value mapping dictionary to be processed
+        hit : dict, optional
+            Hit dictionary from the search
+        rank : int, optional
+            Rank of the hit in the query
 
-        return cls(**body)
+        Returns
+        -------
+        TBaseDocument, optional
+            Python object converted from the database document dictionary
 
-    @classmethod
-    def parse_from_db_hit(
-        cls,
-        hit: dict,
-        rank: int,
-    ):
-        if hit is None or not len(hit) or not len(hit["_source"]) or rank is None:
-            return None
+        """
+        _id = None
+        is_hit = False
+        if response is not None:
+            if not len(response.body):
+                return None
 
-        body = dict(**hit["_source"])
-        body.update({"id": hit["_id"]})
+            _id = response.body["_id"]
 
-        obj = cls(**body)
-        obj.search_metadata = SearchMetaData(
-            rank=rank,
-            score=hit.get("_score", None) or 0.0,
-        )
-        return obj
+        elif hit is not None:
+            if not len(hit) or not len(hit["_source"]) or rank is None:
+                return None
 
-    def _update_doc_from_old_doc(
+            is_hit = True
+            _id = hit["_id"]
+
+        else:
+            raise ValueError()
+
+        body = dict()
+        body.update({"id": _id})
+
+        for doc_processor in cls._from_index_base_processors:
+            try:
+                doc_processor.process(cls, body, response, hit)
+            except Exception as e:
+                return None
+
+        if cls._from_index_extra_processors is not None:
+            for doc_processor in cls._from_index_extra_processors:
+                try:
+                    doc_processor.process(cls, body, response, hit)
+                except Exception as e:
+                    return None
+
+        try:
+            obj = cls(**body)
+        except ValidationError as e:
+            # Attribute value mapping cannot be validated, and it cannot be converted to a python object
+            logger.debug(e.json())
+        except Exception as e:
+            # todo: check if this happens
+            logger.exception(e)
+        else:
+            if is_hit:
+                obj.search_metadata = SearchMetaData(
+                    rank=rank,
+                    score=hit.get("_score", None) or 0.0,
+                )
+            return obj
+
+        return None
+
+    def _update_non_updatable_fields(
         self,
-        old_doc: BaseDocument,
-    ):
-        for k in self._do_not_update:
-            if getattr(self, k, None):
-                setattr(self, k, getattr(old_doc, k, None))
+        old_doc: TBaseDocument,
+    ) -> TBaseDocument:
+        """
+        Update the non-updatable field values of a document from an old document
+
+        Parameters
+        ----------
+        old_doc : TBaseDocument
+            Document to update the fields from
+
+        Returns
+        -------
+        TBaseDocument
+            Updated document
+
+        """
+        for field_name in self._base_do_not_update_fields:
+            setattr(self, field_name, getattr(old_doc, field_name, None))
+
+        if self._extra_do_not_update_fields is not None:
+            for field_name in self._extra_do_not_update_fields:
+                setattr(self, field_name, getattr(old_doc, field_name, None))
 
         return self
 
     @classmethod
     def has_index(
         cls,
-        es: Elasticsearch,
     ) -> bool:
+        """
+        Check if an index exists in the ElasticSearch.
+
+        Returns
+        -------
+        bool
+            Whether the Index exists in the ElasticSearch or not
+
+        """
         index_exists = False
         try:
-            es.indices.get(index=cls._index_name)
+            cls._es.indices.get(index=cls._index_name)
             index_exists = True
         except NotFoundError as e:
-            pass
+            index_exists = False
         except Exception as e:
+            index_exists = False
             logger.exception(e)
         return index_exists
 
     @classmethod
     def create_index(
         cls,
-        es: Elasticsearch,
-    ):
+    ) -> bool:
+        """
+        Create the index in the ElasticSearch
+
+        Returns
+        -------
+        bool
+            Whether the index was created or not
+        """
         try:
-            es.indices.create(
+            cls._es.indices.create(
                 index=cls._index_name,
                 mappings=cls._mappings,
             )
         except Exception as e:
             pass
+        else:
+            return True
+
+        return False
 
     @classmethod
     def get(
         cls,
-        es: Elasticsearch,
         doc_id: str,
-    ):
-        if es is None:
-            return None
+    ) -> Optional[TBaseDocument]:
+        """
+        Get a document in a collection by its `ID`
 
+        Parameters
+        ----------
+        doc_id : str
+            ID of the document in the index
+
+        Returns
+        -------
+        TBaseDocument, optional
+            Document matching the specified `ID` if it exists in the index, otherwise return `None`
+
+        """
         obj = None
         try:
-            response = es.get(
+            response = cls._es.get(
                 index=cls._index_name,
                 id=doc_id,
             )
-            obj = cls.parse_from_db(response)
+            obj = cls.from_index(response=response)
         except NotFoundError as e:
             # audio does not exist in the index
             pass
         except Exception as e:
-            logger.exception(e)
+            logger.exception(f"{cls.__name__} : {e}")
         return obj
 
     @classmethod
     def create(
-        cls,
-        es: Elasticsearch,
-        document: BaseDocument,
-    ):
+        cls: Type[TBaseDocument],
+        document: TBaseDocument,
+    ) -> Tuple[Optional[TBaseDocument], bool]:
         """
-        Creates a document in the index
+        Insert an object into the ElasticSearch
 
-        :param es: Elasticsearch low-level client
-        :param document: The document to insert in the index
-        :return: document, successful
+        Parameters
+        ----------
+        document : TBaseDocument
+            Object to inserted into the ElasticSearch
+
+        Returns
+        -------
+        tuple
+            Document object with returned metadata from ElasticSearch and `True` if the operation was successful,
+            otherwise return `None` and `False`.
         """
-        if es is None or document is None:
+        if document is None:
             return None, False
 
         if not isinstance(document, BaseDocument):
@@ -150,9 +402,9 @@ class BaseDocument(BaseModel):
 
         successful = False
         try:
-            id, doc = document.parse_for_db()
+            id, doc = document.to_index()
             if id and doc:
-                response = es.create(
+                response = cls._es.create(
                     index=cls._index_name,
                     id=id,
                     document=doc,
@@ -160,70 +412,93 @@ class BaseDocument(BaseModel):
                 successful = True
         except ConflictError as e:
             # Exception representing a 409 status code. Document exists in the index
-            logger.exception(e)
+            logger.exception(f"{cls.__name__} : {e}")
         except Exception as e:
-            logger.exception(e)
+            logger.exception(f"{cls.__name__} : {e}")
 
         return document, successful
 
-    @classmethod
     def update(
-        cls,
-        es: Elasticsearch,
-        old_document: BaseDocument,
-        document: BaseDocument,
-    ):
+        self,
+        document: TBaseDocument,
+        reserve_non_updatable_fields: bool = True,
+    ) -> bool:
         """
-        Updates a document in the index
+        Update a document in the database
 
-        :param es: Elasticsearch low-level client
-        :param old_document: The old document that is already in the index
-        :param document: The new document to update in the index
-        :return: document, successful
+        Parameters
+        ----------
+        document : TBaseDocument
+            Document used for updating the old document in the database
+        reserve_non_updatable_fields : bool, default: True
+            Whether to keep the non-updatable fields from the old document or not
+
+        Returns
+        -------
+        bool
+            Whether the update was successful or not
+
         """
-        if es is None or old_document is None or document is None:
-            return None, False
+        if document is None:
+            return False
 
         if not isinstance(document, BaseDocument):
             raise Exception(f"`document` is not an instance of {BaseDocument.__class__.__name__} class")
 
         successful = False
         try:
-            id, doc = document._update_doc_from_old_doc(old_document).parse_for_db()
+            if reserve_non_updatable_fields:
+                id, doc = document._update_non_updatable_fields(self).to_index()
+            else:
+                id, doc = document.to_index()
+
             if id and doc:
-                response = es.update(
-                    index=cls._index_name,
+                response = self._es.update(
+                    index=self._index_name,
                     id=id,
                     doc=doc,
                 )
                 successful = True
         except Exception as e:
-            logger.exception(e)
+            logger.exception(f"{self.__class__.__name__} : {e}")
 
-        return document, successful
+        return successful
 
     @classmethod
     def search(
         cls,
-        es: Elasticsearch,
         query: str,
         from_: int = 0,
         size: int = 50,
         valid_for_inline_search: Optional[bool] = True,
-    ):
-        if es is None or query is None or from_ is None or size is None:
-            return None
+    ) -> Tuple[Optional[List[TBaseDocument]], Optional[ElasticQueryMetadata]]:
+        """
+        Search among the documents with the given query
+
+        Parameters
+        ----------
+        query : str
+            Query string to search for
+        from_ : int, default : 0
+            Number of documents to skip in the query
+        size : int, default : 50
+            Number of documents to return
+        valid_for_inline_search : bool, default: True
+            Whether to filter documents by the validity to be shown in inline search of telegram
+
+
+        Returns
+        -------
+        tuple
+            List of documents matching the query alongside the query metadata
+
+        """
+        if query is None or from_ is None or size is None:
+            return None, None
 
         db_docs = []
-        search_metadata = {
-            "duration": None,
-            "total_hits": None,
-            "total_rel": None,
-            "max_score": None,
-        }
-
         try:
-            res: "ObjectApiResponse" = es.search(
+            res: ObjectApiResponse = cls._es.search(
                 index=cls._index_name,
                 from_=from_,
                 size=size,
@@ -234,35 +509,56 @@ class BaseDocument(BaseModel):
             hits = res.body["hits"]["hits"]
 
             duration = res.meta.duration
-            total_hits = res.body["hits"]["total"]["value"]
+            total_hits = res.body["hits"]["total"]["value"] or 0
             total_rel = res.body["hits"]["total"]["relation"]
-            max_score = res.body["hits"]["max_score"]
+            max_score = res.body["hits"]["max_score"] or 0
 
-            search_metadata = {
+            query_metadata = {
                 "duration": duration,
                 "total_hits": total_hits,
                 "total_rel": total_rel,
                 "max_score": max_score,
             }
 
+            query_metadata = ElasticQueryMetadata.parse(query_metadata)
+
             for index, hit in enumerate(hits, start=1):
-                db_doc = cls.parse_from_db_hit(
-                    hit,
-                    len(hits) - index + 1,
+                db_doc = cls.from_index(
+                    hit=hit,
+                    rank=len(hits) - index + 1,
                 )
                 db_docs.append(db_doc)
 
         except Exception as e:
             logger.exception(e)
 
-        return db_docs, search_metadata
+        else:
+            return db_docs, query_metadata
+
+        return None, None
 
     @classmethod
     def get_query(
         cls,
         query: Optional[str],
         valid_for_inline_search: Optional[bool] = True,
-    ):
+    ) -> dict:
+        """
+        Get the query for this index
+
+        Parameters
+        ----------
+        query : str, optional
+            Query string to search for
+        valid_for_inline_search : bool, default : True
+            Whether to filter documents by the validity to be shown in inline search of telegram
+
+        Returns
+        -------
+        dict
+            Dictionary defining how the query should be made
+
+        """
         return {
             "multi_match": {
                 "query": query,
@@ -274,5 +570,13 @@ class BaseDocument(BaseModel):
         }
 
     @classmethod
-    def get_sort(cls):
+    def get_sort(cls) -> Optional[dict]:
+        """
+        Get sort dictionary for this query
+
+        Returns
+        -------
+        dict, optional
+            Dictionary defining how the query results should be sorted
+        """
         return None
