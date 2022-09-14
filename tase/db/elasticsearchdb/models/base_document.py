@@ -140,7 +140,7 @@ class BaseDocument(BaseModel):
     _mappings = {}
 
     _to_db_mapping = ("id", "search_metadata")
-    _search_fields = []
+    _search_fields: List[str] = []
 
     _to_index_base_processors: Optional[Tuple[ToDocumentBaseProcessor]] = (
         ToDocumentEnumConverter,
@@ -580,3 +580,60 @@ class BaseDocument(BaseModel):
             Dictionary defining how the query results should be sorted
         """
         return None
+
+    ######################################################################
+    @classmethod
+    def parse(
+        cls: Type[TBaseDocument],
+        *args,
+        **kwargs,
+    ) -> Optional[TBaseDocument]:
+        """
+        Parse a subclass of `BaseDocument` document from given arguments and keyword arguments
+
+        Parameters
+        ----------
+        args : tuple
+            List of arguments
+        kwargs : dict, optional
+            Dictionary of keyword arguments
+
+        Returns
+        -------
+        TBaseDocument, optional
+            Document object if parsing was successful, otherwise, return `None`.
+
+        Raises
+        ------
+        NotImplementedError
+            If the `class` calling this or any of superclasses haven't implemented this method.
+        """
+        raise NotImplementedError
+
+    @classmethod
+    def parse_id(
+        cls: Type[TBaseDocument],
+        *args,
+        **kwargs,
+    ) -> Optional[str]:
+        """
+        Parse an ID from the given arguments and keyword arguments
+
+        Parameters
+        ----------
+        args : tuple
+            List of arguments
+        kwargs : dict, optional
+            List of keyword arguments
+
+        Returns
+        -------
+        str, optional
+            ID string if parsing was successful, otherwise, return `None`.
+
+        Raises
+        ------
+        NotImplementedError
+            If the `class` calling this or any of superclasses haven't implemented this method.
+        """
+        raise NotImplementedError

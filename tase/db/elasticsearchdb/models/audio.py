@@ -1,13 +1,16 @@
-import secrets
+from __future__ import annotations
+
 from typing import Optional
 
 import pyrogram
 from elastic_transport import ObjectApiResponse
-from elasticsearch import Elasticsearch
+from pydantic import Field
 
-from .base_document import BaseDocument
 from tase.my_logger import logger
 from tase.utils import datetime_to_timestamp
+from .base_document import BaseDocument
+from ...arangodb.enums import TelegramAudioType
+from ...db_utils import get_telegram_message_media_type
 
 
 class Audio(BaseDocument):
@@ -28,16 +31,21 @@ class Audio(BaseDocument):
             "mime_type": {"type": "keyword"},
             "file_size": {"type": "integer"},
             "date": {"type": "date"},
+            "views": {"type": "long"},
             "download_count": {"type": "long"},
-            "is_audio_file": {"type": "boolean"},
+            "search_hits": {"type": "long"},
+            "non_search_hits": {"type": "long"},
+            "audio_type": {"type": "integer"},
             "valid_for_inline_search": {"type": "bool"},
         }
     }
 
-    _do_not_update = [
-        "created_at",
+    _extra_do_not_update_fields = (
+        "views",
         "download_count",
-    ]
+        "search_hits",
+        "non_search_hits",
+    )
     _search_fields = [
         "performer",
         "title",
@@ -59,8 +67,11 @@ class Audio(BaseDocument):
     file_size: int
     date: int
 
-    download_count: int
-    is_audio_file: bool  # whether the audio file is shown in the `audios` or `files/documents` section of telegram app
+    views: int = Field(default=0)
+    download_count: int = Field(default=0)
+    search_hits: int = Field(default=0)
+    non_search_hits: int = Field(default=0)
+    audio_type: TelegramAudioType  # whether the audio file is shown in the `audios` or `files/documents` section of telegram app
     valid_for_inline_search: bool
     """
      when an audio's title is None or the audio is shown in document section of
@@ -70,76 +81,108 @@ class Audio(BaseDocument):
      mode.
     """
 
-    @staticmethod
-    def get_id(
-        message: "pyrogram.types.Message",
-    ):
-        if message.audio:
-            _audio = message.audio
-        elif message.document:
-            _audio = message.document
-        else:
+    @classmethod
+    def parse_id(
+        cls,
+        telegram_message: pyrogram.types.Message,
+    ) -> Optional[str]:
+        """
+        Parse the `ID` from the given `telegram_message` argument if it contains a valid audio file, otherwise raise
+        an `ValueError` exception.
+
+        Parameters
+        ----------
+        telegram_message : pyrogram.types.Message
+            Telegram message to parse the ID from
+
+        Returns
+        -------
+        str, optional
+            Parsed ID if the parsing was successful, otherwise return `None` if the `telegram_message` is `None`.
+
+        Raises
+        ------
+        ValueError
+            If `telegram_message` argument does not contain any valid audio file.
+        """
+        audio, audio_type = get_telegram_message_media_type(telegram_message)
+        if audio_type == TelegramAudioType.NON_AUDIO:
             raise ValueError("Unexpected value for `message`: nor audio nor document")
-        return f"{_audio.file_unique_id}:{message.chat.id}:{message.id}"
+
+        return f"{audio.file_unique_id}:{telegram_message.chat.id}:{telegram_message.id}"
 
     @classmethod
-    def parse_from_message(
+    def parse(
         cls,
-        message: "pyrogram.types.Message",
-    ) -> Optional["Audio"]:
-        if message is None:
+        telegram_message: pyrogram.types.Message,
+    ) -> Optional[Audio]:
+        """
+        Parse an `Audio` from the given `telegram_message` argument.
+
+        Parameters
+        ----------
+        telegram_message : pyrogram.types.Message
+            Telegram message to parse the `Audio` from
+
+        Returns
+        -------
+        Audio, optional
+            Parsed `Audio` if parsing was successful, otherwise, return `None`.
+
+        Raises
+        ------
+        ValueError
+            If `telegram_message` argument does not contain any valid audio file.
+        """
+        if telegram_message is None:
             return None
 
-        if message.audio:
-            _audio = message.audio
-            is_audio_file = True
-        elif message.document:
-            _audio = message.document
-            is_audio_file = False
-        else:
+        _id = cls.parse_id(telegram_message)
+        if _id is None:
+            return None
+
+        audio, audio_type = get_telegram_message_media_type(telegram_message)
+        if audio_type == TelegramAudioType.NON_AUDIO:
             raise ValueError("Unexpected value for `message`: nor audio nor document")
 
-        while True:
-            download_url = secrets.token_urlsafe(6)
-            if download_url.find("-") == -1:
-                break
-
-        title = getattr(_audio, "title", None)
+        title = getattr(audio, "title", None)
 
         # todo: check if the following statement is actually true
-        valid_for_inline = True if title is not None and is_audio_file is not None else False
+        valid_for_inline = True if title is not None and audio_type == TelegramAudioType.AUDIO_FILE else False
+
+        caption = telegram_message.caption if telegram_message.caption else telegram_message.text
 
         return Audio(
-            id=cls.get_id(message),
-            chat_id=message.chat.id,
-            message_id=message.id,
-            message_caption=message.caption,
-            message_date=datetime_to_timestamp(message.date),
-            file_unique_id=_audio.file_unique_id,
-            duration=getattr(_audio, "duration", None),
-            performer=getattr(_audio, "performer", None),
+            id=_id,
+            chat_id=telegram_message.chat.id,
+            message_id=telegram_message.id,
+            message_caption=caption,
+            message_date=datetime_to_timestamp(telegram_message.date),
+            file_unique_id=audio.file_unique_id,
+            duration=getattr(audio, "duration", None),
+            performer=getattr(audio, "performer", None),
             title=title,
-            file_name=_audio.file_name,
-            mime_type=_audio.mime_type,
-            file_size=_audio.file_size,
-            date=datetime_to_timestamp(_audio.date),
-            download_count=0,
+            file_name=audio.file_name,
+            mime_type=audio.mime_type,
+            file_size=audio.file_size,
+            date=datetime_to_timestamp(audio.date),
+            ########################################
+            views=telegram_message.views or 0,
             valid_for_inline_search=valid_for_inline,
-            is_audio_file=is_audio_file,
+            audio_type=audio_type,
         )
 
     @classmethod
     def search_by_download_url(
         cls,
-        es: "Elasticsearch",
         download_url: str,
-    ) -> Optional["Audio"]:
-        if es is None or download_url is None:
+    ) -> Optional[Audio]:
+        if download_url is None:
             return None
         db_docs = []
 
         try:
-            res: "ObjectApiResponse" = es.search(
+            res: ObjectApiResponse = cls._es.search(
                 index=cls._index_name,
                 query={
                     "match": {
@@ -151,38 +194,7 @@ class Audio(BaseDocument):
             hits = res.body["hits"]["hits"]
 
             for index, hit in enumerate(hits, start=1):
-                db_doc = cls.parse_from_db_hit(hit, len(hits) - index + 1)
-                db_docs.append(db_doc)
-
-        except Exception as e:
-            logger.exception(e)
-
-        return db_docs[0] if len(db_docs) else None
-
-    @classmethod
-    def search_by_id(
-        cls,
-        es: "Elasticsearch",
-        key: str,
-    ) -> Optional["Audio"]:
-        if es is None or key is None:
-            return None
-        db_docs = []
-
-        try:
-            res: "ObjectApiResponse" = es.search(
-                index=cls._index_name,
-                query={
-                    "match": {
-                        "_id": key,
-                    },
-                },
-            )
-
-            hits = res.body["hits"]["hits"]
-
-            for index, hit in enumerate(hits, start=1):
-                db_doc = cls.parse_from_db_hit(hit, len(hits) - index + 1)
+                db_doc = cls.from_index(hit=hit, rank=len(hits) - index + 1)
                 db_docs.append(db_doc)
 
         except Exception as e:
@@ -195,7 +207,7 @@ class Audio(BaseDocument):
         cls,
         query: Optional[str],
         valid_for_inline_search: Optional[bool] = True,
-    ):
+    ) -> Optional[dict]:
         if valid_for_inline_search:
             return {
                 "bool": {
@@ -230,7 +242,7 @@ class Audio(BaseDocument):
     @classmethod
     def get_sort(
         cls,
-    ):
+    ) -> Optional[dict]:
         return {
             "_score": {"order": "desc"},
             "download_count": {"order": "desc"},
