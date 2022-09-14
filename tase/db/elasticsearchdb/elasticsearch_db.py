@@ -1,4 +1,4 @@
-from elasticsearch import Elasticsearch
+from elasticsearch import Elasticsearch, logger
 
 from tase.configs import ElasticConfig
 from tase.db.elasticsearchdb.models import elasticsearch_indices
@@ -24,4 +24,10 @@ class ElasticsearchDatabase:
             index_cls._es = self.es
 
             if not index_cls.has_index():
-                index_cls.create_index()
+                try:
+                    created = index_cls.create_index()
+                except Exception as e:
+                    logger.exception(f"Could not create the {index_cls._index_name} Index")
+                else:
+                    if not created:
+                        logger.error(f"Could not create the {index_cls._index_name} Index")

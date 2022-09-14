@@ -338,11 +338,9 @@ class BaseDocument(BaseModel):
                 mappings=cls._mappings,
             )
         except Exception as e:
-            pass
+            raise e
         else:
             return True
-
-        return False
 
     @classmethod
     def get(

@@ -42,7 +42,7 @@ class Audio(BaseDocument):
             "likes": {"type": "long"},
             "dislikes": {"type": "long"},
             "audio_type": {"type": "integer"},
-            "valid_for_inline_search": {"type": "bool"},
+            "valid_for_inline_search": {"type": "boolean"},
         }
     }
 
