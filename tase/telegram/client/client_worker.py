@@ -9,7 +9,8 @@ from kombu.transport import pyamqp
 
 from tase import tase_globals
 from tase.configs import ClientTypes
-from tase.db.database_client import DatabaseClient
+from tase.db import DatabaseClient
+
 from tase.my_logger import logger
 from tase.telegram.client import TelegramClient
 from tase.telegram.client.tasks import BaseTask
@@ -20,10 +21,10 @@ from tase.utils import exception_handler
 class ClientTaskConsumer(ConsumerProducerMixin):
     def __init__(
         self,
-        connection: "Connection",
-        telegram_client: "TelegramClient",
+        connection: Connection,
+        telegram_client: TelegramClient,
         db,
-        client_worker_queues: Dict["str", "kombu.Queue"],
+        client_worker_queues: Dict[str, kombu.Queue],
     ):
         logger.info("client task consumer started...")
         self.connection = connection
@@ -104,9 +105,13 @@ class ClientTaskConsumer(ConsumerProducerMixin):
 
         if isinstance(body, BaseWorkerCommand):
             body.run_command(self, self.telegram_client, self.db)
-            logger.info(f"Worker got a new command: {body.name} @{self.telegram_client.get_session_name()}")
+            logger.info(
+                f"Worker got a new command: {body.name} @{self.telegram_client.get_session_name()}"
+            )
         elif isinstance(body, BaseTask):
-            logger.info(f"Worker got a new task: {body.name} @ {self.telegram_client.get_session_name()}")
+            logger.info(
+                f"Worker got a new task: {body.name} @ {self.telegram_client.get_session_name()}"
+            )
 
             if self.telegram_client.is_connected() and body.name:
                 body.run_task(self.telegram_client, self.db)
@@ -118,10 +123,10 @@ class ClientTaskConsumer(ConsumerProducerMixin):
 class ClientWorkerThread(Thread):
     def __init__(
         self,
-        telegram_client: "TelegramClient",
+        telegram_client: TelegramClient,
         index: int,
-        db: "DatabaseClient",
-        client_worker_queues: Dict["str", "kombu.Queue"],
+        db: DatabaseClient,
+        client_worker_queues: Dict[str, kombu.Queue],
     ):
         super().__init__()
         self.daemon = True

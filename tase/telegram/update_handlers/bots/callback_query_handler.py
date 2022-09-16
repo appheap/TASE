@@ -21,12 +21,11 @@ class CallbackQueryHandler(BaseHandler):
     @exception_handler
     def on_callback_query(
         self,
-        client: "pyrogram.Client",
-        callback_query: "pyrogram.types.CallbackQuery",
+        client: pyrogram.Client,
+        callback_query: pyrogram.types.CallbackQuery,
     ):
         logger.debug(f"on_callback_query: {callback_query}")
-        # callback_query.edit_message_caption(str(arrow.utcnow()),reply_markup=callback_query.message.reply_markup)
-        db_user = self.db.get_user_by_user_id(callback_query.from_user.id)
+        db_user = self.db.graph.get_or_create_user(callback_query.from_user)
 
         controller, data = callback_query.data.split("->")
         button = InlineButton.get_button(controller)

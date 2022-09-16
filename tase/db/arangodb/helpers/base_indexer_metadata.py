@@ -1,7 +1,11 @@
-from pydantic import BaseModel, Field
+from __future__ import annotations
+
+from pydantic import Field
+
+from tase.db.arangodb.base import BaseCollectionAttributes
 
 
-class BaseIndexerMetadata(BaseModel):
+class BaseIndexerMetadata(BaseCollectionAttributes):
     """
     This class is used to store indexer metadata and is not vertex by itself
     """
@@ -17,7 +21,7 @@ class BaseIndexerMetadata(BaseModel):
     def update_score(self):
         raise NotImplementedError
 
-    def update_metadata(self, metadata: "BaseIndexerMetadata") -> "BaseIndexerMetadata":
+    def update_metadata(self, metadata: BaseIndexerMetadata) -> BaseIndexerMetadata:
         if metadata is None or not isinstance(metadata, BaseIndexerMetadata):
             return self
 

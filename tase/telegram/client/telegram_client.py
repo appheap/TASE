@@ -170,7 +170,9 @@ class UserTelegramClient(TelegramClient):
         self.name = client_config.name
         self.api_id = client_config.api_id
         self.api_hash = client_config.api_hash
-        self.role = UserClientRoles._parse(client_config.role)  # todo: check for unknown roles
+        self.role = UserClientRoles._parse(
+            client_config.role
+        )  # todo: check for unknown roles
 
     def init_client(self):
         self._client = pyrogram.Client(
@@ -196,7 +198,9 @@ class BotTelegramClient(TelegramClient):
         self.api_id = client_config.api_id
         self.api_hash = client_config.api_hash
         self.token = client_config.bot_token
-        self.role = BotClientRoles._parse(client_config.role)  # todo: check for unknown roles
+        self.role = BotClientRoles._parse(
+            client_config.role
+        )  # todo: check for unknown roles
 
     def init_client(self):
         self._client = pyrogram.Client(

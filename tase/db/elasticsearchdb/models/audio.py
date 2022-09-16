@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Optional
+from typing import Optional, List, Tuple
 
 import pyrogram
 from elastic_transport import ObjectApiResponse
@@ -10,6 +10,7 @@ from tase.my_logger import logger
 from tase.utils import datetime_to_timestamp
 from .base_document import BaseDocument
 from ...arangodb.enums import TelegramAudioType
+from ...arangodb.helpers import ElasticQueryMetadata
 from ...db_utils import get_telegram_message_media_type, parse_audio_key
 
 
@@ -152,9 +153,17 @@ class Audio(BaseDocument):
         title = getattr(audio, "title", None)
 
         # todo: check if the following statement is actually true
-        valid_for_inline = True if title is not None and audio_type == TelegramAudioType.AUDIO_FILE else False
+        valid_for_inline = (
+            True
+            if title is not None and audio_type == TelegramAudioType.AUDIO_FILE
+            else False
+        )
 
-        caption = telegram_message.caption if telegram_message.caption else telegram_message.text
+        caption = (
+            telegram_message.caption
+            if telegram_message.caption
+            else telegram_message.text
+        )
 
         return Audio(
             id=_id,
@@ -249,7 +258,7 @@ class Audio(BaseDocument):
     ) -> Optional[dict]:
         return {
             "_score": {"order": "desc"},
-            "download_count": {"order": "desc"},
+            "downloads": {"order": "desc"},
             "date": {"order": "desc"},
         }
 
@@ -364,3 +373,42 @@ class AudioMethods:
 
         """
         return Audio.get(id)
+
+    def search_audio(
+        self,
+        query: str,
+        from_: int = 0,
+        size: int = 10,
+        valid_for_inline_search: Optional[bool] = True,
+    ) -> Tuple[Optional[List[Audio]], Optional[ElasticQueryMetadata]]:
+        """
+        Search among the audio files with the given query
+
+        Parameters
+        ----------
+        query : str
+            Query string to search for
+        from_ : int, default : 0
+            Number of audio files to skip in the query
+        size : int, default : 50
+            Number of audio files to return
+        valid_for_inline_search : bool, default: True
+            Whether to filter audios by the validity to be shown in inline search of telegram
+
+
+        Returns
+        -------
+        tuple
+            List of audio files matching the query alongside the query metadata
+
+        """
+        if query is None or from_ is None or size is None:
+            return None, None
+
+        audios, query_metadata = Audio.search(
+            query,
+            from_,
+            size,
+            valid_for_inline_search,
+        )
+        return audios, query_metadata

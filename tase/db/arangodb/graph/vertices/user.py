@@ -92,7 +92,9 @@ class User(BaseVertex):
             language_code=telegram_user.language_code,
             dc_id=telegram_user.dc_id,
             phone_number=telegram_user.phone_number,
-            restrictions=Restriction.parse_from_restrictions(telegram_user.restrictions),
+            restrictions=Restriction.parse_from_restrictions(
+                telegram_user.restrictions
+            ),
         )
 
     def update_chosen_language(
@@ -205,7 +207,9 @@ class UserMethods:
             fav_playlist = self.get_or_create_favorite_playlist(user)
             if not fav_playlist:
                 # fixme: could not create/get favorite playlist.
-                logger.error(f"could not create/get favorite playlist for user: {prettify(user)}")
+                logger.error(
+                    f"could not create/get favorite playlist for user: {prettify(user)}"
+                )
 
         return user
 

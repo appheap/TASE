@@ -125,7 +125,9 @@ class AudioMethods:
             return None
 
         try:
-            audio, successful = Audio.insert(Audio.parse(telegram_message, telegram_client_id))
+            audio, successful = Audio.insert(
+                Audio.parse(telegram_message, telegram_client_id)
+            )
         except ValueError:
             # the message does not contain any valid audio file
             pass
@@ -200,8 +202,62 @@ class AudioMethods:
                 audio = self.create_audio(telegram_message, telegram_client_id)
             else:
                 try:
-                    updated = audio.update(Audio.parse(telegram_message, telegram_client_id))
+                    updated = audio.update(
+                        Audio.parse(telegram_message, telegram_client_id)
+                    )
                 except ValueError:
                     updated = False
 
         return audio
+
+    def get_audio_by_key(
+        self,
+        telegram_client_id: int,
+        audio_key: str,
+    ) -> Optional[Audio]:
+        """
+        Get `Audio` by its `key` from given arguments
+
+        Parameters
+        ----------
+        telegram_client_id : int
+            ID of the telegram client
+        audio_key : str
+            Key of the `Audio` vertex or index (from arangodb or elasticsearch)
+
+        Returns
+        -------
+        Audio, optional
+            Audio if it exists in the ArangoDB, otherwise, return None
+
+        """
+        if telegram_client_id is None or audio_key is None:
+            return None
+
+        return Audio.get(f"{telegram_client_id}:{audio_key}")
+
+    def has_audio_by_key(
+        self,
+        telegram_client_id: int,
+        audio_key: str,
+    ) -> bool:
+        """
+        Check whether an `Audio` exists in the ArangoDB
+
+        Parameters
+        ----------
+        telegram_client_id : int
+            ID of the telegram client
+        audio_key : str
+            Key of the `Audio` vertex or index (from arangodb or elasticsearch)
+
+        Returns
+        -------
+        Audio, optional
+            Audio if it exists in the ArangoDB, otherwise, return None
+
+        """
+        if telegram_client_id is None or audio_key is None:
+            return False
+
+        return Audio.has(f"{telegram_client_id}:{audio_key}")

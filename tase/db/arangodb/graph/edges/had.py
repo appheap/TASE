@@ -44,7 +44,9 @@ class Had(BaseEdge):
 
         deleted_at = kwargs.get("deleted_at", None)
         if deleted_at is None:
-            raise KeyError("`deleted_at` or/and `has` keyword arguments haven't been provided")
+            raise KeyError(
+                "`deleted_at` or/and `has` keyword arguments haven't been provided"
+            )
 
         if not isinstance(deleted_at, int):
             raise ValueError(
@@ -98,7 +100,9 @@ class Had(BaseEdge):
         deleted_at = kwargs.get("deleted_at", None)
         has = kwargs.get("has", None)
         if deleted_at is None or has is None:
-            raise KeyError("`deleted_at` or/and `has` keyword arguments haven't been provided")
+            raise KeyError(
+                "`deleted_at` or/and `has` keyword arguments haven't been provided"
+            )
 
         if not isinstance(deleted_at, int):
             raise TypeError(

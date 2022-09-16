@@ -1,10 +1,11 @@
 from typing import Optional, List
 
 import pyrogram
-from pydantic import BaseModel
+
+from tase.db.arangodb.base import BaseCollectionAttributes
 
 
-class Restriction(BaseModel):
+class Restriction(BaseCollectionAttributes):
     platform: Optional[str]
     reason: Optional[str]
     text: Optional[str]

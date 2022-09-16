@@ -77,6 +77,10 @@ class DownloadMethods:
         if download is None:
             return None
 
+        download, created = Download.insert(download)
+        if not download or not created:
+            return None
+
         from tase.db.arangodb.graph.edges import Has
         from tase.db.arangodb.graph.edges import FromHit
         from tase.db.arangodb.graph.edges import Downloaded
@@ -85,25 +89,33 @@ class DownloadMethods:
         try:
             has_edge = Has.get_or_create_edge(download, audio)
         except ValueError:
-            logger.error("ValueError: Could not create `has` edge from `Download` vertex to `Audio` vertex")
+            logger.error(
+                "ValueError: Could not create `has` edge from `Download` vertex to `Audio` vertex"
+            )
             return None
 
         try:
             from_hit_edge = FromHit.get_or_create_edge(download, hit)
         except ValueError:
-            logger.error("ValueError: Could not create `from_hit` edge from `Download` vertex to `Hit` vertex")
+            logger.error(
+                "ValueError: Could not create `from_hit` edge from `Download` vertex to `Hit` vertex"
+            )
             return None
 
         try:
             downloaded_edge = Downloaded.get_or_create_edge(user, download)
         except ValueError:
-            logger.error("ValueError: Could not create `downloaded` edge from `User` vertex to `Download` vertex")
+            logger.error(
+                "ValueError: Could not create `downloaded` edge from `User` vertex to `Download` vertex"
+            )
             return None
 
         try:
             from_bot_edge = FromBot.get_or_create_edge(download, user)
         except ValueError:
-            logger.error("ValueError: Could not create `from_bot` edge from `Download` vertex to `User` vertex")
+            logger.error(
+                "ValueError: Could not create `from_bot` edge from `Download` vertex to `User` vertex"
+            )
             return None
 
         return download

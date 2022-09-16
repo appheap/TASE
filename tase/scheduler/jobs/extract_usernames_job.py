@@ -17,19 +17,17 @@ class ExtractUsernamesJob(BaseJob):
 
     def run_job(
         self,
-        db: "tase.db.DatabaseClient",
+        db: tase.db.DatabaseClient,
     ) -> None:
-        db_chats = db.get_chats_sorted_by_username_extractor_score()
+        db_chats = db.graph.get_chats_sorted_by_username_extractor_score()
 
-        # fixme: remove this later
-        logger.debug([chat.username for chat in db_chats])
-
-        for db_chat in db_chats:
+        for chat in db_chats:
+            logger.debug(chat.username)
             # todo: blocking or non-blocking? which one is better suited for this case?
             tase_globals.publish_client_task(
                 ExtractUsernamesTask(
                     kwargs={
-                        "db_chat": db_chat,
+                        "chat": chat,
                     }
                 ),
             )

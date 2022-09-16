@@ -58,9 +58,12 @@ class ArangoDB(
 
         for v_class in vertex_classes:
             if not self.graph.has_vertex_collection(v_class._collection_name):
-                _collection = self.graph.create_vertex_collection(v_class._collection_name)
+                _collection = self.graph.create_vertex_collection(
+                    v_class._collection_name
+                )
             else:
                 _collection = self.graph.vertex_collection(v_class._collection_name)
+            v_class._graph_name = arangodb_config.graph_name
             v_class._collection = _collection
             v_class._aql = self.aql
 
@@ -73,6 +76,7 @@ class ArangoDB(
                 )
             else:
                 _collection = self.graph.vertex_collection(e_class._collection_name)
+            e_class._graph_name = arangodb_config.graph_name
             e_class._collection = _collection
             e_class._aql = self.aql
 
@@ -81,5 +85,6 @@ class ArangoDB(
                 _collection = self.db.create_collection(doc._collection_name)
             else:
                 _collection = self.db.collection(doc._collection_name)
+            doc._graph_name = arangodb_config.graph_name
             doc._collection = _collection
             doc._aql = self.aql

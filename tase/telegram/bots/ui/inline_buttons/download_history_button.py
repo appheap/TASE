@@ -4,8 +4,10 @@ import pyrogram
 from pyrogram.enums import ParseMode
 from pyrogram.types import InlineQueryResultArticle, InputTextMessageContent
 
-from tase.db import graph_models
+from tase.db.arangodb import graph as graph_models
+from tase.db.arangodb.enums import InlineQueryType
 from tase.telegram.bots.inline import CustomInlineQueryResult
+from tase.telegram.update_handlers.base import BaseHandler
 from tase.utils import _trans, emoji
 from .inline_button import InlineButton
 from ..inline_items import AudioItem
@@ -21,43 +23,58 @@ class DownloadHistoryInlineButton(InlineButton):
 
     def on_inline_query(
         self,
-        handler: "BaseHandler",
+        handler: BaseHandler,
         result: CustomInlineQueryResult,
-        db_from_user: "graph_models.vertices.User",
-        client: "pyrogram.Client",
-        inline_query: "pyrogram.types.InlineQuery",
+        from_user: graph_models.vertices.User,
+        client: pyrogram.Client,
+        telegram_inline_query: pyrogram.types.InlineQuery,
         query_date: int,
         reg: Optional[Match] = None,
     ):
-        db_audios = handler.db.get_user_download_history(
-            db_from_user,
+        audio_vertices = handler.db.graph.get_user_download_history(
+            from_user,
             offset=result.from_,
         )
 
         results = []
 
+        audio_vertices = list(audio_vertices)
+
         # todo: fix this
-        chats_dict = handler.update_audio_cache(db_audios)
+        chats_dict = handler.update_audio_cache(audio_vertices)
 
-        for db_audio in db_audios:
-            db_audio_file_cache = handler.db.get_audio_file_from_cache(
-                db_audio,
-                handler.telegram_client.telegram_id,
-            )
+        db_query, hits = handler.db.graph.get_or_create_query(
+            handler.telegram_client.telegram_id,
+            from_user,
+            telegram_inline_query.query,
+            query_date,
+            audio_vertices,
+            telegram_inline_query=telegram_inline_query,
+            inline_query_type=InlineQueryType.COMMAND,
+            next_offset=result.get_next_offset(),
+        )
 
-            #  todo: Some audios have null titles, solution?
-            if not db_audio_file_cache or not db_audio.title:
-                continue
-
-            results.append(
-                AudioItem.get_item(
-                    db_audio_file_cache,
-                    db_from_user,
-                    db_audio,
-                    inline_query,
-                    chats_dict,
+        if db_query and hits:
+            for audio_vertex, hit in zip(audio_vertices, hits):
+                audio_doc = handler.db.document.get_audio_by_key(
+                    handler.telegram_client.telegram_id,
+                    audio_vertex.key,
                 )
-            )
+                es_audio_doc = handler.db.index.get_audio_by_id(audio_vertex.key)
+
+                if not audio_doc or not audio_vertex.valid_for_inline_search:
+                    continue
+
+                results.append(
+                    AudioItem.get_item(
+                        audio_doc.file_id,
+                        from_user,
+                        es_audio_doc,
+                        telegram_inline_query,
+                        chats_dict,
+                        hit,
+                    )
+                )
 
         if len(results):
             result.results = results
@@ -67,11 +84,11 @@ class DownloadHistoryInlineButton(InlineButton):
                     InlineQueryResultArticle(
                         title=_trans(
                             "No Results Were Found",
-                            db_from_user.chosen_language_code,
+                            from_user.chosen_language_code,
                         ),
                         description=_trans(
                             "You haven't downloaded any audios yet",
-                            db_from_user.chosen_language_code,
+                            from_user.chosen_language_code,
                         ),
                         input_message_content=InputTextMessageContent(
                             message_text=emoji.high_voltage,
@@ -79,3 +96,26 @@ class DownloadHistoryInlineButton(InlineButton):
                         ),
                     )
                 ]
+
+    def on_chosen_inline_query(
+        self,
+        handler: BaseHandler,
+        client: pyrogram.Client,
+        from_user: graph_models.vertices.User,
+        telegram_chosen_inline_result: pyrogram.types.ChosenInlineResult,
+        reg: Match,
+    ):
+
+        result_id_list = telegram_chosen_inline_result.result_id.split("->")
+        inline_query_id = result_id_list[0]
+        hit_download_url = result_id_list[1]
+
+        # download_vertex = handler.db.graph.create_download(
+        #     hit_download_url,
+        #     from_user,
+        #     handler.telegram_client.telegram_id,
+        # )
+        # if not download_vertex:
+        #     # could not create the download
+        #     logger.error("Could not create the `download` vertex:")
+        #     logger.error(telegram_chosen_inline_result)

@@ -34,7 +34,6 @@ class Audio(BaseVertex):
     message_date: Optional[int]
     message_edit_date: Optional[int]
     views: Optional[int]
-    reactions: Optional[List[str]]
     forward_date: Optional[int]
     forward_from_user_id: Optional[int]
     forward_from_chat_id: Optional[int]
@@ -124,17 +123,21 @@ class Audio(BaseVertex):
         if telegram_message is None:
             return None
 
-        # do not catch `ValueError` exception from the following line
         key = Audio.parse_key(telegram_message)
 
         audio, audio_type = get_telegram_message_media_type(telegram_message)
         if audio is None or audio_type == TelegramAudioType.NON_AUDIO:
+            logger.error(telegram_message)
             raise ValueError("Unexpected value for `message`: nor audio nor document")
 
         title = getattr(audio, "title", None)
 
         # todo: check if the following statement is actually true
-        valid_for_inline = True if title is not None and audio_type == TelegramAudioType.AUDIO_FILE else False
+        valid_for_inline = (
+            True
+            if title is not None and audio_type == TelegramAudioType.AUDIO_FILE
+            else False
+        )
 
         is_forwarded = True if telegram_message.forward_date else False
 
@@ -161,7 +164,6 @@ class Audio(BaseVertex):
             message_date=datetime_to_timestamp(telegram_message.date),
             message_edit_date=datetime_to_timestamp(telegram_message.edit_date),
             views=telegram_message.views,
-            reactions=telegram_message.reactions,
             forward_date=datetime_to_timestamp(telegram_message.forward_date),
             forward_from_user_id=forwarded_from_user_id,
             forward_from_chat_id=forwarded_from_chat_id,
@@ -244,10 +246,8 @@ class AudioMethods:
         "for dl_v,dl_e in 1..1 outbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@downloaded'], vertexCollections:['@downloads']}"
         "   sort dl_e.created_at DESC"
         "   limit @offset, @limit"
-        "   for aud_v,has in 1..1 outbound dl_v graph '@graph_name' options {order:'dfs', edgeCollections:['@has'], vertexCollections:['@audios']}"
-        "       collect audios = aud_v"
-        "       for audio in audios"
-        "           return audio"
+        "   for aud_v,has_e in 1..1 outbound dl_v graph '@graph_name' options {order:'dfs', edgeCollections:['@has'], vertexCollections:['@audios']}"
+        "       return aud_v"
     )
 
     _get_audios_by_keys = "return document(@audios, @audio_keys)"
@@ -281,7 +281,11 @@ class AudioMethods:
             audio, successful = Audio.insert(Audio.parse(telegram_message))
         except ValueError as e:
             # this message doesn't contain any valid audio file
-            pass
+            logger.exception(e)
+            logger.error(telegram_message)
+            logger.error("#" * 50)
+        except Exception as e:
+            logger.exception(e)
         else:
             if audio and successful:
                 audio: Audio = audio
@@ -309,9 +313,13 @@ class AudioMethods:
 
                 if audio.is_forwarded:
                     if telegram_message.forward_from:
-                        forwarded_from = self.get_or_create_user(telegram_message.forward_from)
+                        forwarded_from = self.get_or_create_user(
+                            telegram_message.forward_from
+                        )
                     elif telegram_message.forward_from_chat:
-                        forwarded_from = self.get_or_create_chat(telegram_message.forward_from_chat)
+                        forwarded_from = self.get_or_create_chat(
+                            telegram_message.forward_from_chat
+                        )
                     else:
                         forwarded_from = None
 
@@ -319,11 +327,17 @@ class AudioMethods:
                         try:
                             from tase.db.arangodb.graph.edges import ForwardedFrom
 
-                            forwarded_from_edge = ForwardedFrom.get_or_create_edge(audio, forwarded_from)
+                            forwarded_from_edge = ForwardedFrom.get_or_create_edge(
+                                audio, forwarded_from
+                            )
                             if forwarded_from_edge is None:
-                                raise Exception("Could not create `forwarded_from` edge")
+                                raise Exception(
+                                    "Could not create `forwarded_from` edge"
+                                )
                         except ValueError:
-                            logger.error("ValueError: Could not create `forwarded_from` edge")
+                            logger.error(
+                                "ValueError: Could not create `forwarded_from` edge"
+                            )
 
                     # todo: the `forwarded_from` edge from `audio` to the `original audio` must be checked later
 
@@ -408,7 +422,9 @@ class AudioMethods:
         audio: Optional[Audio] = Audio.get(Audio.parse_key(telegram_message))
 
         if audio is not None:
-            telegram_audio, audio_type = get_telegram_message_media_type(telegram_message)
+            telegram_audio, audio_type = get_telegram_message_media_type(
+                telegram_message
+            )
             if telegram_audio is None or audio_type == TelegramAudioType.NON_AUDIO:
                 # this message doesn't contain any valid audio file, check if there is a previous audio in the database
                 # and check it as invalid audio.
@@ -496,7 +512,9 @@ class AudioMethods:
         )
         if cursor is not None and len(cursor):
             if len(cursor) > 1:
-                raise ValueError(f"Hit with id `{hit.id}` have more than one linked audios.")
+                raise ValueError(
+                    f"Hit with id `{hit.id}` have more than one linked audios."
+                )
             else:
                 try:
                     doc = cursor.pop()
@@ -574,13 +592,11 @@ class AudioMethods:
         if keys is None or not len(keys):
             return
 
-        from tase.db.arangodb.graph.edges import Has
-
         cursor = Audio.execute_query(
             self._get_audios_by_keys,
             bind_vars={
                 "audios": Audio._collection_name,
-                "audio_keys": Has._collection_name,
+                "audio_keys": keys,
             },
         )
         if cursor is not None and len(cursor):

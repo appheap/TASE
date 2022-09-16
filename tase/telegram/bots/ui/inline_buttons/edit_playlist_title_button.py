@@ -1,9 +1,10 @@
 import pyrogram
 
-from .inline_button import InlineButton
-from tase.db import graph_models
-from tase.db.document_models import BotTaskType
+from tase.db.arangodb import graph as graph_models
+from tase.db.arangodb.enums import BotTaskType
+from tase.telegram.update_handlers.base import BaseHandler
 from tase.utils import _trans, emoji
+from .inline_button import InlineButton
 
 
 class EditPlaylistTitleInlineButton(InlineButton):
@@ -15,24 +16,24 @@ class EditPlaylistTitleInlineButton(InlineButton):
 
     def on_callback_query(
         self,
-        handler: "BaseHandler",
-        db_from_user: "graph_models.vertices.User",
-        client: "pyrogram.Client",
-        callback_query: "pyrogram.types.CallbackQuery",
+        handler: BaseHandler,
+        from_user: graph_models.vertices.User,
+        client: pyrogram.Client,
+        telegram_callback_query: pyrogram.types.CallbackQuery,
     ):
-        callback_query.answer("")
+        telegram_callback_query.answer("")
 
-        handler.db.create_bot_task(
-            db_from_user.user_id,
+        handler.db.document.create_bot_task(
+            from_user.user_id,
             handler.telegram_client.telegram_id,
             BotTaskType.EDIT_PLAYLIST_TITLE,
             state_dict={
-                "playlist_key": callback_query.data.split("->")[1],
+                "playlist_key": telegram_callback_query.data.split("->")[1],
             },
         )
 
         # todo: make it translatable
         client.send_message(
-            db_from_user.user_id,
+            from_user.user_id,
             "Enter the new Title:",
         )

@@ -5,14 +5,19 @@ from typing import List, Optional
 from decouple import config
 
 from tase.configs import TASEConfig
-from tase.db.database_client import DatabaseClient
+
+from tase.db import DatabaseClient
+from tase.my_logger import logger
+
 from tase.scheduler import SchedulerWorkerProcess
+from tase.scheduler.jobs import IndexChannelsJob, ExtractUsernamesJob, CheckUsernamesJob
+from tase.tase_globals import publish_job_to_scheduler
 from tase.telegram.client import TelegramClient
 from tase.telegram.client.client_manager import ClientManager
 
 
 class TASE:
-    clients: List["TelegramClient"]
+    clients: List[TelegramClient]
     tase_config: Optional[TASEConfig]
 
     def __init__(
@@ -35,12 +40,16 @@ class TASE:
         )
 
         tase_config_file_name = (
-            config("TASE_CONFIG_FILE_NAME_DEBUG") if debug else config("TASE_CONFIG_FILE_NAME_PRODUCTION")
+            config("TASE_CONFIG_FILE_NAME_DEBUG")
+            if debug
+            else config("TASE_CONFIG_FILE_NAME_PRODUCTION")
         )
 
         if tase_config_file_name is not None:
             with open(f"../{tase_config_file_name}", "r") as f:
-                tase_config = TASEConfig.parse_obj(json.loads("".join(f.readlines())))  # todo: any improvement?
+                tase_config = TASEConfig.parse_obj(
+                    json.loads("".join(f.readlines()))
+                )  # todo: any improvement?
 
             self.tase_config = tase_config
             if tase_config is not None:
@@ -48,6 +57,8 @@ class TASE:
                     elasticsearch_config=tase_config.elastic_config,
                     arangodb_config=tase_config.arango_db_config,
                 )
+
+                logger.info("I'm here")
 
                 for client_config in tase_config.clients_config:
                     tg_client = TelegramClient._parse(
@@ -73,7 +84,8 @@ class TASE:
 
                 # todo: do initial job scheduling in a proper way
                 publish_job_to_scheduler(IndexChannelsJob())
-                publish_job_to_scheduler(ExtractUsernamesJob())
+                # publish_job_to_scheduler(ExtractUsernamesJob())
+                # publish_job_to_scheduler(CheckUsernamesJob())
 
             else:
                 # todo: raise error (config file is invalid)

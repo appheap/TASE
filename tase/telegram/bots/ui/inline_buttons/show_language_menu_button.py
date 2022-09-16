@@ -1,7 +1,8 @@
 import pyrogram
 
-from tase.db import graph_models
+from tase.db.arangodb import graph as graph_models
 from tase.telegram.bots import bot_commands
+from tase.telegram.update_handlers.base import BaseHandler
 from tase.utils import _trans, emoji
 from .inline_button import InlineButton
 
@@ -15,18 +16,18 @@ class ShowLanguageMenuInlineButton(InlineButton):
 
     def on_callback_query(
         self,
-        handler: "BaseHandler",
-        db_from_user: "graph_models.vertices.User",
-        client: "pyrogram.Client",
-        callback_query: "pyrogram.types.CallbackQuery",
+        handler: BaseHandler,
+        from_user: graph_models.vertices.User,
+        client: pyrogram.Client,
+        telegram_callback_query: pyrogram.types.CallbackQuery,
     ):
-        callback_query.answer("", show_alert=False)
-        callback_query.message.delete()
+        telegram_callback_query.answer("", show_alert=False)
+        telegram_callback_query.message.delete()
 
         bot_commands.BaseCommand.run_command_from_callback_query(
             client,
-            callback_query,
+            telegram_callback_query,
             handler,
-            db_from_user,
+            from_user,
             bot_commands.BotCommandType.LANGUAGE,
         )

@@ -12,24 +12,22 @@ class IndexChannelsJob(BaseJob):
     name = "index_channels_job"
     trigger = apscheduler.triggers.interval.IntervalTrigger(
         hours=1,
-        start_date=arrow.now().shift(seconds=+20).datetime,
+        start_date=arrow.now().shift(seconds=+10).datetime,
     )
 
     def run_job(
         self,
-        db: "tase.db.DatabaseClient",
+        db: tase.db.DatabaseClient,
     ) -> None:
-        db_chats = db.get_chats_sorted_by_audio_indexer_score()
-
-        # fixme: remove this later
-        logger.debug([chat.username for chat in db_chats])
+        chats = db.graph.get_chats_sorted_by_audio_indexer_score()
 
         # todo: blocking or non-blocking? which one is better suited for this case?
-        for db_chat in db_chats:
+        for chat in chats:
+            logger.debug(chat.username)
             tase_globals.publish_client_task(
                 IndexAudiosTask(
                     kwargs={
-                        "db_chat": db_chat,
+                        "chat": chat,
                     }
                 ),
             )

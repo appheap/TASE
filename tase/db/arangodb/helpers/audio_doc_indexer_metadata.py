@@ -6,4 +6,5 @@ class AudioDocIndexerMetadata(BaseIndexerMetadata):
     This class is used to store audio doc indexer metadata and is not vertex by itself
     """
 
-    pass
+    def update_score(self):
+        pass

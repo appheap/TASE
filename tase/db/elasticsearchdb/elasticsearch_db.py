@@ -27,7 +27,11 @@ class ElasticsearchDatabase:
                 try:
                     created = index_cls.create_index()
                 except Exception as e:
-                    logger.exception(f"Could not create the {index_cls._index_name} Index")
+                    logger.exception(
+                        f"Could not create the {index_cls._index_name} Index"
+                    )
                 else:
                     if not created:
-                        logger.error(f"Could not create the {index_cls._index_name} Index")
+                        logger.error(
+                            f"Could not create the {index_cls._index_name} Index"
+                        )

@@ -1,5 +1,8 @@
+from __future__ import annotations
+
+from enum import Enum
+
 import pyrogram
-from pydantic.types import Enum
 
 
 class BotCommandType(Enum):
@@ -24,7 +27,7 @@ class BotCommandType(Enum):
     def get_from_message(
         cls,
         message: pyrogram.types.Message,
-    ) -> "BotCommandType":
+    ) -> BotCommandType:
         if message is None or message.command is None or not len(message.command):
             return BotCommandType.INVALID
 

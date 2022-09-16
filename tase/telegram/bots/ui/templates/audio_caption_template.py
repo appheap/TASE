@@ -1,10 +1,13 @@
+from __future__ import annotations
+
 import random
 import textwrap
 from typing import Optional
 
 from jinja2 import Template
 
-from tase.db import elasticsearch_models, graph_models
+from tase.db.arangodb import graph as graph_models
+from tase.db.elasticsearchdb import models as elasticsearch_models
 from tase.static import Emoji
 from tase.utils import _trans
 from .base_template import BaseTemplate, BaseTemplateData
@@ -46,25 +49,29 @@ class AudioCaptionData(BaseTemplateData):
     plant: str = random.choice(Emoji().plants_list)
 
     @staticmethod
-    def parse_from_audio_doc(
-        audio_doc: elasticsearch_models.Audio,
+    def parse_from_es_audio_doc(
+        es_audio_doc: elasticsearch_models.Audio,
         user: graph_models.vertices.User,
         chat: graph_models.vertices.Chat,
         bot_url: str,  # todo: get bot_url from config
         include_source: bool = True,  # todo: where to get this variable?
-    ) -> Optional["AudioCaptionData"]:
-        if audio_doc is None or user is None or chat is None or bot_url is None:
+    ) -> Optional[AudioCaptionData]:
+        if es_audio_doc is None or user is None or chat is None or bot_url is None:
             return None
 
         return AudioCaptionData(
-            title=audio_doc.title.replace("@", "") if audio_doc.title else "",
-            performer=audio_doc.performer.replace("@", "") if audio_doc.performer else "",
+            title=es_audio_doc.title.replace("@", "") if es_audio_doc.title else "",
+            performer=es_audio_doc.performer.replace("@", "")
+            if es_audio_doc.performer
+            else "",
             file_name=textwrap.shorten(
-                audio_doc.file_name.replace("@", "") if audio_doc.file_name else "",
+                es_audio_doc.file_name.replace("@", "")
+                if es_audio_doc.file_name
+                else "",
                 width=40,
                 placeholder="...",
             ),
-            source=f"<a href ='https://t.me/{chat.username}/{audio_doc.message_id}'>{chat.username}</a>",
+            source=f"<a href ='https://t.me/{chat.username}/{es_audio_doc.message_id}'>{chat.username}</a>",
             include_source=include_source,
             bot_url=bot_url,
             # todo: fix this

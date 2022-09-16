@@ -18,16 +18,21 @@ from arango.result import Result
 from pydantic import BaseModel, Field, ValidationError
 
 from tase.my_logger import logger
-from tase.utils import get_now_timestamp, copy_attrs_from_new_document
+from tase.utils import get_now_timestamp, prettify
 
-TBaseCollectionDocument = typing.TypeVar("TBaseCollectionDocument", bound="BaseCollectionDocument")
+TBaseCollectionDocument = typing.TypeVar(
+    "TBaseCollectionDocument", bound="BaseCollectionDocument"
+)
+TBaseCollectionAttributes = typing.TypeVar(
+    "TBaseCollectionAttributes", bound="BaseCollectionAttributes"
+)
 
 
 class ToGraphBaseProcessor(BaseModel):
     @classmethod
     def process(
         cls,
-        document: TBaseCollectionDocument,
+        document: TBaseCollectionAttributes,
         attr_value_dict: Dict[str, Any],
     ) -> None:
         """
@@ -35,7 +40,7 @@ class ToGraphBaseProcessor(BaseModel):
 
         Parameters
         ----------
-        document : TBaseCollectionDocument
+        document : TBaseCollectionAttributes
             Document this processing is done for
         attr_value_dict : dict
             Attribute value mapping dictionary to be processed
@@ -52,7 +57,7 @@ class FromGraphBaseProcessor(BaseModel):
     @classmethod
     def process(
         cls,
-        document_class: Type[TBaseCollectionDocument],
+        document_class: Type[TBaseCollectionAttributes],
         graph_doc: Dict[str, Any],
     ) -> None:
         """
@@ -60,7 +65,7 @@ class FromGraphBaseProcessor(BaseModel):
 
         Parameters
         ----------
-        document_class : Type[TBaseCollectionDocument]
+        document_class : Type[TBaseCollectionAttributes]
             Class of this document. (It's not an instance of the class)
         graph_doc : dict
             Attribute value mapping dictionary to be processed
@@ -84,7 +89,7 @@ class ToGraphAttributeMapper(ToGraphBaseProcessor):
     @classmethod
     def process(
         cls,
-        document: TBaseCollectionDocument,
+        document: TBaseCollectionAttributes,
         attr_value_dict: Dict[str, Any],
     ) -> None:
         for obj_attr, graph_doc_attr in document._to_graph_db_mapping.items():
@@ -93,8 +98,9 @@ class ToGraphAttributeMapper(ToGraphBaseProcessor):
                 attr_value_dict[graph_doc_attr] = attr_value
                 del attr_value_dict[obj_attr]
             else:
-                del attr_value_dict[obj_attr]
-                attr_value_dict[graph_doc_attr] = None
+                if obj_attr in attr_value_dict:
+                    del attr_value_dict[obj_attr]
+                    attr_value_dict[graph_doc_attr] = None
 
 
 class ToGraphEnumConverter(ToGraphBaseProcessor):
@@ -106,7 +112,7 @@ class ToGraphEnumConverter(ToGraphBaseProcessor):
     @classmethod
     def process(
         cls,
-        document: TBaseCollectionDocument,
+        document: TBaseCollectionAttributes,
         attr_value_dict: Dict[str, Any],
     ) -> None:
         for attr_name, attr_value in attr_value_dict.copy().items():
@@ -114,6 +120,25 @@ class ToGraphEnumConverter(ToGraphBaseProcessor):
             if attr_value:
                 if isinstance(attr_value, Enum):
                     attr_value_dict[attr_name] = attr_value.value
+
+
+class ToGraphNestedConverter(ToGraphBaseProcessor):
+    """
+    Convert Nested types to their values.
+
+    """
+
+    @classmethod
+    def process(
+        cls,
+        document: TBaseCollectionAttributes,
+        attr_value_dict: Dict[str, Any],
+    ) -> None:
+        for attr_name, attr_value in attr_value_dict.copy().items():
+            attr_value = getattr(document, attr_name, None)
+            if attr_value:
+                if isinstance(attr_value, BaseCollectionAttributes):
+                    attr_value_dict[attr_name] = attr_value.to_collection()
 
 
 class FromGraphAttributeMapper(FromGraphBaseProcessor):
@@ -124,7 +149,7 @@ class FromGraphAttributeMapper(FromGraphBaseProcessor):
     @classmethod
     def process(
         cls,
-        document_class: Type[TBaseCollectionDocument],
+        document_class: Type[TBaseCollectionAttributes],
         graph_doc: Dict[str, Any],
     ) -> None:
         for graph_doc_attr, obj_attr in document_class._from_graph_db_mapping.items():
@@ -139,14 +164,7 @@ class FromGraphAttributeMapper(FromGraphBaseProcessor):
 ################################################################################
 
 
-class BaseCollectionDocument(BaseModel):
-    schema_version: int = Field(default=1)
-
-    _collection_name = "base_documents"
-    _collection: Optional[Union[VertexCollection, EdgeCollection, StandardCollection]]
-    _aql: Optional[AQL]
-    _graph_name: Optional[str]
-
+class BaseCollectionAttributes(BaseModel):
     _from_graph_db_mapping = {
         "_id": "id",
         "_key": "key",
@@ -162,24 +180,17 @@ class BaseCollectionDocument(BaseModel):
     _to_graph_db_base_processors: Optional[Tuple[ToGraphBaseProcessor]] = (
         ToGraphEnumConverter,
         ToGraphAttributeMapper,
+        ToGraphNestedConverter,
     )
     _to_graph_db_extra_processors: Optional[Tuple[ToGraphBaseProcessor]] = None
 
-    _from_graph_db_base_processors: Optional[Tuple[FromGraphBaseProcessor]] = (FromGraphAttributeMapper,)
+    _from_graph_db_base_processors: Optional[Tuple[FromGraphBaseProcessor]] = (
+        FromGraphAttributeMapper,
+    )
     _from_graph_db_extra_processors: Optional[Tuple[FromGraphBaseProcessor]] = None
 
     _base_do_not_update_fields: Optional[Tuple[str]] = ("created_at",)
     _extra_do_not_update_fields: Optional[Tuple[str]] = None
-
-    id: Optional[str]
-    key: Optional[str]
-    rev: Optional[str]
-
-    created_at: int = Field(default_factory=get_now_timestamp)
-    modified_at: int = Field(default_factory=get_now_timestamp)
-
-    class Config:
-        arbitrary_types_allowed = True
 
     def to_collection(self) -> Optional[Dict[str, Any]]:
         """
@@ -197,6 +208,7 @@ class BaseCollectionDocument(BaseModel):
             try:
                 attrib_processor.process(self, attr_value_dict)
             except Exception as e:
+                logger.exception(e)
                 return None
 
         if self._to_graph_db_extra_processors is not None:
@@ -204,6 +216,7 @@ class BaseCollectionDocument(BaseModel):
                 try:
                     doc_processor.process(self, attr_value_dict)
                 except Exception as e:
+                    logger.exception(e)
                     return None
 
         return attr_value_dict
@@ -256,6 +269,25 @@ class BaseCollectionDocument(BaseModel):
 
         return None
 
+
+class BaseCollectionDocument(BaseCollectionAttributes):
+    schema_version: int = Field(default=1)
+
+    _collection_name = "base_documents"
+    _collection: Optional[Union[VertexCollection, EdgeCollection, StandardCollection]]
+    _aql: Optional[AQL]
+    _graph_name: Optional[str]
+
+    id: Optional[str]
+    key: Optional[str]
+    rev: Optional[str]
+
+    created_at: int = Field(default_factory=get_now_timestamp)
+    modified_at: int = Field(default_factory=get_now_timestamp)
+
+    class Config:
+        arbitrary_types_allowed = True
+
     @classmethod
     def insert(
         cls: Type[TBaseCollectionDocument],
@@ -287,12 +319,14 @@ class BaseCollectionDocument(BaseModel):
 
             metadata = cls._collection.insert(graph_doc)
             doc._update_metadata(metadata)
-            successful = True
         except DocumentInsertError as e:
             # Failed to insert the document
             logger.exception(f"{cls.__name__} : {e}")
         except Exception as e:
             logger.exception(f"{cls.__name__} : {e}")
+        else:
+            successful = True
+
         return doc, successful
 
     @classmethod
@@ -324,9 +358,11 @@ class BaseCollectionDocument(BaseModel):
             else:
                 return None
         except DocumentGetError as e:
-            logger.exception(e)
+            # logger.exception(e)
+            pass
         except DocumentRevisionError as e:
-            logger.exception(e)
+            # logger.exception(e)
+            pass
         except Exception as e:
             logger.exception(e)
 
@@ -359,11 +395,11 @@ class BaseCollectionDocument(BaseModel):
         except DocumentGetError as e:
             # If check fails.
             caught_error = True
-            logger.exception(e)
+            # logger.exception(e)
         except DocumentRevisionError as e:
             # If revisions mismatch.
             caught_error = True
-            logger.exception(e)
+            # logger.exception(e)
         except Exception as e:
             caught_error = True
             logger.exception(e)
@@ -403,6 +439,7 @@ class BaseCollectionDocument(BaseModel):
 
         if filter_out_soft_deleted is not None:
             from tase.db.arangodb.base import BaseSoftDeletableDocument
+
             if issubclass(cls, BaseSoftDeletableDocument):
                 filters.update(
                     {
@@ -410,7 +447,9 @@ class BaseCollectionDocument(BaseModel):
                     }
                 )
             else:
-                raise TypeError(f"{cls.__name__} is not an subclass of {BaseSoftDeletableDocument.__class__.__name__}")
+                raise TypeError(
+                    f"{cls.__name__} is not an subclass of {BaseSoftDeletableDocument.__class__.__name__}"
+                )
 
         try:
             cursor = cls._collection.find(filters, skip=offset, limit=limit)
@@ -501,11 +540,14 @@ class BaseCollectionDocument(BaseModel):
         """
         if soft_delete:
             from tase.db.arangodb.base import BaseSoftDeletableDocument
+
             if issubclass(type(self), BaseSoftDeletableDocument):
                 self_copy = self.copy(deep=True)
                 self_copy.is_soft_deleted = True
                 self_copy.is_soft_deleted_time_precise = is_exact_date
-                self_copy.soft_deleted_at = get_now_timestamp() if deleted_at is None else deleted_at
+                self_copy.soft_deleted_at = (
+                    get_now_timestamp() if deleted_at is None else deleted_at
+                )
                 return self.update(self_copy, reserve_non_updatable_fields=False)
             else:
                 raise TypeError(
@@ -542,10 +584,12 @@ class BaseCollectionDocument(BaseModel):
             successful = cls._collection.delete(key, ignore_missing=True)
         except DocumentDeleteError as e:
             # Failed to delete the document
-            logger.exception(f"{cls.__name__} : {e}")
+            # logger.exception(f"{cls.__name__} : {e}")
+            pass
         except DocumentRevisionError as e:
             # The expected and actual document revisions mismatched.
-            logger.exception(f"{cls.__name__} : {e}")
+            # logger.exception(f"{cls.__name__} : {e}")
+            pass
         except Exception as e:
             logger.exception(f"{cls.__name__} : {e}")
         return successful
@@ -589,7 +633,9 @@ class BaseCollectionDocument(BaseModel):
         try:
             if reserve_non_updatable_fields:
                 graph_doc = (
-                    doc._update_metadata_from_old_document(self)._update_non_updatable_fields(self).to_collection()
+                    doc._update_metadata_from_old_document(self)
+                    ._update_non_updatable_fields(self)
+                    .to_collection()
                 )
             else:
                 graph_doc = doc._update_metadata_from_old_document(self).to_collection()
@@ -606,15 +652,20 @@ class BaseCollectionDocument(BaseModel):
                 return_new=False,
             )
             doc._update_metadata(metadata)
-            successful = True if copy_attrs_from_new_document(self, doc) is not None else False
+            # successful = True if copy_attrs_from_new_document(self, doc) is not None else False
+            # copy_attrs_from_new_document(self, doc)
         except DocumentUpdateError as e:
             # Failed to update document.
-            logger.exception(f"{self.__class__.__name__} : {e}")
+            # logger.exception(f"{self.__class__.__name__} : {e}")
+            pass
         except DocumentRevisionError as e:
             # The expected and actual document revisions mismatched.
-            logger.exception(f"{self.__class__.__name__} : {e}")
+            pass
+            # logger.exception(f"{self.__class__.__name__} : {e}")
         except Exception as e:
             logger.exception(f"{self.__class__.__name__} : {e}")
+        else:
+            successful = True
         return successful
 
     @classmethod
@@ -654,22 +705,28 @@ class BaseCollectionDocument(BaseModel):
         successful = False
         try:
             graph_doc = (
-                doc._update_metadata_from_old_document(old_doc)._update_non_updatable_fields(old_doc).to_collection()
+                doc._update_metadata_from_old_document(old_doc)
+                ._update_non_updatable_fields(old_doc)
+                .to_collection()
             )
             if graph_doc is None:
                 return None, False
 
             metadata = cls._collection.replace(graph_doc)
             doc._update_metadata(metadata)
-            successful = True
         except DocumentReplaceError as e:
             # Failed to replace document.
-            logger.exception(f"{cls.__name__} : {e}")
+            # logger.exception(f"{cls.__name__} : {e}")
+            pass
         except DocumentRevisionError as e:
             # The expected and actual document revisions mismatched.
-            logger.exception(f"{cls.__name__} : {e}")
+            # logger.exception(f"{cls.__name__} : {e}")
+            pass
         except Exception as e:
             logger.exception(f"{cls.__name__} : {e}")
+        else:
+            successful = True
+
         return doc, successful
 
     def _update_metadata(
@@ -760,18 +817,29 @@ class BaseCollectionDocument(BaseModel):
 
         """
         try:
-            bind_vars["graph_name"] = cls._graph_name
+            if "@graph_name" in query:
+                query = query.replace("@graph_name", cls._graph_name)
+                # bind_vars["graph_name"] = cls._graph_name
+                # logger.error(cls._graph_name)
+            for key, value in bind_vars.items():
+                if isinstance(value, list):
+                    value = str([str(v) for v in value])
+                else:
+                    value = str(value)
+                query = query.replace(f"@{key}", value)
 
             cursor = cls._aql.execute(
                 query,
-                bind_vars=bind_vars,
+                # bind_vars=bind_vars,
                 count=True,
             )
             if not len(cursor):
                 return None
 
         except AQLQueryExecuteError as e:
+            logger.error(query)
             logger.exception(e)
+
         except Exception as e:
             logger.exception(e)
         else:

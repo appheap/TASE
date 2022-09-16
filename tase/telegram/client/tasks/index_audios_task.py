@@ -2,11 +2,12 @@ from typing import Optional
 
 from pydantic import Field
 
-from tase.db import DatabaseClient, graph_models
-from tase.db.graph_models.helper_models import AudioIndexerMetadata
+from tase.db import DatabaseClient
+from tase.db.arangodb.graph.vertices import Chat
+from tase.db.arangodb.helpers import AudioIndexerMetadata
 from tase.my_logger import logger
 from tase.telegram.client import TelegramClient
-from tase.utils import get_timestamp, prettify
+from tase.utils import datetime_to_timestamp, prettify
 from .base_task import BaseTask
 
 
@@ -17,18 +18,17 @@ class IndexAudiosTask(BaseTask):
 
     def run_task(
         self,
-        telegram_client: "TelegramClient",
-        db: "DatabaseClient",
+        telegram_client: TelegramClient,
+        db: DatabaseClient,
     ):
-        db_chat: graph_models.vertices.Chat = self.kwargs.get("db_chat")
-        if db_chat is None:
+        chat: Chat = self.kwargs.get("chat")
+        if chat is None:
             return
 
-        chat_id = db_chat.username if db_chat.username else db_chat.invite_link
-        title = db_chat.title
+        chat_id = chat.username if chat.username else chat.invite_link
+        title = chat.title
 
         try:
-            tg_user = telegram_client.get_me()
             tg_chat = telegram_client.get_chat(chat_id)
         except ValueError as e:
             # In case the chat invite link points to a chat that this telegram client hasn't joined yet.
@@ -37,11 +37,11 @@ class IndexAudiosTask(BaseTask):
         except Exception as e:
             logger.exception(e)
         else:
-            creator = db.update_or_create_user(tg_user)
-            db_chat = db.update_or_create_chat(tg_chat, creator)
+            chat = db.graph.update_or_create_chat(tg_chat)
 
-            if creator and db_chat:
-                self.metadata = db_chat.audio_indexer_metadata
+            if chat:
+                self.metadata = chat.audio_indexer_metadata
+                self.metadata.reset_counters()
 
                 for message in telegram_client.iter_messages(
                     chat_id=chat_id,
@@ -58,9 +58,11 @@ class IndexAudiosTask(BaseTask):
 
                     if message.id > self.metadata.last_message_offset_id:
                         self.metadata.last_message_offset_id = message.id
-                        self.metadata.last_message_offset_date = get_timestamp(message.date)
+                        self.metadata.last_message_offset_date = datetime_to_timestamp(
+                            message.date
+                        )
 
-                db.update_audio_indexer_metadata(db_chat, self.metadata)
+                chat.update_audio_indexer_metadata(self.metadata)
                 logger.info(f"{prettify(self.metadata)}")
                 logger.debug(f"Finished {title}")
             else:

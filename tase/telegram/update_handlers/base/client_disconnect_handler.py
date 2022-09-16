@@ -23,6 +23,6 @@ class ClientDisconnectHandler(BaseHandler):
     @exception_handler
     def on_disconnect(
         self,
-        client: "pyrogram.Client",
+        client: pyrogram.Client,
     ):
         logger.info(f"client {client.name} disconnected @ {arrow.utcnow()}")

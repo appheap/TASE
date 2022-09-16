@@ -1,8 +1,9 @@
 import pyrogram
 
-from .inline_button import InlineButton
-from tase.db import graph_models
+from tase.db.arangodb import graph as graph_models
+from tase.telegram.update_handlers.base import BaseHandler
 from tase.utils import _trans
+from .inline_button import InlineButton
 
 
 class ChooseLanguageInlineButton(InlineButton):
@@ -10,22 +11,21 @@ class ChooseLanguageInlineButton(InlineButton):
 
     def on_callback_query(
         self,
-        handler: "BaseHandler",
-        db_from_user: "graph_models.vertices.User",
-        client: "pyrogram.Client",
-        callback_query: "pyrogram.types.CallbackQuery",
+        handler: BaseHandler,
+        from_user: graph_models.vertices.User,
+        client: pyrogram.Client,
+        telegram_callback_query: pyrogram.types.CallbackQuery,
     ):
-        controller, data = callback_query.data.split("->")
-        handler.db.update_user_chosen_language(
-            db_from_user,
+        controller, data = telegram_callback_query.data.split("->")
+        from_user.update_chosen_language(
             data,
         )
         text = _trans(
             "Language change has been saved",
             lang_code=data,
         )
-        callback_query.answer(
+        telegram_callback_query.answer(
             text,
             show_alert=False,
         )
-        callback_query.message.delete()
+        telegram_callback_query.message.delete()

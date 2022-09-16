@@ -45,12 +45,14 @@ async def get_chunk(
     from_user: Union[int, str] = None,
     only_newer_messages: bool = True,
     with_id: bool = True,
-) -> List["types.Message"]:
+) -> List[types.Message]:
     try:
         filter = Filters.__dict__[filter.upper()]
     except KeyError:
         raise ValueError(
-            'Invalid filter "{}". Possible values are: {}'.format(filter, ", ".join(f'"{v}"' for v in POSSIBLE_VALUES))
+            'Invalid filter "{}". Possible values are: {}'.format(
+                filter, ", ".join(f'"{v}"' for v in POSSIBLE_VALUES)
+            )
         ) from None
 
     if with_id:
@@ -80,7 +82,7 @@ async def get_chunk(
 
 
 def search_messages(
-    client: "pyrogram.Client",
+    client: pyrogram.Client,
     chat_id: Union[int, str],
     query: str = "",
     offset: int = 0,

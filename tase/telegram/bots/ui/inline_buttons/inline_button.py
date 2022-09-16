@@ -1,13 +1,20 @@
+from __future__ import annotations
+
 from typing import Match, Optional
 
 import pyrogram
 from pydantic import BaseModel
 from pyrogram.types import InlineKeyboardButton
 
-from tase.db import graph_models
-from tase.utils import translate_text
+from tase.db.arangodb import graph as graph_models
 from tase.telegram.bots.inline import CustomInlineQueryResult
-from tase.telegram.update_interfaces import OnCallbackQuery, OnChosenInlineQuery, OnInlineQuery
+from tase.telegram.update_handlers.base import BaseHandler
+from tase.telegram.update_interfaces import (
+    OnCallbackQuery,
+    OnChosenInlineQuery,
+    OnInlineQuery,
+)
+from tase.utils import translate_text
 
 
 class InlineButton(
@@ -33,7 +40,7 @@ class InlineButton(
     def get_button(
         cls,
         name: str,
-    ) -> Optional["InlineButton"]:
+    ) -> Optional[InlineButton]:
         if name is None:
             return None
         return cls._registry.get(name, None)
@@ -50,9 +57,13 @@ class InlineButton(
             for attr_name, attr_value in temp_dict.items():
                 if attr_name.startswith("s_"):
                     if not len(temp):
-                        temp = self.text.replace(attr_value, translate_text(attr_value, lang_code))
+                        temp = self.text.replace(
+                            attr_value, translate_text(attr_value, lang_code)
+                        )
                     else:
-                        temp = temp.replace(attr_value, translate_text(attr_value, lang_code))
+                        temp = temp.replace(
+                            attr_value, translate_text(attr_value, lang_code)
+                        )
 
         return temp if len(temp) else self.text
 
@@ -65,7 +76,10 @@ class InlineButton(
     def get_url(self) -> str:
         return self.url
 
-    def get_callback_data(self, callback_arg=None) -> Optional[str]:
+    def get_callback_data(
+        self,
+        callback_arg=None,
+    ) -> Optional[str]:
         if callback_arg is None:
             return self.callback_data
         else:
@@ -76,7 +90,11 @@ class InlineButton(
         self,
         arg=None,
     ) -> Optional[str]:
-        return f"{self.switch_inline_query_current_chat} {arg}" if arg else self.switch_inline_query_current_chat
+        return (
+            f"{self.switch_inline_query_current_chat} {arg}"
+            if arg
+            else self.switch_inline_query_current_chat
+        )
 
     def get_inline_keyboard_button(
         self,
@@ -97,11 +115,11 @@ class InlineButton(
 
     def on_inline_query(
         self,
-        handler: "BaseHandler",
+        handler: BaseHandler,
         result: CustomInlineQueryResult,
-        db_from_user: "graph_models.vertices.User",
-        client: "pyrogram.Client",
-        inline_query: "pyrogram.types.InlineQuery",
+        from_user: graph_models.vertices.User,
+        client: pyrogram.Client,
+        telegram_inline_query: pyrogram.types.InlineQuery,
         query_date: int,
         reg: Optional[Match] = None,
     ):
@@ -109,19 +127,19 @@ class InlineButton(
 
     def on_chosen_inline_query(
         self,
-        handler: "BaseHandler",
-        client: "pyrogram.Client",
-        db_from_user: graph_models.vertices.User,
-        chosen_inline_result: "pyrogram.types.ChosenInlineResult",
+        handler: BaseHandler,
+        client: pyrogram.Client,
+        from_user: graph_models.vertices.User,
+        telegram_chosen_inline_result: pyrogram.types.ChosenInlineResult,
         reg: Match,
     ):
         raise NotImplementedError
 
     def on_callback_query(
         self,
-        handler: "BaseHandler",
-        db_from_user: "graph_models.vertices.User",
-        client: "pyrogram.Client",
-        callback_query: "pyrogram.types.CallbackQuery",
+        handler: BaseHandler,
+        from_user: graph_models.vertices.User,
+        client: pyrogram.Client,
+        telegram_callback_query: pyrogram.types.CallbackQuery,
     ):
         raise NotImplementedError

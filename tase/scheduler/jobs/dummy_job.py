@@ -1,8 +1,8 @@
 from pydantic import Field
 
-from . import BaseJob
-from tase.db import DatabaseClient
 from tase.my_logger import logger
+from . import BaseJob
+from ...db import DatabaseClient
 
 
 class DummyJob(BaseJob):
@@ -10,6 +10,6 @@ class DummyJob(BaseJob):
 
     def run_job(
         self,
-        db: "DatabaseClient",
+        db: DatabaseClient,
     ):
         logger.info(f"{self.name} : {self.kwargs}")

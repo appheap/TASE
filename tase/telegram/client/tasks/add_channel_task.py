@@ -13,22 +13,23 @@ class AddChannelTask(BaseTask):
 
     def run_task(
         self,
-        telegram_client: "TelegramClient",
-        db: "DatabaseClient",
+        telegram_client: TelegramClient,
+        db: DatabaseClient,
     ):
         try:
-            chat = telegram_client.get_chat(self.kwargs.get("channel_username"))
+            tg_chat = telegram_client.get_chat(self.kwargs.get("channel_username"))
 
             # check if the chat is valid based on current policies of the bot
-            if chat.type == ChatType.CHANNEL:
-                db_chat = db.update_or_create_chat(chat)
-                if db_chat is not None:
+            if tg_chat.type == ChatType.CHANNEL:
+                chat = db.graph.update_or_create_chat(tg_chat)
+                if chat is not None:
                     score = ChannelAnalyzer.calculate_score(
                         telegram_client,
-                        chat,
+                        tg_chat,
                     )
                     logger.debug(f"Channel {chat.username} score: {score}")
-                    db.update_audio_indexer_score(chat=db_chat, score=score)
+                    updated = chat.update_audio_indexer_score(score)
+                    logger.error(updated)
                 else:
                     pass
             else:

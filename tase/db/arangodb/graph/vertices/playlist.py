@@ -112,6 +112,13 @@ class PlaylistMethods:
         "   return audio_v"
     )
 
+    _get_audio_playlists_query = (
+        "for v,e in 1..1 inbound '@start_vertex' graph '@graph_name' options {order : 'dfs', edgeCollections : ['@has'], 'vertexCollections : ['@playlists']}"
+        "   sort v.rank ASC, e.created_at DESC"
+        "   limit @offset, @limit"
+        "   return v"
+    )
+
     def get_user_playlist_by_title(
         self,
         user: User,
@@ -343,7 +350,9 @@ class PlaylistMethods:
                 return None
 
         # only check the playlists that haven't been soft-deleted.
-        playlist = self.get_user_playlist_by_title(user, title, filter_out_soft_deleted=True)
+        playlist = self.get_user_playlist_by_title(
+            user, title, filter_out_soft_deleted=True
+        )
         if playlist:
             return playlist
 
@@ -436,7 +445,9 @@ class PlaylistMethods:
         has_edge: Has = Has.get(Has.parse_key(user, playlist))
         if has_edge:
             try:
-                had_edge = Had.get_or_create_edge(user, playlist, has=has_edge, deleted_at=deleted_at)
+                had_edge = Had.get_or_create_edge(
+                    user, playlist, has=has_edge, deleted_at=deleted_at
+                )
             except ValueError:
                 # fixme: check if the user or playlist are listed in had edge ends.
                 pass
@@ -509,7 +520,9 @@ class PlaylistMethods:
         hit_download_url: str,
         playlist_key: str,
     ) -> Tuple[Playlist, Audio]:
-        playlist = self.get_user_playlist_by_key(user, playlist_key, filter_out_soft_deleted=True)
+        playlist = self.get_user_playlist_by_key(
+            user, playlist_key, filter_out_soft_deleted=True
+        )
         if playlist is None:
             raise Exception("User does not have playlist with the given `key`")
         hit = self.find_hit_by_download_url(hit_download_url)
@@ -555,7 +568,9 @@ class PlaylistMethods:
         if user is None or playlist_key is None or hit_download_url is None:
             return False, False
 
-        playlist, audio = self._get_playlist_and_audio(user, hit_download_url, playlist_key)
+        playlist, audio = self._get_playlist_and_audio(
+            user, hit_download_url, playlist_key
+        )
 
         from tase.db.arangodb.graph.edges import Has
 
@@ -567,10 +582,15 @@ class PlaylistMethods:
             try:
                 has_edge = Has.get_or_create_edge(playlist, audio)
             except ValueError:
-                logger.error("ValueError: Could not create the `has` from `Playlist` vertex to `Audio` vertex")
+                logger.error(
+                    "ValueError: Could not create the `has` from `Playlist` vertex to `Audio` vertex"
+                )
                 return False, False
             else:
-                return True, False
+                if has_edge:
+                    return True, True
+                else:
+                    return False, False
 
     def remove_audio_from_playlist(
         self: ArangoGraphMethods,
@@ -608,7 +628,9 @@ class PlaylistMethods:
         if user is None or playlist_key is None or hit_download_url is None:
             return False, False
 
-        playlist, audio = self._get_playlist_and_audio(user, hit_download_url, playlist_key)
+        playlist, audio = self._get_playlist_and_audio(
+            user, hit_download_url, playlist_key
+        )
 
         from tase.db.arangodb.graph.edges import Has
         from tase.db.arangodb.graph.edges import Had
@@ -618,15 +640,24 @@ class PlaylistMethods:
             # Audio is already on the playlist
             deleted = has_edge.delete()
             if not deleted:
-                raise Exception("Could not delete the `has` edge from `Playlist` vertex to `Audio` vertex")
+                raise Exception(
+                    "Could not delete the `has` edge from `Playlist` vertex to `Audio` vertex"
+                )
 
             try:
-                had_edge = Had.get_or_create_edge(playlist, audio, has=has_edge, deleted_at=remove_timestamp)
+                had_edge = Had.get_or_create_edge(
+                    playlist, audio, has=has_edge, deleted_at=remove_timestamp
+                )
             except ValueError:
-                logger.error("ValueError: Could not create the `had` from `Playlist` vertex to `Audio` vertex")
+                logger.error(
+                    "ValueError: Could not create the `had` from `Playlist` vertex to `Audio` vertex"
+                )
                 return False, False
             else:
-                return True, True
+                if had_edge:
+                    return True, True
+                else:
+                    return False, False
         else:
             # Audio does not belong to the playlist
             return True, False
@@ -652,7 +683,7 @@ class PlaylistMethods:
         limit : int, default : 10
             Number of `Audio`s to query
 
-        Returns
+        Yields
         -------
         Audio
             Audios that belong to the given playlist
@@ -661,9 +692,13 @@ class PlaylistMethods:
         if user is None:
             return None
 
-        playlist = self.get_user_playlist_by_key(user, playlist_key, filter_out_soft_deleted=True)
+        playlist = self.get_user_playlist_by_key(
+            user, playlist_key, filter_out_soft_deleted=True
+        )
         if playlist is None:
-            raise Exception("User does not have any `Playlist` with the given `playlist_key`")
+            raise Exception(
+                "User does not have any `Playlist` with the given `playlist_key`"
+            )
 
         from tase.db.arangodb.graph.edges import Has
 
@@ -680,3 +715,56 @@ class PlaylistMethods:
         if cursor is not None and len(cursor):
             for doc in cursor:
                 yield Audio.from_collection(doc)
+
+    def get_audio_playlists(
+        self: ArangoGraphMethods,
+        user: User,
+        hit_download_url: str,
+        offset: int = 0,
+        limit: int = 10,
+    ) -> Generator[Audio, None, None]:
+        """
+        Get Playlists that this audio belongs to.
+
+        Parameters
+        ----------
+        user : User
+            User to get the playlists from
+        hit_download_url : str
+            Hit download_url to get the audio from
+        offset : int, default : 0
+            Offset to get the playlist query after
+        limit : int, default : 10
+            Number of `Playlist`s to query
+
+        Returns
+        -------
+        Playlist
+            Playlists that contain the Audio
+
+        """
+        if user is None:
+            return None
+
+        hit = self.find_hit_by_download_url(hit_download_url)
+        audio = self.get_audio_from_hit(hit)
+        if audio is None:
+            raise Exception(
+                f"Audio does not exist with given `download_url` : {hit_download_url}"
+            )
+
+        from tase.db.arangodb.graph.edges import Has
+
+        cursor = Playlist.execute_query(
+            self._get_audio_playlists_query,
+            bind_vars={
+                "start_vertex": audio.id,
+                "has": Has._collection_name,
+                "playlists": Playlist._collection_name,
+                "offset": offset,
+                "limit": limit,
+            },
+        )
+        if cursor is not None and len(cursor):
+            for doc in cursor:
+                yield Playlist.from_collection(doc)

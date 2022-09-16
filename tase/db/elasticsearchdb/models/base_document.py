@@ -126,7 +126,7 @@ class FromDocumentAttributeMapper(FromDocumentBaseProcessor):
             body.update(**response.body["_source"])
             body.update({"id": response.body["_id"]})
         else:
-            body = dict(**hit["_source"])
+            body.update(**hit["_source"])
             body.update({"id": hit["_id"]})
 
 
@@ -150,7 +150,9 @@ class BaseDocument(BaseModel):
     )
     _to_index_extra_processors: Optional[Tuple[ToDocumentBaseProcessor]] = None
 
-    _from_index_base_processors: Optional[Tuple[FromDocumentBaseProcessor]] = (FromDocumentAttributeMapper,)
+    _from_index_base_processors: Optional[Tuple[FromDocumentBaseProcessor]] = (
+        FromDocumentAttributeMapper,
+    )
     _from_index_extra_processors: Optional[Tuple[FromDocumentBaseProcessor]] = None
 
     _base_do_not_update_fields: Optional[Tuple[str]] = ("created_at",)
@@ -217,27 +219,19 @@ class BaseDocument(BaseModel):
             Python object converted from the database document dictionary
 
         """
-        _id = None
         is_hit = False
         if response is not None:
             if not len(response.body):
                 return None
-
-            _id = response.body["_id"]
-
         elif hit is not None:
             if not len(hit) or not len(hit["_source"]) or rank is None:
                 return None
 
             is_hit = True
-            _id = hit["_id"]
-
         else:
             raise ValueError()
 
         body = dict()
-        body.update({"id": _id})
-
         for doc_processor in cls._from_index_base_processors:
             try:
                 doc_processor.process(cls, body, response, hit)
@@ -398,7 +392,9 @@ class BaseDocument(BaseModel):
             return None, False
 
         if not isinstance(document, BaseDocument):
-            raise Exception(f"`document` is not an instance of {BaseDocument.__class__.__name__} class")
+            raise Exception(
+                f"`document` is not an instance of {BaseDocument.__class__.__name__} class"
+            )
 
         successful = False
         try:
@@ -443,7 +439,9 @@ class BaseDocument(BaseModel):
             return False
 
         if not isinstance(document, BaseDocument):
-            raise Exception(f"`document` is not an instance of {BaseDocument.__class__.__name__} class")
+            raise Exception(
+                f"`document` is not an instance of {BaseDocument.__class__.__name__} class"
+            )
 
         successful = False
         try:
@@ -469,7 +467,7 @@ class BaseDocument(BaseModel):
         cls,
         query: str,
         from_: int = 0,
-        size: int = 50,
+        size: int = 10,
         valid_for_inline_search: Optional[bool] = True,
     ) -> Tuple[Optional[List[TBaseDocument]], Optional[ElasticQueryMetadata]]:
         """

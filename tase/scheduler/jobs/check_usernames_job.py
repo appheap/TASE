@@ -16,16 +16,16 @@ class CheckUsernamesJob(BaseJob):
 
     def run_job(
         self,
-        db: "tase.db.DatabaseClient",
+        db: tase.db.DatabaseClient,
     ) -> None:
-        db_usernames = db.get_unchecked_usernames()
+        usernames = db.graph.get_unchecked_usernames()
 
-        for db_username in db_usernames:
+        for username in usernames:
             # todo: blocking or non-blocking? which one is better suited for this case?
             tase_globals.publish_client_task(
                 CheckUsernamesTask(
                     kwargs={
-                        "db_username": db_username,
+                        "username": username,
                     }
                 ),
             )

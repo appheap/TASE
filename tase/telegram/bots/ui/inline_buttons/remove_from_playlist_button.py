@@ -2,9 +2,11 @@ from typing import Match, Optional
 
 import pyrogram
 
-from tase.db import graph_models
+from tase.db.arangodb import graph as graph_models
+from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
-from tase.utils import _trans, emoji, get_timestamp
+from tase.telegram.update_handlers.base import BaseHandler
+from tase.utils import _trans, emoji, get_now_timestamp
 from .inline_button import InlineButton
 from ..inline_items import PlaylistItem
 
@@ -19,31 +21,31 @@ class RemoveFromPlaylistInlineButton(InlineButton):
 
     def on_inline_query(
         self,
-        handler: "BaseHandler",
+        handler: BaseHandler,
         result: CustomInlineQueryResult,
-        db_from_user: "graph_models.vertices.User",
-        client: "pyrogram.Client",
-        inline_query: "pyrogram.types.InlineQuery",
+        from_user: graph_models.vertices.User,
+        client: pyrogram.Client,
+        telegram_inline_query: pyrogram.types.InlineQuery,
         query_date: int,
         reg: Optional[Match] = None,
     ):
-        audio_download_url = reg.group("arg1")
-        valid = True if audio_download_url is not None else False
+        hit_download_url = reg.group("arg1")
+        valid = True if hit_download_url is not None else False
 
-        db_playlists = handler.db.get_audio_playlists(
-            db_from_user,
-            audio_download_url,
+        db_playlists = handler.db.graph.get_audio_playlists(
+            from_user,
+            hit_download_url,
             offset=result.from_,
         )
 
         results = []
 
-        for db_playlist in db_playlists:
+        for playlist in db_playlists:
             results.append(
                 PlaylistItem.get_item(
-                    db_playlist,
-                    db_from_user,
-                    inline_query,
+                    playlist,
+                    from_user,
+                    telegram_inline_query,
                 )
             )
 
@@ -53,34 +55,49 @@ class RemoveFromPlaylistInlineButton(InlineButton):
 
     def on_chosen_inline_query(
         self,
-        handler: "BaseHandler",
-        client: "pyrogram.Client",
-        db_from_user: graph_models.vertices.User,
-        chosen_inline_result: "pyrogram.types.ChosenInlineResult",
+        handler: BaseHandler,
+        client: pyrogram.Client,
+        from_user: graph_models.vertices.User,
+        telegram_chosen_inline_result: pyrogram.types.ChosenInlineResult,
         reg: Match,
     ):
-        audio_download_url = reg.group("arg1")
+        hit_download_url = reg.group("arg1")
         # todo: check if the user has downloaded this audio earlier, otherwise, the request is not valid
 
-        result_id_list = chosen_inline_result.result_id.split("->")
+        result_id_list = telegram_chosen_inline_result.result_id.split("->")
         inline_query_id = result_id_list[0]
         playlist_key = result_id_list[1]
 
         # remove the audio from the playlist
-        removed = handler.db.remove_audio_from_playlist(
-            playlist_key,
-            audio_download_url,
-            deleted_at=get_timestamp(),
-        )
-
-        # todo: update these messages
-        if removed:
+        try:
+            successful, removed = handler.db.graph.remove_audio_from_playlist(
+                from_user,
+                playlist_key,
+                hit_download_url,
+                get_now_timestamp(),
+            )
+        except Exception as e:
+            #  If the user does not have a playlist with the given playlist_key, or no hit exists with the given hit_download_url, or audio is not valid for inline mode ,or the hit does not have any audio linked to it, or could not delete the `has` edge.
+            logger.exception(e)
             client.send_message(
-                db_from_user.user_id,
-                "Removed from the playlist",
+                from_user.user_id,
+                "Could not remove the audio from the playlist",
             )
         else:
-            client.send_message(
-                db_from_user.user_id,
-                "Did not remove from the playlist",
-            )
+            # todo: update these messages
+            if successful:
+                if removed:
+                    client.send_message(
+                        from_user.user_id,
+                        "Removed from the playlist",
+                    )
+                else:
+                    client.send_message(
+                        from_user.user_id,
+                        "Did not remove from the playlist",
+                    )
+            else:
+                client.send_message(
+                    from_user.user_id,
+                    "Did not remove from the playlist",
+                )

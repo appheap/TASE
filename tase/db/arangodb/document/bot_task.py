@@ -148,6 +148,7 @@ class BotTaskMethods:
         bot_id: int,
         task_type: BotTaskType,
         state_dict: dict = None,
+        cancel_recent_task: bool = True,
     ) -> Optional[BotTask]:
         """
         Create a `BotTask` document in the ArangoDB.
@@ -162,12 +163,21 @@ class BotTaskMethods:
             Type of the task
         state_dict : dict
             Extra data passed to the BotTask
+        cancel_recent_task : bool, default : True
+            Whether to cancel recent tasks of the user before creating a new one
 
         Returns
         -------
         BotTask, optional
             BotTask document if the creation was successful, otherwise, return None
         """
+        if cancel_recent_task:
+            self.cancel_recent_bot_task(
+                user_id,
+                bot_id,
+                task_type,
+            )
+
         task, successful = BotTask.insert(
             BotTask.parse(
                 user_id,

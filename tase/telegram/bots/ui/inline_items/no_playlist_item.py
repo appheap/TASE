@@ -4,7 +4,7 @@ import pyrogram.types
 from pyrogram.enums import ParseMode
 from pyrogram.types import InlineQueryResultArticle, InputTextMessageContent
 
-from tase.db import graph_models
+from tase.db.arangodb import graph as graph_models
 from tase.utils import _trans, emoji
 from .base_inline_item import BaseInlineItem
 
@@ -14,7 +14,7 @@ class NoPlaylistItem(BaseInlineItem):
     def get_item(
         cls,
         db_from_user: graph_models.vertices.User,
-    ) -> Optional["pyrogram.types.InlineQueryResult"]:
+    ) -> Optional[pyrogram.types.InlineQueryResult]:
         if db_from_user is None:
             return None
 

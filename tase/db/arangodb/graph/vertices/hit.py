@@ -7,6 +7,9 @@ from tase.my_logger import logger
 from tase.utils import generate_token_urlsafe
 
 if TYPE_CHECKING:
+    from .. import ArangoGraphMethods
+
+if TYPE_CHECKING:
     from .audio import Audio
     from .query import Query
 from .base_vertex import BaseVertex
@@ -41,18 +44,18 @@ class Hit(BaseVertex):
         cls,
         query: Query,
         audio: Audio,
-        search_metadata: SearchMetaData,
         hit_type: HitType,
+        search_metadata: Optional[SearchMetaData] = None,
     ) -> Optional[Hit]:
-        if query is None or audio is None or search_metadata is None or hit_type is None:
+        if query is None or audio is None or hit_type is None:
             return None
 
         key = Hit.parse_key(query, audio)
         return Hit(
             key=key,
             hit_type=hit_type,
-            rank=search_metadata.rank,
-            score=search_metadata.score,
+            rank=search_metadata.rank if search_metadata else 0,
+            score=search_metadata.score if search_metadata else 0,
             query_date=query.query_date,
             download_url=generate_token_urlsafe(),
         )
@@ -60,11 +63,11 @@ class Hit(BaseVertex):
 
 class HitMethods:
     def create_hit(
-        self,
+        self: ArangoGraphMethods,
         query: Query,
         audio: Audio,
-        search_metadata: SearchMetaData,
         hit_type: HitType,
+        search_metadata: Optional[SearchMetaData] = None,
     ) -> Optional[Hit]:
         """
         Create Hit vertex in the ArangoDB.
@@ -75,10 +78,10 @@ class HitMethods:
             Query this hit belongs to
         audio : Audio
             Audio this Hit has hit
-        search_metadata : SearchMetaData
-            Search metadata related to the given Audio returned from ElasticSearch
         hit_type: HitType
             Type of `Hit` vertex
+        search_metadata : SearchMetaData, default : None
+            Search metadata related to the given Audio returned from ElasticSearch
 
         Returns
         -------
@@ -90,19 +93,30 @@ class HitMethods:
         Exception
             If could not create the `has` edge from `Hit` vertex to `Audio` vertex
         """
-        if query is None or audio is None or search_metadata is None or hit_type is None:
+        if query is None or audio is None or hit_type is None:
             return None
 
-        hit, successful = Hit.insert(Hit.parse(query, audio, search_metadata, hit_type))
+        hit = Hit.parse(query, audio, hit_type, search_metadata)
+        while True:
+            if not self.find_hit_by_download_url(hit.download_url):
+                break
+
+            hit.download_url = generate_token_urlsafe()
+
+        hit, successful = Hit.insert(hit)
         if hit and successful:
             try:
                 from tase.db.arangodb.graph.edges import Has
 
                 has_audio_edge = Has.get_or_create_edge(hit, audio)
                 if has_audio_edge is None:
-                    raise Exception("Could not create `has` edge from `hit` vertex to `audio` vertex")
+                    raise Exception(
+                        "Could not create `has` edge from `hit` vertex to `audio` vertex"
+                    )
             except ValueError:
-                logger.error("ValueError: Could not create `has` edge from `hit` vertex to `audio` vertex")
+                logger.error(
+                    "ValueError: Could not create `has` edge from `hit` vertex to `audio` vertex"
+                )
 
             return hit
 
@@ -112,8 +126,8 @@ class HitMethods:
         self,
         query: Query,
         audio: Audio,
-        search_metadata: SearchMetaData,
         hit_type: HitType,
+        search_metadata: Optional[SearchMetaData] = None,
     ) -> Optional[Hit]:
         """
         Get Hit if it exists in the ArangoDB, otherwise, create it.
@@ -124,10 +138,10 @@ class HitMethods:
             Query this hit belongs to
         audio : Audio
             Audio this Hit has hit
-        search_metadata : SearchMetaData
-            Search metadata related to the given Audio returned from ElasticSearch
         hit_type: HitType
             Type of `Hit` vertex
+        search_metadata : SearchMetaData, default : None
+            Search metadata related to the given Audio returned from ElasticSearch
 
         Returns
         -------
@@ -139,12 +153,12 @@ class HitMethods:
         Exception
             If could not create the `has` edge from `Hit` vertex to `Audio` vertex
         """
-        if query is None or audio is None or search_metadata is None:
+        if query is None or audio is None or hit_type is None:
             return None
 
         hit = Hit.get(Hit.parse_key(query, audio))
         if hit is None:
-            hit = self.create_hit(query, audio, search_metadata, hit_type)
+            hit = self.create_hit(query, audio, hit_type, search_metadata)
 
         return hit
 

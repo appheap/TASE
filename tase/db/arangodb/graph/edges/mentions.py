@@ -214,7 +214,9 @@ class MentionsMethods:
                             elif mentioned_chat.chat_type == ChatType.CHANNEL:
                                 metadata.indirect_valid_channel_mention_count += 1
 
-                        successful = source_chat.update_username_extractor_metadata(metadata)
+                        successful = source_chat.update_username_extractor_metadata(
+                            metadata
+                        )
                         if not successful:
                             # todo: the update wasn't successful, uncheck the edge so it could be updated later
                             mentions_edge.check(False, None)

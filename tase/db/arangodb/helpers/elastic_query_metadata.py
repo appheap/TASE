@@ -1,9 +1,9 @@
 from typing import Optional
 
-from pydantic import BaseModel
+from tase.db.arangodb.base import BaseCollectionAttributes
 
 
-class ElasticQueryMetadata(BaseModel):
+class ElasticQueryMetadata(BaseCollectionAttributes):
     duration: float
     max_score: Optional[float]
     total_hits: int

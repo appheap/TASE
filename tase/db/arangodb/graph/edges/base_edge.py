@@ -24,7 +24,7 @@ class ToVertexMapper(ToGraphBaseProcessor):
         for k, v in document._to_graph_db_mapping_rel.items():
             attr_value = attr_value_dict.get(k, None)
             if attr_value is not None:
-                attr_value_dict[v] = attr_value["id"]
+                attr_value_dict[v] = attr_value["_id"]
                 del attr_value_dict[k]
             else:
                 del attr_value_dict[k]
@@ -38,10 +38,15 @@ class FromVertexMapper(FromGraphBaseProcessor):
         document_class: Type[BaseEdge],
         graph_doc: Dict[str, Any],
     ) -> None:
-        for graph_doc_attr, obj_attr in document_class._from_graph_db_mapping_rel.items():
+        for (
+            graph_doc_attr,
+            obj_attr,
+        ) in document_class._from_graph_db_mapping_rel.items():
             attr_value = graph_doc.get(graph_doc_attr, None)
             if attr_value is not None:
-                obj = BaseVertex.from_collection({"_id": graph_doc.get(attr_value, None)})
+                obj = BaseVertex.from_collection(
+                    {"_id": graph_doc.get(attr_value, None)}
+                )
                 if obj is None:
                     raise Exception(f"`obj` cannot be `None`")
                 graph_doc[obj_attr] = obj
@@ -63,9 +68,13 @@ class EdgeEndsValidator:
         to_vertex: BaseVertex = args[2]
 
         if not isinstance(from_vertex, cls._from_vertex_collections):
-            raise ValueError(f"`from_vertex` {from_vertex.__class__.__name__} is not an valid ")
+            raise ValueError(
+                f"`from_vertex` {from_vertex.__class__.__name__} is not an valid "
+            )
         if not isinstance(to_vertex, cls._to_vertex_collections):
-            raise ValueError(f"`to_vertex` {from_vertex.__class__.__name__} is not an valid ")
+            raise ValueError(
+                f"`to_vertex` {from_vertex.__class__.__name__} is not an valid "
+            )
 
         return self.func(*args, **kwargs)
 
@@ -101,7 +110,11 @@ class BaseEdge(BaseCollectionDocument):
         cls,
         lst: List[Type[BaseVertex]],
     ) -> List[str]:
-        return [v._collection_name for v in lst if v._collection_name != BaseVertex._collection_name]
+        return [
+            v._collection_name
+            for v in lst
+            if v._collection_name != BaseVertex._collection_name
+        ]
 
     @classmethod
     def to_vertex_collections(cls) -> List[str]:
@@ -142,7 +155,12 @@ class BaseEdge(BaseCollectionDocument):
             database.
         """
 
-        if from_vertex is None or to_vertex is None or from_vertex.id is None or to_vertex.id is None:
+        if (
+            from_vertex is None
+            or to_vertex is None
+            or from_vertex.id is None
+            or to_vertex.id is None
+        ):
             return None, False
 
         successful = False
@@ -346,7 +364,9 @@ class BaseEdge(BaseCollectionDocument):
         edge = cls.get(cls.parse_key(from_vertex, to_vertex, *args, **kwargs))
         if edge is not None:
             # edge exists in the database, update it
-            edge, successful = edge.update(cls.parse(from_vertex, to_vertex, *args, **kwargs))
+            edge, successful = edge.update(
+                cls.parse(from_vertex, to_vertex, *args, **kwargs)
+            )
         else:
             # edge does not exist in the database, create it
             edge, successful = cls.create_edge(from_vertex, to_vertex, *args, **kwargs)

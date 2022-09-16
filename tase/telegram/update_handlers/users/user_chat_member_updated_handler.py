@@ -22,7 +22,7 @@ class UserChatMemberUpdatedHandler(BaseHandler):
     # todo: not working, why?
     def chat_member_update_handler(
         self,
-        client: "pyrogram.Client",
-        chat_member_updated: "pyrogram.types.ChatMemberUpdated",
+        client: pyrogram.Client,
+        chat_member_updated: pyrogram.types.ChatMemberUpdated,
     ):
         logger.debug(f"chat_member_update_handler: {chat_member_updated}")

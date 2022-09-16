@@ -23,16 +23,12 @@ class ChosenInlineQueryHandler(BaseHandler):
     @exception_handler
     def on_chosen_inline_query(
         self,
-        client: "pyrogram.Client",
-        chosen_inline_result: "pyrogram.types.ChosenInlineResult",
+        client: pyrogram.Client,
+        chosen_inline_result: pyrogram.types.ChosenInlineResult,
     ):
         logger.debug(f"on_chosen_inline_query: {chosen_inline_result}")
 
-        # todo: fix this
-        db_from_user = self.db.get_user_by_user_id(chosen_inline_result.from_user.id)
-        if not db_from_user:
-            # update the user
-            db_from_user = self.db.update_or_create_user(chosen_inline_result.from_user)
+        from_user = self.db.graph.get_or_create_user(chosen_inline_result.from_user)
 
         reg = re.search(
             "^#(?P<command>[a-zA-Z0-9_]+)(\s(?P<arg1>[a-zA-Z0-9_]+))?",
@@ -48,15 +44,22 @@ class ChosenInlineQueryHandler(BaseHandler):
                 button.on_chosen_inline_query(
                     self,
                     client,
-                    db_from_user,
+                    from_user,
                     chosen_inline_result,
                     reg,
                 )
 
         else:
-            inline_query_id, audio_key = chosen_inline_result.result_id.split("->")
+            inline_query_id, hit_download_url = chosen_inline_result.result_id.split(
+                "->"
+            )
 
-            db_download = self.db.get_or_create_download_from_chosen_inline_query(
-                chosen_inline_result,
+            download_vertex = self.db.graph.create_download(
+                hit_download_url,
+                from_user,
                 self.telegram_client.telegram_id,
             )
+            if not download_vertex:
+                # could not create the download
+                logger.error("Could not create the `download` vertex:")
+                logger.error(chosen_inline_result)

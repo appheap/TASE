@@ -102,10 +102,14 @@ def publish(
         Exchange to send the body to
     """
     if target_queue is None and exchange is None:
-        raise Exception("Both `target_queue` and `exchange` cannot be None at the same time")
+        raise Exception(
+            "Both `target_queue` and `exchange` cannot be None at the same time"
+        )
 
     if target_queue is not None and exchange is not None:
-        raise Exception("Both `target_queue` and `exchange` cannot be set at the same time")
+        raise Exception(
+            "Both `target_queue` and `exchange` cannot be set at the same time"
+        )
 
     routing_key = "" if exchange else target_queue.routing_key
     exchange_ = tase_telegram_exchange if not exchange else exchange

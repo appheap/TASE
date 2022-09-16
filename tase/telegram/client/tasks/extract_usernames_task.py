@@ -4,23 +4,25 @@ from typing import List, Optional, Union
 import pyrogram
 from pydantic import Field
 
-import tase.telegram
-from tase.db import DatabaseClient, graph_models
-from tase.db.enums import MentionSource
-from tase.db.graph_models.helper_models import UsernameExtractorMetadata
+from tase.db import DatabaseClient
+from tase.db.arangodb.enums import MentionSource
+from tase.db.arangodb.graph.vertices import Chat
+from tase.db.arangodb.helpers import UsernameExtractorMetadata
 from tase.my_logger import logger
 from tase.telegram.client import TelegramClient
-from tase.utils import get_timestamp, prettify
+from tase.utils import datetime_to_timestamp, prettify
 from .base_task import BaseTask
 
-username_pattern = re.compile(r"(?:@|(?:(?:(?:https?://)?t(?:elegram)?)\.me\/))(?P<username>[a-zA-Z0-9_]{5,32})")
+username_pattern = re.compile(
+    r"(?:@|(?:(?:(?:https?://)?t(?:elegram)?)\.me\/))(?P<username>[a-zA-Z0-9_]{5,32})"
+)
 
 
 class ExtractUsernamesTask(BaseTask):
     name: str = Field(default="extract_usernames_task")
 
-    db: Optional[tase.db.DatabaseClient] = Field(default=None)
-    chat: Optional[tase.db.graph_models.vertices.Chat] = Field(default=None)
+    db: Optional[DatabaseClient] = Field(default=None)
+    chat: Optional[Chat] = Field(default=None)
 
     chat_username: Optional[str]
     metadata: Optional[UsernameExtractorMetadata]
@@ -49,7 +51,8 @@ class ExtractUsernamesTask(BaseTask):
             if isinstance(mention_source, List):
                 if len(mention_source) != len(text):
                     raise Exception(
-                        f"mention_source and text must of the the same size: {len(mention_source)} != " f"{len(text)}"
+                        f"mention_source and text must of the the same size: {len(mention_source)} != "
+                        f"{len(text)}"
                     )
                 for text__, mention_source_ in zip(text, mention_source):
                     if text__ is not None and mention_source_ is not None:
@@ -104,8 +107,8 @@ class ExtractUsernamesTask(BaseTask):
             else:
                 self.metadata.indirect_raw_mention_count += 1
 
-        mentioned_at = get_timestamp(message.date)
-        db_username, created = self.db.get_or_create_username(
+        mentioned_at = datetime_to_timestamp(message.date)
+        username_vertex = self.db.graph.get_or_create_username(
             self.chat,
             username,
             is_direct_mention,
@@ -117,10 +120,10 @@ class ExtractUsernamesTask(BaseTask):
 
     def run_task(
         self,
-        telegram_client: "TelegramClient",
-        db: "DatabaseClient",
+        telegram_client: TelegramClient,
+        db: DatabaseClient,
     ):
-        db_chat: graph_models.vertices.Chat = self.kwargs.get("db_chat")
+        db_chat: Chat = self.kwargs.get("db_chat")
         if db_chat is None:
             return
 
@@ -130,7 +133,6 @@ class ExtractUsernamesTask(BaseTask):
         title = db_chat.title
 
         try:
-            tg_user = telegram_client.get_me()
             tg_chat = telegram_client.get_chat(chat_id)
         except ValueError as e:
             # In case the chat invite link points to a chat that this telegram client hasn't joined yet.
@@ -139,8 +141,7 @@ class ExtractUsernamesTask(BaseTask):
         except Exception as e:
             logger.exception(e)
         else:
-            creator = db.update_or_create_user(tg_user)
-            db_chat = db.update_or_create_chat(tg_chat, creator)
+            db_chat = db.graph.update_or_create_chat(tg_chat)
 
             self.metadata = db_chat.username_extractor_metadata.copy()
             self.metadata.reset_counters()
@@ -148,7 +149,7 @@ class ExtractUsernamesTask(BaseTask):
             self.chat = db_chat
             self.db = db
 
-            if creator and db_chat:
+            if db_chat:
                 for message in telegram_client.iter_messages(
                     chat_id=chat_id,
                     offset_id=self.metadata.last_message_offset_id,
@@ -176,7 +177,10 @@ class ExtractUsernamesTask(BaseTask):
 
                         # check the forwarded chat's description/bio for usernames
                         self.find_usernames_in_text(
-                            [message.forward_from_chat.description, message.forward_from_chat.bio],
+                            [
+                                message.forward_from_chat.description,
+                                message.forward_from_chat.bio,
+                            ],
                             True,
                             message,
                             MentionSource.FORWARDED_CHAT_DESCRIPTION,
@@ -184,21 +188,31 @@ class ExtractUsernamesTask(BaseTask):
 
                     if message.audio:
                         self.find_usernames_in_text(
-                            [message.audio.title, message.audio.performer, message.audio.file_name],
+                            [
+                                message.audio.title,
+                                message.audio.performer,
+                                message.audio.file_name,
+                            ],
                             False,
                             message,
-                            [MentionSource.AUDIO_TITLE, MentionSource.AUDIO_PERFORMER, MentionSource.AUDIO_FILE_NAME],
+                            [
+                                MentionSource.AUDIO_TITLE,
+                                MentionSource.AUDIO_PERFORMER,
+                                MentionSource.AUDIO_FILE_NAME,
+                            ],
                         )
 
                     if message.id > self.metadata.last_message_offset_id:
                         self.metadata.last_message_offset_id = message.id
-                        self.metadata.last_message_offset_date = get_timestamp(message.date)
+                        self.metadata.last_message_offset_date = datetime_to_timestamp(
+                            message.date
+                        )
 
                 logger.info(f"Finished extracting usernames from chat: {title}")
 
                 # check gathered usernames if they match the current policy of indexing and them to the Database
                 logger.info(f"Metadata: {prettify(self.metadata)}")
-                self.db.update_username_extractor_metadata(self.chat, self.metadata)
+                self.chat.update_username_extractor_metadata(self.metadata)
             else:
                 logger.error(f"Error occurred: {title}")
 

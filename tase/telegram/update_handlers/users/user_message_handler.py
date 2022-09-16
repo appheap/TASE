@@ -20,8 +20,10 @@ class UserMessageHandler(BaseHandler):
     @exception_handler
     def user_message_handler(
         self,
-        client: "pyrogram.Client",
-        message: "pyrogram.types.Message",
+        client: pyrogram.Client,
+        message: pyrogram.types.Message,
     ):
         direction = "=>" if message.outgoing else "<="
-        logger.debug(f"user_message_handler: {direction} {message.chat.title or message.chat.first_name}")
+        logger.debug(
+            f"user_message_handler: {direction} {message.chat.title or message.chat.first_name}"
+        )

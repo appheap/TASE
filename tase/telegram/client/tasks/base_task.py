@@ -13,7 +13,7 @@ class BaseTask(BaseModel):
 
     def run_task(
         self,
-        telegram_client: "TelegramClient",
-        db: "DatabaseClient",
+        telegram_client: TelegramClient,
+        db: DatabaseClient,
     ):
         raise NotImplementedError

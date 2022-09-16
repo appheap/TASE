@@ -3,8 +3,9 @@ from typing import List, Optional
 
 import pyrogram
 
-from tase.db import elasticsearch_models, graph_models
-from tase.db.graph_models.vertices import InlineQueryType
+from tase.db.arangodb.enums import InlineQueryType
+from tase.db.arangodb.graph.vertices import User
+from tase.db.elasticsearchdb import models as elasticsearch_models
 from tase.telegram.bots.ui.inline_items import AudioItem, NoResultItem
 from tase.telegram.update_handlers.base import BaseHandler
 from tase.telegram.update_interfaces import OnInlineQuery
@@ -34,11 +35,11 @@ class InlineSearch(OnInlineQuery):
     @classmethod
     def on_inline_query(
         cls,
-        handler: "BaseHandler",
+        handler: BaseHandler,
         result: CustomInlineQueryResult,
-        db_from_user: "graph_models.vertices.User",
-        client: "pyrogram.Client",
-        inline_query: "pyrogram.types.InlineQuery",
+        from_user: User,
+        client: pyrogram.Client,
+        telegram_inline_query: pyrogram.types.InlineQuery,
         query_date: int,
         reg: Optional[Match] = None,
     ):
@@ -46,75 +47,84 @@ class InlineSearch(OnInlineQuery):
         results = []
         temp_res = []
 
-        if inline_query.query is None or not len(inline_query.query):
+        if telegram_inline_query.query is None or not len(telegram_inline_query.query):
             # todo: query is empty
             found_any = False
         else:
 
-            if len(inline_query.query) <= 2:
+            if len(telegram_inline_query.query) <= 2:
                 found_any = False
             else:
-                db_audio_docs, query_metadata = handler.db.search_audio(
-                    inline_query.query,
+                es_audio_docs, query_metadata = handler.db.index.search_audio(
+                    telegram_inline_query.query,
                     from_=result.from_,
                     size=15,  # todo: update?
                     valid_for_inline_search=True,
                 )
 
-                if not db_audio_docs or not len(db_audio_docs) or not len(query_metadata):
+                if (
+                    not es_audio_docs
+                    or not len(es_audio_docs)
+                    or not len(query_metadata)
+                ):
                     found_any = False
 
-                db_audio_docs: List["elasticsearch_models.Audio"] = db_audio_docs
+                es_audio_docs: List[elasticsearch_models.Audio] = es_audio_docs
 
-                chats_dict = handler.update_audio_cache(db_audio_docs)
+                chats_dict = handler.update_audio_cache(es_audio_docs)
 
-                for db_audio_doc in db_audio_docs:
-                    db_audio_file_cache = handler.db.get_audio_file_from_cache(
-                        db_audio_doc,
+                search_metadata_lst = []
+                audio_keys = []
+
+                for es_audio_doc in es_audio_docs:
+                    audio_doc = handler.db.document.get_audio_by_key(
                         handler.telegram_client.telegram_id,
+                        es_audio_doc.id,
                     )
 
                     #  todo: Some audios have null titles, solution?
-                    if not db_audio_file_cache or not db_audio_doc.title:
+                    if es_audio_doc.valid_for_inline_search:
                         continue
 
                     # todo: telegram cannot handle these mime types, any alternative?
-                    if db_audio_doc.mime_type in forbidden_mime_types:
+                    if es_audio_doc.mime_type in forbidden_mime_types:
                         continue
+
+                    search_metadata_lst.append(es_audio_doc.search_metadata)
+                    audio_keys.append(es_audio_doc.id)
 
                     temp_res.append(
                         (
-                            db_audio_file_cache,
-                            db_audio_doc,
+                            audio_doc,
+                            es_audio_doc,
                         )
                     )
 
-                db_audios = handler.db.get_audios_from_keys([tup[1].id for tup in temp_res])
+                audio_vertices = list(handler.db.graph.get_audios_from_keys(audio_keys))
 
-                db_inline_query, db_hits = handler.db.get_or_create_inline_query(
+                db_query, hits = handler.db.graph.get_or_create_query(
                     handler.telegram_client.telegram_id,
-                    inline_query,
+                    from_user,
+                    telegram_inline_query.query,
+                    query_date,
+                    audio_vertices,
+                    query_metadata,
+                    search_metadata_lst,
+                    telegram_inline_query,
                     InlineQueryType.SEARCH,
-                    query_date=query_date,
-                    query_metadata=query_metadata,
-                    audio_docs=db_audio_docs,
-                    db_audios=db_audios,
-                    next_offset=result.get_next_offset(),
+                    result.get_next_offset(),
                 )
-                if db_inline_query and db_hits:
-                    for (db_audio_file_cache, db_audio_doc), db_audio, db_hit in zip(
-                        temp_res,
-                        db_audios,
-                        db_hits,
-                    ):
+
+                if db_query and hits:
+                    for (audio_doc, es_audio_doc), hit in zip(temp_res, hits):
                         results.append(
                             AudioItem.get_item(
-                                db_audio_file_cache,
-                                db_from_user,
-                                db_audio,
-                                inline_query,
+                                audio_doc.file_id,
+                                from_user,
+                                es_audio_doc,
+                                telegram_inline_query,
                                 chats_dict,
-                                db_hit,
+                                hit,
                             )
                         )
 
@@ -123,4 +133,4 @@ class InlineSearch(OnInlineQuery):
         else:
             # todo: No results matching the query found, what now?
             if result.from_ is None or result.from_ == 0:
-                result.results = [NoResultItem.get_item(db_from_user)]
+                result.results = [NoResultItem.get_item(from_user)]

@@ -3,5 +3,6 @@ from .base_collection_document import (
     ToGraphBaseProcessor,
     FromGraphBaseProcessor,
     TBaseCollectionDocument,
+    BaseCollectionAttributes,
 )
 from .base_soft_deletable_document import BaseSoftDeletableDocument

@@ -37,14 +37,22 @@ class HelpCommand(BaseCommand):
                 InlineButton.get_button("download_history").get_inline_keyboard_button(
                     db_from_user.chosen_language_code
                 ),
-                InlineButton.get_button("my_playlists").get_inline_keyboard_button(db_from_user.chosen_language_code),
+                InlineButton.get_button("my_playlists").get_inline_keyboard_button(
+                    db_from_user.chosen_language_code
+                ),
             ],
             [
-                InlineButton.get_button("back").get_inline_keyboard_button(db_from_user.chosen_language_code),
+                InlineButton.get_button("back").get_inline_keyboard_button(
+                    db_from_user.chosen_language_code
+                ),
             ],
             [
-                InlineButton.get_button("advertisement").get_inline_keyboard_button(db_from_user.chosen_language_code),
-                InlineButton.get_button("help_catalog").get_inline_keyboard_button(db_from_user.chosen_language_code),
+                InlineButton.get_button("advertisement").get_inline_keyboard_button(
+                    db_from_user.chosen_language_code
+                ),
+                InlineButton.get_button("help_catalog").get_inline_keyboard_button(
+                    db_from_user.chosen_language_code
+                ),
             ],
         ]
         markup = InlineKeyboardMarkup(markup)

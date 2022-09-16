@@ -26,7 +26,7 @@ class Query(BaseVertex):
     query_date: int
 
     inline_metadata: Optional[InlineQueryMetadata]
-    elastic_metadata: ElasticQueryMetadata
+    elastic_metadata: Optional[ElasticQueryMetadata]
 
     @classmethod
     def parse_key(
@@ -46,10 +46,10 @@ class Query(BaseVertex):
         user: User,
         query: str,
         query_date: int,
-        query_metadata: dict,
+        query_metadata: Optional[ElasticQueryMetadata],
         # following parameters are intended to be used for `InlineQuery` rather than normal query.
-        telegram_inline_query: pyrogram.types.InlineQuery,
-        inline_query_type: InlineQueryType,
+        telegram_inline_query: Optional[pyrogram.types.InlineQuery],
+        inline_query_type: Optional[InlineQueryType],
         next_offset: Optional[str],
     ) -> Optional[Query]:
         if bot is None or user is None:
@@ -57,10 +57,6 @@ class Query(BaseVertex):
 
         key = cls.parse_key(bot.key, user, query_date)
         if key is None:
-            return None
-
-        metadata = ElasticQueryMetadata.parse(query_metadata)
-        if metadata is None:
             return None
 
         if telegram_inline_query is not None:
@@ -79,7 +75,7 @@ class Query(BaseVertex):
             query=query,
             query_date=query_date,
             inline_metadata=inline_metadata,
-            elastic_metadata=metadata,
+            elastic_metadata=query_metadata,
         )
 
 
@@ -95,13 +91,13 @@ class QueryMethods:
         user: User,
         query: str,
         query_date: int,
-        query_metadata: dict,
-        audios: List[Audio],
-        search_metadata_list: List[SearchMetaData],
+        audio_vertices: List[Audio],
+        query_metadata: Optional[ElasticQueryMetadata] = None,
+        search_metadata_list: Optional[List[SearchMetaData]] = None,
         # following parameters are meant to be used with inline query
-        telegram_inline_query: Optional[pyrogram.types.InlineQuery],
-        inline_query_type: Optional[InlineQueryType],
-        next_offset: Optional[str],
+        telegram_inline_query: Optional[pyrogram.types.InlineQuery] = None,
+        inline_query_type: Optional[InlineQueryType] = None,
+        next_offset: Optional[str] = None,
     ) -> Tuple[Optional[Query], Optional[List[Hit]]]:
         """
         Create a Query along with necessary vertices and edges.
@@ -116,18 +112,17 @@ class QueryMethods:
             Query string
         query_date : int
             Timestamp of making the query
-        query_metadata : dict
-            Metadata of this query that on ElasticSearch. It must have `duration`, `max_score`, `total_hits`,
-            and `total_rel` attributes
-        audios : List[Audio]
+        audio_vertices : List[Audio]
             List of audios this query matches to
-        search_metadata_list : List[SearchMetadata]
+        query_metadata : ElasticQueryMetadata, default : None
+            Metadata of this query that on ElasticSearch.
+        search_metadata_list : List[SearchMetadata], default : None
             List of metadata for each of the audios this query matches to
-        telegram_inline_query : pyrogram.types.InlineQuery, optional
+        telegram_inline_query : pyrogram.types.InlineQuery, default : None
             Telegram InlineQuery object if the query is inline
-        inline_query_type : InlineQueryType, optional
+        inline_query_type : InlineQueryType, default : None
             Type of the inline query if the query is inline
-        next_offset : str, optional
+        next_offset : str, default : None
             Next offset of query if the query is inline and has more results that will be paginated
 
         Returns
@@ -193,12 +188,23 @@ class QueryMethods:
                 hit_type = HitType.SEARCH
 
             hits = collections.deque()
-            for audio, search_metadata in zip(audios, search_metadata_list):
-                if audio is None or search_metadata is None:
+
+            if search_metadata_list is None or not len(search_metadata_list):
+                search_metadata_list = [None for _ in range(len(audio_vertices))]
+
+            for audio_vertex, search_metadata in zip(
+                audio_vertices, search_metadata_list
+            ):
+                if audio_vertex is None:
                     # todo: what now?
                     continue
 
-                hit = self.get_or_create_hit(db_query, audio, search_metadata, hit_type)
+                hit = self.get_or_create_hit(
+                    db_query,
+                    audio_vertex,
+                    hit_type,
+                    search_metadata,
+                )
                 if hit is None:
                     raise Exception("Could not create `hit` vertex")
 
@@ -207,9 +213,13 @@ class QueryMethods:
                 try:
                     has_hit_edge = Has.get_or_create_edge(db_query, hit)
                     if has_hit_edge is None:
-                        raise Exception("Could not create `has` edge from `query` vertex to `hit` vertex")
+                        raise Exception(
+                            "Could not create `has` edge from `query` vertex to `hit` vertex"
+                        )
                 except ValueError:
-                    logger.error("ValueError: Could not create `has` edge from `query` vertex to `hit` vertex")
+                    logger.error(
+                        "ValueError: Could not create `has` edge from `query` vertex to `hit` vertex"
+                    )
 
             return db_query, list(hits)
 
@@ -221,13 +231,13 @@ class QueryMethods:
         user: User,
         query: str,
         query_date: int,
-        query_metadata: dict,
-        audios: List[Audio],
-        search_metadata_list: List[SearchMetaData],
+        audio_vertices: List[Audio],
+        query_metadata: Optional[ElasticQueryMetadata] = None,
+        search_metadata_list: Optional[List[SearchMetaData]] = None,
         # following parameters are meant to be used with inline query
-        telegram_inline_query: Optional[pyrogram.types.InlineQuery],
-        inline_query_type: Optional[InlineQueryType],
-        next_offset: Optional[str],
+        telegram_inline_query: Optional[pyrogram.types.InlineQuery] = None,
+        inline_query_type: Optional[InlineQueryType] = None,
+        next_offset: Optional[str] = None,
     ) -> Tuple[Optional[Query], Optional[List[Hit]]]:
         """
         Get Query if it exists in the database, otherwise, create a Query along with necessary vertices and
@@ -243,24 +253,22 @@ class QueryMethods:
             Query string
         query_date : int
             Timestamp of making the query
-        query_metadata : dict
-            Metadata of this query that on ElasticSearch. It must have `duration`, `max_score`, `total_hits`,
-            and `total_rel` attributes
-        audios : List[Audio]
+        audio_vertices : List[Audio]
             List of audios this query matches to
-        search_metadata_list : List[SearchMetadata]
+        query_metadata : ElasticQueryMetadata, default : None
+            Metadata of this query that on ElasticSearch.
+        search_metadata_list : List[SearchMetadata], default : None
             List of metadata for each of the audios this query matches to
-        telegram_inline_query : pyrogram.types.InlineQuery, optional
+        telegram_inline_query : pyrogram.types.InlineQuery, default : None
             Telegram InlineQuery object if the query is inline
-        inline_query_type : InlineQueryType, optional
+        inline_query_type : InlineQueryType, default : None
             Type of the inline query if the query is inline
-        next_offset : str, optional
+        next_offset : str, default : None
             Next offset of query if the query is inline and has more results that will be paginated
 
         Returns
         -------
         tuple of query and list of hits
-        Tuple[Optional[Query], Optional[List[Hit]]
             Query object and list of hits if the operation in the DB was successful, otherwise, return None
 
         Raises
@@ -278,8 +286,8 @@ class QueryMethods:
                 user,
                 query,
                 query_date,
+                audio_vertices,
                 query_metadata,
-                audios,
                 search_metadata_list,
                 telegram_inline_query,
                 inline_query_type,

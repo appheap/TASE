@@ -51,7 +51,7 @@ python-decouple = "^3.6"
 python-arango = "^7.4.1"
 kombu = "^5.2.4"
 arrow = "^1.2.2"
-pydantic = "^1.9.0"
+pydantic = "^1.9.2"
 Jinja2 = "^3.1.2"
 APScheduler = "^3.9.1"
 

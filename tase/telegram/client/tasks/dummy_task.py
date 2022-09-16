@@ -13,8 +13,8 @@ class DummyTask(BaseTask):
 
     def run_task(
         self,
-        telegram_client: "TelegramClient",
-        db: "DatabaseClient",
+        telegram_client: TelegramClient,
+        db: DatabaseClient,
     ):
         logger.info(f"Running Dummy Task with client: {telegram_client.name}")
         time.sleep(5)

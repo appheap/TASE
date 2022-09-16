@@ -1,11 +1,12 @@
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import Field
 
+from ..base import BaseCollectionAttributes
 from ..enums import ChatType, InlineQueryType
 
 
-class InlineQueryMetadata(BaseModel):
+class InlineQueryMetadata(BaseCollectionAttributes):
     query_id: str
     chat_type: ChatType
 

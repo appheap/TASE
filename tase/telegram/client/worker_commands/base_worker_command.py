@@ -12,7 +12,7 @@ class BaseWorkerCommand(BaseModel):
     def run_command(
         self,
         consumer_producer: ConsumerProducerMixin,
-        telegram_client: "tase.telegram.client.TelegramClient",
-        db: "tase.db.DatabaseClient",
+        telegram_client: tase.telegram.client.TelegramClient,
+        db: tase.db.DatabaseClient,
     ) -> None:
         raise NotImplementedError

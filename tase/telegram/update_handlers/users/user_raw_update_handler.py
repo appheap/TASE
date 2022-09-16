@@ -22,10 +22,10 @@ class UserRawUpdateHandler(BaseHandler):
     @exception_handler
     def raw_update_handler(
         self,
-        client: "pyrogram.Client",
+        client: pyrogram.Client,
         raw_update: "_update",
-        users: List["pyrogram.types.User"],
-        chats: List["pyrogram.types.Chat"],
+        users: List[pyrogram.types.User],
+        chats: List[pyrogram.types.Chat],
     ):
         logger.debug(f"user_raw_update_handler: {raw_update}")
 

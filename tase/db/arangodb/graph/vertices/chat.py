@@ -1,19 +1,22 @@
 from __future__ import annotations
 
-from typing import Optional, List, Tuple, TYPE_CHECKING
+from typing import Optional, List, Tuple, Generator
 
 import pyrogram
 from arango import CursorEmptyError
-from pydantic import Field
 
+from tase.db.arangodb import graph as graph_models
 from tase.my_logger import logger
 from tase.utils import prettify
 from .base_vertex import BaseVertex
 
-if TYPE_CHECKING:
-    from ..edges import LinkedChat
 from ...enums import ChatType
-from ...helpers import Restriction, AudioIndexerMetadata, AudioDocIndexerMetadata, UsernameExtractorMetadata
+from ...helpers import (
+    Restriction,
+    AudioIndexerMetadata,
+    AudioDocIndexerMetadata,
+    UsernameExtractorMetadata,
+)
 
 
 class Chat(BaseVertex):
@@ -49,9 +52,9 @@ class Chat(BaseVertex):
     distance: Optional[int]
     members_count: Optional[int]
 
-    audio_indexer_metadata: Optional[AudioIndexerMetadata] = Field(default=None)
-    audio_doc_indexer_metadata: Optional[AudioDocIndexerMetadata] = Field(default=None)
-    username_extractor_metadata: Optional[UsernameExtractorMetadata] = Field(default=None)
+    audio_indexer_metadata: Optional[AudioIndexerMetadata]
+    audio_doc_indexer_metadata: Optional[AudioDocIndexerMetadata]
+    username_extractor_metadata: Optional[UsernameExtractorMetadata]
 
     @classmethod
     def parse_key(
@@ -73,7 +76,11 @@ class Chat(BaseVertex):
 
         chat_type = ChatType.parse_from_pyrogram(telegram_chat.type)
 
-        description = telegram_chat.description if telegram_chat.description else telegram_chat.bio
+        description = (
+            telegram_chat.description
+            if telegram_chat.description
+            else telegram_chat.bio
+        )
 
         return Chat(
             key=key,
@@ -94,7 +101,9 @@ class Chat(BaseVertex):
             dc_id=telegram_chat.dc_id,
             has_protected_content=telegram_chat.has_protected_content,
             invite_link=telegram_chat.invite_link,
-            restrictions=Restriction.parse_from_restrictions(telegram_chat.restrictions),
+            restrictions=Restriction.parse_from_restrictions(
+                telegram_chat.restrictions
+            ),
             available_reactions=telegram_chat.available_reactions,
             distance=telegram_chat.distance,
             members_count=telegram_chat.members_count,
@@ -156,17 +165,97 @@ class Chat(BaseVertex):
         if metadata is None or run_depth > 10:
             return False
 
-        self_copy = self.copy(deep=True)
-        updated_metadata = self_copy.username_extractor_metadata.update_metadata(metadata)
+        self_copy: Chat = self.copy(deep=True)
+        if self_copy.username_extractor_metadata is None:
+            self_copy.username_extractor_metadata = UsernameExtractorMetadata()
+        updated_metadata = self_copy.username_extractor_metadata.update_metadata(
+            metadata
+        )
         updated_metadata.update_score()
 
-        updated = self.update(self_copy, reserve_non_updatable_fields=True)
+        updated = self.update(self_copy, reserve_non_updatable_fields=False)
 
         if not updated:
             chat = Chat.get(self.key)
-            return chat.update_username_extractor_metadata(metadata, run_depth + 1)
+            updated = chat.update_username_extractor_metadata(metadata, run_depth + 1)
 
-        return True
+        return updated
+
+    def update_audio_indexer_metadata(
+        self,
+        metadata: AudioIndexerMetadata,
+        run_depth: int = 1,
+    ) -> bool:
+        """
+        Update audio indexer metadata of the chat after being indexed
+
+        Parameters
+        ----------
+        metadata : AudioIndexerMetadata
+            Updated metadata
+        run_depth : int
+            Depth of running the function. stop and return False after 10 runs.
+
+        Returns
+        -------
+        bool
+            Whether the update was successful or not
+        """
+        if metadata is None or run_depth > 10:
+            return False
+
+        self_copy: Chat = self.copy(deep=True)
+        if self_copy.audio_indexer_metadata is None:
+            self_copy.audio_indexer_metadata = AudioIndexerMetadata()
+        updated_metadata = self_copy.audio_indexer_metadata.update_metadata(metadata)
+        updated_metadata.update_score()
+
+        updated = self.update(self_copy, reserve_non_updatable_fields=False)
+
+        if not updated:
+            chat = Chat.get(self.key)
+            updated = chat.update_audio_indexer_metadata(metadata, run_depth + 1)
+
+        return updated
+
+    def update_audio_doc_indexer_metadata(
+        self,
+        metadata: AudioDocIndexerMetadata,
+        run_depth: int = 1,
+    ) -> bool:
+        """
+        Update audio doc indexer metadata of the chat after being indexed
+
+        Parameters
+        ----------
+        metadata : AudioDocIndexerMetadata
+            Updated metadata
+        run_depth : int
+            Depth of running the function. stop and return False after 10 runs.
+
+        Returns
+        -------
+        bool
+            Whether the update was successful or not
+        """
+        if metadata is None or run_depth > 10:
+            return False
+
+        self_copy: Chat = self.copy(deep=True)
+        if self_copy.audio_doc_indexer_metadata is None:
+            self_copy.audio_doc_indexer_metadata = AudioDocIndexerMetadata()
+        updated_metadata = self_copy.audio_doc_indexer_metadata.update_metadata(
+            metadata
+        )
+        updated_metadata.update_score()
+
+        updated = self.update(self_copy, reserve_non_updatable_fields=False)
+
+        if not updated:
+            chat = Chat.get(self.key)
+            updated = chat.update_audio_doc_indexer_metadata(metadata, run_depth + 1)
+
+        return updated
 
     def update_audio_indexer_score(
         self,
@@ -188,10 +277,12 @@ class Chat(BaseVertex):
         if score is None:
             return False
 
-        self_copy = self.copy(deep=True)
+        self_copy: Chat = self.copy(deep=True)
+        if self_copy.audio_indexer_metadata is None:
+            self_copy.audio_indexer_metadata = AudioIndexerMetadata()
         self_copy.audio_indexer_metadata.score = score
 
-        return self.update(self_copy, reserve_non_updatable_fields=True)
+        return self.update(self_copy, reserve_non_updatable_fields=False)
 
     def update_audio_doc_indexer_score(
         self,
@@ -213,10 +304,12 @@ class Chat(BaseVertex):
         if score is None:
             return False
 
-        self_copy = self.copy(deep=True)
+        self_copy: Chat = self.copy(deep=True)
+        if self_copy.audio_doc_indexer_metadata is None:
+            self_copy.audio_doc_indexer_metadata = AudioDocIndexerMetadata()
         self_copy.audio_doc_indexer_metadata.score = score
 
-        return self.update(self_copy, reserve_non_updatable_fields=True)
+        return self.update(self_copy, reserve_non_updatable_fields=False)
 
     def update_username_extractor_score(
         self,
@@ -238,10 +331,12 @@ class Chat(BaseVertex):
         if score is None:
             return False
 
-        self_copy = self.copy(deep=True)
+        self_copy: Chat = self.copy(deep=True)
+        if self_copy.username_extractor_metadata is None:
+            self_copy.username_extractor_metadata = UsernameExtractorMetadata()
         self_copy.username_extractor_metadata.score = score
 
-        return self.update(self_copy, reserve_non_updatable_fields=True)
+        return self.update(self_copy, reserve_non_updatable_fields=False)
 
 
 class ChatMethods:
@@ -295,20 +390,22 @@ class ChatMethods:
         if telegram_chat is None:
             return None
 
+        from tase.db.arangodb.graph.edges import LinkedChat
+
         chat, successful = Chat.insert(Chat.parse(telegram_chat))
         if chat and successful:
             if telegram_chat.linked_chat:
                 linked_chat = self.get_or_create_chat(telegram_chat.linked_chat)
                 if linked_chat:
                     try:
-                        from tase.db.arangodb.graph.edges import LinkedChat
-
                         LinkedChat.get_or_create_edge(chat, linked_chat)
                     except ValueError as e:
                         pass
                 else:
                     # todo: could not create linked_chat
-                    logger.error(f"Could not create linked_chat: {prettify(telegram_chat.linked_chat)}")
+                    logger.error(
+                        f"Could not create linked_chat: {prettify(telegram_chat.linked_chat)}"
+                    )
 
             return chat
 
@@ -372,7 +469,10 @@ class ChatMethods:
                 if telegram_chat.linked_chat:
                     # check if an update of connected vertices is needed
                     try:
-                        linked_chat, linked_chat_edge = self.get_chat_linked_chat_with_edge(chat)
+                        (
+                            linked_chat,
+                            linked_chat_edge,
+                        ) = self.get_chat_linked_chat_with_edge(chat)
                     except ValueError as e:
                         logger.exception(e)
                     else:
@@ -381,13 +481,17 @@ class ChatMethods:
                             # the old one and add a new one.
                             if linked_chat.chat_id == telegram_chat.linked_chat.id:
                                 # update the linked chat
-                                linked_chat.update(Chat.parse(telegram_chat.linked_chat))
+                                updated = linked_chat.update(
+                                    Chat.parse(telegram_chat.linked_chat)
+                                )
                             else:
                                 # delete the old link
                                 linked_chat_edge.delete()
 
                                 # create the new link and new chat
-                                linked_chat = self.update_or_create_chat(telegram_chat.linked_chat)
+                                linked_chat = self.update_or_create_chat(
+                                    telegram_chat.linked_chat
+                                )
                                 try:
                                     LinkedChat.get_or_create_edge(chat, linked_chat)
                                 except ValueError:
@@ -396,18 +500,24 @@ class ChatMethods:
                                     )
                         else:
                             # chat did not have any linked chat before, create it
-                            linked_chat = self.get_or_create_chat(telegram_chat.linked_chat)
+                            linked_chat = self.get_or_create_chat(
+                                telegram_chat.linked_chat
+                            )
                             try:
                                 LinkedChat.get_or_create_edge(chat, linked_chat)
                             except ValueError:
                                 logger.error(
-                                    f"Could not create `linked_chat` edge:" f" {prettify(telegram_chat.linked_chat)}"
+                                    f"Could not create `linked_chat` edge:"
+                                    f" {prettify(telegram_chat.linked_chat)}"
                                 )
 
                 else:
                     # the chat doesn't have any linked chat, check if it had any before and delete the link
                     try:
-                        linked_chat, linked_chat_edge = self.get_chat_linked_chat_with_edge(chat)
+                        (
+                            linked_chat,
+                            linked_chat_edge,
+                        ) = self.get_chat_linked_chat_with_edge(chat)
                     except ValueError as e:
                         logger.exception(e)
                     else:
@@ -422,7 +532,7 @@ class ChatMethods:
     def get_chat_linked_chat_with_edge(
         self,
         chat: Chat,
-    ) -> Tuple[Optional[Chat], Optional[LinkedChat]]:
+    ) -> Tuple[Optional[Chat], Optional[graph_models.edges.LinkedChat]]:
         """
         Get linked `Chat` with `LinkedChat` edge for the given `Chat`.
 
@@ -445,6 +555,8 @@ class ChatMethods:
         if chat is None or chat.id is None:
             return None, None
 
+        from tase.db.arangodb.graph.edges import LinkedChat
+
         cursor = Chat.execute_query(
             self._get_chat_linked_chat_with_edge_query,
             bind_vars={
@@ -455,7 +567,9 @@ class ChatMethods:
         )
         if cursor is not None and len(cursor):
             if len(cursor) > 1:
-                raise ValueError(f"Chat with id `{chat.id}` have more than one linked chats.")
+                raise ValueError(
+                    f"Chat with id `{chat.id}` have more than one linked chats."
+                )
             else:
                 try:
                     doc = cursor.pop()
@@ -470,7 +584,9 @@ class ChatMethods:
 
         return None, None
 
-    def get_chats_sorted_by_username_extractor_score(self) -> List[Chat]:
+    def get_chats_sorted_by_username_extractor_score(
+        self,
+    ) -> Generator[Chat, None, None]:
         """
         Gets list of chats sorted by their username extractor importance score in a descending order
 
@@ -493,7 +609,7 @@ class ChatMethods:
             for doc in cursor:
                 yield Chat.from_collection(doc)
 
-    def get_chats_sorted_by_audio_indexer_score(self) -> List[Chat]:
+    def get_chats_sorted_by_audio_indexer_score(self) -> Generator[Chat, None, None]:
         """
         Get list of chats sorted by their audio importance score in a descending order
 
@@ -516,7 +632,9 @@ class ChatMethods:
             for doc in cursor:
                 yield Chat.from_collection(doc)
 
-    def get_chats_sorted_by_audio_doc_indexer_score(self) -> List[Chat]:
+    def get_chats_sorted_by_audio_doc_indexer_score(
+        self,
+    ) -> Generator[Chat, None, None]:
         """
         Gets list of chats sorted by their audio doc importance score in a descending order
 
@@ -538,3 +656,53 @@ class ChatMethods:
         if cursor is not None and len(cursor):
             for doc in cursor:
                 yield Chat.from_collection(doc)
+
+    def get_chat_by_telegram_chat_id(
+        self,
+        chat_id: int,
+    ) -> Optional[Chat]:
+        """
+        Get `Chat` vertex by its `key` (`chat_id`)
+
+        Parameters
+        ----------
+        chat_id : int
+            ID of telegram chat
+
+        Returns
+        -------
+        Chat, optional
+            Chat vertex if it exists in the ArangoDB, otherwise, return None
+
+        """
+        if chat_id is None:
+            return None
+
+        return Chat.get(str(chat_id))
+
+    def get_chat_by_username(
+        self,
+        username: str,
+    ) -> Optional[Chat]:
+        """
+        Get `Chat` vertex by its `username`
+
+        Parameters
+        ----------
+        username : str
+            Username to find the chat by
+
+        Returns
+        -------
+        Chat, optional
+            Chat if it exists by the given username, otherwise, return None
+
+        """
+        if username is None:
+            return None
+
+        cursor = Chat._collection.find({"username": username.lower()})
+        if cursor and len(cursor):
+            return Chat.from_collection(cursor.pop())
+        else:
+            return None
