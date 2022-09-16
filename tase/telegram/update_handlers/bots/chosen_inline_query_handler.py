@@ -5,7 +5,7 @@ import pyrogram
 from pyrogram import handlers
 
 from tase.my_logger import logger
-from tase.telegram.bots.ui.inline_buttons import InlineButton
+from tase.telegram.bots.ui.inline_buttons.base import InlineButton
 from tase.telegram.update_handlers.base import BaseHandler, HandlerMetadata
 from tase.utils import exception_handler
 
@@ -39,7 +39,7 @@ class ChosenInlineQueryHandler(BaseHandler):
             # todo: handle downloads from commands like `#download_history` in non-private chats
             logger.info(chosen_inline_result)
 
-            button = InlineButton.get_button(reg.group("command"))
+            button = InlineButton.find_button_by_type_value(reg.group("command"))
             if button:
                 button.on_chosen_inline_query(
                     self,

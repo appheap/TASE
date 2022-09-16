@@ -6,7 +6,7 @@ from pyrogram.types import InlineKeyboardMarkup
 from tase.db.arangodb import graph as graph_models
 from tase.telegram.bots.bot_commands.base_command import BaseCommand
 from tase.telegram.bots.bot_commands.bot_command_type import BotCommandType
-from tase.telegram.bots.ui.inline_buttons import InlineButton
+from tase.telegram.bots.ui.inline_buttons.base import InlineButton, InlineButtonType
 from tase.telegram.bots.ui.templates import BaseTemplate, HelpData
 from tase.telegram.update_handlers.base import BaseHandler
 
@@ -35,24 +35,31 @@ class HelpCommand(BaseCommand):
 
         markup = [
             [
-                InlineButton.get_button("download_history").get_inline_keyboard_button(
-                    db_from_user.chosen_language_code
-                ),
-                InlineButton.get_button("my_playlists").get_inline_keyboard_button(db_from_user.chosen_language_code),
+                InlineButton.get_button(
+                    InlineButtonType.DOWNLOAD_HISTORY
+                ).get_inline_keyboard_button(db_from_user.chosen_language_code),
+                InlineButton.get_button(
+                    InlineButtonType.MY_PLAYLISTS
+                ).get_inline_keyboard_button(db_from_user.chosen_language_code),
             ],
             [
-                InlineButton.get_button("back").get_inline_keyboard_button(db_from_user.chosen_language_code),
+                InlineButton.get_button(
+                    InlineButtonType.BACK
+                ).get_inline_keyboard_button(db_from_user.chosen_language_code),
             ],
             [
-                InlineButton.get_button("advertisement").get_inline_keyboard_button(db_from_user.chosen_language_code),
-                InlineButton.get_button("help_catalog").get_inline_keyboard_button(db_from_user.chosen_language_code),
+                InlineButton.get_button(
+                    InlineButtonType.ADVERTISEMENT
+                ).get_inline_keyboard_button(db_from_user.chosen_language_code),
+                InlineButton.get_button(
+                    InlineButtonType.HELP_CATALOG
+                ).get_inline_keyboard_button(db_from_user.chosen_language_code),
             ],
         ]
-        markup = InlineKeyboardMarkup(markup)
 
         client.send_message(
             chat_id=message.from_user.id,
             text=BaseTemplate.registry.help_template.render(data),
             parse_mode=ParseMode.HTML,
-            reply_markup=markup,
+            reply_markup=InlineKeyboardMarkup(markup),
         )

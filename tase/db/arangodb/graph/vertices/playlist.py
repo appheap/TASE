@@ -113,7 +113,7 @@ class PlaylistMethods:
     )
 
     _get_audio_playlists_query = (
-        "for v,e in 1..1 inbound '@start_vertex' graph '@graph_name' options {order : 'dfs', edgeCollections : ['@has'], 'vertexCollections : ['@playlists']}"
+        "for v,e in 1..1 inbound '@start_vertex' graph '@graph_name' options {order : 'dfs', edgeCollections : ['@has'], vertexCollections : ['@playlists']}"
         "   sort v.rank ASC, e.created_at DESC"
         "   limit @offset, @limit"
         "   return v"

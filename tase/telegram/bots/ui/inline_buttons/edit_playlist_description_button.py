@@ -4,11 +4,12 @@ from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.enums import BotTaskType
 from tase.telegram.update_handlers.base import BaseHandler
 from tase.utils import _trans, emoji
-from .inline_button import InlineButton
+from .base import InlineButton, InlineButtonType
 
 
 class EditPlaylistDescriptionInlineButton(InlineButton):
     name = "edit_playlist_description"
+    type = InlineButtonType.EDIT_PLAYLIST_DESCRIPTION
 
     s_edit = _trans("Edit Description")
     text = f"{s_edit} | {emoji._gear}"
