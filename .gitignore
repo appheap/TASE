@@ -135,3 +135,6 @@ tase.toml
 /tase/unknown_errors.txt
 /.idea/
 /certs/
+/tase-prod.json
+/tase-test.json
+/rclone-exclude

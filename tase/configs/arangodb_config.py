@@ -7,5 +7,3 @@ class ArangoDBConfig(BaseConfig):
     db_username: str
     db_password: str
     graph_name: str
-
-

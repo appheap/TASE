@@ -1,6 +1,1 @@
-from . import configs
-from . import db
-from . import languages
-from . import models
-from . import static
-from . import telegram
+from . import configs, db, languages, static, telegram

@@ -17,9 +17,9 @@ license = "MIT"
 include = [
     "LICENSE",
 ]
-packages = [
-    { include = "" }
-]
+#packages = [
+#    { include = "" }
+#]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
@@ -39,20 +39,21 @@ keywords = [
 
 [tool.poetry.dependencies]
 python = "^3.10"
-emoji = "^1.7.0"
+emoji = "^2.0.0"
 schedule = "^1.1.0"
-elasticsearch = "^8.1.2"
-Pyrogram = "^2.0.0"
+elasticsearch = "^8.3.3"
+Pyrogram = "^2.0.30"
 TgCrypto = "^1.2.3"
 tomli = "^2.0.1"
 termcolor = "^1.1.0"
 colorlog = "^6.6.0"
 python-decouple = "^3.6"
-python-arango = "^7.3.3"
+python-arango = "^7.4.1"
 kombu = "^5.2.4"
 arrow = "^1.2.2"
-pydantic = "^1.9.0"
+pydantic = "^1.9.2"
 Jinja2 = "^3.1.2"
+APScheduler = "^3.9.1"
 
 [tool.poetry.dev-dependencies]
 

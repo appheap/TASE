@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: tase\n"
-"POT-Creation-Date: 2022-05-17 15:11+0430\n"
-"PO-Revision-Date: 2022-05-17 15:11+0430\n"
+"POT-Creation-Date: 2022-08-10 15:04+0430\n"
+"PO-Revision-Date: 2022-08-10 15:04+0430\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese\n"
 "Language: pt_BR\n"
@@ -10,224 +10,242 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Poedit 3.0.1\n"
+"X-Generator: Poedit 3.1.1\n"
 "X-Poedit-Basepath: ../../../tase\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 "X-Poedit-KeywordsList: _trans\n"
 "X-Poedit-SearchPath-0: .\n"
 
-#: telegram/handlers/bots/bot_message_handler.py:161
-msgid "An error occurred while processing the download URL for this audio"
-msgstr "Ocorreu um erro ao processar o URL de download para este áudio"
+#: telegram/bots/bot_commands/base_command.py:61
+msgid "You don't have the required permission to execute this command!"
+msgstr "Você não tem a permissão necessária para executar este comando!"
 
-#: telegram/inline_buttons/add_to_playlist_button.py:17
+#: telegram/bots/ui/inline_buttons/add_to_playlist_button.py:16
 msgid "Add To Playlist"
 msgstr "Adicionar à Playlist"
 
-#: telegram/inline_buttons/advertisement_button.py:9
+#: telegram/bots/ui/inline_buttons/advertisement_button.py:8
 msgid "Advertisement"
 msgstr "Propaganda"
 
-#: telegram/inline_buttons/back_button.py:13
-#: telegram/inline_buttons/back_to_playlists_button.py:9
+#: telegram/bots/ui/inline_buttons/back_button.py:11
+#: telegram/bots/ui/inline_buttons/back_to_playlists_button.py:9
 msgid "Back"
 msgstr "Costas"
 
-#: telegram/inline_buttons/choose_language_button.py:24
+#: telegram/bots/ui/inline_buttons/choose_language_button.py:24
 msgid "Language change has been saved"
 msgstr "A mudança de idioma foi salva"
 
-#: telegram/inline_buttons/delete_playlist_button.py:13
-msgid "Delete"
-msgstr "Excluir"
+#: telegram/bots/ui/inline_buttons/delete_playlist_button.py:12
+msgid "Delete Playlist"
+msgstr "Excluir lista de reprodução"
 
-#: telegram/inline_buttons/download_history_button.py:23
+#: telegram/bots/ui/inline_buttons/download_history_button.py:17
 msgid "My Downloads"
 msgstr "Meus Downloads"
 
-#: telegram/inline_buttons/download_history_button.py:78
-#: telegram/inline_items/no_download_item.py:22
-#: telegram/inline_items/no_playlist_item.py:22
-#: telegram/inline_items/no_result_item.py:22
+#: telegram/bots/ui/inline_buttons/download_history_button.py:69
+#: telegram/bots/ui/inline_items/no_download_item.py:22
+#: telegram/bots/ui/inline_items/no_playlist_item.py:22
+#: telegram/bots/ui/inline_items/no_result_item.py:22
 msgid "No Results Were Found"
 msgstr "Nenhum resultado foi encontrado"
 
-#: telegram/inline_buttons/download_history_button.py:80
-#: telegram/inline_items/no_download_item.py:24
+#: telegram/bots/ui/inline_buttons/download_history_button.py:73
+#: telegram/bots/ui/inline_items/no_download_item.py:24
 msgid "You haven't downloaded any audios yet"
 msgstr "Você ainda não baixou nenhum áudio"
 
-#: telegram/inline_buttons/edit_playlist_button.py:13
-msgid "Edit"
-msgstr "Editar"
+#: telegram/bots/ui/inline_buttons/edit_playlist_description_button.py:12
+msgid "Edit Description"
+msgstr "Edite a Descrição"
 
-#: telegram/inline_buttons/get_playlist_audios_button.py:17
-msgid "Audios"
-msgstr "Áudios"
+#: telegram/bots/ui/inline_buttons/edit_playlist_title_button.py:12
+msgid "Edit Title"
+msgstr "Editar título"
 
-#: telegram/inline_buttons/help_catalog.py:18
+#: telegram/bots/ui/inline_buttons/get_playlist_audios_button.py:15
+msgid "Audio Files"
+msgstr "Arquivos de áudio"
+
+#: telegram/bots/ui/inline_buttons/help_catalog.py:16
 msgid "Help"
 msgstr "Ajuda"
 
-#: telegram/inline_buttons/home_button.py:13
-#: telegram/templates/choose_language_template.py:27
+#: telegram/bots/ui/inline_buttons/home_button.py:11
+#: telegram/bots/ui/templates/choose_language_template.py:29
 msgid "Home"
 msgstr "Casa"
 
-#: telegram/inline_buttons/my_playlists_button.py:17
+#: telegram/bots/ui/inline_buttons/my_playlists_button.py:17
 msgid "My Playlists"
 msgstr "Minhas listas de reprodução"
 
-#: telegram/inline_buttons/show_language_menu_button.py:13
+#: telegram/bots/ui/inline_buttons/remove_from_playlist_button.py:15
+msgid "Remove From Playlist"
+msgstr "Remover da lista de reprodução"
+
+#: telegram/bots/ui/inline_buttons/show_language_menu_button.py:11
 msgid "Language"
 msgstr "Linguagem"
 
-#: telegram/inline_items/create_new_playlist_item.py:23
+#: telegram/bots/ui/inline_items/create_new_playlist_item.py:23
 msgid "Create A New Playlist"
 msgstr "Criar uma nova lista de reprodução"
 
-#: telegram/inline_items/create_new_playlist_item.py:24
+#: telegram/bots/ui/inline_items/create_new_playlist_item.py:24
 msgid "Create a new playlist"
 msgstr "Criar uma nova lista de reprodução"
 
-#: telegram/inline_items/no_playlist_item.py:24
+#: telegram/bots/ui/inline_items/no_playlist_item.py:24
 msgid "You haven't created any playlist yet"
 msgstr "Você ainda não criou nenhuma lista de reprodução"
 
-#: telegram/inline_items/no_result_item.py:23
+#: telegram/bots/ui/inline_items/no_result_item.py:23
 msgid "No results were found"
 msgstr "Nenhum resultado foi encontrado"
 
-#: telegram/templates/audio_caption_template.py:31
-#: telegram/templates/playlist_template.py:26
+#: telegram/bots/ui/templates/audio_caption_template.py:33
+#: telegram/bots/ui/templates/playlist_template.py:28
 msgid "Title"
 msgstr "Título"
 
-#: telegram/templates/audio_caption_template.py:32
+#: telegram/bots/ui/templates/audio_caption_template.py:34
 msgid "Performer"
 msgstr "Artista"
 
-#: telegram/templates/audio_caption_template.py:33
+#: telegram/bots/ui/templates/audio_caption_template.py:35
 msgid "File name"
 msgstr "Nome do arquivo"
 
-#: telegram/templates/audio_caption_template.py:34
+#: telegram/bots/ui/templates/audio_caption_template.py:36
 msgid "Source"
 msgstr "Fonte"
 
-#: telegram/templates/audio_caption_template.py:35
+#: telegram/bots/ui/templates/audio_caption_template.py:37
 msgid "Audio Search Engine"
 msgstr "Mecanismo de pesquisa de áudio"
 
-#: telegram/templates/audio_caption_template.py:36
+#: telegram/bots/ui/templates/audio_caption_template.py:38
 msgid "Submitted by Telegram Audio Search Engine Users"
 msgstr "Enviado pela Telegram Audio Search Engine Users"
 
-#: telegram/templates/choose_language_template.py:23
+#: telegram/bots/ui/templates/choose_language_template.py:25
 msgid "Please choose your language"
 msgstr "Escolha o seu idioma"
 
-#: telegram/templates/choose_language_template.py:24
+#: telegram/bots/ui/templates/choose_language_template.py:26
 msgid "You can change this later by:"
 msgstr "Você pode mudar isso mais tarde por:"
 
-#: telegram/templates/choose_language_template.py:25
+#: telegram/bots/ui/templates/choose_language_template.py:27
 msgid "Sending"
 msgstr "Envio"
 
-#: telegram/templates/choose_language_template.py:26
+#: telegram/bots/ui/templates/choose_language_template.py:28
 msgid "Going to"
 msgstr "Indo a"
 
-#: telegram/templates/help_template.py:32
+#: telegram/bots/ui/templates/help_template.py:34
 msgid "Help menu"
 msgstr "Menu de ajuda"
 
-#: telegram/templates/help_template.py:33
-#: telegram/templates/home_template.py:33
+#: telegram/bots/ui/templates/help_template.py:35
+#: telegram/bots/ui/templates/home_template.py:35
 msgid "Channel:"
 msgstr "Canal:"
 
-#: telegram/templates/help_template.py:34
-#: telegram/templates/home_template.py:34
+#: telegram/bots/ui/templates/help_template.py:36
+#: telegram/bots/ui/templates/home_template.py:36
 msgid "Our channels:"
 msgstr "Nossos canais:"
 
-#: telegram/templates/help_template.py:35
-#: telegram/templates/home_template.py:35
-#: telegram/templates/welcome_template.py:28
+#: telegram/bots/ui/templates/help_template.py:37
+#: telegram/bots/ui/templates/home_template.py:37
+#: telegram/bots/ui/templates/welcome_template.py:30
 msgid "Telegram Audio Search Engine"
 msgstr "Mecanismo de busca de áudio do Telegram"
 
-#: telegram/templates/help_template.py:36
-#: telegram/templates/home_template.py:36
+#: telegram/bots/ui/templates/help_template.py:38
+#: telegram/bots/ui/templates/home_template.py:38
 msgid "How to reach us:"
 msgstr "Como chegar até nós:"
 
-#: telegram/templates/home_template.py:32
+#: telegram/bots/ui/templates/home_template.py:34
 msgid "Main menu"
 msgstr "Menu principal"
 
-#: telegram/templates/no_results_were_found_template.py:9
+#: telegram/bots/ui/templates/no_results_were_found_template.py:9
 msgid "No results were found for this query!"
 msgstr "Não foram encontrados resultados para esta consulta!"
 
-#: telegram/templates/playlist_template.py:25
+#: telegram/bots/ui/templates/playlist_template.py:27
 msgid "Playlist Menu"
 msgstr "Menu da lista de reprodução"
 
-#: telegram/templates/playlist_template.py:27
+#: telegram/bots/ui/templates/playlist_template.py:29
 msgid "Description"
 msgstr "Descrição"
 
-#: telegram/templates/query_results_template.py:33
+#: telegram/bots/ui/templates/query_results_template.py:35
 msgid "Search results for:"
 msgstr "Resultados da busca por:"
 
-#: telegram/templates/query_results_template.py:34
+#: telegram/bots/ui/templates/query_results_template.py:36
 msgid "Better results are at the bottom of the list"
 msgstr "Melhores resultados estão na parte inferior da lista"
 
-#: telegram/templates/query_results_template.py:35
+#: telegram/bots/ui/templates/query_results_template.py:37
 msgid "Download:"
 msgstr "Download:"
 
-#: telegram/templates/query_results_template.py:36
+#: telegram/bots/ui/templates/query_results_template.py:38
 msgid "MB"
 msgstr "MB"
 
-#: telegram/templates/welcome_template.py:26
+#: telegram/bots/ui/templates/welcome_template.py:28
 msgid "Take your audio searching to the speed"
 msgstr "Leve sua pesquisa de áudio para a velocidade"
 
-#: telegram/templates/welcome_template.py:27
+#: telegram/bots/ui/templates/welcome_template.py:29
 msgid "Welcome to"
 msgstr "Bem-vindo ao"
 
-#: telegram/templates/welcome_template.py:29
+#: telegram/bots/ui/templates/welcome_template.py:31
 msgid "It's great to have you!"
 msgstr "É ótimo ter você!"
 
-#: telegram/templates/welcome_template.py:30
+#: telegram/bots/ui/templates/welcome_template.py:32
 msgid "Here are a bunch of features that will get your searching up to"
 msgstr "Aqui estão vários recursos que farão sua pesquisa até"
 
-#: telegram/templates/welcome_template.py:31
+#: telegram/bots/ui/templates/welcome_template.py:33
 msgid "speed"
 msgstr "rapidez"
 
-#: telegram/templates/welcome_template.py:32
+#: telegram/bots/ui/templates/welcome_template.py:34
 msgid "Find"
 msgstr "Encontrar"
 
-#: telegram/templates/welcome_template.py:33
+#: telegram/bots/ui/templates/welcome_template.py:35
 msgid "your audio (music, podcast, etc.) in"
 msgstr "seu áudio (música, podcast, etc.) em"
 
-#: telegram/templates/welcome_template.py:34
+#: telegram/bots/ui/templates/welcome_template.py:36
 msgid "Any question? then press"
 msgstr "Qualquer pergunta? então aperte"
 
-#: telegram/templates/welcome_template.py:35
+#: telegram/bots/ui/templates/welcome_template.py:37
 msgid "milliseconds"
 msgstr "milissegundos"
+
+#: telegram/update_handlers/bots/bot_message_handler.py:200
+msgid "An error occurred while processing the download URL for this audio"
+msgstr "Ocorreu um erro ao processar o URL de download para este áudio"
+
+#~ msgid "Delete"
+#~ msgstr "Excluir"
+
+#~ msgid "Edit"
+#~ msgstr "Editar"
