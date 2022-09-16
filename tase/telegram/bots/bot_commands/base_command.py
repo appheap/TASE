@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import collections
 from typing import List, Optional
 
@@ -45,7 +47,7 @@ class BaseCommand(BaseModel):
     def get_command(
         cls,
         bot_command_type: BotCommandType,
-    ) -> Optional["BaseCommand"]:
+    ) -> Optional[BaseCommand]:
         if bot_command_type is None:
             return None
         return cls._registry.get(str(bot_command_type.value), None)
@@ -126,7 +128,7 @@ class BaseCommand(BaseModel):
     def _authorize_and_execute(
         cls,
         client: pyrogram.Client,
-        command: "BaseCommand",
+        command: BaseCommand,
         db_from_user: User,
         handler: BaseHandler,
         message: pyrogram.types.Message,
