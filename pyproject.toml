@@ -31,6 +31,7 @@ classifiers = [
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 keywords = [
@@ -41,17 +42,17 @@ keywords = [
 python = "^3.10"
 emoji = "^2.0.0"
 schedule = "^1.1.0"
-elasticsearch = "^8.3.3"
-Pyrogram = "^2.0.30"
+elasticsearch = "^8.4.1"
+Pyrogram = "^2.0.52"
 TgCrypto = "^1.2.3"
 tomli = "^2.0.1"
-termcolor = "^1.1.0"
-colorlog = "^6.6.0"
+termcolor = "^2.0.1"
+colorlog = "^6.7.0"
 python-decouple = "^3.6"
 python-arango = "^7.4.1"
 kombu = "^5.2.4"
-arrow = "^1.2.2"
-pydantic = "^1.9.2"
+arrow = "^1.2.3"
+pydantic = "^1.10.2"
 Jinja2 = "^3.1.2"
 APScheduler = "^3.9.1"
 
