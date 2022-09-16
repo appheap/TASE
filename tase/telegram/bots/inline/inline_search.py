@@ -62,11 +62,7 @@ class InlineSearch(OnInlineQuery):
                     valid_for_inline_search=True,
                 )
 
-                if (
-                    not es_audio_docs
-                    or not len(es_audio_docs)
-                    or not len(query_metadata)
-                ):
+                if not es_audio_docs or not len(es_audio_docs) or not query_metadata:
                     found_any = False
 
                 es_audio_docs: List[elasticsearch_models.Audio] = es_audio_docs
@@ -83,7 +79,7 @@ class InlineSearch(OnInlineQuery):
                     )
 
                     #  todo: Some audios have null titles, solution?
-                    if es_audio_doc.valid_for_inline_search:
+                    if not es_audio_doc.valid_for_inline_search:
                         continue
 
                     # todo: telegram cannot handle these mime types, any alternative?

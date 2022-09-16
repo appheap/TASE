@@ -4,7 +4,7 @@ from typing import List, Optional
 import pyrogram
 from pydantic import BaseModel, Field
 
-import tase
+from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.graph.vertices.user import UserRole, User
 from tase.my_logger import logger
 from tase.utils import _trans
@@ -56,7 +56,7 @@ class BaseCommand(BaseModel):
         client: pyrogram.Client,
         callback_query: pyrogram.types.CallbackQuery,
         handler: BaseHandler,
-        db_from_user: tase.db.graph_models.vertices.User,
+        db_from_user: graph_models.vertices.User,
         bot_command_type: BotCommandType,
     ) -> None:
         if not all(
@@ -90,27 +90,17 @@ class BaseCommand(BaseModel):
         handler: BaseHandler,
         bot_command_type: Optional[BotCommandType] = None,
     ) -> None:
-        if (
-            client is None
-            or message is None
-            or handler is None
-            or message.from_user is None
-        ):
+        if client is None or message is None or handler is None or message.from_user is None:
             return
 
         logger.error(BotCommandType.get_from_message(message))
 
         bot_command_type = (
-            bot_command_type
-            if bot_command_type is not None
-            else BotCommandType.get_from_message(message)
+            bot_command_type if bot_command_type is not None else BotCommandType.get_from_message(message)
         )
         if bot_command_type != BotCommandType.INVALID:
             command = BaseCommand.get_command(bot_command_type)
-            if (
-                message.command is not None
-                and len(message.command) - 1 < command.number_of_required_arguments
-            ):
+            if message.command is not None and len(message.command) - 1 < command.number_of_required_arguments:
                 # todo: translate me
                 message.reply_text(
                     "Not enough arguments are provided to run this command",
@@ -121,9 +111,7 @@ class BaseCommand(BaseModel):
 
             user: User = handler.db.graph.get_or_create_user(message.from_user)
             if user is None:
-                raise Exception(
-                    f"Could not get/create user vertex from: {message.from_user}"
-                )
+                raise Exception(f"Could not get/create user vertex from: {message.from_user}")
 
             cls._authorize_and_execute(
                 client,
@@ -153,9 +141,9 @@ class BaseCommand(BaseModel):
             Client which received this command
         command : BaseCommand
             Command to be executed
-        db_from_user : tase.db.graph_models.vertices.User
+        db_from_user : graph_models.vertices.User
             User who requested this command
-        handler : tase.telegram.update_handlers.BaseHandler
+        handler : BaseHandler
             Update handler which originally received the update
         message : pyrogram.types.Message
             Message containing the command
@@ -175,9 +163,7 @@ class BaseCommand(BaseModel):
             # check if the user has permission to execute this command
         if db_from_user.role.value >= command.required_role_level.value:
             try:
-                command.command_function(
-                    client, message, handler, db_from_user, from_callback_query
-                )
+                command.command_function(client, message, handler, db_from_user, from_callback_query)
             except NotImplementedError:
                 pass
             except Exception as e:
@@ -197,8 +183,8 @@ class BaseCommand(BaseModel):
         self,
         client: pyrogram.Client,
         message: pyrogram.types.Message,
-        handler: "tase.telegram.update_handlers.base.BaseHandler",
-        db_from_user: "tase.db.graph_models.vertices.User",
+        handler: BaseHandler,
+        db_from_user: graph_models.vertices.User,
         from_callback_query: bool,
     ) -> None:
         raise NotImplementedError
