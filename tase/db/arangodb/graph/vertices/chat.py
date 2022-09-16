@@ -9,7 +9,6 @@ from tase.db.arangodb import graph as graph_models
 from tase.my_logger import logger
 from tase.utils import prettify
 from .base_vertex import BaseVertex
-
 from ...enums import ChatType
 from ...helpers import (
     Restriction,
@@ -48,7 +47,6 @@ class Chat(BaseVertex):
     invite_link: Optional[str]
     restrictions: Optional[List[Restriction]]
     # linked_chat: linked_chat => Chat
-    available_reactions: Optional[List[str]]
     distance: Optional[int]
     members_count: Optional[int]
 
@@ -104,7 +102,6 @@ class Chat(BaseVertex):
             restrictions=Restriction.parse_from_restrictions(
                 telegram_chat.restrictions
             ),
-            available_reactions=telegram_chat.available_reactions,
             distance=telegram_chat.distance,
             members_count=telegram_chat.members_count,
         )
