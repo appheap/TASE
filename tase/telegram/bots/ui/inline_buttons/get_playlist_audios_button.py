@@ -1,23 +1,23 @@
+import collections
 from typing import Match, Optional
 
 import pyrogram
 
 from tase.db.arangodb import graph as graph_models
-from tase.db.arangodb.enums import InlineQueryType
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
 from tase.utils import _trans, emoji
-from .inline_button import InlineButton
-from ..inline_items import PlaylistItem, AudioItem, NoDownloadItem
+from .base import InlineButton, InlineButtonType
+from .common import populate_audio_items
+from ..inline_items import PlaylistItem, NoDownloadItem
 
 
 class GetPlaylistAudioInlineButton(InlineButton):
     name = "get_playlist_audios"
+    type = InlineButtonType.GET_PLAYLIST_AUDIOS
 
     s_audios = _trans("Audio Files")
     text = f"{s_audios} | {emoji._headphone}"
-
-    switch_inline_query_current_chat = f"#get_playlist_audios"
 
     def on_inline_query(
         self,
@@ -31,7 +31,7 @@ class GetPlaylistAudioInlineButton(InlineButton):
     ):
         playlist_key = reg.group("arg1")
 
-        results = []
+        results = collections.deque()
         playlist_is_valid = (
             False  # whether the requested playlist belongs to the user or not
         )
@@ -65,44 +65,18 @@ class GetPlaylistAudioInlineButton(InlineButton):
 
             audio_vertices = list(audio_vertices)
 
-            # todo: fix this
-            chats_dict = handler.update_audio_cache(audio_vertices)
-
-            db_query, hits = handler.db.graph.get_or_create_query(
-                handler.telegram_client.telegram_id,
-                from_user,
-                telegram_inline_query.query,
-                query_date,
+            populate_audio_items(
+                results,
                 audio_vertices,
-                telegram_inline_query=telegram_inline_query,
-                inline_query_type=InlineQueryType.COMMAND,
-                next_offset=result.get_next_offset(),
+                from_user,
+                handler,
+                query_date,
+                result,
+                telegram_inline_query,
             )
 
-            if db_query and hits:
-                for audio_vertex, hit in zip(audio_vertices, hits):
-                    audio_doc = handler.db.document.get_audio_by_key(
-                        handler.telegram_client.telegram_id,
-                        audio_vertex.key,
-                    )
-                    es_audio_doc = handler.db.index.get_audio_by_id(audio_vertex.key)
-
-                    if not audio_doc or not audio_vertex.valid_for_inline_search:
-                        continue
-
-                    results.append(
-                        AudioItem.get_item(
-                            audio_doc.file_id,
-                            from_user,
-                            es_audio_doc,
-                            telegram_inline_query,
-                            chats_dict,
-                            hit,
-                        )
-                    )
-
         if len(results) and playlist_is_valid:
-            result.results = results
+            result.results = list(results)
         else:
             if result.from_ is None or result.from_ == 0:
                 result.results = [NoDownloadItem.get_item(from_user)]

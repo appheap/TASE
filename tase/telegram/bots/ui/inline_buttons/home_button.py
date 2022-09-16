@@ -4,11 +4,12 @@ from tase.db.arangodb import graph as graph_models
 from tase.telegram.bots import bot_commands
 from tase.telegram.update_handlers.base import BaseHandler
 from tase.utils import _trans, emoji
-from .inline_button import InlineButton
+from .base import InlineButton, InlineButtonType
 
 
 class HomeInlineButton(InlineButton):
     name = "home"
+    type = InlineButtonType.HOME
 
     s_home = _trans("Home")
     text = f"{s_home} | {emoji._house}"

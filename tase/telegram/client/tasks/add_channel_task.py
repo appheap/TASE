@@ -39,6 +39,10 @@ class AddChannelTask(BaseTask):
             # In case the chat invite link points to a chat this telegram client hasn't joined yet.
             # todo: send an appropriate message to notify the user of this situation
             pass
+        except KeyError as e:
+            # the provided username is not valid
+            # todo: send an appropriate message to notify the user of this situation
+            pass
         except Exception as e:
             # this is an unexpected error
             logger.exception(e)

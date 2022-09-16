@@ -8,7 +8,7 @@ from pyrogram import filters, handlers
 
 from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult, InlineSearch
-from tase.telegram.bots.ui.inline_buttons import InlineButton
+from tase.telegram.bots.ui.inline_buttons.base import InlineButton
 from tase.telegram.update_handlers.base import BaseHandler, HandlerMetadata
 from tase.utils import exception_handler, get_now_timestamp
 
@@ -87,7 +87,7 @@ class InlineQueryHandler(BaseHandler):
             r"^#(?P<command>[a-zA-Z0-9_]+)(\s(?P<arg1>[a-zA-Z0-9_]+))?",
             inline_query.query,
         )
-        button = InlineButton.get_button(reg.group("command"))
+        button = InlineButton.find_button_by_type_value(reg.group("command"))
         if button:
             result = CustomInlineQueryResult(inline_query)
             button.on_inline_query(

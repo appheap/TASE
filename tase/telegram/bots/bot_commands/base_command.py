@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import collections
 from typing import List, Optional
 
@@ -45,7 +47,7 @@ class BaseCommand(BaseModel):
     def get_command(
         cls,
         bot_command_type: BotCommandType,
-    ) -> Optional["BaseCommand"]:
+    ) -> Optional[BaseCommand]:
         if bot_command_type is None:
             return None
         return cls._registry.get(str(bot_command_type.value), None)
@@ -90,17 +92,27 @@ class BaseCommand(BaseModel):
         handler: BaseHandler,
         bot_command_type: Optional[BotCommandType] = None,
     ) -> None:
-        if client is None or message is None or handler is None or message.from_user is None:
+        if (
+            client is None
+            or message is None
+            or handler is None
+            or message.from_user is None
+        ):
             return
 
         logger.error(BotCommandType.get_from_message(message))
 
         bot_command_type = (
-            bot_command_type if bot_command_type is not None else BotCommandType.get_from_message(message)
+            bot_command_type
+            if bot_command_type is not None
+            else BotCommandType.get_from_message(message)
         )
         if bot_command_type != BotCommandType.INVALID:
             command = BaseCommand.get_command(bot_command_type)
-            if message.command is not None and len(message.command) - 1 < command.number_of_required_arguments:
+            if (
+                message.command is not None
+                and len(message.command) - 1 < command.number_of_required_arguments
+            ):
                 # todo: translate me
                 message.reply_text(
                     "Not enough arguments are provided to run this command",
@@ -111,7 +123,9 @@ class BaseCommand(BaseModel):
 
             user: User = handler.db.graph.get_or_create_user(message.from_user)
             if user is None:
-                raise Exception(f"Could not get/create user vertex from: {message.from_user}")
+                raise Exception(
+                    f"Could not get/create user vertex from: {message.from_user}"
+                )
 
             cls._authorize_and_execute(
                 client,
@@ -126,7 +140,7 @@ class BaseCommand(BaseModel):
     def _authorize_and_execute(
         cls,
         client: pyrogram.Client,
-        command: "BaseCommand",
+        command: BaseCommand,
         db_from_user: User,
         handler: BaseHandler,
         message: pyrogram.types.Message,
@@ -163,7 +177,9 @@ class BaseCommand(BaseModel):
             # check if the user has permission to execute this command
         if db_from_user.role.value >= command.required_role_level.value:
             try:
-                command.command_function(client, message, handler, db_from_user, from_callback_query)
+                command.command_function(
+                    client, message, handler, db_from_user, from_callback_query
+                )
             except NotImplementedError:
                 pass
             except Exception as e:

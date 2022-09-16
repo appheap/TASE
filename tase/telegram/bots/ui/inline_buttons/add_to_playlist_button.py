@@ -8,17 +8,16 @@ from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
 from tase.utils import _trans, emoji
-from .inline_button import InlineButton
-from ..inline_items import CreateNewPlaylistItem, PlaylistItem
+from .base import InlineButton, InlineButtonType
+from .common import populate_playlist_list
 
 
 class AddToPlaylistInlineButton(InlineButton):
     name = "add_to_playlist"
+    type = InlineButtonType.ADD_TO_PLAYLIST
 
     s_add_to_playlist = _trans("Add To Playlist")
     text = f"{s_add_to_playlist} | {emoji._plus}"
-
-    switch_inline_query_current_chat = f"#add_to_playlist"
 
     def on_inline_query(
         self,
@@ -30,29 +29,9 @@ class AddToPlaylistInlineButton(InlineButton):
         query_date: int,
         reg: Optional[Match] = None,
     ):
-        db_playlists = handler.db.graph.get_user_playlists(
-            from_user,
-            offset=result.from_,
+        results = populate_playlist_list(
+            from_user, handler, result, telegram_inline_query
         )
-
-        results = []
-
-        if result.from_ == 0:
-            results.append(
-                CreateNewPlaylistItem.get_item(
-                    from_user,
-                    telegram_inline_query,
-                )
-            )
-
-        for db_playlist in db_playlists:
-            results.append(
-                PlaylistItem.get_item(
-                    db_playlist,
-                    from_user,
-                    telegram_inline_query,
-                )
-            )
 
         if len(results):
             result.results = results
@@ -72,12 +51,8 @@ class AddToPlaylistInlineButton(InlineButton):
         inline_query_id = result_id_list[0]
         playlist_key = result_id_list[1]
 
-        # db_hit = db.get_hit_by_download_url(hit_download_url)
-        # db_audio = db.get_audio_from_hit(db_hit)
-
         if playlist_key == "add_a_new_playlist":
             # start creating a new playlist
-            # todo: fix this duplicate code
             handler.db.document.create_bot_task(
                 from_user.user_id,
                 handler.telegram_client.telegram_id,

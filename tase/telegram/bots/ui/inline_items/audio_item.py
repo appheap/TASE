@@ -20,22 +20,27 @@ class AudioItem(BaseInlineItem):
         telegram_inline_query: pyrogram.types.InlineQuery,
         chats_dict: dict,
         hit: graph_models.vertices.Hit,
-    ) -> Optional["pyrogram.types.InlineQueryResult"]:
+    ) -> Optional[pyrogram.types.InlineQueryResult]:
         if telegram_file_id is None or from_user is None:
             return None
 
-        from ..inline_buttons import InlineButton
+        from tase.telegram.bots.ui.inline_buttons.base import (
+            InlineButton,
+            InlineButtonType,
+        )
 
         markup = [
             [
-                InlineButton.get_button("add_to_playlist").get_inline_keyboard_button(
+                InlineButton.get_button(
+                    InlineButtonType.ADD_TO_PLAYLIST
+                ).get_inline_keyboard_button(
                     from_user.chosen_language_code,
                     hit.download_url,
                 ),
             ],
             [
                 InlineButton.get_button(
-                    "remove_from_playlist"
+                    InlineButtonType.REMOVE_FROM_PLAYLIST
                 ).get_inline_keyboard_button(
                     from_user.chosen_language_code,
                     hit.download_url,
@@ -45,13 +50,11 @@ class AudioItem(BaseInlineItem):
         if telegram_inline_query.chat_type == ChatType.BOT:
             markup.append(
                 [
-                    InlineButton.get_button("home").get_inline_keyboard_button(
-                        from_user.chosen_language_code
-                    ),
+                    InlineButton.get_button(
+                        InlineButtonType.HOME
+                    ).get_inline_keyboard_button(from_user.chosen_language_code),
                 ]
             )
-
-        markup = InlineKeyboardMarkup(markup)
 
         return InlineQueryResultCachedAudio(
             audio_file_id=telegram_file_id,
@@ -65,5 +68,5 @@ class AudioItem(BaseInlineItem):
                     include_source=True,
                 )
             ),
-            reply_markup=markup,
+            reply_markup=InlineKeyboardMarkup(markup),
         )

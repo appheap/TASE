@@ -3,11 +3,14 @@ from __future__ import annotations
 from typing import Match, Optional
 
 import pyrogram
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from pyrogram.types import InlineKeyboardButton
 
 from tase.db.arangodb import graph as graph_models
 from tase.telegram.bots.inline import CustomInlineQueryResult
+from tase.telegram.bots.ui.inline_buttons.base.inline_button_type import (
+    InlineButtonType,
+)
 from tase.telegram.update_handlers.base import BaseHandler
 from tase.telegram.update_interfaces import (
     OnCallbackQuery,
@@ -25,25 +28,57 @@ class InlineButton(
 ):
     _registry = dict()
     name: str
+    type: InlineButtonType = Field(default=InlineButtonType.BASE)
 
     text: Optional[str]
     callback_data: Optional[str]
-    switch_inline_query_current_chat: Optional[str]
     url: Optional[str]
 
     @classmethod
     def __init_subclass__(cls) -> None:
         temp = cls()
-        InlineButton._registry[temp.name] = temp
+        InlineButton._registry[temp.type.value] = temp
+
+    @classmethod
+    def find_button_by_type_value(
+        cls,
+        button_type_value: str,
+    ) -> Optional[InlineButton]:
+        """
+        Find the InlineButton with the given `button_type_value`
+
+        Parameters
+        ----------
+        button_type_value : str
+            Value of `InlineButtonType` to find the inline button by
+
+        Returns
+        -------
+        InlineButton, optional
+            InlineButton with the `button_type_value` if exists, otherwise, return None
+
+        """
+        button_type = InlineButtonType.UNKNOWN
+        for e in list(InlineButtonType):
+            if e.value == button_type_value:
+                button_type = e
+                break
+
+        return cls.get_button(button_type)
 
     @classmethod
     def get_button(
         cls,
-        name: str,
+        button_type: InlineButtonType,
     ) -> Optional[InlineButton]:
-        if name is None:
+        if button_type is None and button_type not in (
+            InlineButtonType.BASE,
+            InlineButtonType.UNKNOWN,
+            InlineButtonType.INVALID,
+        ):
             return None
-        return cls._registry.get(name, None)
+
+        return cls._registry.get(button_type.value, None)
 
     def get_translated_text(
         self,
@@ -90,16 +125,12 @@ class InlineButton(
         self,
         arg=None,
     ) -> Optional[str]:
-        return (
-            f"{self.switch_inline_query_current_chat} {arg}"
-            if arg
-            else self.switch_inline_query_current_chat
-        )
+        return f"#{self.type.value} {arg}" if arg is not None else f"#{self.type.value}"
 
     def get_inline_keyboard_button(
         self,
         lang_code: str = "en",
-        switch_inline_query_current_chat=None,
+        switch_inline_arg=None,
         callback_arg=None,
     ):
         return InlineKeyboardButton(
@@ -107,7 +138,7 @@ class InlineButton(
             callback_data=self.get_callback_data(callback_arg),
             url=self.get_url(),
             switch_inline_query_current_chat=self.get_switch_inline_query_current_chat(
-                switch_inline_query_current_chat,
+                switch_inline_arg,
             ),
         )
 

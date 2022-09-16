@@ -4,11 +4,12 @@ from tase.db.arangodb import graph as graph_models
 from tase.telegram.bots import bot_commands
 from tase.telegram.update_handlers.base import BaseHandler
 from tase.utils import _trans, emoji
-from .inline_button import InlineButton
+from .base import InlineButton, InlineButtonType
 
 
 class ShowLanguageMenuInlineButton(InlineButton):
     name = "show_language_menu"
+    type = InlineButtonType.SHOW_LANGUAGE_MENU
 
     s_language = _trans("Language")
     text = f"{s_language} | {emoji._globe_showing_Americas}"

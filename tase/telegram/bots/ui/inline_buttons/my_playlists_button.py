@@ -4,21 +4,20 @@ import pyrogram
 
 from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.enums import BotTaskType
-from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
 from tase.utils import _trans, emoji
-from .inline_button import InlineButton
-from ..inline_items import CreateNewPlaylistItem, PlaylistItem, NoPlaylistItem
+from .base import InlineButtonType, InlineButton
+from .common import populate_playlist_list
+from ..inline_items import NoPlaylistItem
 
 
 class MyPlaylistsInlineButton(InlineButton):
     name = "my_playlists"
+    type = InlineButtonType.MY_PLAYLISTS
 
     s_my_playlists = _trans("My Playlists")
     text = f"{s_my_playlists} | {emoji._headphone}"
-
-    switch_inline_query_current_chat = f"#my_playlists"
 
     def on_inline_query(
         self,
@@ -31,35 +30,12 @@ class MyPlaylistsInlineButton(InlineButton):
         reg: Optional[Match] = None,
     ):
 
-        playlists = handler.db.graph.get_user_playlists(
-            from_user,
-            offset=result.from_,
+        results = populate_playlist_list(
+            from_user, handler, result, telegram_inline_query
         )
 
-        results = []
-
-        if result.from_ == 0:
-            results.append(
-                CreateNewPlaylistItem.get_item(
-                    from_user,
-                    telegram_inline_query,
-                )
-            )
-
-        for playlist in playlists:
-            results.append(
-                PlaylistItem.get_item(
-                    playlist,
-                    from_user,
-                    telegram_inline_query,
-                )
-            )
-
         if len(results):
-            try:
-                result.results = results
-            except Exception as e:
-                logger.exception(e)
+            result.results = results
         else:
             if result.from_ is None or result.from_ == 0:
                 telegram_inline_query.answer(

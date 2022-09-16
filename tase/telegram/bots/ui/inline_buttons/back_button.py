@@ -3,11 +3,12 @@ import pyrogram
 from tase.db.arangodb import graph as graph_models
 from tase.telegram.update_handlers.base import BaseHandler
 from tase.utils import _trans, emoji
-from .inline_button import InlineButton
+from .base import InlineButtonType, InlineButton
 
 
 class BackInlineButton(InlineButton):
     name = "back"
+    type = InlineButtonType.BACK
 
     s_back = _trans("Back")
     text = f"{s_back} | {emoji._BACK_arrow}"

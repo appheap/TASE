@@ -23,7 +23,6 @@ class PlaylistItem(BaseInlineItem):
     ) -> Optional[pyrogram.types.InlineQueryResult]:
         if playlist is None or user is None:
             return None
-        from ..inline_buttons import InlineButton
 
         data = PlaylistData(
             title=playlist.title,
@@ -32,18 +31,27 @@ class PlaylistItem(BaseInlineItem):
             else " ",
             lang_code=user.chosen_language_code,
         )
+        from tase.telegram.bots.ui.inline_buttons.base import (
+            InlineButton,
+            InlineButtonType,
+        )
+
         markup = [
             [
-                InlineButton.get_button("home").get_inline_keyboard_button(
+                InlineButton.get_button(
+                    InlineButtonType.HOME
+                ).get_inline_keyboard_button(
                     user.chosen_language_code,
                 ),
-                InlineButton.get_button("back_to_playlists").get_inline_keyboard_button(
+                InlineButton.get_button(
+                    InlineButtonType.BACK_TO_PLAYLISTS
+                ).get_inline_keyboard_button(
                     user.chosen_language_code,
                 ),
             ],
             [
                 InlineButton.get_button(
-                    "get_playlist_audios"
+                    InlineButtonType.GET_PLAYLIST_AUDIOS
                 ).get_inline_keyboard_button(
                     user.chosen_language_code,
                     playlist.key,
@@ -52,14 +60,14 @@ class PlaylistItem(BaseInlineItem):
             ],
             [
                 InlineButton.get_button(
-                    "edit_playlist_title"
+                    InlineButtonType.EDIT_PLAYLIST_TITLE
                 ).get_inline_keyboard_button(
                     user.chosen_language_code,
                     playlist.key,
                     callback_arg=playlist.key,
                 ),
                 InlineButton.get_button(
-                    "edit_playlist_description"
+                    InlineButtonType.EDIT_PLAYLIST_DESCRIPTION
                 ).get_inline_keyboard_button(
                     user.chosen_language_code,
                     playlist.key,
@@ -67,7 +75,9 @@ class PlaylistItem(BaseInlineItem):
                 ),
             ],
             [
-                InlineButton.get_button("delete_playlist").get_inline_keyboard_button(
+                InlineButton.get_button(
+                    InlineButtonType.DELETE_PLAYLIST
+                ).get_inline_keyboard_button(
                     user.chosen_language_code,
                     playlist.key,
                     callback_arg=playlist.key,

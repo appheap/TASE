@@ -14,7 +14,7 @@ from tase.db.arangodb.enums import BotTaskType, BotTaskStatus, TelegramAudioType
 from tase.db.elasticsearchdb import models as elasticsearch_models
 from tase.my_logger import logger
 from tase.telegram.bots.bot_commands import BaseCommand, BotCommandType
-from tase.telegram.bots.ui.inline_buttons import InlineButton
+from tase.telegram.bots.ui.inline_buttons.base import InlineButton, InlineButtonType
 from tase.telegram.bots.ui.templates import (
     AudioCaptionData,
     BaseTemplate,
@@ -180,7 +180,7 @@ class BotMessageHandler(BaseHandler):
                         markup = [
                             [
                                 InlineButton.get_button(
-                                    "add_to_playlist"
+                                    InlineButtonType.ADD_TO_PLAYLIST
                                 ).get_inline_keyboard_button(
                                     from_user.chosen_language_code,
                                     hit_download_url,
@@ -188,7 +188,7 @@ class BotMessageHandler(BaseHandler):
                             ],
                             [
                                 InlineButton.get_button(
-                                    "remove_from_playlist"
+                                    InlineButtonType.REMOVE_FROM_PLAYLIST
                                 ).get_inline_keyboard_button(
                                     from_user.chosen_language_code,
                                     hit_download_url,
@@ -196,7 +196,7 @@ class BotMessageHandler(BaseHandler):
                             ],
                             [
                                 InlineButton.get_button(
-                                    "home"
+                                    InlineButtonType.HOME
                                 ).get_inline_keyboard_button(
                                     from_user.chosen_language_code,
                                 ),
@@ -207,7 +207,7 @@ class BotMessageHandler(BaseHandler):
                         markup = [
                             [
                                 InlineButton.get_button(
-                                    "home"
+                                    InlineButtonType.HOME
                                 ).get_inline_keyboard_button(
                                     from_user.chosen_language_code,
                                 ),

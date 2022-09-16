@@ -1,3 +1,4 @@
+import collections
 from typing import Match, Optional
 
 import pyrogram
@@ -7,17 +8,16 @@ from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
 from tase.utils import _trans, emoji, get_now_timestamp
-from .inline_button import InlineButton
+from .base import InlineButton, InlineButtonType
 from ..inline_items import PlaylistItem
 
 
 class RemoveFromPlaylistInlineButton(InlineButton):
     name = "remove_from_playlist"
+    type = InlineButtonType.REMOVE_FROM_PLAYLIST
 
     s_remove_from_playlist = _trans("Remove From Playlist")
     text = f"{s_remove_from_playlist} | {emoji._minus}"
-
-    switch_inline_query_current_chat = f"#remove_from_playlist"
 
     def on_inline_query(
         self,
@@ -38,7 +38,7 @@ class RemoveFromPlaylistInlineButton(InlineButton):
             offset=result.from_,
         )
 
-        results = []
+        results = collections.deque()
 
         for playlist in db_playlists:
             results.append(
@@ -50,7 +50,7 @@ class RemoveFromPlaylistInlineButton(InlineButton):
             )
 
         if len(results) and valid:
-            result.results = results
+            result.results = list(results)
         # todo: what to show when user doesn't have any playlists yet or hasn't added this audio to any playlist
 
     def on_chosen_inline_query(

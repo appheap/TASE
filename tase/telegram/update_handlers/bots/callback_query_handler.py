@@ -4,7 +4,7 @@ import pyrogram
 from pyrogram import handlers
 
 from tase.my_logger import logger
-from tase.telegram.bots.ui.inline_buttons import InlineButton
+from tase.telegram.bots.ui.inline_buttons.base import InlineButton
 from tase.telegram.update_handlers.base import BaseHandler, HandlerMetadata
 from tase.utils import exception_handler
 
@@ -28,7 +28,7 @@ class CallbackQueryHandler(BaseHandler):
         db_user = self.db.graph.get_or_create_user(callback_query.from_user)
 
         controller, data = callback_query.data.split("->")
-        button = InlineButton.get_button(controller)
+        button = InlineButton.find_button_by_type_value(controller)
 
         if button:
             button.on_callback_query(

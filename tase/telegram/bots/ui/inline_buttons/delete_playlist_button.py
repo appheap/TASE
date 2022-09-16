@@ -4,11 +4,12 @@ from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.enums import BotTaskType
 from tase.telegram.update_handlers.base import BaseHandler
 from tase.utils import _trans, emoji
-from .inline_button import InlineButton
+from .base import InlineButton, InlineButtonType
 
 
 class DeletePlaylistInlineButton(InlineButton):
     name = "delete_playlist"
+    type = InlineButtonType.DELETE_PLAYLIST
 
     s_delete = _trans("Delete Playlist")
     text = f"{s_delete} | {emoji._cross_mark}"

@@ -10,7 +10,6 @@ from .edit_playlist_title_button import EditPlaylistTitleInlineButton
 from .get_playlist_audios_button import GetPlaylistAudioInlineButton
 from .help_catalog import HelpCatalogInlineButton
 from .home_button import HomeInlineButton
-from .inline_button import InlineButton
 from .my_playlists_button import MyPlaylistsInlineButton
 from .remove_from_playlist_button import RemoveFromPlaylistInlineButton
 from .show_language_menu_button import ShowLanguageMenuInlineButton
@@ -20,7 +19,6 @@ __all__ = [
     "AdvertisementInlineButton",
     "BackToPlaylistsInlineButton",
     "BackInlineButton",
-    "InlineButton",
     "ChooseLanguageInlineButton",
     "DeletePlaylistInlineButton",
     "DownloadHistoryInlineButton",
