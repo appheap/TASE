@@ -36,54 +36,79 @@ class PlaylistItem(BaseInlineItem):
             InlineButtonType,
         )
 
-        markup = [
-            [
-                InlineButton.get_button(
-                    InlineButtonType.HOME
-                ).get_inline_keyboard_button(
-                    user.chosen_language_code,
-                ),
-                InlineButton.get_button(
-                    InlineButtonType.BACK_TO_PLAYLISTS
-                ).get_inline_keyboard_button(
-                    user.chosen_language_code,
-                ),
-            ],
-            [
-                InlineButton.get_button(
-                    InlineButtonType.GET_PLAYLIST_AUDIOS
-                ).get_inline_keyboard_button(
-                    user.chosen_language_code,
-                    playlist.key,
-                ),
-                # todo: add a button to get the top 10 audios from this playlist as a message
-            ],
-            [
-                InlineButton.get_button(
-                    InlineButtonType.EDIT_PLAYLIST_TITLE
-                ).get_inline_keyboard_button(
-                    user.chosen_language_code,
-                    playlist.key,
-                    callback_arg=playlist.key,
-                ),
-                InlineButton.get_button(
-                    InlineButtonType.EDIT_PLAYLIST_DESCRIPTION
-                ).get_inline_keyboard_button(
-                    user.chosen_language_code,
-                    playlist.key,
-                    callback_arg=playlist.key,
-                ),
-            ],
-            [
-                InlineButton.get_button(
-                    InlineButtonType.DELETE_PLAYLIST
-                ).get_inline_keyboard_button(
-                    user.chosen_language_code,
-                    playlist.key,
-                    callback_arg=playlist.key,
-                ),
-            ],
-        ]
+        if playlist.is_favorite:
+            markup = [
+                [
+                    InlineButton.get_button(
+                        InlineButtonType.GET_PLAYLIST_AUDIOS
+                    ).get_inline_keyboard_button(
+                        user.chosen_language_code,
+                        playlist.key,
+                    ),
+                    # todo: add a button to get the top 10 audios from this playlist as a message
+                ],
+                [
+                    InlineButton.get_button(
+                        InlineButtonType.HOME
+                    ).get_inline_keyboard_button(
+                        user.chosen_language_code,
+                    ),
+                    InlineButton.get_button(
+                        InlineButtonType.BACK_TO_PLAYLISTS
+                    ).get_inline_keyboard_button(
+                        user.chosen_language_code,
+                    ),
+                ],
+            ]
+        else:
+            markup = [
+                [
+                    InlineButton.get_button(
+                        InlineButtonType.HOME
+                    ).get_inline_keyboard_button(
+                        user.chosen_language_code,
+                    ),
+                    InlineButton.get_button(
+                        InlineButtonType.BACK_TO_PLAYLISTS
+                    ).get_inline_keyboard_button(
+                        user.chosen_language_code,
+                    ),
+                ],
+                [
+                    InlineButton.get_button(
+                        InlineButtonType.GET_PLAYLIST_AUDIOS
+                    ).get_inline_keyboard_button(
+                        user.chosen_language_code,
+                        playlist.key,
+                    ),
+                    # todo: add a button to get the top 10 audios from this playlist as a message
+                ],
+                [
+                    InlineButton.get_button(
+                        InlineButtonType.EDIT_PLAYLIST_TITLE
+                    ).get_inline_keyboard_button(
+                        user.chosen_language_code,
+                        playlist.key,
+                        callback_arg=playlist.key,
+                    ),
+                    InlineButton.get_button(
+                        InlineButtonType.EDIT_PLAYLIST_DESCRIPTION
+                    ).get_inline_keyboard_button(
+                        user.chosen_language_code,
+                        playlist.key,
+                        callback_arg=playlist.key,
+                    ),
+                ],
+                [
+                    InlineButton.get_button(
+                        InlineButtonType.DELETE_PLAYLIST
+                    ).get_inline_keyboard_button(
+                        user.chosen_language_code,
+                        playlist.key,
+                        callback_arg=playlist.key,
+                    ),
+                ],
+            ]
 
         markup = InlineKeyboardMarkup(markup)
         item = InlineQueryResultArticle(
