@@ -24,7 +24,7 @@ class AddChannelCommand(BaseCommand):
         client: pyrogram.Client,
         message: pyrogram.types.Message,
         handler: BaseHandler,
-        db_from_user: graph_models.vertices.User,
+        from_user: graph_models.vertices.User,
         from_callback_query: bool,
     ) -> None:
         channel_username = message.command[1]

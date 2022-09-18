@@ -23,37 +23,37 @@ class HelpCommand(BaseCommand):
         client: pyrogram.Client,
         message: pyrogram.types.Message,
         handler: BaseHandler,
-        db_from_user: graph_models.vertices.User,
+        from_user: graph_models.vertices.User,
         from_callback_query: bool,
     ) -> None:
         data = HelpData(
             support_channel_username="support_channel_username",
             url1="https://github.com/appheap/TASE",
             url2="https://github.com/appheap/TASE",
-            lang_code=db_from_user.chosen_language_code,
+            lang_code=from_user.chosen_language_code,
         )
 
         markup = [
             [
                 InlineButton.get_button(
                     InlineButtonType.DOWNLOAD_HISTORY
-                ).get_inline_keyboard_button(db_from_user.chosen_language_code),
+                ).get_inline_keyboard_button(from_user.chosen_language_code),
                 InlineButton.get_button(
                     InlineButtonType.MY_PLAYLISTS
-                ).get_inline_keyboard_button(db_from_user.chosen_language_code),
+                ).get_inline_keyboard_button(from_user.chosen_language_code),
             ],
             [
                 InlineButton.get_button(
                     InlineButtonType.BACK
-                ).get_inline_keyboard_button(db_from_user.chosen_language_code),
+                ).get_inline_keyboard_button(from_user.chosen_language_code),
             ],
             [
                 InlineButton.get_button(
                     InlineButtonType.ADVERTISEMENT
-                ).get_inline_keyboard_button(db_from_user.chosen_language_code),
+                ).get_inline_keyboard_button(from_user.chosen_language_code),
                 InlineButton.get_button(
                     InlineButtonType.HELP_CATALOG
-                ).get_inline_keyboard_button(db_from_user.chosen_language_code),
+                ).get_inline_keyboard_button(from_user.chosen_language_code),
             ],
         ]
 
