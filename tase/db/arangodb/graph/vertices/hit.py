@@ -92,7 +92,7 @@ class HitMethods:
         Raises
         ------
         EdgeCreationFailed
-            If creation o the `has` edge from `Hit` vertex to `Audio` vertex
+            If creation of the `has` edge from `Hit` vertex to `Audio` vertex
         """
         if query is None or audio is None or hit_type is None:
             return None
