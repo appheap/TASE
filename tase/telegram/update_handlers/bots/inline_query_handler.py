@@ -6,6 +6,7 @@ from typing import List
 import pyrogram
 from pyrogram import filters, handlers
 
+from tase.errors import NullTelegramInlineQuery
 from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult, InlineSearch
 from tase.telegram.bots.ui.inline_buttons.base import InlineButton
@@ -70,7 +71,12 @@ class InlineQueryHandler(BaseHandler):
             inline_query,
             query_date,
         )
-        result.answer_query(inline_query)
+        try:
+            result.answer_query(inline_query)
+        except NullTelegramInlineQuery:
+            pass
+        except Exception as e:
+            logger.exception(e)
 
     @exception_handler
     def custom_commands_handler(
@@ -99,6 +105,11 @@ class InlineQueryHandler(BaseHandler):
                 query_date,
                 reg,
             )
-            result.answer_query(inline_query)
+            try:
+                result.answer_query(inline_query)
+            except NullTelegramInlineQuery:
+                pass
+            except Exception as e:
+                logger.exception(e)
         else:
             pass

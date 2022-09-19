@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Optional, TYPE_CHECKING
 
 from tase.db.helpers import SearchMetaData
+from tase.errors import InvalidFromVertex, InvalidToVertex, EdgeCreationFailed
 from tase.my_logger import logger
 from tase.utils import generate_token_urlsafe
 
@@ -90,8 +91,8 @@ class HitMethods:
 
         Raises
         ------
-        Exception
-            If could not create the `has` edge from `Hit` vertex to `Audio` vertex
+        EdgeCreationFailed
+            If creation of the `has` edge from `Hit` vertex to `Audio` vertex
         """
         if query is None or audio is None or hit_type is None:
             return None
@@ -110,10 +111,8 @@ class HitMethods:
 
                 has_audio_edge = Has.get_or_create_edge(hit, audio)
                 if has_audio_edge is None:
-                    raise Exception(
-                        "Could not create `has` edge from `hit` vertex to `audio` vertex"
-                    )
-            except ValueError:
+                    raise EdgeCreationFailed(Has.__class__.__name__)
+            except (InvalidFromVertex, InvalidToVertex):
                 logger.error(
                     "ValueError: Could not create `has` edge from `hit` vertex to `audio` vertex"
                 )

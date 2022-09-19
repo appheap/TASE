@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Optional, Union
 
+from tase.errors import InvalidFromVertex, InvalidToVertex
 from .base_edge import BaseEdge, EdgeEndsValidator
 from ..vertices import Chat, Username
 from ...enums import MentionSource, ChatType
@@ -165,27 +166,31 @@ class MentionsMethods:
                         or mentioned_chat.username is None
                         or mentioned_chat.username == source_chat.username
                     ):
-                        # create the edge from `Username` vertex to mentioned `Chat` vertex
-                        Mentions.get_or_create_edge(
-                            username,
-                            mentioned_chat,
-                            mentions_edge.from_message_id,
-                            mentions_edge.is_direct_mention,
-                            mentions_edge.mention_source,
-                            mentions_edge.mention_start_index,
-                            mentions_edge.mentioned_at,
-                        )
+                        try:
+                            # create the edge from `Username` vertex to mentioned `Chat` vertex
+                            Mentions.get_or_create_edge(
+                                username,
+                                mentioned_chat,
+                                mentions_edge.from_message_id,
+                                mentions_edge.is_direct_mention,
+                                mentions_edge.mention_source,
+                                mentions_edge.mention_start_index,
+                                mentions_edge.mentioned_at,
+                            )
 
-                        # create the edge from `Chat` vertex to mentioned `Chat` vertex
-                        Mentions.get_or_create_edge(
-                            source_chat,
-                            mentioned_chat,
-                            mentions_edge.from_message_id,
-                            mentions_edge.is_direct_mention,
-                            mentions_edge.mention_source,
-                            mentions_edge.mention_start_index,
-                            mentions_edge.mentioned_at,
-                        )
+                            # create the edge from `Chat` vertex to mentioned `Chat` vertex
+                            Mentions.get_or_create_edge(
+                                source_chat,
+                                mentioned_chat,
+                                mentions_edge.from_message_id,
+                                mentions_edge.is_direct_mention,
+                                mentions_edge.mention_source,
+                                mentions_edge.mention_start_index,
+                                mentions_edge.mentioned_at,
+                            )
+                        except (InvalidFromVertex, InvalidToVertex):
+                            # fixme
+                            pass
 
                         metadata = source_chat.username_extractor_metadata.copy()
                         metadata.reset_counters()

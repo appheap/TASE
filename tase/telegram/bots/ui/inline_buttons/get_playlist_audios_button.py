@@ -4,6 +4,7 @@ from typing import Match, Optional
 import pyrogram
 
 from tase.db.arangodb import graph as graph_models
+from tase.errors import PlaylistDoesNotExists
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
 from tase.utils import _trans, emoji
@@ -57,23 +58,27 @@ class GetPlaylistAudioInlineButton(InlineButton):
             playlist_is_valid = True
 
         if playlist_is_valid:
-            audio_vertices = handler.db.graph.get_playlist_audios(
-                from_user,
-                playlist_key,
-                offset=result.from_,
-            )
+            try:
+                audio_vertices = handler.db.graph.get_playlist_audios(
+                    from_user,
+                    playlist_key,
+                    offset=result.from_,
+                )
+            except PlaylistDoesNotExists:
+                # since it is already been checked that the playlist belongs to the user, this exception will not occur
+                pass
+            else:
+                audio_vertices = list(audio_vertices)
 
-            audio_vertices = list(audio_vertices)
-
-            populate_audio_items(
-                results,
-                audio_vertices,
-                from_user,
-                handler,
-                query_date,
-                result,
-                telegram_inline_query,
-            )
+                populate_audio_items(
+                    results,
+                    audio_vertices,
+                    from_user,
+                    handler,
+                    query_date,
+                    result,
+                    telegram_inline_query,
+                )
 
         if len(results) and playlist_is_valid:
             result.results = list(results)

@@ -3,6 +3,7 @@ from __future__ import annotations
 import uuid
 from typing import Optional, TYPE_CHECKING
 
+from tase.errors import InvalidFromVertex, InvalidToVertex
 from tase.my_logger import logger
 from .base_vertex import BaseVertex
 from .user import User
@@ -88,7 +89,7 @@ class DownloadMethods:
 
         try:
             has_edge = Has.get_or_create_edge(download, audio)
-        except ValueError:
+        except (InvalidFromVertex, InvalidToVertex):
             logger.error(
                 "ValueError: Could not create `has` edge from `Download` vertex to `Audio` vertex"
             )
@@ -96,7 +97,7 @@ class DownloadMethods:
 
         try:
             from_hit_edge = FromHit.get_or_create_edge(download, hit)
-        except ValueError:
+        except (InvalidFromVertex, InvalidToVertex):
             logger.error(
                 "ValueError: Could not create `from_hit` edge from `Download` vertex to `Hit` vertex"
             )
@@ -104,7 +105,7 @@ class DownloadMethods:
 
         try:
             downloaded_edge = Downloaded.get_or_create_edge(user, download)
-        except ValueError:
+        except (InvalidFromVertex, InvalidToVertex):
             logger.error(
                 "ValueError: Could not create `downloaded` edge from `User` vertex to `Download` vertex"
             )
@@ -112,7 +113,7 @@ class DownloadMethods:
 
         try:
             from_bot_edge = FromBot.get_or_create_edge(download, user)
-        except ValueError:
+        except (InvalidFromVertex, InvalidToVertex):
             logger.error(
                 "ValueError: Could not create `from_bot` edge from `Download` vertex to `User` vertex"
             )

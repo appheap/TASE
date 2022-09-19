@@ -4,6 +4,7 @@ from typing import Optional, Generator
 
 from pydantic import Field
 
+from tase.errors import InvalidFromVertex, InvalidToVertex
 from tase.my_logger import logger
 from tase.utils import get_now_timestamp
 from . import Chat
@@ -185,7 +186,7 @@ class UsernameMethods:
                         mention_start_index,
                         from_message_id,
                     )
-                except ValueError:
+                except (InvalidFromVertex, InvalidToVertex):
                     logger.error(
                         "ValueError: could not create the `Mentions`edge from `Chat` vertex to `Username` vertex"
                     )

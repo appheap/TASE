@@ -6,6 +6,7 @@ import pyrogram
 from elastic_transport import ObjectApiResponse
 from pydantic import Field
 
+from tase.errors import TelegramMessageWithNoAudio
 from tase.my_logger import logger
 from tase.utils import datetime_to_timestamp
 from .base_document import BaseDocument
@@ -136,7 +137,7 @@ class Audio(BaseDocument):
 
         Raises
         ------
-        ValueError
+        TelegramMessageWithNoAudio
             If `telegram_message` argument does not contain any valid audio file.
         """
         if telegram_message is None:
@@ -148,7 +149,9 @@ class Audio(BaseDocument):
 
         audio, audio_type = get_telegram_message_media_type(telegram_message)
         if audio_type == TelegramAudioType.NON_AUDIO:
-            raise ValueError("Unexpected value for `message`: nor audio nor document")
+            raise TelegramMessageWithNoAudio(
+                telegram_message.id, telegram_message.chat.id
+            )
 
         title = getattr(audio, "title", None)
 
@@ -207,8 +210,13 @@ class Audio(BaseDocument):
             hits = res.body["hits"]["hits"]
 
             for index, hit in enumerate(hits, start=1):
-                db_doc = cls.from_index(hit=hit, rank=len(hits) - index + 1)
-                db_docs.append(db_doc)
+                try:
+                    db_doc = cls.from_index(hit=hit, rank=len(hits) - index + 1)
+                except ValueError:
+                    # happens when `hit` is None
+                    pass
+                else:
+                    db_docs.append(db_doc)
 
         except Exception as e:
             logger.exception(e)
@@ -284,7 +292,7 @@ class AudioMethods:
         """
         try:
             audio, successful = Audio.create(Audio.parse(telegram_message))
-        except ValueError:
+        except TelegramMessageWithNoAudio:
             # this message doesn't contain any valid audio file
             pass
         else:
@@ -350,7 +358,7 @@ class AudioMethods:
             # audio exists in the index, update it
             try:
                 updated = audio.update(Audio.parse(telegram_message))
-            except ValueError:
+            except TelegramMessageWithNoAudio:
                 updated = False
         return audio
 

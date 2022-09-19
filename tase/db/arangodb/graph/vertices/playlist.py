@@ -4,6 +4,15 @@ from typing import Optional, Tuple, Generator, TYPE_CHECKING
 
 from pydantic import Field
 
+from tase.errors import (
+    PlaylistDoesNotExists,
+    HitDoesNotExists,
+    HitNoLinkedAudio,
+    InvalidAudioForInlineMode,
+    InvalidFromVertex,
+    InvalidToVertex,
+    EdgeDeletionFailed,
+)
 from tase.my_logger import logger
 from tase.utils import generate_token_urlsafe, prettify
 from . import Audio
@@ -297,7 +306,7 @@ class PlaylistMethods:
                 from tase.db.arangodb.graph.edges import Has
 
                 has_edge = Has.get_or_create_edge(user, playlist)
-            except ValueError:
+            except (InvalidFromVertex, InvalidToVertex):
                 # todo: could not create the has_edge, abort the transaction
                 deleted = playlist.delete()
                 if not deleted:
@@ -436,7 +445,7 @@ class PlaylistMethods:
 
         playlist = Playlist.get(playlist_key)
         if not playlist:
-            raise KeyError(f"Playlist was not found with key : {playlist_key}")
+            raise PlaylistDoesNotExists(user.key, playlist_key)
 
         # check if the user owns the given playlist
         from tase.db.arangodb.graph.edges import Has
@@ -448,7 +457,7 @@ class PlaylistMethods:
                 had_edge = Had.get_or_create_edge(
                     user, playlist, has=has_edge, deleted_at=deleted_at
                 )
-            except ValueError:
+            except (InvalidFromVertex, InvalidToVertex):
                 # fixme: check if the user or playlist are listed in had edge ends.
                 pass
             else:
@@ -520,19 +529,49 @@ class PlaylistMethods:
         hit_download_url: str,
         playlist_key: str,
     ) -> Tuple[Playlist, Audio]:
+        """
+        Get `Playlist` and `Audio` vertex from the given parameters
+
+        Parameters
+        ----------
+        user : User
+            User to get the playlist from
+        hit_download_url : str
+            Download URL of the `Hit` vertex to get the `Audio` vertex from
+        playlist_key : str
+            Key to get the `Playlist` from
+
+        Returns
+        -------
+        tuple
+            Tuple of Playlist and Audio vertices
+
+        Raises
+        ------
+        PlaylistDoesNotExists
+            If `Playlist` vertex does not exist with the `playlist_key` parameter
+        HitDoesNotExists
+            If `Hit` vertex does not exist with the `hit_download_url` parameter
+        HitNoLinkedAudio
+            If `Hit` vertex does not have any linked `Audio` vertex with it
+        InvalidAudioForInlineMode
+            If `Audio` vertex is not valid for inline mode
+        """
         playlist = self.get_user_playlist_by_key(
             user, playlist_key, filter_out_soft_deleted=True
         )
         if playlist is None:
-            raise Exception("User does not have playlist with the given `key`")
+            raise PlaylistDoesNotExists(user.key, playlist_key)
+
         hit = self.find_hit_by_download_url(hit_download_url)
         if hit is None:
-            raise Exception("No `Hit` exists with the given `download_url`")
+            raise HitDoesNotExists(hit_download_url)
+
         audio = self.get_audio_from_hit(hit)
         if audio is None:
-            raise Exception("`Hit` does not have any `Audio` linked to it")
+            raise HitNoLinkedAudio(hit_download_url)
         if audio.audio_type != TelegramAudioType.AUDIO_FILE:
-            raise Exception("`Audio` does not have valid audio type for inline mode")
+            raise InvalidAudioForInlineMode(audio.key)
         return playlist, audio
 
     def add_audio_to_playlist(
@@ -560,10 +599,14 @@ class PlaylistMethods:
 
         Raises
         ------
-        Exception
-            If the user does not have a playlist with the given playlist_key, or no hit exists with the given
-            hit_download_url, or audio is not valid for inline mode ,or the hit does not have any audio linked to it.
-
+        PlaylistDoesNotExists
+            If `Playlist` vertex does not exist with the `playlist_key` parameter
+        HitDoesNotExists
+            If `Hit` vertex does not exist with the `hit_download_url` parameter
+        HitNoLinkedAudio
+            If `Hit` vertex does not have any linked `Audio` vertex with it
+        InvalidAudioForInlineMode
+            If `Audio` vertex is not valid for inline mode
         """
         if user is None or playlist_key is None or hit_download_url is None:
             return False, False
@@ -581,7 +624,7 @@ class PlaylistMethods:
         else:
             try:
                 has_edge = Has.get_or_create_edge(playlist, audio)
-            except ValueError:
+            except (InvalidFromVertex, InvalidToVertex):
                 logger.error(
                     "ValueError: Could not create the `has` from `Playlist` vertex to `Audio` vertex"
                 )
@@ -620,9 +663,17 @@ class PlaylistMethods:
 
         Raises
         ------
-        Exception
-            If the user does not have a playlist with the given playlist_key, or no hit exists with the given
-            hit_download_url, or audio is not valid for inline mode ,or the hit does not have any audio linked to it, or could not delete the `has` edge.
+        PlaylistDoesNotExists
+            If `Playlist` vertex does not exist with the `playlist_key` parameter
+        HitDoesNotExists
+            If `Hit` vertex does not exist with the `hit_download_url` parameter
+        HitNoLinkedAudio
+            If `Hit` vertex does not have any linked `Audio` vertex with it
+        InvalidAudioForInlineMode
+            If `Audio` vertex is not valid for inline mode
+        EdgeDeletionFailed
+            If deletion of an edge fails
+
 
         """
         if user is None or playlist_key is None or hit_download_url is None:
@@ -640,15 +691,13 @@ class PlaylistMethods:
             # Audio is already on the playlist
             deleted = has_edge.delete()
             if not deleted:
-                raise Exception(
-                    "Could not delete the `has` edge from `Playlist` vertex to `Audio` vertex"
-                )
+                raise EdgeDeletionFailed(Has.__class__.__name__)
 
             try:
                 had_edge = Had.get_or_create_edge(
                     playlist, audio, has=has_edge, deleted_at=remove_timestamp
                 )
-            except ValueError:
+            except (InvalidFromVertex, InvalidToVertex):
                 logger.error(
                     "ValueError: Could not create the `had` from `Playlist` vertex to `Audio` vertex"
                 )
@@ -688,6 +737,10 @@ class PlaylistMethods:
         Audio
             Audios that belong to the given playlist
 
+        Raises
+        ------
+        PlaylistDoesNotExists
+            If user does not have a playlist with the given playlist_key
         """
         if user is None:
             return None
@@ -696,9 +749,7 @@ class PlaylistMethods:
             user, playlist_key, filter_out_soft_deleted=True
         )
         if playlist is None:
-            raise Exception(
-                "User does not have any `Playlist` with the given `playlist_key`"
-            )
+            raise PlaylistDoesNotExists(user.key, playlist_key)
 
         from tase.db.arangodb.graph.edges import Has
 
@@ -742,6 +793,11 @@ class PlaylistMethods:
         Playlist
             Playlists that contain the Audio
 
+        Raises
+        ------
+        HitNoLinkedAudio
+         If the git with given download_url does not have any audio vertex linked to it
+
         """
         if user is None:
             return None
@@ -749,9 +805,7 @@ class PlaylistMethods:
         hit = self.find_hit_by_download_url(hit_download_url)
         audio = self.get_audio_from_hit(hit)
         if audio is None:
-            raise Exception(
-                f"Audio does not exist with given `download_url` : {hit_download_url}"
-            )
+            raise HitNoLinkedAudio(hit_download_url)
 
         from tase.db.arangodb.graph.edges import Has
 

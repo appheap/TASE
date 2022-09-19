@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from enum import Enum
 from typing import Optional
 
@@ -25,10 +27,22 @@ class ChatType(Enum):
     @staticmethod
     def parse_from_pyrogram(
         chat_type: pyrogram.enums.ChatType,
-    ) -> Optional["ChatType"]:
+    ) -> Optional[ChatType]:
+        """
+        Parse the `ChatType` from pyrogram `chat_type`
+
+        Parameters
+        ----------
+        chat_type : pyrogram.enums.ChatType
+            Chat type of pyrogram chat object
+
+        Returns
+        -------
+        ChatType, optional
+            Parsed ChatType
+        """
         if chat_type is None:
-            # fixme: how to avoid this?
-            raise Exception("chat_type cannot be empty")
+            return None
 
         return _from_pyrogram_mapping[chat_type.value]
 

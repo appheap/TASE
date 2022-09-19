@@ -5,12 +5,10 @@ from typing import List, Optional
 from decouple import config
 
 from tase.configs import TASEConfig
-
 from tase.db import DatabaseClient
 from tase.my_logger import logger
-
 from tase.scheduler import SchedulerWorkerProcess
-from tase.scheduler.jobs import IndexChannelsJob, ExtractUsernamesJob, CheckUsernamesJob
+from tase.scheduler.jobs import IndexChannelsJob
 from tase.tase_globals import publish_job_to_scheduler
 from tase.telegram.client import TelegramClient
 from tase.telegram.client.client_manager import ClientManager

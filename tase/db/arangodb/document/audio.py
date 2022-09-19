@@ -4,6 +4,7 @@ from typing import Optional
 
 import pyrogram
 
+from tase.errors import TelegramMessageWithNoAudio
 from .base_document import BaseDocument
 from ..enums import TelegramAudioType
 from ...db_utils import get_telegram_message_media_type
@@ -70,7 +71,7 @@ class Audio(BaseDocument):
 
         Raises
         ------
-        ValueError
+        TelegramMessageWithNoAudio
             If `telegram_message` parameter does not contain any valid audio file.
         """
         if telegram_message is None:
@@ -83,7 +84,9 @@ class Audio(BaseDocument):
 
         audio, audio_type = get_telegram_message_media_type(telegram_message)
         if audio is None or audio_type == TelegramAudioType.NON_AUDIO:
-            raise ValueError("Unexpected value for `message`: nor audio nor document")
+            raise TelegramMessageWithNoAudio(
+                telegram_message.id, telegram_message.chat.id
+            )
 
         return Audio(
             key=key,

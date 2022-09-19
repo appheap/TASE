@@ -6,6 +6,12 @@ import pyrogram
 from arango import CursorEmptyError
 
 from tase.db.db_utils import get_telegram_message_media_type, parse_audio_key
+from tase.errors import (
+    TelegramMessageWithNoAudio,
+    InvalidToVertex,
+    InvalidFromVertex,
+    EdgeCreationFailed,
+)
 from tase.my_logger import logger
 from tase.utils import datetime_to_timestamp, generate_token_urlsafe, get_now_timestamp
 from .base_vertex import BaseVertex
@@ -117,7 +123,7 @@ class Audio(BaseVertex):
 
         Raises
         ------
-        ValueError
+        TelegramMessageWithNoAudio
             If `telegram_message` argument does not contain any valid audio file.
         """
         if telegram_message is None:
@@ -127,8 +133,9 @@ class Audio(BaseVertex):
 
         audio, audio_type = get_telegram_message_media_type(telegram_message)
         if audio is None or audio_type == TelegramAudioType.NON_AUDIO:
-            logger.error(telegram_message)
-            raise ValueError("Unexpected value for `message`: nor audio nor document")
+            raise TelegramMessageWithNoAudio(
+                telegram_message.id, telegram_message.chat.id
+            )
 
         title = getattr(audio, "title", None)
 
@@ -271,19 +278,17 @@ class AudioMethods:
 
         Raises
         ------
-        Exception
-            If creation of the related vertices or edges was unsuccessful.
+        EdgeCreationFailed
+            If creation of the related edges was unsuccessful.
         """
         if telegram_message is None:
             return None
 
         try:
             audio, successful = Audio.insert(Audio.parse(telegram_message))
-        except ValueError as e:
+        except TelegramMessageWithNoAudio as e:
             # this message doesn't contain any valid audio file
-            logger.exception(e)
-            logger.error(telegram_message)
-            logger.error("#" * 50)
+            pass
         except Exception as e:
             logger.exception(e)
         else:
@@ -296,9 +301,9 @@ class AudioMethods:
 
                     sent_by_edge = SentBy.get_or_create_edge(audio, chat)
                     if sent_by_edge is None:
-                        raise Exception("Could not create `sent_by` edge")
-                except ValueError:
-                    logger.error("ValueError: Could not create `sent_by` edge")
+                        raise EdgeCreationFailed(SentBy.__class__.__name__)
+                except (InvalidFromVertex, InvalidToVertex):
+                    pass
 
                 # since checking for audio file validation is done above, there is no need to it again.
                 file = self.get_or_create_file(telegram_message)
@@ -307,9 +312,9 @@ class AudioMethods:
 
                     file_ref_edge = FileRef.get_or_create_edge(audio, file)
                     if file_ref_edge is None:
-                        raise Exception("Could not create `file_ref` edge")
-                except ValueError:
-                    logger.error("ValueError: Could not create `file_ref` edge")
+                        raise EdgeCreationFailed(FileRef.__class__.__name__)
+                except (InvalidFromVertex, InvalidToVertex):
+                    pass
 
                 if audio.is_forwarded:
                     if telegram_message.forward_from:
@@ -331,13 +336,11 @@ class AudioMethods:
                                 audio, forwarded_from
                             )
                             if forwarded_from_edge is None:
-                                raise Exception(
-                                    "Could not create `forwarded_from` edge"
+                                raise EdgeCreationFailed(
+                                    ForwardedFrom.__class__.__name__
                                 )
-                        except ValueError:
-                            logger.error(
-                                "ValueError: Could not create `forwarded_from` edge"
-                            )
+                        except (InvalidFromVertex, InvalidToVertex):
+                            pass
 
                     # todo: the `forwarded_from` edge from `audio` to the `original audio` must be checked later
 
@@ -348,9 +351,9 @@ class AudioMethods:
 
                         via_bot_edge = ViaBot.get_or_create_edge(audio, bot)
                         if via_bot_edge is None:
-                            raise Exception("Could not create `via_bot` edge")
-                    except ValueError:
-                        logger.error("ValueError: Could not create `via_bot` edge")
+                            raise EdgeCreationFailed(ViaBot.__class__.__name__)
+                    except (InvalidFromVertex, InvalidToVertex):
+                        pass
 
                 return audio
 
@@ -376,23 +379,17 @@ class AudioMethods:
 
         Raises
         ------
-        Exception
-            If creation of the related vertices or edges was unsuccessful.
+        EdgeCreationFailed
+            If creation of the related edges was unsuccessful.
         """
         if telegram_message is None:
             return None
 
-        try:
-            audio = Audio.get(Audio.parse_key(telegram_message))
-        except ValueError as e:
-            # telegram message does not contain any valid audio file
-            pass
-        else:
-            if audio is None:
-                audio = self.create_audio(telegram_message)
-            return audio
+        audio = Audio.get(Audio.parse_key(telegram_message))
+        if audio is None:
+            audio = self.create_audio(telegram_message)
 
-        return None
+        return audio
 
     def update_or_create_audio(
         self,
@@ -413,8 +410,8 @@ class AudioMethods:
 
         Raises
         ------
-        Exception
-            If creation of the related vertices or edges was unsuccessful.
+        EdgeCreationFailed
+            If creation of the related edges was unsuccessful.
         """
         if telegram_message is None:
             return None

@@ -58,18 +58,15 @@ class BaseCommand(BaseModel):
         client: pyrogram.Client,
         callback_query: pyrogram.types.CallbackQuery,
         handler: BaseHandler,
-        db_from_user: graph_models.vertices.User,
+        from_user: graph_models.vertices.User,
         bot_command_type: BotCommandType,
     ) -> None:
-        if not all(
-            (
-                client,
-                callback_query,
-                handler,
-                callback_query.message,
-                db_from_user,
-                bot_command_type,
-            )
+        if (
+            client is None
+            or callback_query is None
+            or handler is None
+            or from_user is None
+            or bot_command_type is None
         ):
             return
 
@@ -78,7 +75,7 @@ class BaseCommand(BaseModel):
             cls._authorize_and_execute(
                 client,
                 command,
-                db_from_user,
+                from_user,
                 handler,
                 callback_query.message,
                 True,
@@ -141,7 +138,7 @@ class BaseCommand(BaseModel):
         cls,
         client: pyrogram.Client,
         command: BaseCommand,
-        db_from_user: User,
+        from_user: User,
         handler: BaseHandler,
         message: pyrogram.types.Message,
         from_callback_query: bool,
@@ -155,7 +152,7 @@ class BaseCommand(BaseModel):
             Client which received this command
         command : BaseCommand
             Command to be executed
-        db_from_user : graph_models.vertices.User
+        from_user : graph_models.vertices.User
             User who requested this command
         handler : BaseHandler
             Update handler which originally received the update
@@ -175,10 +172,10 @@ class BaseCommand(BaseModel):
             return
 
             # check if the user has permission to execute this command
-        if db_from_user.role.value >= command.required_role_level.value:
+        if from_user.role.value >= command.required_role_level.value:
             try:
                 command.command_function(
-                    client, message, handler, db_from_user, from_callback_query
+                    client, message, handler, from_user, from_callback_query
                 )
             except NotImplementedError:
                 pass
@@ -189,7 +186,7 @@ class BaseCommand(BaseModel):
             message.reply_text(
                 _trans(
                     "You don't have the required permission to execute this command!",
-                    db_from_user.chosen_language_code,
+                    from_user.chosen_language_code,
                 ),
                 quote=True,
                 disable_web_page_preview=True,
@@ -200,7 +197,7 @@ class BaseCommand(BaseModel):
         client: pyrogram.Client,
         message: pyrogram.types.Message,
         handler: BaseHandler,
-        db_from_user: graph_models.vertices.User,
+        from_user: graph_models.vertices.User,
         from_callback_query: bool,
     ) -> None:
         raise NotImplementedError

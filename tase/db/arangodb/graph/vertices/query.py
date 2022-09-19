@@ -6,6 +6,7 @@ from typing import Optional, Union, List, Tuple, Generator, TYPE_CHECKING
 import pyrogram
 
 from tase.db.helpers import SearchMetaData
+from tase.errors import InvalidToVertex, InvalidFromVertex, EdgeCreationFailed
 from tase.my_logger import logger
 from . import Audio, Hit
 from .base_vertex import BaseVertex
@@ -132,8 +133,8 @@ class QueryMethods:
 
         Raises
         ------
-        Exception
-            If creation of any connected edges and vertices has not been successful.
+        EdgeCreationFailed
+            If creation of any connected edges has not been successful.
         """
         if bot_id is None or user is None or query is None or query_date is None:
             return None, None
@@ -163,17 +164,19 @@ class QueryMethods:
             # link the user to this query
             try:
                 has_made_edge = HasMade.get_or_create_edge(user, db_query)
-                if has_made_edge is None:
-                    raise Exception("Could not create the `has_made` edge")
-            except ValueError:
+            except (InvalidFromVertex, InvalidToVertex):
                 logger.error("ValueError: Could not create the `has_made` edge")
+            else:
+                if has_made_edge is None:
+                    raise EdgeCreationFailed(HasMade.__class__.__name__)
 
             try:
                 to_bot_edge = ToBot.get_or_create_edge(db_query, bot)
-                if to_bot_edge is None:
-                    raise Exception("Could not create the `to_bot` edge")
-            except ValueError:
+            except (InvalidFromVertex, InvalidToVertex):
                 logger.error("ValueError: Could not create the `to_bot` edge")
+            else:
+                if to_bot_edge is None:
+                    raise EdgeCreationFailed(ToBot.__class__.__name__)
 
             hit_type = HitType.UNKNOWN
             if inline_query_type is not None and telegram_inline_query is not None:
@@ -212,14 +215,11 @@ class QueryMethods:
 
                 try:
                     has_hit_edge = Has.get_or_create_edge(db_query, hit)
+                except (InvalidFromVertex, InvalidToVertex):
+                    pass
+                else:
                     if has_hit_edge is None:
-                        raise Exception(
-                            "Could not create `has` edge from `query` vertex to `hit` vertex"
-                        )
-                except ValueError:
-                    logger.error(
-                        "ValueError: Could not create `has` edge from `query` vertex to `hit` vertex"
-                    )
+                        raise EdgeCreationFailed(Has.__class__.__name__)
 
             return db_query, list(hits)
 

@@ -23,7 +23,7 @@ class HomeCommand(BaseCommand):
         client: pyrogram.Client,
         message: pyrogram.types.Message,
         handler: BaseHandler,
-        db_from_user: graph_models.vertices.User,
+        from_user: graph_models.vertices.User,
         from_callback_query: bool,
     ) -> None:
 
@@ -31,30 +31,30 @@ class HomeCommand(BaseCommand):
             support_channel_username="support_channel_username",
             url1="https://github.com/appheap/TASE",
             url2="https://github.com/appheap/TASE",
-            lang_code=db_from_user.chosen_language_code,
+            lang_code=from_user.chosen_language_code,
         )
 
         markup = [
             [
                 InlineButton.get_button(
                     InlineButtonType.DOWNLOAD_HISTORY
-                ).get_inline_keyboard_button(db_from_user.chosen_language_code),
+                ).get_inline_keyboard_button(from_user.chosen_language_code),
                 InlineButton.get_button(
                     InlineButtonType.MY_PLAYLISTS
-                ).get_inline_keyboard_button(db_from_user.chosen_language_code),
+                ).get_inline_keyboard_button(from_user.chosen_language_code),
             ],
             [
                 InlineButton.get_button(
                     InlineButtonType.SHOW_LANGUAGE_MENU
-                ).get_inline_keyboard_button(db_from_user.chosen_language_code),
+                ).get_inline_keyboard_button(from_user.chosen_language_code),
             ],
             [
                 InlineButton.get_button(
                     InlineButtonType.ADVERTISEMENT
-                ).get_inline_keyboard_button(db_from_user.chosen_language_code),
+                ).get_inline_keyboard_button(from_user.chosen_language_code),
                 InlineButton.get_button(
                     InlineButtonType.HELP_CATALOG
-                ).get_inline_keyboard_button(db_from_user.chosen_language_code),
+                ).get_inline_keyboard_button(from_user.chosen_language_code),
             ],
         ]
         markup = InlineKeyboardMarkup(markup)
@@ -66,7 +66,7 @@ class HomeCommand(BaseCommand):
             elif message.from_user:
                 chat_id = message.from_user.id
         else:
-            chat_id = db_from_user.user_id
+            chat_id = from_user.user_id
 
         client.send_message(
             chat_id=chat_id,

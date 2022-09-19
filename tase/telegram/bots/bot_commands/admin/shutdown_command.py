@@ -1,10 +1,11 @@
 import pyrogram
 from pydantic import Field
 
-import tase
 from tase import tase_globals
+from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.graph.vertices.user import UserRole
 from tase.telegram.client import worker_commands
+from tase.telegram.update_handlers.base import BaseHandler
 from ..base_command import BaseCommand
 from ..bot_command_type import BotCommandType
 
@@ -22,8 +23,8 @@ class ShutdownCommand(BaseCommand):
         self,
         client: pyrogram.Client,
         message: pyrogram.types.Message,
-        handler: "tase.telegram.update_handlers.base.BaseHandler",
-        db_from_user: "tase.db.graph_models.vertices.User",
+        handler: BaseHandler,
+        from_user: graph_models.vertices.User,
         from_callback_query: bool,
     ) -> None:
         # todo: translate me

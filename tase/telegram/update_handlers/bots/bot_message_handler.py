@@ -11,7 +11,9 @@ from pyrogram.types import InlineKeyboardMarkup
 from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.document import BotTask
 from tase.db.arangodb.enums import BotTaskType, BotTaskStatus, TelegramAudioType
+from tase.db.db_utils import get_telegram_message_media_type
 from tase.db.elasticsearchdb import models as elasticsearch_models
+from tase.errors import TelegramMessageWithNoAudio
 from tase.my_logger import logger
 from tase.telegram.bots.bot_commands import BaseCommand, BotCommandType
 from tase.telegram.bots.ui.inline_buttons.base import InlineButton, InlineButtonType
@@ -155,14 +157,15 @@ class BotMessageHandler(BaseHandler):
                             )
                             return
 
-                        if messages[0].audio:
-                            file_id = messages[0].audio.file_id
-                        elif messages[0].document:
-                            file_id = messages[0].document.file_id
-                        else:
-                            raise ValueError(
-                                "message does not contain any kind of audio!"
+                        audio, audio_type = get_telegram_message_media_type(messages[0])
+                        if audio is None or audio_type == TelegramAudioType.NON_AUDIO:
+                            # fixme: instead of raising an exception, it is better to mark the audio file in the
+                            #  database as invalid and update related edges and vertices accordingly
+                            raise TelegramMessageWithNoAudio(
+                                messages[0].id, messages[0].chat.id
                             )
+                        else:
+                            file_id = audio.file_id
                     else:
                         file_id = audio_doc.file_id
 
