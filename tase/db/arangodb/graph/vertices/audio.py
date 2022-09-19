@@ -1,10 +1,17 @@
 from __future__ import annotations
 
+import collections
 from typing import Optional, List, Generator, TYPE_CHECKING
 
 import pyrogram
 from arango import CursorEmptyError
 
+from tase.common.patterns import remove_usernames
+from tase.common.utils import (
+    datetime_to_timestamp,
+    generate_token_urlsafe,
+    get_now_timestamp,
+)
 from tase.db.db_utils import get_telegram_message_media_type, parse_audio_key
 from tase.errors import (
     TelegramMessageWithNoAudio,
@@ -13,7 +20,6 @@ from tase.errors import (
     EdgeCreationFailed,
 )
 from tase.my_logger import logger
-from tase.utils import datetime_to_timestamp, generate_token_urlsafe, get_now_timestamp
 from .base_vertex import BaseVertex
 from .download import Download
 from .hit import Hit
@@ -139,6 +145,12 @@ class Audio(BaseVertex):
 
         title = getattr(audio, "title", None)
 
+        extra_string_to_remove = collections.deque(
+            [
+                telegram_message.chat.username,
+            ]
+        )
+
         # todo: check if the following statement is actually true
         valid_for_inline = (
             True
@@ -150,6 +162,7 @@ class Audio(BaseVertex):
 
         if telegram_message.forward_from_chat:
             forwarded_from_chat_id = telegram_message.forward_from_chat.id
+            extra_string_to_remove.append(telegram_message.forward_from_chat.username)
         else:
             forwarded_from_chat_id = None
 
@@ -163,11 +176,23 @@ class Audio(BaseVertex):
         else:
             has_checked_forwarded_message = None
 
+        title = remove_usernames(title, extra_string_to_remove)
+        caption = remove_usernames(
+            telegram_message.caption
+            if telegram_message.caption
+            else telegram_message.text,
+            extra_string_to_remove,
+        )
+        performer = remove_usernames(
+            getattr(audio, "performer", None), extra_string_to_remove
+        )
+        file_name = remove_usernames(audio.file_name, extra_string_to_remove)
+
         return Audio(
             key=key,
             chat_id=telegram_message.chat.id,
             message_id=telegram_message.id,
-            message_caption=telegram_message.caption,
+            message_caption=caption,
             message_date=datetime_to_timestamp(telegram_message.date),
             message_edit_date=datetime_to_timestamp(telegram_message.edit_date),
             views=telegram_message.views,
@@ -182,9 +207,9 @@ class Audio(BaseVertex):
             ################################
             file_unique_id=audio.file_unique_id,
             duration=getattr(audio, "duration", None),
-            performer=getattr(audio, "performer", None),
+            performer=performer,
             title=title,
-            file_name=audio.file_name,
+            file_name=file_name,
             mime_type=audio.mime_type,
             file_size=audio.file_size,
             date=datetime_to_timestamp(audio.date),

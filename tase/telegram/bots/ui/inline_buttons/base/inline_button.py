@@ -6,6 +6,7 @@ import pyrogram
 from pydantic import BaseModel, Field
 from pyrogram.types import InlineKeyboardButton
 
+from tase.common.utils import translate_text
 from tase.db.arangodb import graph as graph_models
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.bots.ui.inline_buttons.base.inline_button_type import (
@@ -17,7 +18,6 @@ from tase.telegram.update_interfaces import (
     OnChosenInlineQuery,
     OnInlineQuery,
 )
-from tase.utils import translate_text
 
 
 class InlineButton(

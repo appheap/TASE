@@ -1,4 +1,4 @@
-from tase.utils import _trans, emoji
+from tase.common.utils import _trans, emoji
 from .base import InlineButton, InlineButtonType
 
 

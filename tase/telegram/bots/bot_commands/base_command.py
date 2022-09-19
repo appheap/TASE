@@ -6,10 +6,10 @@ from typing import List, Optional
 import pyrogram
 from pydantic import BaseModel, Field
 
+from tase.common.utils import _trans
 from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.graph.vertices.user import UserRole, User
 from tase.my_logger import logger
-from tase.utils import _trans
 from .bot_command_type import BotCommandType
 from ...update_handlers.base import BaseHandler
 

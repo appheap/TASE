@@ -4,8 +4,8 @@ import arrow
 import pyrogram
 from pyrogram import handlers
 
+from tase.common.utils import exception_handler
 from tase.my_logger import logger
-from tase.utils import exception_handler
 from .base_handler import BaseHandler
 from .handler_metadata import HandlerMetadata
 

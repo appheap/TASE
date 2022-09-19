@@ -2,12 +2,12 @@ from typing import Optional
 
 from pydantic import Field
 
+from tase.common.utils import datetime_to_timestamp, prettify
 from tase.db import DatabaseClient
 from tase.db.arangodb.graph.vertices import Chat
 from tase.db.arangodb.helpers import AudioIndexerMetadata
 from tase.my_logger import logger
 from tase.telegram.client import TelegramClient
-from tase.utils import datetime_to_timestamp, prettify
 from .base_task import BaseTask
 
 

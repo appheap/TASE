@@ -4,10 +4,10 @@ from typing import List
 import pyrogram
 from pyrogram import handlers
 
+from tase.common.utils import exception_handler
 from tase.my_logger import logger
 from tase.telegram.bots.ui.inline_buttons.base import InlineButton
 from tase.telegram.update_handlers.base import BaseHandler, HandlerMetadata
-from tase.utils import exception_handler
 
 
 class ChosenInlineQueryHandler(BaseHandler):

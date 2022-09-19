@@ -8,13 +8,13 @@ from kombu.mixins import ConsumerProducerMixin
 from kombu.transport import pyamqp
 
 from tase import tase_globals
+from tase.common.utils import exception_handler
 from tase.configs import ClientTypes
 from tase.db import DatabaseClient
 from tase.my_logger import logger
 from tase.telegram.client import TelegramClient
 from tase.telegram.client.tasks import BaseTask
 from tase.telegram.client.worker_commands import BaseWorkerCommand
-from tase.utils import exception_handler
 
 
 class ClientTaskConsumer(ConsumerProducerMixin):

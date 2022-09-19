@@ -1,14 +1,16 @@
 from __future__ import annotations
 
+import collections
 from typing import Optional, List, Tuple
 
 import pyrogram
 from elastic_transport import ObjectApiResponse
 from pydantic import Field
 
+from tase.common.patterns import remove_usernames
+from tase.common.utils import datetime_to_timestamp
 from tase.errors import TelegramMessageWithNoAudio
 from tase.my_logger import logger
-from tase.utils import datetime_to_timestamp
 from .base_document import BaseDocument
 from ...arangodb.enums import TelegramAudioType
 from ...arangodb.helpers import ElasticQueryMetadata
@@ -162,11 +164,26 @@ class Audio(BaseDocument):
             else False
         )
 
-        caption = (
+        extra_string_to_remove = collections.deque(
+            [
+                telegram_message.chat.username,
+            ]
+        )
+
+        if telegram_message.forward_from_chat:
+            extra_string_to_remove.append(telegram_message.forward_from_chat.username)
+
+        title = remove_usernames(title, extra_string_to_remove)
+        caption = remove_usernames(
             telegram_message.caption
             if telegram_message.caption
-            else telegram_message.text
+            else telegram_message.text,
+            extra_string_to_remove,
         )
+        performer = remove_usernames(
+            getattr(audio, "performer", None), extra_string_to_remove
+        )
+        file_name = remove_usernames(audio.file_name, extra_string_to_remove)
 
         return Audio(
             id=_id,
@@ -176,9 +193,9 @@ class Audio(BaseDocument):
             message_date=datetime_to_timestamp(telegram_message.date),
             file_unique_id=audio.file_unique_id,
             duration=getattr(audio, "duration", None),
-            performer=getattr(audio, "performer", None),
+            performer=performer,
             title=title,
-            file_name=audio.file_name,
+            file_name=file_name,
             mime_type=audio.mime_type,
             file_size=audio.file_size,
             date=datetime_to_timestamp(audio.date),

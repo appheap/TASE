@@ -1,8 +1,8 @@
 import pyrogram
 
+from tase.common.utils import _trans, emoji
 from tase.db.arangodb import graph as graph_models
 from tase.telegram.update_handlers.base import BaseHandler
-from tase.utils import _trans, emoji
 from .base import InlineButtonType, InlineButton
 
 

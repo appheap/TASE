@@ -4,6 +4,7 @@ from typing import Optional, Tuple, Generator, TYPE_CHECKING
 
 from pydantic import Field
 
+from tase.common.utils import generate_token_urlsafe, prettify
 from tase.errors import (
     PlaylistDoesNotExists,
     HitDoesNotExists,
@@ -14,7 +15,6 @@ from tase.errors import (
     EdgeDeletionFailed,
 )
 from tase.my_logger import logger
-from tase.utils import generate_token_urlsafe, prettify
 from . import Audio
 from .base_vertex import BaseVertex
 from .user import User

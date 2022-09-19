@@ -3,7 +3,7 @@ from typing import Optional
 
 from pydantic import BaseModel, Field
 
-from tase.utils import get_now_timestamp
+from tase.common.utils import get_now_timestamp
 from .base_vertex import BaseVertex
 
 

@@ -6,8 +6,8 @@ from typing import Optional, List, TYPE_CHECKING
 import pyrogram
 from pydantic import Field
 
+from tase.common.utils import prettify
 from tase.my_logger import logger
-from tase.utils import prettify
 from .base_vertex import BaseVertex
 
 if TYPE_CHECKING:
