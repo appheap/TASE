@@ -6,6 +6,7 @@ import pyrogram
 from arango import CursorEmptyError
 
 from tase.db.arangodb import graph as graph_models
+from tase.errors import InvalidFromVertex, InvalidToVertex
 from tase.my_logger import logger
 from tase.utils import prettify
 from .base_vertex import BaseVertex
@@ -68,22 +69,29 @@ class Chat(BaseVertex):
         cls,
         telegram_chat: pyrogram.types.Chat,
     ) -> Optional[Chat]:
+        """
+        Parse the `Chat` vertex from the given `telegram_chat` parameter
+
+        Parameters
+        ----------
+        telegram_chat : pyrogram.types.Chat
+            Telegram Chat object
+
+        Returns
+        -------
+        Chat, optional
+            Parsed chat if successful, otherwise, return None
+        """
         key = Chat.parse_key(telegram_chat)
         if key is None:
             return None
 
         chat_type = ChatType.parse_from_pyrogram(telegram_chat.type)
 
-        description = (
-            telegram_chat.description
-            if telegram_chat.description
-            else telegram_chat.bio
-        )
-
         return Chat(
             key=key,
             chat_id=telegram_chat.id,
-            is_public=Chat.get_is_public(telegram_chat, chat_type),
+            is_public=Chat.get_is_public(telegram_chat.username, chat_type),
             chat_type=chat_type,
             is_verified=telegram_chat.is_verified,
             is_restricted=telegram_chat.is_restricted,
@@ -95,7 +103,9 @@ class Chat(BaseVertex):
             # it's useful for searching by username
             first_name=telegram_chat.first_name,
             last_name=telegram_chat.last_name,
-            description=description,
+            description=telegram_chat.description
+            if telegram_chat.description
+            else telegram_chat.bio,
             dc_id=telegram_chat.dc_id,
             has_protected_content=telegram_chat.has_protected_content,
             invite_link=telegram_chat.invite_link,
@@ -108,7 +118,7 @@ class Chat(BaseVertex):
 
     @staticmethod
     def get_is_public(
-        telegram_chat: pyrogram.types.Chat,
+        username: Optional[str],
         chat_type: ChatType,
     ) -> bool:
         """
@@ -116,8 +126,8 @@ class Chat(BaseVertex):
 
         Parameters
         ----------
-        telegram_chat : pyrogram.types.Chat
-            Chat object from pyrogram
+        username : str, optional
+            Chat username
         chat_type : ChatType
             Type of the chat
 
@@ -132,7 +142,7 @@ class Chat(BaseVertex):
         elif chat_type == ChatType.GROUP:
             is_public = False
         elif chat_type in (ChatType.CHANNEL, ChatType.SUPERGROUP):
-            if telegram_chat.username:
+            if username is not None and len(username):
                 is_public = True
             else:
                 is_public = False
@@ -396,7 +406,7 @@ class ChatMethods:
                 if linked_chat:
                     try:
                         LinkedChat.get_or_create_edge(chat, linked_chat)
-                    except ValueError as e:
+                    except (InvalidFromVertex, InvalidToVertex):
                         pass
                 else:
                     # todo: could not create linked_chat
@@ -491,10 +501,8 @@ class ChatMethods:
                                 )
                                 try:
                                     LinkedChat.get_or_create_edge(chat, linked_chat)
-                                except ValueError:
-                                    logger.error(
-                                        f"Could not create `linked_chat` edge: {prettify(telegram_chat.linked_chat)}"
-                                    )
+                                except (InvalidFromVertex, InvalidToVertex):
+                                    pass
                         else:
                             # chat did not have any linked chat before, create it
                             linked_chat = self.get_or_create_chat(
@@ -502,11 +510,8 @@ class ChatMethods:
                             )
                             try:
                                 LinkedChat.get_or_create_edge(chat, linked_chat)
-                            except ValueError:
-                                logger.error(
-                                    f"Could not create `linked_chat` edge:"
-                                    f" {prettify(telegram_chat.linked_chat)}"
-                                )
+                            except (InvalidFromVertex, InvalidToVertex):
+                                pass
 
                 else:
                     # the chat doesn't have any linked chat, check if it had any before and delete the link

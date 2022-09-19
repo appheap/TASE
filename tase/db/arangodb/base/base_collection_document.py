@@ -17,8 +17,9 @@ from arango.cursor import Cursor
 from arango.result import Result
 from pydantic import BaseModel, Field, ValidationError
 
+from tase.errors import NotSoftDeletableSubclass, NotBaseCollectionDocumentInstance
 from tase.my_logger import logger
-from tase.utils import get_now_timestamp, prettify
+from tase.utils import get_now_timestamp
 
 TBaseCollectionDocument = typing.TypeVar(
     "TBaseCollectionDocument", bound="BaseCollectionDocument"
@@ -430,7 +431,7 @@ class BaseCollectionDocument(BaseCollectionAttributes):
 
         Raises
         ------
-        TypeError
+        NotSoftDeletableSubclass
             If the document calling this method uses the `filter_out_soft_deleted` argument and is not a subclass of
             `BaseSoftDeletableDocument`.
         """
@@ -447,9 +448,7 @@ class BaseCollectionDocument(BaseCollectionAttributes):
                     }
                 )
             else:
-                raise TypeError(
-                    f"{cls.__name__} is not an subclass of {BaseSoftDeletableDocument.__class__.__name__}"
-                )
+                raise NotSoftDeletableSubclass(cls.__name__)
 
         try:
             cursor = cls._collection.find(filters, skip=offset, limit=limit)
@@ -490,7 +489,7 @@ class BaseCollectionDocument(BaseCollectionAttributes):
 
         Raises
         ------
-        TypeError
+        NotSoftDeletableSubclass
             If the document calling this method uses the `filter_out_soft_deleted` argument and is not a subclass of
             `BaseSoftDeletableDocument`.
         """
@@ -534,7 +533,7 @@ class BaseCollectionDocument(BaseCollectionAttributes):
 
         Raises
         ------
-        TypeError
+        NotSoftDeletableSubclass
             If the document calling this method uses the `filter_out_soft_deleted` argument and is not a subclass of
             `BaseSoftDeletableDocument`.
         """
@@ -550,9 +549,7 @@ class BaseCollectionDocument(BaseCollectionAttributes):
                 )
                 return self.update(self_copy, reserve_non_updatable_fields=False)
             else:
-                raise TypeError(
-                    f"{self.__class__.__name__} is not an subclass of {BaseSoftDeletableDocument.__class__.__name__}"
-                )
+                raise NotSoftDeletableSubclass(self.__class__.__name__)
         else:
             return self.delete_document(self)
 
@@ -622,9 +619,7 @@ class BaseCollectionDocument(BaseCollectionAttributes):
 
         """
         if not isinstance(doc, BaseCollectionDocument):
-            raise Exception(
-                f"{doc.__class__.__name__} is not an instance of {BaseCollectionDocument.__class__.__name__} class"
-            )
+            raise NotBaseCollectionDocumentInstance(doc.__class__.__name__)
 
         if doc is None:
             return False
@@ -695,9 +690,7 @@ class BaseCollectionDocument(BaseCollectionAttributes):
             If the new document is not instance of `BaseCollectionDocument` class.
         """
         if not isinstance(doc, BaseCollectionDocument):
-            raise Exception(
-                f"{doc.__class__.__name__} is not an instance of {BaseCollectionDocument.__class__.__name__} class"
-            )
+            raise NotBaseCollectionDocumentInstance(doc.__class__.__name__)
 
         if old_doc is None or doc is None:
             return None, False

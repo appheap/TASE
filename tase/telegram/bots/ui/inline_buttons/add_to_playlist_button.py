@@ -4,6 +4,12 @@ import pyrogram
 
 from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.enums import BotTaskType
+from tase.errors import (
+    PlaylistDoesNotExists,
+    HitDoesNotExists,
+    HitNoLinkedAudio,
+    InvalidAudioForInlineMode,
+)
 from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
@@ -74,8 +80,27 @@ class AddToPlaylistInlineButton(InlineButton):
                     playlist_key,
                     hit_download_url,
                 )
+            except PlaylistDoesNotExists as e:
+                client.send_message(
+                    from_user.user_id,
+                    "You do not have the playlist you have chosen",
+                )
+            except HitDoesNotExists as e:
+                client.send_message(
+                    from_user.user_id,
+                    "Given download url is not valid anymore",
+                )
+            except HitNoLinkedAudio as e:
+                client.send_message(
+                    from_user.user_id,
+                    "Audio does not exist anymore",
+                )
+            except InvalidAudioForInlineMode as e:
+                client.send_message(
+                    from_user.user_id,
+                    "This audio cannot be used in inline mode",
+                )
             except Exception as e:
-                #  If the user does not have a playlist with the given playlist_key, or no hit exists with the given hit_download_url, or audio is not valid for inline mode ,or the hit does not have any audio linked to it.
                 logger.exception(e)
                 client.send_message(
                     from_user.user_id,

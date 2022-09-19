@@ -218,6 +218,10 @@ class BaseDocument(BaseModel):
         TBaseDocument, optional
             Python object converted from the database document dictionary
 
+        Raises
+        ------
+        ValueError
+            If `response` or `hit` parameter is not passed to this function or both of them are None
         """
         is_hit = False
         if response is not None:
@@ -229,7 +233,9 @@ class BaseDocument(BaseModel):
 
             is_hit = True
         else:
-            raise ValueError()
+            raise ValueError(
+                "either `response` or `hit` parameter must be passed to this method"
+            )
 
         body = dict()
         for doc_processor in cls._from_index_base_processors:
@@ -364,6 +370,9 @@ class BaseDocument(BaseModel):
             obj = cls.from_index(response=response)
         except NotFoundError as e:
             # audio does not exist in the index
+            pass
+        except ValueError as e:
+            # happen when the `hit` is None
             pass
         except Exception as e:
             logger.exception(f"{cls.__name__} : {e}")
@@ -521,11 +530,16 @@ class BaseDocument(BaseModel):
             query_metadata = ElasticQueryMetadata.parse(query_metadata)
 
             for index, hit in enumerate(hits, start=1):
-                db_doc = cls.from_index(
-                    hit=hit,
-                    rank=len(hits) - index + 1,
-                )
-                db_docs.append(db_doc)
+                try:
+                    db_doc = cls.from_index(
+                        hit=hit,
+                        rank=len(hits) - index + 1,
+                    )
+                except ValueError:
+                    # fixme: happens when the `hit` is None
+                    pass
+                else:
+                    db_docs.append(db_doc)
 
         except Exception as e:
             logger.exception(e)

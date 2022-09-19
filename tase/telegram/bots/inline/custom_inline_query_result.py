@@ -3,6 +3,7 @@ from typing import Any, List, Optional
 import pyrogram
 from pydantic import BaseModel, Field
 
+from tase.errors import NullTelegramInlineQuery
 from tase.my_logger import logger
 
 
@@ -27,13 +28,29 @@ class CustomInlineQueryResult(BaseModel):
     def get_next_offset(self) -> str:
         return str(self.from_ + len(self.results) + 1) if len(self.results) else None
 
-    def answer_query(self, inline_query: "pyrogram.types.InlineQuery"):
-        if inline_query is None:
-            raise Exception("`inline_query` param cannot be None")
+    def answer_query(
+        self,
+        telegram_inline_query: pyrogram.types.InlineQuery,
+    ) -> None:
+        """
+        Answer the telegram inline query
+
+        Parameters
+        ----------
+        telegram_inline_query : pyrogram.types.InlineQuery
+            Telegram InlineQuery object to answer
+
+        Raises
+        ------
+        NullTelegramInlineQuery
+            When the telegram inline query object is None
+        """
+        if telegram_inline_query is None:
+            raise NullTelegramInlineQuery()
         # if not len(self.results) or self.results is None:
         #     raise Exception("results cannot be empty")
         try:
-            inline_query.answer(
+            telegram_inline_query.answer(
                 self.results,
                 cache_time=self.cache_time,
                 next_offset=self.get_next_offset(),

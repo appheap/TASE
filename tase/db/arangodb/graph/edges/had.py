@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Optional, Union
 
+from tase.errors import ParamNotProvided
 from .base_edge import BaseEdge, EdgeEndsValidator
 from .has import Has
 from ..vertices import (
@@ -44,9 +45,7 @@ class Had(BaseEdge):
 
         deleted_at = kwargs.get("deleted_at", None)
         if deleted_at is None:
-            raise KeyError(
-                "`deleted_at` or/and `has` keyword arguments haven't been provided"
-            )
+            raise ParamNotProvided("deleted_at")
 
         if not isinstance(deleted_at, int):
             raise ValueError(
@@ -85,7 +84,7 @@ class Had(BaseEdge):
 
         Raises
         ------
-        KeyError
+        ParamNotProvided
             When the required keyword arguments haven't been passed to the function
         ValueError.
             When the start or the end vertex provided to the function does not match the edge definition in the
@@ -99,10 +98,10 @@ class Had(BaseEdge):
         # check if the required keyword arguments are present
         deleted_at = kwargs.get("deleted_at", None)
         has = kwargs.get("has", None)
-        if deleted_at is None or has is None:
-            raise KeyError(
-                "`deleted_at` or/and `has` keyword arguments haven't been provided"
-            )
+        if deleted_at is None:
+            raise ParamNotProvided("deleted_at")
+        if has is None:
+            raise ParamNotProvided("has")
 
         if not isinstance(deleted_at, int):
             raise TypeError(

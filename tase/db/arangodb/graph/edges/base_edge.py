@@ -11,6 +11,7 @@ from tase.db.arangodb.base import (
     FromGraphBaseProcessor,
 )
 from tase.db.arangodb.graph.vertices import BaseVertex
+from tase.errors import InvalidFromVertex, InvalidToVertex
 from tase.my_logger import logger
 
 
@@ -68,13 +69,13 @@ class EdgeEndsValidator:
         to_vertex: BaseVertex = args[2]
 
         if not isinstance(from_vertex, cls._from_vertex_collections):
-            raise ValueError(
-                f"`from_vertex` {from_vertex.__class__.__name__} is not an valid "
-            )
+            e = InvalidFromVertex(from_vertex.__class__.__name__, cls.__name__)
+            logger.error(e)
+            raise e
         if not isinstance(to_vertex, cls._to_vertex_collections):
-            raise ValueError(
-                f"`to_vertex` {from_vertex.__class__.__name__} is not an valid "
-            )
+            e = InvalidToVertex(to_vertex.__class__.__name__, cls.__name__)
+            logger.error(e)
+            raise e
 
         return self.func(*args, **kwargs)
 
@@ -221,9 +222,10 @@ class BaseEdge(BaseCollectionDocument):
 
         Raises
         ------
-        ValueError
-            When the start or the end vertex provided to the function does not match the edge definition in the
-            database.
+        InvalidFromVertex
+            If the start vertex provided to the function does not match the edge definition in the database.
+        InvalidToVertex
+            If the end vertex provided to the function does not match the edge definition in the database.
         """
         raise NotImplementedError
 
@@ -270,9 +272,10 @@ class BaseEdge(BaseCollectionDocument):
 
         Raises
         ------
-        ValueError
-            When the start or the end vertex provided to the function does not match the edge definition in the
-            database.
+        InvalidFromVertex
+            If the start vertex provided to the function does not match the edge definition in the database.
+        InvalidToVertex
+            If the end vertex provided to the function does not match the edge definition in the database.
         """
         if from_vertex is None or to_vertex is None:
             return None, False
@@ -308,9 +311,10 @@ class BaseEdge(BaseCollectionDocument):
 
         Raises
         ------
-        ValueError
-            When the start or the end vertex provided to the function does not match the edge definition in the
-            database.
+        InvalidFromVertex
+            If the start vertex provided to the function does not match the edge definition in the database.
+        InvalidToVertex
+            If the end vertex provided to the function does not match the edge definition in the database.
 
         """
         if from_vertex is None or to_vertex is None:
@@ -353,9 +357,10 @@ class BaseEdge(BaseCollectionDocument):
 
         Raises
         ------
-        ValueError
-            When the start or the end vertex provided to the function does not match the edge definition in the
-            database.
+        InvalidFromVertex
+            If the start vertex provided to the function does not match the edge definition in the database.
+        InvalidToVertex
+            If the end vertex provided to the function does not match the edge definition in the database.
 
         """
         if from_vertex is None or to_vertex is None:

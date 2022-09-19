@@ -6,6 +6,7 @@ from typing import Optional
 from arango import CursorEmptyError
 from pydantic import Field
 
+from tase.errors import UpdateRetryCountFailed
 from tase.my_logger import logger
 from .base_document import BaseDocument
 from ..enums import BotTaskType, BotTaskStatus
@@ -60,7 +61,7 @@ class BotTask(BaseDocument):
 
         Raises
         ------
-        Exception
+        UpdateRetryCountFailed
             If the `retry_count` was updated but could not update the `status` of the task
 
         """
@@ -74,7 +75,7 @@ class BotTask(BaseDocument):
             if new_retry_count >= self.max_retry_count:
                 return self.update_status(BotTaskStatus.FAILED)
         else:
-            raise Exception("Could not update retry count field")
+            raise UpdateRetryCountFailed()
 
     @classmethod
     def parse(

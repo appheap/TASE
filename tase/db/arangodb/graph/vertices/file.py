@@ -4,7 +4,11 @@ from typing import Optional
 
 import pyrogram
 
+from tase.db.db_utils import get_telegram_message_media_type
+from tase.errors import TelegramMessageWithNoAudio
+from tase.my_logger import logger
 from .base_vertex import BaseVertex
+from ...enums import TelegramAudioType
 
 
 class File(BaseVertex):
@@ -18,17 +22,35 @@ class File(BaseVertex):
         cls,
         telegram_message: pyrogram.types.Message,
     ) -> Optional[str]:
+        """
+        Parse the key from telegram message
+
+        Parameters
+        ----------
+        telegram_message : pyrogram.types.Message
+            Telegram Message to parse the key from
+
+        Returns
+        -------
+        str, optional
+            Parsed key if successful, otherwise, return None
+
+        Raises
+        ------
+        TelegramMessageWithNoAudio
+            If `telegram_message` argument does not contain any valid audio file.
+
+        """
         if telegram_message is None:
             return None
 
-        if telegram_message.audio:
-            _audio = telegram_message.audio
-        elif telegram_message.document:
-            _audio = telegram_message.document
-        else:
-            raise ValueError("Unexpected value for `message`: nor audio nor document")
+        audio, audio_type = get_telegram_message_media_type(telegram_message)
+        if audio is None or audio_type == TelegramAudioType.NON_AUDIO:
+            raise TelegramMessageWithNoAudio(
+                telegram_message.id, telegram_message.chat.id
+            )
 
-        return _audio.file_unique_id
+        return audio.file_unique_id
 
     @classmethod
     def parse(
@@ -50,26 +72,20 @@ class File(BaseVertex):
 
         Raises
         ------
-        ValueError
+        TelegramMessageWithNoAudio
             If `telegram_message` argument does not contain any valid audio file.
         """
-        key = File.parse_key(telegram_message)
-        if key is None:
-            return None
 
         if telegram_message is None:
             return None
 
-        if telegram_message.audio:
-            _audio = telegram_message.audio
-        elif telegram_message.document:
-            _audio = telegram_message.document
-        else:
-            raise ValueError("Unexpected value for `message`: nor audio nor document")
+        key = File.parse_key(telegram_message)
+        if key is None:
+            return None
 
         return File(
             key=key,
-            file_unique_id=_audio.file_unique_id,
+            file_unique_id=key,
         )
 
 
@@ -91,17 +107,19 @@ class FileMethods:
         File, optional
             File vertex if the creation was successful, otherwise, return None.
 
-        Raises
-        ------
-        ValueError
-            If `telegram_message` argument does not contain any valid audio file.
         """
         if telegram_message is None:
             return None
 
-        file, successful = File.insert(File.parse(telegram_message))
-        if file and successful:
-            return file
+        try:
+            file, successful = File.insert(File.parse(telegram_message))
+        except TelegramMessageWithNoAudio:
+            pass
+        except Exception as e:
+            logger.exception(e)
+        else:
+            if file and successful:
+                return file
 
         return None
 
@@ -130,9 +148,17 @@ class FileMethods:
         if telegram_message is None:
             return None
 
-        file = File.get(File.parse_key(telegram_message))
-        if file is None:
-            file = self.create_file(telegram_message)
+        file = None
+
+        try:
+            file = File.get(File.parse_key(telegram_message))
+        except TelegramMessageWithNoAudio:
+            pass
+        except Exception as e:
+            logger.exception(e)
+        else:
+            if file is None:
+                file = self.create_file(telegram_message)
 
         return file
 
@@ -153,20 +179,23 @@ class FileMethods:
         File, optional
             File vertex if the operation was successful, otherwise, return None.
 
-        Raises
-        ------
-        ValueError
-            If `telegram_message` argument does not contain any valid audio file.
         """
         if telegram_message is None:
             return None
 
-        file = File.get(File.parse_key(telegram_message))
-        if file is None:
-            return self.create_file(telegram_message)
-        else:
-            successful = file.update(File.parse(telegram_message))
-            if successful:
-                return file
+        try:
+            file = File.get(File.parse_key(telegram_message))
+            if file is None:
+                return self.create_file(telegram_message)
             else:
-                return None
+                successful = file.update(File.parse(telegram_message))
+                if successful:
+                    return file
+                else:
+                    return None
+        except TelegramMessageWithNoAudio:
+            pass
+        except Exception as e:
+            logger.exception(e)
+
+        return None
