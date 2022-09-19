@@ -549,13 +549,13 @@ class PlaylistMethods:
         Raises
         ------
         PlaylistDoesNotExists
-            When `Playlist` vertex does not exist with the `playlist_key` parameter
+            If `Playlist` vertex does not exist with the `playlist_key` parameter
         HitDoesNotExists
-            When `Hit` vertex does not exist with the `hit_download_url` parameter
+            If `Hit` vertex does not exist with the `hit_download_url` parameter
         HitNoLinkedAudio
-            When `Hit` vertex does not have any linked `Audio` vertex with it
+            If `Hit` vertex does not have any linked `Audio` vertex with it
         InvalidAudioForInlineMode
-            When `Audio` vertex is not valid for inline mode
+            If `Audio` vertex is not valid for inline mode
         """
         playlist = self.get_user_playlist_by_key(
             user, playlist_key, filter_out_soft_deleted=True
@@ -600,13 +600,13 @@ class PlaylistMethods:
         Raises
         ------
         PlaylistDoesNotExists
-            When `Playlist` vertex does not exist with the `playlist_key` parameter
+            If `Playlist` vertex does not exist with the `playlist_key` parameter
         HitDoesNotExists
-            When `Hit` vertex does not exist with the `hit_download_url` parameter
+            If `Hit` vertex does not exist with the `hit_download_url` parameter
         HitNoLinkedAudio
-            When `Hit` vertex does not have any linked `Audio` vertex with it
+            If `Hit` vertex does not have any linked `Audio` vertex with it
         InvalidAudioForInlineMode
-            When `Audio` vertex is not valid for inline mode
+            If `Audio` vertex is not valid for inline mode
         """
         if user is None or playlist_key is None or hit_download_url is None:
             return False, False
