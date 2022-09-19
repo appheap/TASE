@@ -7,10 +7,10 @@ from elastic_transport import ObjectApiResponse
 from elasticsearch import ConflictError, Elasticsearch, NotFoundError
 from pydantic import BaseModel, Field, ValidationError
 
+from tase.common.utils import get_now_timestamp
 from tase.db.arangodb.helpers import ElasticQueryMetadata
 from tase.db.helpers import SearchMetaData
 from tase.my_logger import logger
-from tase.utils import get_now_timestamp
 
 TBaseDocument = TypeVar("TBaseDocument", bound="BaseDocument")
 

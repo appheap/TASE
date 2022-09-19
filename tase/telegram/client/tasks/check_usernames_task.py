@@ -3,11 +3,11 @@ import time
 from pydantic import Field
 from pyrogram.errors import UsernameNotOccupied, UsernameInvalid, FloodWait
 
+from tase.common.utils import get_now_timestamp
 from tase.db import DatabaseClient
 from tase.db.arangodb import graph as graph_models
 from tase.my_logger import logger
 from tase.telegram.client import TelegramClient
-from tase.utils import get_now_timestamp
 from .base_task import BaseTask
 
 

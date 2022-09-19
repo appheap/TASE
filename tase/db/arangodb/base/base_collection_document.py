@@ -17,9 +17,9 @@ from arango.cursor import Cursor
 from arango.result import Result
 from pydantic import BaseModel, Field, ValidationError
 
+from tase.common.utils import get_now_timestamp
 from tase.errors import NotSoftDeletableSubclass, NotBaseCollectionDocumentInstance
 from tase.my_logger import logger
-from tase.utils import get_now_timestamp
 
 TBaseCollectionDocument = typing.TypeVar(
     "TBaseCollectionDocument", bound="BaseCollectionDocument"

@@ -6,10 +6,10 @@ from typing import Optional
 
 from jinja2 import Template
 
+from tase.common.utils import _trans
 from tase.db.arangodb import graph as graph_models
 from tase.db.elasticsearchdb import models as elasticsearch_models
 from tase.static import Emoji
-from tase.utils import _trans
 from .base_template import BaseTemplate, BaseTemplateData
 
 

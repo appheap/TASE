@@ -6,12 +6,12 @@ from typing import List
 import pyrogram
 from pyrogram import filters, handlers
 
+from tase.common.utils import exception_handler, get_now_timestamp
 from tase.errors import NullTelegramInlineQuery
 from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult, InlineSearch
 from tase.telegram.bots.ui.inline_buttons.base import InlineButton
 from tase.telegram.update_handlers.base import BaseHandler, HandlerMetadata
-from tase.utils import exception_handler, get_now_timestamp
 
 known_mime_types = (
     "audio/mpeg",

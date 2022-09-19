@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from typing import Optional, TYPE_CHECKING
 
+from tase.common.utils import generate_token_urlsafe
 from tase.db.helpers import SearchMetaData
 from tase.errors import InvalidFromVertex, InvalidToVertex, EdgeCreationFailed
 from tase.my_logger import logger
-from tase.utils import generate_token_urlsafe
 
 if TYPE_CHECKING:
     from .. import ArangoGraphMethods

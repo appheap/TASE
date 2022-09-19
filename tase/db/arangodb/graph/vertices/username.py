@@ -4,9 +4,9 @@ from typing import Optional, Generator
 
 from pydantic import Field
 
+from tase.common.utils import get_now_timestamp
 from tase.errors import InvalidFromVertex, InvalidToVertex
 from tase.my_logger import logger
-from tase.utils import get_now_timestamp
 from . import Chat
 from .base_vertex import BaseVertex
 from ...enums import MentionSource

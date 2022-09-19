@@ -10,9 +10,9 @@ from kombu.transport import pyamqp
 
 import tase
 from tase import tase_globals
+from tase.common.utils import exception_handler
 from tase.my_logger import logger
 from tase.scheduler.jobs import BaseJob
-from tase.utils import exception_handler
 
 
 class SchedulerWorkerProcess(Process):

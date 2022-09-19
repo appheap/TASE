@@ -4,8 +4,8 @@ import pyrogram.types
 from pyrogram.enums import ParseMode
 from pyrogram.types import InlineQueryResultArticle, InputTextMessageContent
 
+from tase.common.utils import _trans, emoji
 from tase.db.arangodb import graph as graph_models
-from tase.utils import _trans, emoji
 from .base_inline_item import BaseInlineItem
 
 

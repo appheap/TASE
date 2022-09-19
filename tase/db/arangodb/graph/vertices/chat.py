@@ -5,10 +5,10 @@ from typing import Optional, List, Tuple, Generator
 import pyrogram
 from arango import CursorEmptyError
 
+from tase.common.utils import prettify
 from tase.db.arangodb import graph as graph_models
 from tase.errors import InvalidFromVertex, InvalidToVertex
 from tase.my_logger import logger
-from tase.utils import prettify
 from .base_vertex import BaseVertex
 from ...enums import ChatType
 from ...helpers import (

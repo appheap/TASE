@@ -1,21 +1,17 @@
-import re
 from typing import List, Optional, Union
 
 import pyrogram
 from pydantic import Field
 
+from tase.common.patterns import telegram_username_pattern
+from tase.common.utils import datetime_to_timestamp, prettify
 from tase.db import DatabaseClient
 from tase.db.arangodb.enums import MentionSource
 from tase.db.arangodb.graph.vertices import Chat
 from tase.db.arangodb.helpers import UsernameExtractorMetadata
 from tase.my_logger import logger
 from tase.telegram.client import TelegramClient
-from tase.utils import datetime_to_timestamp, prettify
 from .base_task import BaseTask
-
-username_pattern = re.compile(
-    r"(?:@|(?:(?:(?:https?://)?t(?:elegram)?)\.me\/))(?P<username>[a-zA-Z0-9_]{5,32})"
-)
 
 
 class ExtractUsernamesTask(BaseTask):
@@ -38,7 +34,7 @@ class ExtractUsernamesTask(BaseTask):
             return None
 
         def find(text_: str, mention_source_: MentionSource):
-            for match in username_pattern.finditer(text_):
+            for match in telegram_username_pattern.finditer(text_):
                 self.add_username(
                     match.group("username"),
                     is_direct_mention,

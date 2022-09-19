@@ -4,8 +4,8 @@ from typing import Optional
 from jinja2 import Template
 from pydantic import BaseModel
 
+from tase.common.utils import translate_text
 from tase.static import Emoji
-from tase.utils import translate_text
 
 _emoji = Emoji()
 

@@ -1,6 +1,6 @@
 from jinja2 import Template
 
-from tase.utils import _trans
+from tase.common.utils import _trans
 from .base_template import BaseTemplate, BaseTemplateData
 
 
