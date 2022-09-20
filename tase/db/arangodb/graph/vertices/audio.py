@@ -6,7 +6,12 @@ from typing import Optional, List, Generator, TYPE_CHECKING
 import pyrogram
 from arango import CursorEmptyError
 
-from tase.common.patterns import remove_usernames
+from tase.common.patterns import (
+    remove_usernames,
+    remove_urls,
+    guess_file_name,
+    remove_punctuations,
+)
 from tase.common.utils import (
     datetime_to_timestamp,
     generate_token_urlsafe,
@@ -187,6 +192,11 @@ class Audio(BaseVertex):
             getattr(audio, "performer", None), extra_string_to_remove
         )
         file_name = remove_usernames(audio.file_name, extra_string_to_remove)
+
+        title = remove_punctuations(remove_urls(title))
+        caption = remove_punctuations(remove_urls(caption))
+        performer = remove_punctuations(remove_urls(performer))
+        file_name = remove_punctuations(remove_urls(guess_file_name(file_name)))
 
         return Audio(
             key=key,

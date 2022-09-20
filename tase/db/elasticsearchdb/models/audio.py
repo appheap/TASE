@@ -7,7 +7,12 @@ import pyrogram
 from elastic_transport import ObjectApiResponse
 from pydantic import Field
 
-from tase.common.patterns import remove_usernames
+from tase.common.patterns import (
+    remove_usernames,
+    remove_urls,
+    guess_file_name,
+    remove_punctuations,
+)
 from tase.common.utils import datetime_to_timestamp
 from tase.errors import TelegramMessageWithNoAudio
 from tase.my_logger import logger
@@ -184,6 +189,11 @@ class Audio(BaseDocument):
             getattr(audio, "performer", None), extra_string_to_remove
         )
         file_name = remove_usernames(audio.file_name, extra_string_to_remove)
+
+        title = remove_punctuations(remove_urls(title))
+        caption = remove_punctuations(remove_urls(caption))
+        performer = remove_punctuations(remove_urls(performer))
+        file_name = remove_punctuations(remove_urls(guess_file_name(file_name)))
 
         return Audio(
             id=_id,
