@@ -8,7 +8,7 @@ from elastic_transport import ObjectApiResponse
 from pydantic import Field
 
 from tase.common.patterns import (
-    remove_usernames,
+    remove_telegram_links,
     remove_urls,
     guess_file_name,
     remove_punctuations,
@@ -178,17 +178,17 @@ class Audio(BaseDocument):
         if telegram_message.forward_from_chat:
             extra_string_to_remove.append(telegram_message.forward_from_chat.username)
 
-        title = remove_usernames(title, extra_string_to_remove)
-        caption = remove_usernames(
+        title = remove_telegram_links(title, extra_string_to_remove)
+        caption = remove_telegram_links(
             telegram_message.caption
             if telegram_message.caption
             else telegram_message.text,
             extra_string_to_remove,
         )
-        performer = remove_usernames(
+        performer = remove_telegram_links(
             getattr(audio, "performer", None), extra_string_to_remove
         )
-        file_name = remove_usernames(audio.file_name, extra_string_to_remove)
+        file_name = remove_telegram_links(audio.file_name, extra_string_to_remove)
 
         title = remove_punctuations(remove_urls(title))
         caption = remove_punctuations(remove_urls(caption))

@@ -1871,16 +1871,14 @@ application/x-tgsticker		tgs
 mimetypes = mimetypes.MimeTypes()
 mimetypes.readfp(StringIO(mime_types))
 
-telegram_username_pattern = re.compile(
-    r"(?:@|(?:(?:(?:https?://)?t(?:elegram)?)\.me\/))(?P<username>[a-zA-Z0-9_]{5,32})",
+telegram_link_pattern = re.compile(
+    r"(?:(?:https?://)?(?:www\.)?(?:t(?:elegram)?\.(?:org|me|dog)/(?:joinchat/|\+))([\w-]+)|(?:https?://)?(?:www\.)?(?:t(?:elegram)?\.(?:org|me|dog)/)(proxy\?.+)|(?:https?://)?(?:www\.)?(?:t(?:elegram)?\.(?:org|me|dog)/)(c/\d+/\d+/?)|(?:(?:@|(?:(?:(?:https?://)?t(?:elegram)?)\.me\/))(?P<username1>[a-zA-Z0-9_]{5,32})|((?:https?://)?(?P<username0>[a-zA-Z0-9_]{5,32})(\.t(elegram)?\.me)))(?:(/\d+/?)|.+)?)",
     re.IGNORECASE,
-)
-url_with_protocol_pattern = re.compile(
-    "[a-zA-Z]+:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)"
 )
 
 url_pattern = re.compile(
-    "[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)"
+    r"(?:[a-zA-Z]+://)?(?:www\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)",
+    re.IGNORECASE,
 )
 
 punctuation_pattern = re.compile(r"[" + string.punctuation + "]")
@@ -1929,12 +1927,12 @@ def guess_file_name(file_name: str) -> Optional[str]:
     return temp
 
 
-def remove_usernames(
+def remove_telegram_links(
     text: str,
     extra_strings_to_remove: Deque[str] = None,
 ) -> Optional[str]:
     """
-    Remove usernames and `extra_string_to_remove` parameter from the given `text`
+    Remove usernames, telegram internal links, and `extra_string_to_remove` parameter from the given `text`
 
     Parameters
     ----------
@@ -1952,7 +1950,7 @@ def remove_usernames(
     if text is None:
         return None
 
-    text = telegram_username_pattern.sub("", text)
+    text = telegram_link_pattern.sub("", text)
     if extra_strings_to_remove is not None and len(extra_strings_to_remove):
         for to_remove in extra_strings_to_remove:
             if to_remove is None:
@@ -1985,7 +1983,6 @@ def remove_urls(
     if text is None:
         return None
 
-    text = url_with_protocol_pattern.sub("", text)
     text = url_pattern.sub("", text)
 
     if not len(text):
