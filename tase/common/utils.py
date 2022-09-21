@@ -1,12 +1,14 @@
+import collections
 import gettext
 import json
+import re
 import secrets
 import typing
 from collections import OrderedDict
 from datetime import datetime
 from functools import wraps
 from time import time
-from typing import Optional
+from typing import Optional, List, Tuple
 
 import arrow
 import tomli
@@ -15,6 +17,7 @@ from pydantic import BaseModel
 from tase.languages import Language, Languages
 from tase.my_logger import logger
 from tase.static import Emoji
+from .preprocessing import telegram_url_regex
 
 # todo: it's not a good practice to hardcode like this, fix it
 languages = dict()
@@ -277,3 +280,37 @@ def generate_token_urlsafe(
         if download_url.find("-") == -1:
             break
     return download_url
+
+
+def find_telegram_usernames(text: str) -> Optional[List[Tuple[str, int]]]:
+    """
+    Find telegram usernames in the given text
+
+    Parameters
+    ----------
+    text : str
+        Text to extract the usernames from
+
+    Returns
+    -------
+    list of tuple of str and int, optional
+        List of tuple of username and starting index of the regex match if successful, otherwise, return an empty list
+
+    """
+    if text is None:
+        return []
+
+    usernames = collections.deque()
+    for match in re.finditer(telegram_url_regex, text):
+        username0 = match.group("username0")
+        username1 = match.group("username1")
+
+        if username0 is not None:
+            username = username0
+        elif username1 is not None:
+            username = username1
+        else:
+            continue
+        usernames.append((username, match.start()))
+
+    return list(usernames)

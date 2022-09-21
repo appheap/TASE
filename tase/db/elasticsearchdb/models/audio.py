@@ -1,18 +1,12 @@
 from __future__ import annotations
 
-import collections
 from typing import Optional, List, Tuple
 
 import pyrogram
 from elastic_transport import ObjectApiResponse
 from pydantic import Field
 
-from tase.common.patterns import (
-    remove_telegram_links,
-    remove_urls,
-    guess_file_name,
-    remove_punctuations,
-)
+from tase.common.preprocessing import clean_text
 from tase.common.utils import datetime_to_timestamp
 from tase.errors import TelegramMessageWithNoAudio
 from tase.my_logger import logger
@@ -169,31 +163,14 @@ class Audio(BaseDocument):
             else False
         )
 
-        extra_string_to_remove = collections.deque(
-            [
-                telegram_message.chat.username,
-            ]
-        )
-
-        if telegram_message.forward_from_chat:
-            extra_string_to_remove.append(telegram_message.forward_from_chat.username)
-
-        title = remove_telegram_links(title, extra_string_to_remove)
-        caption = remove_telegram_links(
+        title = clean_text(title)
+        caption = clean_text(
             telegram_message.caption
             if telegram_message.caption
-            else telegram_message.text,
-            extra_string_to_remove,
+            else telegram_message.text
         )
-        performer = remove_telegram_links(
-            getattr(audio, "performer", None), extra_string_to_remove
-        )
-        file_name = remove_telegram_links(audio.file_name, extra_string_to_remove)
-
-        title = remove_punctuations(remove_urls(title))
-        caption = remove_punctuations(remove_urls(caption))
-        performer = remove_punctuations(remove_urls(performer))
-        file_name = remove_punctuations(remove_urls(guess_file_name(file_name)))
+        performer = clean_text(getattr(audio, "performer", None))
+        file_name = clean_text(audio.file_name)
 
         return Audio(
             id=_id,
