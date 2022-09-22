@@ -41,6 +41,8 @@ class IndexAudiosTask(BaseTask):
 
             if chat:
                 self.metadata = chat.audio_indexer_metadata
+                if self.metadata is None:
+                    return
                 self.metadata.reset_counters()
 
                 for message in telegram_client.iter_messages(

@@ -1,8 +1,29 @@
 import mimetypes
 import re
 import string
+import unicodedata
 from io import StringIO
-from typing import Optional, Deque
+from typing import Set, Callable, Optional, List
+
+import nltk
+
+from tase.my_logger import logger
+
+url_regex = r"(?:[a-zA-Z]+://)?(?:www\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)"
+stop_words_regex = r"""(?x)                          # Set flag to allow verbose regexps
+          \w+(?:-\w+)*                              # Words with optional internal hyphens 
+          | \s*                                     # Any space
+          | [][!"#$%&'*+,-./:;<=>?@\\^():_`{|}~]    # Any symbol 
+        """
+
+punctuation_regex = r"[" + string.punctuation + "]"
+tags_regex = r"@[a-zA-Z0-9_]+"
+html_tags_regex = r"""(?x)                              # Turn on free-spacing
+          <[^>]+>                                       # Remove <html> tags
+          | &([a-z0-9]+|\#[0-9]{1,6}|\#x[0-9a-f]{1,6}); # Remove &nbsp;
+          """
+hashtags_regex = r"#\S+"
+telegram_url_regex = r"(?:(?:https?://)?(?:www\.)?(?:t(?:elegram)?\.(?:org|me|dog)/(?:joinchat/|\+))([\w-]+)|(?:https?://)?(?:www\.)?(?:t(?:elegram)?\.(?:org|me|dog)/)(proxy\?.+)|(?:https?://)?(?:www\.)?(?:t(?:elegram)?\.(?:org|me|dog)/)(c/\d+/\d+/?)|(?:(?:@|(?:(?:(?:https?://)?t(?:elegram)?)\.me\/))(?P<username1>[a-zA-Z0-9_]{5,32})|((?:https?://)?(?P<username0>[a-zA-Z0-9_]{5,32})(\.t(elegram)?\.me)))(?:(/\d+/?)|.+)?)"
 
 # From https://svn.apache.org/repos/asf/httpd/httpd/trunk/docs/conf/mime.types.
 # Extended with extra mime types specific to Telegram.
@@ -1871,17 +1892,203 @@ application/x-tgsticker		tgs
 mimetypes = mimetypes.MimeTypes()
 mimetypes.readfp(StringIO(mime_types))
 
-telegram_link_pattern = re.compile(
-    r"(?:(?:https?://)?(?:www\.)?(?:t(?:elegram)?\.(?:org|me|dog)/(?:joinchat/|\+))([\w-]+)|(?:https?://)?(?:www\.)?(?:t(?:elegram)?\.(?:org|me|dog)/)(proxy\?.+)|(?:https?://)?(?:www\.)?(?:t(?:elegram)?\.(?:org|me|dog)/)(c/\d+/\d+/?)|(?:(?:@|(?:(?:(?:https?://)?t(?:elegram)?)\.me\/))(?P<username1>[a-zA-Z0-9_]{5,32})|((?:https?://)?(?P<username0>[a-zA-Z0-9_]{5,32})(\.t(elegram)?\.me)))(?:(/\d+/?)|.+)?)",
-    re.IGNORECASE,
-)
+try:
+    # If not present, download NLTK stopwords.
+    nltk.data.find("corpora/stopwords")
+except LookupError:
+    nltk.download("stopwords")
 
-url_pattern = re.compile(
-    r"(?:[a-zA-Z]+://)?(?:www\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)",
-    re.IGNORECASE,
-)
+from nltk.corpus import stopwords as nltk_en_stopwords
+from spacy.lang.en import stop_words as spacy_en_stopwords
 
-punctuation_pattern = re.compile(r"[" + string.punctuation + "]")
+DEFAULT = set(nltk_en_stopwords.words("english"))
+NLTK_EN = DEFAULT
+SPACY_EN = spacy_en_stopwords.STOP_WORDS
+
+
+def replace_telegram_urls(
+    text: str,
+    symbol: str,
+) -> Optional[str]:
+    if text is None or symbol is None:
+        return None
+
+    return re.sub(
+        telegram_url_regex,
+        symbol,
+        text,
+    )
+
+
+def remove_telegram_urls(text: str) -> Optional[str]:
+    if text is None:
+        return None
+
+    return replace_telegram_urls(text, "")
+
+
+def lowercase(text: str) -> Optional[str]:
+    if text is None:
+        return None
+
+    return text.lower()
+
+
+def remove_html_tags(text: str) -> Optional[str]:
+    if text is None:
+        return None
+
+    return re.sub(html_tags_regex, "", text)
+
+
+def replace_digits(
+    text: str,
+    symbols: str = " ",
+    only_blocks=True,
+) -> Optional[str]:
+    if text is None:
+        return None
+
+    if only_blocks:
+        return re.sub(r"\b\d+\b", symbols, text)
+    else:
+        return re.sub(r"\d+", symbols, text)
+
+
+def remove_digits(
+    text: str,
+    only_blocks=True,
+) -> Optional[str]:
+    if text is None:
+        return None
+
+    return replace_digits(text, "", only_blocks)
+
+
+def replace_tags(
+    text: str,
+    symbol: str,
+) -> Optional[str]:
+    if text is None:
+        return None
+
+    return re.sub(tags_regex, symbol, text)
+
+
+def remove_tags(text: str) -> Optional[str]:
+    if text is None:
+        return None
+
+    return replace_tags(text, "")
+
+
+def replace_hashtags(
+    text: str,
+    symbol: str,
+) -> Optional[str]:
+    if text is None:
+        return None
+
+    return re.sub(hashtags_regex, symbol, text)
+
+
+def remove_hashtags(text: str) -> Optional[str]:
+    if text is None:
+        return None
+
+    return replace_hashtags(text, "")
+
+
+def replace_punctuation(
+    text: str,
+    symbol: str = " ",
+) -> Optional[str]:
+    if text is None:
+        return None
+
+    return re.sub(punctuation_regex, symbol, text)
+
+
+def remove_punctuation(text: str) -> Optional[str]:
+    if text is None:
+        return None
+
+    return replace_punctuation(text, " ")
+
+
+def remove_diacritics(text: str) -> Optional[str]:
+    if text is None:
+        return None
+
+    nfkd_form = unicodedata.normalize("NFKD", text)
+    # unicodedata.combining(char) checks if the character is in composed form (consisting of several unicode chars combined), i.e. a diacritic
+    return "".join([char for char in nfkd_form if not unicodedata.combining(char)])
+
+
+def remove_whitespace(text: str) -> Optional[str]:
+    if text is None:
+        return None
+
+    return " ".join(text.replace("\xa0", " ").split())
+
+
+def replace_stopwords(
+    text: str,
+    symbol: str,
+    stopwords_: Optional[Set[str]] = None,
+) -> Optional[str]:
+    if text is None:
+        return None
+
+    if stopwords_ is None:
+        import stopwords
+
+        stopwords_ = stopwords.DEFAULT
+
+    return "".join(
+        t if t not in stopwords_ else symbol for t in re.findall(stop_words_regex, text)
+    )
+
+
+def remove_stopwords(
+    text: str,
+    stopwords: Optional[Set[str]] = None,
+) -> Optional[str]:
+    if text is None:
+        return None
+
+    return replace_stopwords(text, symbol="", stopwords_=stopwords)
+
+
+def replace_urls(
+    text: str,
+    symbol: str,
+) -> Optional[str]:
+    if text is None:
+        return None
+
+    return re.sub(url_regex, symbol, text)
+
+
+def remove_urls(text: str) -> Optional[str]:
+    if text is None:
+        return None
+
+    return replace_urls(text, " ")
+
+
+def remove_lines(text: str) -> Optional[str]:
+    if text is None:
+        return None
+
+    return text.replace("\n", " ")
+
+
+def remove_extra_spaces(text: str) -> Optional[str]:
+    if text is None:
+        return None
+
+    return re.sub(r"\s{2}", " ", text).strip()
 
 
 def guess_mime_type(filename: str) -> Optional[str]:
@@ -1892,13 +2099,13 @@ def guess_extension(mime_type: str) -> Optional[str]:
     return mimetypes.guess_extension(mime_type)
 
 
-def guess_file_name(file_name: str) -> Optional[str]:
+def remove_file_extension(text: str) -> Optional[str]:
     """
     Guess the file name by filtering out extension part
 
     Parameters
     ----------
-    file_name : str
+    text : str
         Raw file name string
 
     Returns
@@ -1907,105 +2114,75 @@ def guess_file_name(file_name: str) -> Optional[str]:
         File name without the extension part
 
     """
-    if file_name is None:
+    if text is None:
         return None
 
-    mime_type = guess_mime_type(file_name)
+    mime_type = guess_mime_type(text)
     if mime_type is None:
-        return file_name
+        return text
 
     if not mime_type.startswith("audio/"):
-        return file_name
+        return text
 
     ext = guess_extension(mime_type)
     if ext is None:
-        return file_name
+        return text
 
-    temp = file_name[: file_name.lower().find(ext)]
+    temp = text[: text.lower().find(ext)]
     if not len(temp):
         return None
     return temp
 
 
-def remove_telegram_links(
+###################################################################
+
+
+def get_default_pipeline() -> List[Callable[[str], str]]:
+    """
+    Return a list containing all the methods used in the default cleaning pipeline.
+
+    Return a list with the following functions:
+     1. :meth:`tase.common.preprocessing.remove_diacritics`
+     2. :meth:`tase.common.preprocessing.remove_file_extension`
+     3. :meth:`tase.common.preprocessing.remove_html_tags`
+     4. :meth:`tase.common.preprocessing.remove_telegram_urls`
+     5. :meth:`tase.common.preprocessing.remove_urls`
+     6. :meth:`tase.common.preprocessing.remove_punctuation`
+     7. :meth:`tase.common.preprocessing.remove_whitespace`
+     8. :meth:`tase.common.preprocessing.remove_lines`
+     9. :meth:`tase.common.preprocessing.remove_extra_spaces`
+    """
+    return [
+        # lowercase,
+        remove_diacritics,  # this one needs to come first to prevent decoding error
+        remove_file_extension,
+        remove_html_tags,
+        remove_telegram_urls,
+        remove_urls,
+        remove_punctuation,
+        remove_whitespace,
+        remove_lines,
+        remove_extra_spaces,
+    ]
+
+
+default_pipeline = get_default_pipeline()
+
+
+def clean_text(
     text: str,
-    extra_strings_to_remove: Deque[str] = None,
+    pipeline: List[Callable] = None,
 ) -> Optional[str]:
-    """
-    Remove usernames, telegram internal links, and `extra_string_to_remove` parameter from the given `text`
-
-    Parameters
-    ----------
-    text : str
-        Text string to remove the usernames from
-    extra_strings_to_remove : deque, default : None
-        Extra strings to remove from the `text` parameter
-
-    Returns
-    -------
-    str, optional
-        Modified text after removing usernames if successful, otherwise, return None
-
-    """
     if text is None:
         return None
 
-    text = telegram_link_pattern.sub("", text)
-    if extra_strings_to_remove is not None and len(extra_strings_to_remove):
-        for to_remove in extra_strings_to_remove:
-            if to_remove is None:
-                continue
-            text = re.sub(f"@{to_remove}", "", text, flags=re.IGNORECASE)
+    if pipeline is None or not len(pipeline):
+        pipeline = default_pipeline
 
-    if not len(text):
-        return None
+    for op in pipeline:
+        try:
+            text = op(text)
+        except UnicodeDecodeError:
+            logger.error(f"UnicodeDecodeError: {text}")
 
     return text
-
-
-def remove_urls(
-    text: str,
-) -> Optional[str]:
-    """
-    Remove URLs from the given `text`
-
-    Parameters
-    ----------
-    text : str
-        Text string to remove the URLs from
-
-    Returns
-    -------
-    str, optional
-        Modified text after removing URLs if successful, otherwise, return None
-
-    """
-    if text is None:
-        return None
-
-    text = url_pattern.sub("", text)
-
-    if not len(text):
-        return None
-
-    return text
-
-
-def remove_punctuations(text: str) -> Optional[str]:
-    """
-    Remove punctuations from the text
-
-    Parameters
-    ----------
-    text : str
-        Text string to process
-
-    Returns
-    -------
-    str, optional
-        Text without punctuations if successful, otherwise, return None
-
-    """
-    if text is None:
-        return None
-    return punctuation_pattern.sub(" ", text).replace("  ", " ")

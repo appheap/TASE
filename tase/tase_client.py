@@ -6,7 +6,6 @@ from decouple import config
 
 from tase.configs import TASEConfig
 from tase.db import DatabaseClient
-from tase.my_logger import logger
 from tase.scheduler import SchedulerWorkerProcess
 from tase.scheduler.jobs import IndexChannelsJob
 from tase.tase_globals import publish_job_to_scheduler
@@ -55,8 +54,6 @@ class TASE:
                     elasticsearch_config=tase_config.elastic_config,
                     arangodb_config=tase_config.arango_db_config,
                 )
-
-                logger.info("I'm here")
 
                 for client_config in tase_config.clients_config:
                     tg_client = TelegramClient._parse(

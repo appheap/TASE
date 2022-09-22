@@ -3,8 +3,7 @@ from typing import List, Optional, Union
 import pyrogram
 from pydantic import Field
 
-from tase.common.patterns import telegram_link_pattern
-from tase.common.utils import datetime_to_timestamp, prettify
+from tase.common.utils import datetime_to_timestamp, prettify, find_telegram_usernames
 from tase.db import DatabaseClient
 from tase.db.arangodb.enums import MentionSource
 from tase.db.arangodb.graph.vertices import Chat
@@ -34,23 +33,13 @@ class ExtractUsernamesTask(BaseTask):
             return None
 
         def find(text_: str, mention_source_: MentionSource):
-            for match in telegram_link_pattern.finditer(text_):
-                username0 = match.group("username0")
-                username1 = match.group("username1")
-
-                if username0 is not None:
-                    username = username0
-                elif username1 is not None:
-                    username = username1
-                else:
-                    continue
-
+            for username, match_start in find_telegram_usernames(text_):
                 self.add_username(
                     username,
                     is_direct_mention,
                     message,
                     mention_source_,
-                    match.start(),
+                    match_start,
                 )
 
         if not isinstance(text, str) and isinstance(text, List):
@@ -150,6 +139,8 @@ class ExtractUsernamesTask(BaseTask):
             db_chat = db.graph.update_or_create_chat(tg_chat)
 
             self.metadata = db_chat.username_extractor_metadata.copy()
+            if self.metadata is None:
+                return
             self.metadata.reset_counters()
 
             self.chat = db_chat
