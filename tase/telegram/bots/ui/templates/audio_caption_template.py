@@ -6,6 +6,7 @@ from typing import Optional
 
 from jinja2 import Template
 
+from tase.common.preprocessing import clean_audio_item_text
 from tase.common.utils import _trans
 from tase.db.arangodb import graph as graph_models
 from tase.db.elasticsearchdb import models as elasticsearch_models
@@ -60,14 +61,10 @@ class AudioCaptionData(BaseTemplateData):
             return None
 
         return AudioCaptionData(
-            title=es_audio_doc.title.replace("@", "") if es_audio_doc.title else "",
-            performer=es_audio_doc.performer.replace("@", "")
-            if es_audio_doc.performer
-            else "",
+            title=clean_audio_item_text(es_audio_doc.raw_title),
+            performer=clean_audio_item_text(es_audio_doc.raw_performer),
             file_name=textwrap.shorten(
-                es_audio_doc.file_name.replace("@", "")
-                if es_audio_doc.file_name
-                else "",
+                clean_audio_item_text(es_audio_doc.raw_file_name),
                 width=40,
                 placeholder="...",
             ),

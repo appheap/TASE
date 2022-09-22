@@ -2169,6 +2169,35 @@ def get_default_pipeline() -> List[Callable[[str], str]]:
 default_pipeline = get_default_pipeline()
 
 
+def get_audio_item_pipeline() -> List[Callable[[str], str]]:
+    """
+    Return a list containing all the methods used in the cleaning pipeline for audio items returned to the user.
+
+    Returns
+    -------
+    list of callables
+        List of function objects used for cleaning
+
+    """
+    return [
+        # remove_diacritics,  # this one needs to come first to prevent decoding error
+        remove_html_tags,
+        remove_telegram_urls,
+        remove_urls,
+        remove_hashtags,
+        remove_whitespace,
+        remove_lines,
+        remove_extra_spaces,
+    ]
+
+
+audio_item_pipeline = get_audio_item_pipeline()
+
+
+def clean_audio_item_text(text: str) -> Optional[str]:
+    return clean_text(text, audio_item_pipeline)
+
+
 def clean_text(
     text: str,
     pipeline: List[Callable] = None,
