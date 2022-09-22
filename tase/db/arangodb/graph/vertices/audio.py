@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 from typing import Optional, List, Generator, TYPE_CHECKING
 
 import pyrogram
@@ -42,6 +43,7 @@ class Audio(BaseVertex):
     chat_id: int
     message_id: int
     message_caption: Optional[str]
+    raw_message_caption: Optional[str]
     message_date: Optional[int]
     message_edit_date: Optional[int]
     views: Optional[int]
@@ -61,8 +63,11 @@ class Audio(BaseVertex):
     file_unique_id: Optional[str]
     duration: Optional[int]
     performer: Optional[str]
+    raw_performer: Optional[str]
     title: Optional[str]
+    raw_title: Optional[str]
     file_name: Optional[str]
+    raw_file_name: Optional[str]
     mime_type: Optional[str]
     file_size: Optional[int]
     date: Optional[int]
@@ -168,6 +173,15 @@ class Audio(BaseVertex):
         else:
             has_checked_forwarded_message = None
 
+        raw_title = copy.copy(title)
+        raw_caption = copy.copy(
+            telegram_message.caption
+            if telegram_message.caption
+            else telegram_message.text
+        )
+        raw_performer = copy.copy(getattr(audio, "performer", None))
+        raw_file_name = copy.copy(audio.file_name)
+
         title = clean_text(title)
         caption = clean_text(
             telegram_message.caption
@@ -182,6 +196,7 @@ class Audio(BaseVertex):
             chat_id=telegram_message.chat.id,
             message_id=telegram_message.id,
             message_caption=caption,
+            raw_message_caption=raw_caption,
             message_date=datetime_to_timestamp(telegram_message.date),
             message_edit_date=datetime_to_timestamp(telegram_message.edit_date),
             views=telegram_message.views,
@@ -197,8 +212,11 @@ class Audio(BaseVertex):
             file_unique_id=audio.file_unique_id,
             duration=getattr(audio, "duration", None),
             performer=performer,
+            raw_performer=raw_performer,
             title=title,
+            raw_title=raw_title,
             file_name=file_name,
+            raw_file_name=raw_file_name,
             mime_type=audio.mime_type,
             file_size=audio.file_size,
             date=datetime_to_timestamp(audio.date),
