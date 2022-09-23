@@ -7,17 +7,21 @@ from collections import OrderedDict
 from datetime import datetime
 from functools import wraps
 from time import time
-from typing import Optional, List, Tuple, Dict, Match, Union
+from typing import Optional, List, Tuple, Dict, Match, Union, Any
 
 import arrow
 import tomli
 from pydantic import BaseModel
+from pyrogram.types import BotCommand, BotCommandScopeChat, BotCommandScopeDefault
 
+from tase.db.arangodb import graph as graph_models
 from tase.languages import Language, Languages
 from tase.my_logger import logger
 from tase.static import Emoji
 from .preprocessing import telegram_url_regex, hashtags_regex, clean_hashtag
 from ..db.arangodb.enums import MentionSource
+from ..db.arangodb.graph.vertices.user import UserRole
+from ..telegram.bots.bot_commands import BaseCommand, BotCommandType
 
 # todo: it's not a good practice to hardcode like this, fix it
 languages = dict()
@@ -360,3 +364,69 @@ def find_hashtags_in_text(
             hashtags.extend(find_hashtags(text, mention_source))
 
     return list(hashtags)
+
+
+def get_bot_commands_list_for_telegram(
+    admins_and_owners: List[graph_models.vertices.User],
+) -> List[Dict[str, Any]]:
+    """
+    Get list of bot commands along with scope of the commands used in Telegram
+
+    Parameters
+    ----------
+    admins_and_owners : list of graph_models.vertices.User
+        List of `User` vertices that are their role is either `admin` or `owner`
+
+    Returns
+    -------
+    list[dict[str, any]]
+        List of dictionary containing the scope of a bot command and list of bot commands
+
+    """
+
+    def populate_commands(role: UserRole) -> List[BaseCommand]:
+        commands = collections.deque()
+        for command in sorted(
+            filter(
+                lambda c: c is not None,
+                map(
+                    BaseCommand.get_command,
+                    filter(
+                        lambda c_type: c_type
+                        not in (
+                            BotCommandType.INVALID,
+                            BotCommandType.UNKNOWN,
+                            BotCommandType.BASE,
+                        ),
+                        list(BotCommandType),
+                    ),
+                ),
+            ),
+            key=lambda c: str(c.command_type.value),
+        ):
+            bot_command = BotCommand(
+                str(command.command_type.value), command.command_description
+            )
+            if command.required_role_level.value <= role.value:
+                commands.append(bot_command)
+
+        return list(commands)
+
+    res = collections.deque()
+    for user_vertex in admins_and_owners:
+        if user_vertex.role in (UserRole.ADMIN, UserRole.OWNER):
+            res.append(
+                {
+                    "scope": BotCommandScopeChat(user_vertex.user_id),
+                    "commands": populate_commands(user_vertex.role),
+                }
+            )
+
+    res.append(
+        {
+            "scope": BotCommandScopeDefault(),
+            "commands": populate_commands(UserRole.SEARCHER),
+        }
+    )
+
+    return list(res)

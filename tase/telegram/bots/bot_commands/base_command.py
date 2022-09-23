@@ -25,6 +25,8 @@ class BaseCommand(BaseModel):
     ----------
     command_type : BotCommandType
         Type of this command
+    command_description: str
+        Description of the command (A maximum of 100 characters is allowed)
     required_role_level : UserRole
         Role level required to execute this command
     number_of_required_arguments : int
@@ -32,6 +34,7 @@ class BaseCommand(BaseModel):
     """
 
     command_type: BotCommandType = Field(default=BotCommandType.HELP)
+    command_description: str
     required_role_level: UserRole = Field(default=UserRole.SEARCHER)
     number_of_required_arguments: int = Field(default=0)
 

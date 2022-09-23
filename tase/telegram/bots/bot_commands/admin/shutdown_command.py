@@ -17,7 +17,8 @@ class ShutdownCommand(BaseCommand):
     """
 
     command_type: BotCommandType = Field(default=BotCommandType.SHUTDOWN_SYSTEM)
-    required_role_level: UserRole = UserRole.ADMIN
+    command_description = "Stop the system to perform an update"
+    required_role_level: UserRole = UserRole.OWNER
 
     def command_function(
         self,

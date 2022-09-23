@@ -16,6 +16,7 @@ class DummyCommand(BaseCommand):
     """
 
     command_type: BotCommandType = Field(default=BotCommandType.DUMMY)
+    command_description = "This is command for testing purposes"
     required_role_level: UserRole = UserRole.OWNER
 
     def command_function(

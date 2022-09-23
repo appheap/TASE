@@ -16,6 +16,7 @@ class LanguageCommand(BaseCommand):
     """
 
     command_type: BotCommandType = Field(default=BotCommandType.LANGUAGE)
+    command_description = "Show language selection menu"
 
     def command_function(
         self,

@@ -16,6 +16,7 @@ class AddChannelCommand(BaseCommand):
     """
 
     command_type: BotCommandType = Field(default=BotCommandType.ADD_CHANNEL)
+    command_description = "Add a public channel `username` to be indexed"
     required_role_level: UserRole = UserRole.ADMIN
     number_of_required_arguments = 1
 

@@ -7,6 +7,7 @@ from typing import Dict, Optional
 import kombu
 from pyrogram import idle
 
+from tase.common.utils import get_bot_commands_list_for_telegram
 from tase.configs import ClientTypes
 from tase.db import DatabaseClient
 from tase.my_logger import logger
@@ -47,6 +48,10 @@ class ClientManager(mp.Process):
         logger.info(threading.current_thread())
 
         self.telegram_client.start()
+
+        self.telegram_client.set_bot_commands(
+            get_bot_commands_list_for_telegram(self.db.graph.get_admins_and_owners())
+        )
 
         me = self.telegram_client.get_me()
         if me:
