@@ -4,6 +4,7 @@ from .chat import Chat, ChatMethods
 from .download import Download, DownloadMethods
 from .dummy_vertex import DummyVertex, DummyVertexMethods
 from .file import File, FileMethods
+from .hashtag import Hashtag, HashTagMethods
 from .hit import Hit, HitMethods
 from .keyword import Keyword, KeywordMethods
 from .playlist import Playlist, PlaylistMethods
@@ -17,6 +18,7 @@ vertex_classes = [
     Download,
     DummyVertex,
     File,
+    Hashtag,
     Hit,
     Keyword,
     Playlist,
@@ -32,6 +34,7 @@ class ArangoVertexMethods(
     DownloadMethods,
     DummyVertexMethods,
     FileMethods,
+    HashTagMethods,
     HitMethods,
     KeywordMethods,
     PlaylistMethods,

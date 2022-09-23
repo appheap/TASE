@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from enum import Enum
 
 
@@ -28,3 +30,21 @@ class MentionSource(Enum):
 
     DOCUMENT_FILE_NAME = 7
     "mention source is document file name"
+
+    @classmethod
+    def is_direct_mention(
+        cls,
+        mention_source: MentionSource,
+    ) -> bool:
+        return is_direct_mentions_dict[mention_source]
+
+
+is_direct_mentions_dict = {
+    MentionSource.MESSAGE_TEXT: True,
+    MentionSource.FORWARDED_CHAT_USERNAME: True,
+    MentionSource.FORWARDED_CHAT_DESCRIPTION: True,
+    MentionSource.AUDIO_TITLE: False,
+    MentionSource.AUDIO_PERFORMER: False,
+    MentionSource.AUDIO_FILE_NAME: False,
+    MentionSource.DOCUMENT_FILE_NAME: False,
+}
