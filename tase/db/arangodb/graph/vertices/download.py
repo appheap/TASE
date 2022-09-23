@@ -112,7 +112,7 @@ class DownloadMethods:
             return None
 
         try:
-            from_bot_edge = FromBot.get_or_create_edge(download, user)
+            from_bot_edge = FromBot.get_or_create_edge(download, bot)
         except (InvalidFromVertex, InvalidToVertex):
             logger.error(
                 "ValueError: Could not create `from_bot` edge from `Download` vertex to `User` vertex"
