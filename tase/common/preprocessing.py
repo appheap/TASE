@@ -22,7 +22,7 @@ html_tags_regex = r"""(?x)                              # Turn on free-spacing
           <[^>]+>                                       # Remove <html> tags
           | &([a-z0-9]+|\#[0-9]{1,6}|\#x[0-9a-f]{1,6}); # Remove &nbsp;
           """
-hashtags_regex = r"#\S+"
+hashtags_regex = r"#\w+"
 telegram_url_regex = r"(?:(?:https?://)?(?:www\.)?(?:t(?:elegram)?\.(?:org|me|dog)/(?:joinchat/|\+))([\w-]+)|(?:https?://)?(?:www\.)?(?:t(?:elegram)?\.(?:org|me|dog)/)(proxy\?.+)|(?:https?://)?(?:www\.)?(?:t(?:elegram)?\.(?:org|me|dog)/)(c/\d+/\d+/?)|(?:(?:@|(?:(?:(?:https?://)?t(?:elegram)?)\.me\/))(?P<username1>[a-zA-Z0-9_]{5,32})|((?:https?://)?(?P<username0>[a-zA-Z0-9_]{5,32})(\.t(elegram)?\.me)))(?:(/\d+/?)|.+)?)"
 
 # From https://svn.apache.org/repos/asf/httpd/httpd/trunk/docs/conf/mime.types.
@@ -2196,6 +2196,31 @@ audio_item_pipeline = get_audio_item_pipeline()
 
 def clean_audio_item_text(text: str) -> Optional[str]:
     return clean_text(text, audio_item_pipeline)
+
+
+def get_hashtag_cleaning_pipeline() -> List[Callable[[str], str]]:
+    """
+    Return a list containing all the methods used in the cleaning pipeline for hashtags.
+
+    Returns
+    -------
+    list of callables
+        List of function objects used for cleaning
+
+    """
+    return [
+        remove_diacritics,
+        lowercase,
+        remove_lines,
+        remove_extra_spaces,
+    ]
+
+
+hashtag_cleaning_pipeline = get_hashtag_cleaning_pipeline()
+
+
+def clean_hashtag(text: str) -> Optional[str]:
+    return clean_text(text, hashtag_cleaning_pipeline)
 
 
 def clean_text(

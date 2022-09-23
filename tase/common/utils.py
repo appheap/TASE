@@ -3,12 +3,11 @@ import gettext
 import json
 import re
 import secrets
-import typing
 from collections import OrderedDict
 from datetime import datetime
 from functools import wraps
 from time import time
-from typing import Optional, List, Tuple
+from typing import Optional, List, Tuple, Dict, Match, Union
 
 import arrow
 import tomli
@@ -17,7 +16,8 @@ from pydantic import BaseModel
 from tase.languages import Language, Languages
 from tase.my_logger import logger
 from tase.static import Emoji
-from .preprocessing import telegram_url_regex
+from .preprocessing import telegram_url_regex, hashtags_regex, clean_hashtag
+from ..db.arangodb.enums import MentionSource
 
 # todo: it's not a good practice to hardcode like this, fix it
 languages = dict()
@@ -53,7 +53,7 @@ italian = Language(code="it", flag=emoji._italy_flag, name="Italiana (Italian)")
 
 spanish = Language(code="es", flag=emoji._spain_flag, name="Español (Spanish)")
 
-language_mapping: typing.Dict[str, Language] = {
+language_mapping: Dict[str, Language] = {
     "en": english,
     "ru": russian,
     "hi": indian,
@@ -133,7 +133,7 @@ def default(obj: object):
 
     # https://t.me/pyrogramchat/167281
     # Instead of re.Match, which breaks for python <=3.6
-    if isinstance(obj, typing.Match):
+    if isinstance(obj, Match):
         return repr(obj)
     return (
         OrderedDict(
@@ -159,7 +159,7 @@ def default_no_class_name(obj: object):
 
     # https://t.me/pyrogramchat/167281
     # Instead of re.Match, which breaks for python <=3.6
-    if isinstance(obj, typing.Match):
+    if isinstance(obj, Match):
         return repr(obj)
     return (
         OrderedDict(
@@ -314,3 +314,49 @@ def find_telegram_usernames(text: str) -> Optional[List[Tuple[str, int]]]:
         usernames.append((username, match.start()))
 
     return list(usernames)
+
+
+def find_hashtags(
+    text: str,
+    mention_source: MentionSource = None,
+) -> List[Tuple[str, int, MentionSource]]:
+    if text is None:
+        return []
+
+    text = clean_hashtag(text)
+
+    hashtags = collections.deque()
+    for match in re.finditer(hashtags_regex, text):
+        hashtags.append((match.group(), match.start(), mention_source))
+
+    return list(hashtags)
+
+
+def find_hashtags_in_text(
+    text: Union[str, List[Union[str, None]]],
+    mention_source: Union[MentionSource, List[MentionSource]],
+) -> List[Tuple[str, int, MentionSource]]:
+    if text is None or not len(text) or mention_source is None:
+        return []
+
+    hashtags = collections.deque()
+    if not isinstance(text, str) and isinstance(text, List):
+        if isinstance(mention_source, List):
+            if len(mention_source) != len(text):
+                raise Exception(
+                    f"mention_source and text must of the the same size: {len(mention_source)} != "
+                    f"{len(text)}"
+                )
+            for text__, mention_source_ in zip(text, mention_source):
+                if text__ is not None and mention_source_ is not None:
+                    hashtags.extend(find_hashtags(text__, mention_source_))
+        else:
+            for text__ in text:
+                if text__ is not None:
+                    hashtags.extend(find_hashtags(text__, mention_source))
+
+    else:
+        if text is not None:
+            hashtags.extend(find_hashtags(text, mention_source))
+
+    return list(hashtags)

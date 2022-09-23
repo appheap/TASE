@@ -11,6 +11,7 @@ from tase.common.utils import (
     datetime_to_timestamp,
     generate_token_urlsafe,
     get_now_timestamp,
+    find_hashtags_in_text,
 )
 from tase.db.db_utils import get_telegram_message_media_type, parse_audio_key
 from tase.errors import (
@@ -27,7 +28,7 @@ from .user import User
 
 if TYPE_CHECKING:
     from .. import ArangoGraphMethods
-from ...enums import TelegramAudioType
+from ...enums import TelegramAudioType, MentionSource
 
 
 class Audio(BaseVertex):
@@ -326,6 +327,39 @@ class AudioMethods:
         else:
             if audio and successful:
                 audio: Audio = audio
+
+                hashtags = find_hashtags_in_text(
+                    [
+                        audio.raw_message_caption,
+                        audio.raw_title,
+                        audio.raw_performer,
+                        audio.raw_file_name,
+                    ],
+                    [
+                        MentionSource.MESSAGE_TEXT,
+                        MentionSource.AUDIO_TITLE,
+                        MentionSource.AUDIO_PERFORMER,
+                        MentionSource.AUDIO_FILE_NAME
+                        if audio.audio_type == TelegramAudioType.AUDIO_FILE
+                        else MentionSource.DOCUMENT_FILE_NAME,
+                    ],
+                )
+
+                for hashtag, start_index, mention_source in hashtags:
+                    from tase.db.arangodb.graph.edges import HasHashtag
+
+                    hashtag_vertex = self.get_or_create_hashtag(hashtag)
+                    if hashtag_vertex:
+                        has_hashtag = HasHashtag.get_or_create_edge(
+                            audio,
+                            hashtag_vertex,
+                            mention_source,
+                            start_index,
+                        )
+                        if has_hashtag is None:
+                            raise EdgeCreationFailed(HasHashtag.__class__.__name__)
+                    else:
+                        pass
 
                 chat = self.get_or_create_chat(telegram_message.chat)
                 try:

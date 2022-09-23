@@ -7,6 +7,7 @@ from .from_bot import FromBot, FromBotMethods
 from .from_hit import FromHit, FromHitMethods
 from .had import Had, HadMethods
 from .has import Has, HasMethods
+from .has_hashtag import HasHashtag, HasHashtagMethods
 from .has_made import HasMade, HasMadeMethods
 from .linked_chat import LinkedChat, LinkedChatMethods
 from .mentions import Mentions, MentionsMethods
@@ -23,6 +24,7 @@ edge_classes = [
     FromHit,
     Had,
     Has,
+    HasHashtag,
     HasMade,
     LinkedChat,
     Mentions,
@@ -41,6 +43,7 @@ class ArangoEdgeMethods(
     FromHitMethods,
     HadMethods,
     HasMethods,
+    HasHashtagMethods,
     HasMadeMethods,
     LinkedChatMethods,
     MentionsMethods,
