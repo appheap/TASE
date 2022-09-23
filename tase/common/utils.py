@@ -293,7 +293,7 @@ def find_telegram_usernames(text: str) -> Optional[List[Tuple[str, int]]]:
 
     Returns
     -------
-    list of tuple of str and int, optional
+    list[tuple[str, int]], optional
         List of tuple of username and starting index of the regex match if successful, otherwise, return an empty list
 
     """

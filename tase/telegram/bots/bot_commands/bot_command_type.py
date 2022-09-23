@@ -21,6 +21,7 @@ class BotCommandType(Enum):
 
     # admin/creator commands
     ADD_CHANNEL = "add_channel"
+    INDEX_CHANNEL = "index_channel"
     SHUTDOWN_SYSTEM = "shutdown_system"
 
     @classmethod
