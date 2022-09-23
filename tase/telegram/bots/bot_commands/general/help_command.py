@@ -17,6 +17,7 @@ class HelpCommand(BaseCommand):
     """
 
     command_type: BotCommandType = Field(default=BotCommandType.HELP)
+    command_description = "Show help menu"
 
     def command_function(
         self,

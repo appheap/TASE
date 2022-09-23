@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Coroutine, Iterable, List, Optional, Union
+from typing import Coroutine, Iterable, List, Optional, Union, Dict, Any
 
 import pyrogram
 from pyrogram.handlers.handler import Handler
@@ -57,6 +57,12 @@ class TelegramClient:
         logger.info(self.name)
         logger.info("#" * 50)
         self._client.start()
+
+    def set_bot_commands(
+        self,
+        commands_list: List[Dict[str, Any]],
+    ):
+        pass
 
     def stop(self) -> Coroutine:
         return self._client.stop()
@@ -210,3 +216,13 @@ class BotTelegramClient(TelegramClient):
             bot_token=self.token,
             workdir=self.workdir,
         )
+
+    def set_bot_commands(
+        self,
+        commands_list: List[Dict[str, Any]],
+    ):
+        for command_arg in commands_list:
+            self._client.set_bot_commands(
+                command_arg["commands"],
+                command_arg["scope"],
+            )

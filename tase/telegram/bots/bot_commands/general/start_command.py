@@ -15,6 +15,7 @@ class StartCommand(BaseCommand):
     """
 
     command_type: BotCommandType = Field(default=BotCommandType.START)
+    command_description = "Start the bot"
 
     def command_function(
         self,

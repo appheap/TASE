@@ -17,6 +17,7 @@ class HomeCommand(BaseCommand):
     """
 
     command_type: BotCommandType = Field(default=BotCommandType.HOME)
+    command_description = "Show home menu"
 
     def command_function(
         self,

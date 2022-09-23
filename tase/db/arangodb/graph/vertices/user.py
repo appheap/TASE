@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import collections
 from enum import Enum
 from typing import Optional, List, TYPE_CHECKING
 
@@ -121,6 +122,13 @@ class User(BaseVertex):
 
 
 class UserMethods:
+    _get_admin_and_owners_query = (
+        "for user in @users"
+        "   filter user.role in @roles_list"
+        "   sort user.role desc"
+        "   return user"
+    )
+
     def create_user(
         self,
         telegram_user: pyrogram.types.User,
@@ -235,3 +243,18 @@ class UserMethods:
             return None
 
         return User.get(str(user_id))
+
+    def get_admins_and_owners(self) -> List[User]:
+        cursor = User.execute_query(
+            self._get_admin_and_owners_query,
+            bind_vars={
+                "users": User._collection_name,
+                "roles_list": [UserRole.OWNER.value, UserRole.ADMIN.value],
+            },
+        )
+        res = collections.deque()
+        if cursor is not None and len(cursor):
+            for doc in cursor:
+                res.append(User.from_collection(doc))
+
+        return list(res)

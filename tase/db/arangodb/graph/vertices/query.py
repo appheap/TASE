@@ -83,6 +83,7 @@ class Query(BaseVertex):
 class QueryMethods:
     _get_query_hits_query = (
         "for v,e in 1..1 outbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@has'], vertexCollections:['@hits']}"
+        "   sort v.created_at asc"
         "   return v"
     )
 
