@@ -17,6 +17,7 @@ class HelpCatalogInlineButton(InlineButton):
 
     s_help = _trans("Help")
     text = f"{s_help} | {emoji._exclamation_question_mark}"
+    is_inline = True
 
     def on_inline_query(
         self,

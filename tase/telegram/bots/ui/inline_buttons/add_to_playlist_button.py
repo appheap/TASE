@@ -4,7 +4,7 @@ import pyrogram
 
 from tase.common.utils import _trans, emoji
 from tase.db.arangodb import graph as graph_models
-from tase.db.arangodb.enums import BotTaskType
+from tase.db.arangodb.enums import BotTaskType, ChatType
 from tase.errors import (
     PlaylistDoesNotExists,
     HitDoesNotExists,
@@ -24,6 +24,7 @@ class AddToPlaylistInlineButton(InlineButton):
 
     s_add_to_playlist = _trans("Add To Playlist")
     text = f"{s_add_to_playlist} | {emoji._plus}"
+    is_inline = True
 
     def on_inline_query(
         self,
@@ -56,6 +57,7 @@ class AddToPlaylistInlineButton(InlineButton):
         result_id_list = telegram_chosen_inline_result.result_id.split("->")
         inline_query_id = result_id_list[0]
         playlist_key = result_id_list[1]
+        chat_type = ChatType(int(result_id_list[2]))
 
         if playlist_key == "add_a_new_playlist":
             # start creating a new playlist

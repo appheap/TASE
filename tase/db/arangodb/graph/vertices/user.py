@@ -302,11 +302,11 @@ class UserMethods:
                 ),
                 key=lambda c: str(c.command_type.value),
             ):
-                bot_command = BotCommand(
-                    str(command.command_type.value),
-                    command.command_description,
-                )
                 if command.required_role_level.value <= role.value:
+                    bot_command = BotCommand(
+                        str(command.command_type.value),
+                        command.command_description,
+                    )
                     commands.append(bot_command)
 
             return list(commands)

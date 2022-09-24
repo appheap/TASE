@@ -13,7 +13,7 @@ class EditPlaylistTitleInlineButton(InlineButton):
 
     s_edit = _trans("Edit Title")
     text = f"{s_edit} | {emoji._gear}"
-    callback_data = "edit_playlist_title->edit_playlist_title"
+    is_inline = False
 
     def on_callback_query(
         self,

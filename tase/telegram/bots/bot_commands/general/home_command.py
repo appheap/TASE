@@ -58,7 +58,6 @@ class HomeCommand(BaseCommand):
                 ).get_inline_keyboard_button(from_user.chosen_language_code),
             ],
         ]
-        markup = InlineKeyboardMarkup(markup)
 
         chat_id = None
         if message:
@@ -73,5 +72,5 @@ class HomeCommand(BaseCommand):
             chat_id=chat_id,
             text=BaseTemplate.registry.home_template.render(data),
             parse_mode=ParseMode.HTML,
-            reply_markup=markup,
+            reply_markup=InlineKeyboardMarkup(markup),
         )

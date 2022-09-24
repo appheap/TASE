@@ -13,7 +13,7 @@ class DeletePlaylistInlineButton(InlineButton):
 
     s_delete = _trans("Delete Playlist")
     text = f"{s_delete} | {emoji._cross_mark}"
-    callback_data = "delete_playlist->delete_playlist"
+    is_inline = False
 
     def on_callback_query(
         self,

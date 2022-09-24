@@ -13,7 +13,7 @@ class ShowLanguageMenuInlineButton(InlineButton):
 
     s_language = _trans("Language")
     text = f"{s_language} | {emoji._globe_showing_Americas}"
-    callback_data = "show_language_menu->show_language_menu"
+    is_inline = False
 
     def on_callback_query(
         self,

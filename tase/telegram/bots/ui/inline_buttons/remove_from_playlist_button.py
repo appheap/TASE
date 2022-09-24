@@ -5,6 +5,7 @@ import pyrogram
 
 from tase.common.utils import _trans, emoji, get_now_timestamp
 from tase.db.arangodb import graph as graph_models
+from tase.db.arangodb.enums import ChatType
 from tase.errors import (
     PlaylistDoesNotExists,
     HitDoesNotExists,
@@ -24,6 +25,7 @@ class RemoveFromPlaylistInlineButton(InlineButton):
 
     s_remove_from_playlist = _trans("Remove From Playlist")
     text = f"{s_remove_from_playlist} | {emoji._minus}"
+    is_inline = True
 
     def on_inline_query(
         self,
@@ -81,6 +83,7 @@ class RemoveFromPlaylistInlineButton(InlineButton):
         result_id_list = telegram_chosen_inline_result.result_id.split("->")
         inline_query_id = result_id_list[0]
         playlist_key = result_id_list[1]
+        chat_type = ChatType(int(result_id_list[2]))
 
         # remove the audio from the playlist
         try:

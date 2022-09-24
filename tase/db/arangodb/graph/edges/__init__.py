@@ -1,6 +1,5 @@
 from .archived_audio import ArchivedAudio, ArchivedAudioMethods
 from .base_edge import BaseEdge, EdgeEndsValidator
-from .downloaded import Downloaded, DownloadedMethods
 from .file_ref import FileRef, FileRefMethods
 from .forwarded_from import ForwardedFrom, ForwardedFromMethods
 from .from_bot import FromBot, FromBotMethods
@@ -17,7 +16,6 @@ from .via_bot import ViaBot, ViaBotMethods
 
 edge_classes = [
     ArchivedAudio,
-    Downloaded,
     FileRef,
     ForwardedFrom,
     FromBot,
@@ -36,7 +34,6 @@ edge_classes = [
 
 class ArangoEdgeMethods(
     ArchivedAudioMethods,
-    DownloadedMethods,
     FileRefMethods,
     ForwardedFromMethods,
     FromBotMethods,

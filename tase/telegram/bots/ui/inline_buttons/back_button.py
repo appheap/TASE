@@ -12,7 +12,7 @@ class BackInlineButton(InlineButton):
 
     s_back = _trans("Back")
     text = f"{s_back} | {emoji._BACK_arrow}"
-    callback_data = "back->back"
+    is_inline = False
 
     def on_callback_query(
         self,
