@@ -16,7 +16,13 @@ from tase.common.utils import (
 )
 from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.document import BotTask
-from tase.db.arangodb.enums import BotTaskType, BotTaskStatus, TelegramAudioType
+from tase.db.arangodb.enums import (
+    BotTaskType,
+    BotTaskStatus,
+    TelegramAudioType,
+    InteractionType,
+    ChatType,
+)
 from tase.db.db_utils import get_telegram_message_media_type
 from tase.db.elasticsearchdb import models as elasticsearch_models
 from tase.errors import TelegramMessageWithNoAudio
@@ -79,32 +85,6 @@ class BotMessageHandler(BaseHandler):
         logger.debug(f"commands_handler: {message.command}")
 
         BaseCommand.run_command(client, message, self)
-
-        # if command == "add":
-        #     if len(message.command) == 2:
-        #         channel_username = message.command[1]
-        #
-        #         # todo: check if the username is in valid format
-        #
-        #         db_chat = self.db.get_chat_by_username(channel_username)
-        #         if db_chat:
-        #             # todo: translate me
-        #             message.reply_text("This channel already exists in the Database!")
-        #         else:
-        #             publish_client_task(
-        #                 AddChannelTask(kwargs={"channel_username": channel_username}),
-        #                 tase_telegram_queue,
-        #             )
-        #             # todo: translate me
-        #             message.reply_text("Added Channel to the Database for indexing.")
-        #
-        #     else:
-        #         # `index` command haven't been provided with `channel_username` argument
-        #         pass
-        # elif command == "index_channels":
-        #     publish_job_to_scheduler(IndexChannelsJob())
-        # else:
-        #     pass
 
     @exception_handler
     def downloads_handler(
@@ -233,10 +213,12 @@ class BotMessageHandler(BaseHandler):
                             reply_markup=markup,
                         )
 
-                    db_download = self.db.graph.create_download(
+                    db_download = self.db.graph.create_interaction(
                         hit_download_url,
                         from_user,
                         self.telegram_client.telegram_id,
+                        InteractionType.DOWNLOAD,
+                        ChatType.BOT,
                     )
                     valid = True
         if not valid:

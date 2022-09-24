@@ -3,25 +3,25 @@ from __future__ import annotations
 from typing import Optional
 
 from .base_edge import BaseEdge, EdgeEndsValidator
-from ..vertices import Download, User
+from ..vertices import Interaction, User
 
 
 class FromBot(BaseEdge):
     """
-    Connection from `Download` to `User`
+    Connection from `Interaction` to `User`
     """
 
     _collection_name = "from_bot"
     schema_version = 1
 
-    _from_vertex_collections = (Download,)
+    _from_vertex_collections = (Interaction,)
     _to_vertex_collections = (User,)
 
     @classmethod
     @EdgeEndsValidator
     def parse(
         cls,
-        from_vertex: Download,
+        from_vertex: Interaction,
         to_vertex: User,
         *args,
         **kwargs,

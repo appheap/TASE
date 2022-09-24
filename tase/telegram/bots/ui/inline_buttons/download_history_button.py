@@ -7,6 +7,8 @@ from pyrogram.types import InlineQueryResultArticle, InputTextMessageContent
 
 from tase.common.utils import _trans, emoji
 from tase.db.arangodb import graph as graph_models
+from tase.db.arangodb.enums import ChatType, InteractionType
+from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
 from .base import InlineButton, InlineButtonType
@@ -19,6 +21,7 @@ class DownloadHistoryInlineButton(InlineButton):
 
     s_my_downloads = _trans("My Downloads")
     text = f"{s_my_downloads} | {emoji._mobile_phone_with_arrow}"
+    is_inline = True
 
     def on_inline_query(
         self,
@@ -82,13 +85,16 @@ class DownloadHistoryInlineButton(InlineButton):
         result_id_list = telegram_chosen_inline_result.result_id.split("->")
         inline_query_id = result_id_list[0]
         hit_download_url = result_id_list[1]
+        chat_type = ChatType(int(result_id_list[2]))
 
-        # download_vertex = handler.db.graph.create_download(
-        #     hit_download_url,
-        #     from_user,
-        #     handler.telegram_client.telegram_id,
-        # )
-        # if not download_vertex:
-        #     # could not create the download
-        #     logger.error("Could not create the `download` vertex:")
-        #     logger.error(telegram_chosen_inline_result)
+        interaction_vertex = handler.db.graph.create_interaction(
+            hit_download_url,
+            from_user,
+            handler.telegram_client.telegram_id,
+            InteractionType.SHARE,
+            chat_type,
+        )
+        if not interaction_vertex:
+            # could not create the download
+            logger.error("Could not create the `interaction_vertex` vertex:")
+            logger.error(telegram_chosen_inline_result)

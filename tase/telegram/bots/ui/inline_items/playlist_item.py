@@ -9,6 +9,7 @@ from pyrogram.types import (
 )
 
 from tase.db.arangodb import graph as graph_models
+from tase.db.arangodb.enums import ChatType
 from tase.telegram.bots.ui.templates import BaseTemplate, PlaylistData
 from .base_inline_item import BaseInlineItem
 
@@ -31,6 +32,9 @@ class PlaylistItem(BaseInlineItem):
             else " ",
             lang_code=user.chosen_language_code,
         )
+
+        chat_type = ChatType.parse_from_pyrogram(telegram_inline_query.chat_type)
+
         from tase.telegram.bots.ui.inline_buttons.base import (
             InlineButton,
             InlineButtonType,
@@ -44,6 +48,7 @@ class PlaylistItem(BaseInlineItem):
                     ).get_inline_keyboard_button(
                         user.chosen_language_code,
                         playlist.key,
+                        chat_type=chat_type,
                     ),
                     # todo: add a button to get the top 10 audios from this playlist as a message
                 ],
@@ -52,11 +57,13 @@ class PlaylistItem(BaseInlineItem):
                         InlineButtonType.HOME
                     ).get_inline_keyboard_button(
                         user.chosen_language_code,
+                        chat_type=chat_type,
                     ),
                     InlineButton.get_button(
                         InlineButtonType.BACK_TO_PLAYLISTS
                     ).get_inline_keyboard_button(
                         user.chosen_language_code,
+                        chat_type=chat_type,
                     ),
                 ],
             ]
@@ -67,11 +74,13 @@ class PlaylistItem(BaseInlineItem):
                         InlineButtonType.HOME
                     ).get_inline_keyboard_button(
                         user.chosen_language_code,
+                        chat_type=chat_type,
                     ),
                     InlineButton.get_button(
                         InlineButtonType.BACK_TO_PLAYLISTS
                     ).get_inline_keyboard_button(
                         user.chosen_language_code,
+                        chat_type=chat_type,
                     ),
                 ],
                 [
@@ -80,6 +89,7 @@ class PlaylistItem(BaseInlineItem):
                     ).get_inline_keyboard_button(
                         user.chosen_language_code,
                         playlist.key,
+                        chat_type=chat_type,
                     ),
                     # todo: add a button to get the top 10 audios from this playlist as a message
                 ],
@@ -90,6 +100,7 @@ class PlaylistItem(BaseInlineItem):
                         user.chosen_language_code,
                         playlist.key,
                         callback_arg=playlist.key,
+                        chat_type=chat_type,
                     ),
                     InlineButton.get_button(
                         InlineButtonType.EDIT_PLAYLIST_DESCRIPTION
@@ -97,6 +108,7 @@ class PlaylistItem(BaseInlineItem):
                         user.chosen_language_code,
                         playlist.key,
                         callback_arg=playlist.key,
+                        chat_type=chat_type,
                     ),
                 ],
                 [
@@ -106,6 +118,7 @@ class PlaylistItem(BaseInlineItem):
                         user.chosen_language_code,
                         playlist.key,
                         callback_arg=playlist.key,
+                        chat_type=chat_type,
                     ),
                 ],
             ]
@@ -114,7 +127,7 @@ class PlaylistItem(BaseInlineItem):
         item = InlineQueryResultArticle(
             title=playlist.title,
             description=f"{playlist.description if playlist.description is not None else ' '}",
-            id=f"{telegram_inline_query.id}->{playlist.key}",
+            id=f"{telegram_inline_query.id}->{playlist.key}->{chat_type.value}",
             thumb_url="https://telegra.ph/file/ac2d210b9b0e5741470a1.jpg"
             if not playlist.is_favorite
             else "https://telegra.ph/file/07d5ca30dba31b5241bcf.jpg",

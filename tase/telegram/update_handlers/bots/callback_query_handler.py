@@ -27,7 +27,7 @@ class CallbackQueryHandler(BaseHandler):
         logger.debug(f"on_callback_query: {callback_query}")
         db_user = self.db.graph.get_or_create_user(callback_query.from_user)
 
-        controller, data = callback_query.data.split("->")
+        controller, data, chat_type_value = callback_query.data.split("->")
         button = InlineButton.find_button_by_type_value(controller)
 
         if button:

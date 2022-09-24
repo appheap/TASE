@@ -8,6 +8,7 @@ from pyrogram.types import InlineKeyboardButton
 
 from tase.common.utils import translate_text
 from tase.db.arangodb import graph as graph_models
+from tase.db.arangodb.enums import ChatType
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.bots.ui.inline_buttons.base.inline_button_type import (
     InlineButtonType,
@@ -31,7 +32,7 @@ class InlineButton(
     type: InlineButtonType = Field(default=InlineButtonType.BASE)
 
     text: Optional[str]
-    callback_data: Optional[str]
+    is_inline: bool = Field(default=False)
     url: Optional[str]
 
     @classmethod
@@ -113,13 +114,12 @@ class InlineButton(
 
     def get_callback_data(
         self,
+        chat_type: ChatType,
         callback_arg=None,
     ) -> Optional[str]:
-        if callback_arg is None:
-            return self.callback_data
-        else:
-            data, arg = self.callback_data.split("->")
-            return f"{data}->{callback_arg}"
+        if self.is_inline:
+            return None
+        return f"{self.type.value}->{callback_arg}->{chat_type.value}"
 
     def get_switch_inline_query_current_chat(
         self,
@@ -132,10 +132,11 @@ class InlineButton(
         lang_code: str = "en",
         switch_inline_arg=None,
         callback_arg=None,
+        chat_type: ChatType = ChatType.BOT,
     ):
         return InlineKeyboardButton(
             text=self.get_text(lang_code),
-            callback_data=self.get_callback_data(callback_arg),
+            callback_data=self.get_callback_data(chat_type, callback_arg),
             url=self.get_url(),
             switch_inline_query_current_chat=self.get_switch_inline_query_current_chat(
                 switch_inline_arg,

@@ -9,6 +9,7 @@ from .base import InlineButton, InlineButtonType
 class ChooseLanguageInlineButton(InlineButton):
     name = "choose_language"
     type = InlineButtonType.CHOOSE_LANGUAGE
+    is_inline = False
 
     def on_callback_query(
         self,
@@ -17,7 +18,9 @@ class ChooseLanguageInlineButton(InlineButton):
         client: pyrogram.Client,
         telegram_callback_query: pyrogram.types.CallbackQuery,
     ):
-        controller, lang_code = telegram_callback_query.data.split("->")
+        controller, lang_code, chat_type_value = telegram_callback_query.data.split(
+            "->"
+        )
         from_user.update_chosen_language(lang_code)
         text = _trans(
             "Language change has been saved",

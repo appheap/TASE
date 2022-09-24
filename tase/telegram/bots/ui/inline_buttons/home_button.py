@@ -13,7 +13,7 @@ class HomeInlineButton(InlineButton):
 
     s_home = _trans("Home")
     text = f"{s_home} | {emoji._house}"
-    callback_data = "home->home"
+    is_inline = False
 
     def on_callback_query(
         self,

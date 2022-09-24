@@ -5,6 +5,7 @@ import pyrogram
 from pyrogram import handlers
 
 from tase.common.utils import exception_handler
+from tase.db.arangodb.enums import InteractionType, ChatType
 from tase.my_logger import logger
 from tase.telegram.bots.ui.inline_buttons.base import InlineButton
 from tase.telegram.update_handlers.base import BaseHandler, HandlerMetadata
@@ -50,16 +51,22 @@ class ChosenInlineQueryHandler(BaseHandler):
                 )
 
         else:
-            inline_query_id, hit_download_url = chosen_inline_result.result_id.split(
-                "->"
-            )
+            (
+                inline_query_id,
+                hit_download_url,
+                chat_type_value,
+            ) = chosen_inline_result.result_id.split("->")
 
-            download_vertex = self.db.graph.create_download(
+            chat_type = ChatType(int(chat_type_value))
+
+            interaction_vertex = self.db.graph.create_interaction(
                 hit_download_url,
                 from_user,
                 self.telegram_client.telegram_id,
+                InteractionType.DOWNLOAD,
+                chat_type,
             )
-            if not download_vertex:
-                # could not create the download
-                logger.error("Could not create the `download` vertex:")
+            if not interaction_vertex:
+                # could not create the interaction_vertex
+                logger.error("Could not create the `interaction_vertex` vertex:")
                 logger.error(chosen_inline_result)

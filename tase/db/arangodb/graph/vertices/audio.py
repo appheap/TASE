@@ -22,13 +22,13 @@ from tase.errors import (
 )
 from tase.my_logger import logger
 from .base_vertex import BaseVertex
-from .download import Download
 from .hit import Hit
+from .interaction import Interaction
 from .user import User
 
 if TYPE_CHECKING:
     from .. import ArangoGraphMethods
-from ...enums import TelegramAudioType, MentionSource
+from ...enums import TelegramAudioType, MentionSource, InteractionType
 
 
 class Audio(BaseVertex):
@@ -283,7 +283,8 @@ class AudioMethods:
     )
 
     _get_user_download_history_query = (
-        "for dl_v,dl_e in 1..1 outbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@downloaded'], vertexCollections:['@downloads']}"
+        "for dl_v,dl_e in 1..1 outbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@has'], vertexCollections:['@interactions']}"
+        "   filter dl_v.type == @interaction_type"
         "   sort dl_e.created_at DESC"
         "   limit @offset, @limit"
         "   for aud_v,has_e in 1..1 outbound dl_v graph '@graph_name' options {order:'dfs', edgeCollections:['@has'], vertexCollections:['@audios']}"
@@ -616,7 +617,6 @@ class AudioMethods:
             return
 
         from tase.db.arangodb.graph.edges import Has
-        from tase.db.arangodb.graph.edges import Downloaded
 
         cursor = Audio.execute_query(
             self._get_user_download_history_query,
@@ -624,8 +624,8 @@ class AudioMethods:
                 "start_vertex": user.id,
                 "has": Has._collection_name,
                 "audios": Audio._collection_name,
-                "downloaded": Downloaded._collection_name,
-                "downloads": Download._collection_name,
+                "interactions": Interaction._collection_name,
+                "interaction_type": InteractionType.DOWNLOAD.value,
                 "offset": offset,
                 "limit": limit,
             },

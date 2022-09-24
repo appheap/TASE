@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Optional
 
 from .base_edge import BaseEdge, EdgeEndsValidator
-from ..vertices import Download, Hit
+from ..vertices import Interaction, Hit
 
 
 class FromHit(BaseEdge):
@@ -14,14 +14,14 @@ class FromHit(BaseEdge):
     _collection_name = "from_hit"
     schema_version = 1
 
-    _from_vertex_collections = (Download,)
+    _from_vertex_collections = (Interaction,)
     _to_vertex_collections = (Hit,)
 
     @classmethod
     @EdgeEndsValidator
     def parse(
         cls,
-        from_vertex: Download,
+        from_vertex: Interaction,
         to_vertex: Hit,
         *args,
         **kwargs,

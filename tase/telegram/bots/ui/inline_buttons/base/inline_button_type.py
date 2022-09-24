@@ -12,7 +12,7 @@ class InlineButtonType(Enum):
     ADD_TO_PLAYLIST = "add_to_pl"
     ADVERTISEMENT = "advertisement"
     BACK = "back"
-    BACK_TO_PLAYLISTS = "back_to_playlists"
+    BACK_TO_PLAYLISTS = "back_to_pl"
     CHOOSE_LANGUAGE = "choose_language"
     DELETE_PLAYLIST = "delete_playlist"
     DOWNLOAD_HISTORY = "dl_history"

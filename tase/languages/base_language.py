@@ -10,4 +10,4 @@ class Language(BaseModel):
         return f" {self.flag} {self.name}"
 
     def get_choose_language_callback_data(self) -> str:
-        return f"choose_language->{self.code}"
+        return f"choose_language->{self.code}->{0}"
