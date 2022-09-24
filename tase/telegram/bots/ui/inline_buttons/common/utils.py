@@ -127,6 +127,10 @@ def populate_audio_items(
                     telegram_inline_query,
                     chats_dict,
                     hit,
+                    handler.db.graph.audio_in_favorite_playlist(
+                        from_user,
+                        hit.download_url,
+                    ),
                 )
             )
     else:

@@ -8,7 +8,7 @@ from ..vertices import Query, User
 
 class ToBot(BaseEdge):
     """
-    Connection from `InlineQuery` to `User`
+    Connection from `Query` to `User`
     """
 
     _collection_name = "to_bot"
