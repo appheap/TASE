@@ -13,6 +13,7 @@ from .home_button import HomeInlineButton
 from .my_playlists_button import MyPlaylistsInlineButton
 from .remove_from_playlist_button import RemoveFromPlaylistInlineButton
 from .show_language_menu_button import ShowLanguageMenuInlineButton
+from .toggle_favorite_playlist import ToggleFavoritePlaylistInlineButton
 
 __all__ = [
     "AddToPlaylistInlineButton",
@@ -30,4 +31,5 @@ __all__ = [
     "MyPlaylistsInlineButton",
     "RemoveFromPlaylistInlineButton",
     "ShowLanguageMenuInlineButton",
+    "ToggleFavoritePlaylistInlineButton",
 ]

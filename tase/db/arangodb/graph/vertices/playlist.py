@@ -4,7 +4,7 @@ from typing import Optional, Tuple, Generator, TYPE_CHECKING
 
 from pydantic import Field
 
-from tase.common.utils import generate_token_urlsafe, prettify
+from tase.common.utils import generate_token_urlsafe, prettify, get_now_timestamp
 from tase.errors import (
     PlaylistDoesNotExists,
     HitDoesNotExists,
@@ -126,6 +126,14 @@ class PlaylistMethods:
         "   sort v.rank ASC, e.created_at DESC"
         "   limit @offset, @limit"
         "   return v"
+    )
+
+    _audio_in_favorite_playlist_query = (
+        "for v_pl in 1..1 outbound '@user_id' graph '@graph_name' options {order : 'dfs', edgeCollections : ['@has'], vertexCollections : ['@playlists']}"
+        "   filter v_pl.is_favorite == true"
+        "   for v_aud in 1..1 outbound v_pl._id graph '@graph_name' options {order : 'dfs', edgeCollections : ['@has'], vertexCollections : ['@audios']}"
+        "       filter v_aud._key == '@audio_key'"
+        "       return true"
     )
 
     def get_user_playlist_by_title(
@@ -822,3 +830,114 @@ class PlaylistMethods:
         if cursor is not None and len(cursor):
             for doc in cursor:
                 yield Playlist.from_collection(doc)
+
+    def audio_in_favorite_playlist(
+        self: ArangoGraphMethods,
+        user: User,
+        hit_download_url: str,
+    ) -> Optional[bool]:
+        """
+        Whether an `Audio` exists in the user's favorite `Playlist`
+
+        Parameters
+        ----------
+        user : User
+            User to run the query on
+        hit_download_url : str
+            Hit download_url to get the audio from
+
+        Returns
+        -------
+        bool, optional
+            Whether the audio is in the user's favorite playlist
+
+        Raises
+        ------
+        HitDoesNotExists
+            If `Hit` vertex does not exist with the `hit_download_url` parameter
+        HitNoLinkedAudio
+            If `Hit` vertex does not have any linked `Audio` vertex with it
+        InvalidAudioForInlineMode
+            If `Audio` vertex is not valid for inline mode
+        ValueError
+            If the given `Hit` vertex has more than one linked `Audio` vertices.
+        """
+        if user is None or hit_download_url is None:
+            return None
+
+        hit = self.find_hit_by_download_url(hit_download_url)
+        if hit is None:
+            raise HitDoesNotExists(hit_download_url)
+
+        audio = self.get_audio_from_hit(hit)
+        if audio is None:
+            raise HitNoLinkedAudio(hit_download_url)
+        if audio.audio_type != TelegramAudioType.AUDIO_FILE:
+            raise InvalidAudioForInlineMode(audio.key)
+
+        from tase.db.arangodb.graph.edges import Has
+
+        cursor = Playlist.execute_query(
+            self._audio_in_favorite_playlist_query,
+            bind_vars={
+                "user_id": user.id,
+                "audio_key": audio.key,
+                "has": Has._collection_name,
+                "playlists": Playlist._collection_name,
+                "audios": Audio._collection_name,
+            },
+        )
+
+        return True if cursor is not None and len(cursor) else False
+
+    def toggle_favorite_playlist(
+        self,
+        user: User,
+        hit_download_url: str,
+    ) -> Tuple[Tuple[bool, bool], bool]:
+        """
+        Toggle whether an `Audio` is in the user's favorite playlist or not
+
+        Parameters
+        ----------
+        user :
+        hit_download_url : str
+            Download URL of the `Hit`
+
+        Returns
+        -------
+        tuple[tuple[bool, bool], bool]
+            A tuple of whether the operation was successful and toggled the audio in the user's favorite playlist and whether the audio was is in the user's favorite playlist in the first place
+
+        """
+        if user is None:
+            return (False, False), False
+
+        fav_playlist = self.get_or_create_favorite_playlist(user)
+        if fav_playlist is None:
+            return (True, False), False
+
+        in_fav_playlist = self.audio_in_favorite_playlist(user, hit_download_url)
+        if in_fav_playlist is None:
+            return (False, False), False
+
+        if not in_fav_playlist:
+            return (
+                self.add_audio_to_playlist(
+                    user,
+                    fav_playlist.key,
+                    hit_download_url,
+                ),
+                in_fav_playlist,
+            )
+        else:
+            remove_timestamp = get_now_timestamp()
+            return (
+                self.remove_audio_from_playlist(
+                    user,
+                    fav_playlist.key,
+                    hit_download_url,
+                    remove_timestamp,
+                ),
+                in_fav_playlist,
+            )

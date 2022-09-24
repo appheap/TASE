@@ -86,6 +86,7 @@ class Emoji(BaseModel):
 
     # -------------Hearts--------------------------
     _red_heart = emoji.emojize(":red_heart:", language="alias")
+    _white_heart = emoji.emojize(":white_heart:", language="alias")
     _orange_heart = emoji.emojize(":orange_heart:", language="alias")
     _yellow_heart = emoji.emojize(":yellow_heart:", language="alias")
     _green_heart = emoji.emojize(":green_heart:", language="alias")

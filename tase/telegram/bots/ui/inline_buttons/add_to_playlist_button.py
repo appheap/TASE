@@ -23,7 +23,7 @@ class AddToPlaylistInlineButton(InlineButton):
     type = InlineButtonType.ADD_TO_PLAYLIST
 
     s_add_to_playlist = _trans("Add To Playlist")
-    text = f"{s_add_to_playlist} | {emoji._plus}"
+    text = f"{emoji._plus}"
     is_inline = True
 
     def on_inline_query(

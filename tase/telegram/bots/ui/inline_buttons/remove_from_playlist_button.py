@@ -24,7 +24,7 @@ class RemoveFromPlaylistInlineButton(InlineButton):
     type = InlineButtonType.REMOVE_FROM_PLAYLIST
 
     s_remove_from_playlist = _trans("Remove From Playlist")
-    text = f"{s_remove_from_playlist} | {emoji._minus}"
+    text = f"{emoji._minus}"
     is_inline = True
 
     def on_inline_query(

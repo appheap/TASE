@@ -168,13 +168,24 @@ class BotMessageHandler(BaseHandler):
                                     from_user.chosen_language_code,
                                     hit_download_url,
                                 ),
-                            ],
-                            [
                                 InlineButton.get_button(
                                     InlineButtonType.REMOVE_FROM_PLAYLIST
                                 ).get_inline_keyboard_button(
                                     from_user.chosen_language_code,
                                     hit_download_url,
+                                ),
+                                InlineButton.get_button(
+                                    InlineButtonType.ADD_TO_FAVORITE_PLAYLIST
+                                )
+                                .change_text(
+                                    self.db.graph.audio_in_favorite_playlist(
+                                        from_user,
+                                        hit_download_url,
+                                    )
+                                )
+                                .get_inline_keyboard_button(
+                                    from_user.chosen_language_code,
+                                    callback_arg=hit.download_url,
                                 ),
                             ],
                             [
