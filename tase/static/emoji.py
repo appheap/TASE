@@ -92,6 +92,12 @@ class Emoji(BaseModel):
     _green_heart = emoji.emojize(":green_heart:", language="alias")
     _blue_heart = emoji.emojize(":blue_heart:", language="alias")
 
+    # -----------------------------------------------------------
+    _dark_thumbs_up = emoji.emojize(":thumbs_up_dark_skin_tone:")
+    _light_thumbs_up = emoji.emojize(":thumbs_up_light_skin_tone:")
+    _dark_thumbs_down = emoji.emojize(":thumbs_down_dark_skin_tone:")
+    _light_thumbs_down = emoji.emojize(":thumbs_down_light_skin_tone:")
+
     # -------------Plants--------------------------
     _purple_heart = emoji.emojize(":purple_heart:", language="alias")
     _seedling = emoji.emojize(":seedling:", language="alias")

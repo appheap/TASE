@@ -11,6 +11,8 @@ class InlineButtonType(Enum):
 
     ADD_TO_PLAYLIST = "add_to_pl"
     ADD_TO_FAVORITE_PLAYLIST = "add_to_fav_pl"
+    LIKE_AUDIO = "like_audio"
+    DISLIKE_AUDIO = "dislike_audio"
     ADVERTISEMENT = "advertisement"
     BACK = "back"
     BACK_TO_PLAYLISTS = "back_to_pl"
