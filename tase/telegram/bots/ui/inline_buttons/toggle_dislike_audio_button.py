@@ -16,11 +16,11 @@ from tase.telegram.update_handlers.base import BaseHandler
 from .base import InlineButton, InlineButtonType
 
 
-class ToggleLikeAudioInlineButton(InlineButton):
-    name = "like_audio"
-    type = InlineButtonType.LIKE_AUDIO
+class ToggleDisLikeAudioInlineButton(InlineButton):
+    name = "dislike_audio"
+    type = InlineButtonType.DISLIKE_AUDIO
 
-    text = f"{emoji._light_thumbs_up}"
+    text = f"{emoji._light_thumbs_down}"
     is_inline = False
 
     def on_callback_query(
@@ -41,7 +41,7 @@ class ToggleLikeAudioInlineButton(InlineButton):
                 handler.telegram_client.telegram_id,
                 hit_download_url,
                 chat_type,
-                InteractionType.LIKE,
+                InteractionType.DISLIKE,
             )
         except PlaylistDoesNotExists as e:
             telegram_callback_query.answer(
@@ -62,13 +62,13 @@ class ToggleLikeAudioInlineButton(InlineButton):
             # todo: update these messages
             if successful:
                 telegram_callback_query.answer(
-                    f"You {'Unliked' if has_interacted else 'Liked'} the song"
+                    f"You {'Un-disliked' if has_interacted else 'Disliked'} the song"
                 )
                 if telegram_callback_query.message is not None:
                     reply_markup = telegram_callback_query.message.reply_markup
                     reply_markup.inline_keyboard[1][
-                        1
-                    ].text = f"{emoji._dark_thumbs_up if not has_interacted else emoji._light_thumbs_up}"
+                        0
+                    ].text = f"{emoji._dark_thumbs_down if not has_interacted else emoji._light_thumbs_down}"
                     try:
                         telegram_callback_query.edit_message_reply_markup(reply_markup)
                     except Exception as e:
@@ -79,6 +79,8 @@ class ToggleLikeAudioInlineButton(InlineButton):
     def change_text(
         self,
         has_liked: bool,
-    ) -> ToggleLikeAudioInlineButton:
-        self.text = f"{emoji._dark_thumbs_up if has_liked else emoji._light_thumbs_up}"
+    ) -> ToggleDisLikeAudioInlineButton:
+        self.text = (
+            f"{emoji._dark_thumbs_down if has_liked else emoji._light_thumbs_down}"
+        )
         return self

@@ -177,7 +177,7 @@ class InteractionMethods:
         interaction_type: InteractionType,
     ) -> Optional[Interaction]:
         """
-        Check whether an `Audio` is liked by a user or not.
+        Get `Interaction` vertex with an `Audio` by a user.
 
         Parameters
         ----------
@@ -245,7 +245,7 @@ class InteractionMethods:
         interaction_type: InteractionType,
     ) -> Optional[bool]:
         """
-        Check whether an `Audio` is liked by a user or not.
+        Check whether an `Audio` is interacted by a user or not.
 
         Parameters
         ----------
@@ -303,15 +303,16 @@ class InteractionMethods:
 
         return True if cursor is not None and len(cursor) else False
 
-    def toggle_like_audio(
+    def toggle_interaction(
         self: ArangoGraphMethods,
         user: User,
         bot_id: int,
         hit_download_url: str,
         chat_type: ChatType,
+        interaction_type: InteractionType,
     ) -> Tuple[bool, bool]:
         """
-        Toggle liking an `Audio` by a user
+        Toggle an interaction with an `Audio` by a user
 
         Parameters
         ----------
@@ -323,6 +324,8 @@ class InteractionMethods:
             Hit download_url to get the audio from
         chat_type : ChatType
             Type of the chat this interaction happened in
+        interaction_type : InteractionType
+            Type of the interaction to toggle
 
         Returns
         -------
@@ -358,7 +361,7 @@ class InteractionMethods:
         interaction_vertex = self.get_audio_interaction_by_user(
             user,
             hit_download_url,
-            InteractionType.LIKE,
+            interaction_type,
         )
         is_interacted = interaction_vertex is not None
 
@@ -392,7 +395,7 @@ class InteractionMethods:
                 hit_download_url,
                 user,
                 bot_id,
-                InteractionType.LIKE,
+                interaction_type,
                 chat_type,
             )
             if interaction is not None:

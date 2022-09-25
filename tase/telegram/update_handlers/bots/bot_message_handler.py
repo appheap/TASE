@@ -189,6 +189,18 @@ class BotMessageHandler(BaseHandler):
                                 ),
                             ],
                             [
+                                InlineButton.get_button(InlineButtonType.DISLIKE_AUDIO)
+                                .change_text(
+                                    self.db.graph.audio_is_interacted_by_user(
+                                        from_user,
+                                        hit_download_url,
+                                        InteractionType.DISLIKE,
+                                    )
+                                )
+                                .get_inline_keyboard_button(
+                                    from_user.chosen_language_code,
+                                    callback_arg=hit_download_url,
+                                ),
                                 InlineButton.get_button(InlineButtonType.LIKE_AUDIO)
                                 .change_text(
                                     self.db.graph.audio_is_interacted_by_user(
