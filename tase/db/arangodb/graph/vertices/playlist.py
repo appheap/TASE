@@ -900,7 +900,8 @@ class PlaylistMethods:
 
         Parameters
         ----------
-        user :
+        user : User
+            User that runs this query
         hit_download_url : str
             Download URL of the `Hit`
 

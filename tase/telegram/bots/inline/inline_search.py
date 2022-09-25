@@ -3,7 +3,7 @@ from typing import List, Optional
 
 import pyrogram
 
-from tase.db.arangodb.enums import InlineQueryType
+from tase.db.arangodb.enums import InlineQueryType, InteractionType
 from tase.db.arangodb.graph.vertices import User
 from tase.db.elasticsearchdb import models as elasticsearch_models
 from tase.telegram.bots.ui.inline_items import AudioItem, NoResultItem
@@ -124,6 +124,16 @@ class InlineSearch(OnInlineQuery):
                                 handler.db.graph.audio_in_favorite_playlist(
                                     from_user,
                                     hit.download_url,
+                                ),
+                                handler.db.graph.audio_is_interacted_by_user(
+                                    from_user,
+                                    hit.download_url,
+                                    InteractionType.LIKE,
+                                ),
+                                handler.db.graph.audio_is_interacted_by_user(
+                                    from_user,
+                                    hit.download_url,
+                                    InteractionType.DISLIKE,
                                 ),
                             )
                         )
