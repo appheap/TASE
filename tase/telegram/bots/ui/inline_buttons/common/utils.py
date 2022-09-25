@@ -4,7 +4,7 @@ from typing import List, Deque
 import pyrogram
 
 from tase.db.arangodb import graph as graph_models
-from tase.db.arangodb.enums import InlineQueryType
+from tase.db.arangodb.enums import InlineQueryType, InteractionType
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.bots.ui.inline_items import (
     CreateNewPlaylistItem,
@@ -130,6 +130,16 @@ def populate_audio_items(
                     handler.db.graph.audio_in_favorite_playlist(
                         from_user,
                         hit.download_url,
+                    ),
+                    handler.db.graph.audio_is_interacted_by_user(
+                        from_user,
+                        hit.download_url,
+                        InteractionType.LIKE,
+                    ),
+                    handler.db.graph.audio_is_interacted_by_user(
+                        from_user,
+                        hit.download_url,
+                        InteractionType.DISLIKE,
                     ),
                 )
             )

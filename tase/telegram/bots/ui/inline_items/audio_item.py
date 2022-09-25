@@ -21,6 +21,8 @@ class AudioItem(BaseInlineItem):
         chats_dict: dict,
         hit: graph_models.vertices.Hit,
         audio_in_favorite_playlist: bool,
+        audio_is_liked: bool,
+        audio_is_disliked: bool,
     ) -> Optional[pyrogram.types.InlineQueryResult]:
         if telegram_file_id is None or from_user is None:
             return None
@@ -48,6 +50,20 @@ class AudioItem(BaseInlineItem):
                 ),
                 InlineButton.get_button(InlineButtonType.ADD_TO_FAVORITE_PLAYLIST)
                 .change_text(audio_in_favorite_playlist)
+                .get_inline_keyboard_button(
+                    from_user.chosen_language_code,
+                    callback_arg=hit.download_url,
+                ),
+            ],
+            [
+                InlineButton.get_button(InlineButtonType.DISLIKE_AUDIO)
+                .change_text(audio_is_disliked)
+                .get_inline_keyboard_button(
+                    from_user.chosen_language_code,
+                    callback_arg=hit.download_url,
+                ),
+                InlineButton.get_button(InlineButtonType.LIKE_AUDIO)
+                .change_text(audio_is_liked)
                 .get_inline_keyboard_button(
                     from_user.chosen_language_code,
                     callback_arg=hit.download_url,

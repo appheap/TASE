@@ -61,28 +61,33 @@ class ToggleDisLikeAudioInlineButton(InlineButton):
         else:
             # todo: update these messages
             if successful:
-                telegram_callback_query.answer(
-                    f"You {'Un-disliked' if has_disliked else 'Disliked'} the song"
+                is_liked = handler.db.graph.audio_is_interacted_by_user(
+                    from_user,
+                    hit_download_url,
+                    InteractionType.LIKE,
                 )
+                update_like_button = False
+                if not has_disliked and is_liked:
+                    handler.db.graph.toggle_interaction(
+                        from_user,
+                        handler.telegram_client.telegram_id,
+                        hit_download_url,
+                        chat_type,
+                        InteractionType.LIKE,
+                    )
+                    update_like_button = True
+
+                telegram_callback_query.answer(
+                    f"You {'Un-disliked' if has_disliked else 'Disliked'} this song"
+                )
+
                 if telegram_callback_query.message is not None:
                     reply_markup = telegram_callback_query.message.reply_markup
                     reply_markup.inline_keyboard[1][
                         0
                     ].text = f"{emoji._dark_thumbs_down if not has_disliked else emoji._light_thumbs_down}"
 
-                    is_liked = handler.db.graph.audio_is_interacted_by_user(
-                        from_user,
-                        hit_download_url,
-                        InteractionType.LIKE,
-                    )
-                    if not has_disliked and is_liked:
-                        handler.db.graph.toggle_interaction(
-                            from_user,
-                            handler.telegram_client.telegram_id,
-                            hit_download_url,
-                            chat_type,
-                            InteractionType.LIKE,
-                        )
+                    if update_like_button:
                         reply_markup.inline_keyboard[1][
                             1
                         ].text = f"{emoji._dark_thumbs_up if not is_liked else emoji._light_thumbs_up}"
