@@ -36,7 +36,7 @@ class ToggleDisLikeAudioInlineButton(InlineButton):
         chat_type = ChatType(int(result_id_list[2]))
 
         try:
-            successful, has_interacted = handler.db.graph.toggle_interaction(
+            successful, has_disliked = handler.db.graph.toggle_interaction(
                 from_user,
                 handler.telegram_client.telegram_id,
                 hit_download_url,
@@ -62,13 +62,30 @@ class ToggleDisLikeAudioInlineButton(InlineButton):
             # todo: update these messages
             if successful:
                 telegram_callback_query.answer(
-                    f"You {'Un-disliked' if has_interacted else 'Disliked'} the song"
+                    f"You {'Un-disliked' if has_disliked else 'Disliked'} the song"
                 )
                 if telegram_callback_query.message is not None:
                     reply_markup = telegram_callback_query.message.reply_markup
                     reply_markup.inline_keyboard[1][
                         0
-                    ].text = f"{emoji._dark_thumbs_down if not has_interacted else emoji._light_thumbs_down}"
+                    ].text = f"{emoji._dark_thumbs_down if not has_disliked else emoji._light_thumbs_down}"
+
+                    is_liked = handler.db.graph.audio_is_interacted_by_user(
+                        from_user,
+                        hit_download_url,
+                        InteractionType.LIKE,
+                    )
+                    if not has_disliked and is_liked:
+                        handler.db.graph.toggle_interaction(
+                            from_user,
+                            handler.telegram_client.telegram_id,
+                            hit_download_url,
+                            chat_type,
+                            InteractionType.LIKE,
+                        )
+                        reply_markup.inline_keyboard[1][
+                            1
+                        ].text = f"{emoji._dark_thumbs_up if not is_liked else emoji._light_thumbs_up}"
                     try:
                         telegram_callback_query.edit_message_reply_markup(reply_markup)
                     except Exception as e:

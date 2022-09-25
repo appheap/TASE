@@ -363,7 +363,7 @@ class InteractionMethods:
             hit_download_url,
             interaction_type,
         )
-        is_interacted = interaction_vertex is not None
+        has_interacted = interaction_vertex is not None
 
         if interaction_vertex:
             from tase.db.arangodb.graph.edges import Has
@@ -389,7 +389,7 @@ class InteractionMethods:
             else:
                 logger.error("Unexpected error")
 
-            return successful, is_interacted
+            return successful, has_interacted
         else:
             interaction = self.create_interaction(
                 hit_download_url,
@@ -399,6 +399,6 @@ class InteractionMethods:
                 chat_type,
             )
             if interaction is not None:
-                return True, is_interacted
+                return True, has_interacted
             else:
-                return False, is_interacted
+                return False, has_interacted
