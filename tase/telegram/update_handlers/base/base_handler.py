@@ -5,7 +5,6 @@ import kombu
 import pyrogram
 from pydantic import BaseModel
 from pyrogram.enums import ParseMode
-from pyrogram.types import InlineKeyboardMarkup
 
 from tase.common.utils import _trans
 from tase.db.arangodb import graph as graph_models
@@ -96,8 +95,6 @@ class BaseHandler(BaseModel):
         ):
             return
 
-        from ...bots.ui.inline_buttons.base import InlineButton, InlineButtonType
-
         valid = False
         # todo: handle errors for invalid messages
         hit_download_url = text.split("dl_")[1]
@@ -150,95 +147,45 @@ class BaseHandler(BaseModel):
                         )
                     )
 
-                    if audio_vertex.valid_for_inline_search:
-                        markup = [
-                            [
-                                InlineButton.get_button(
-                                    InlineButtonType.ADD_TO_PLAYLIST
-                                ).get_inline_keyboard_button(
-                                    from_user.chosen_language_code,
-                                    hit_download_url,
-                                ),
-                                InlineButton.get_button(
-                                    InlineButtonType.REMOVE_FROM_PLAYLIST
-                                ).get_inline_keyboard_button(
-                                    from_user.chosen_language_code,
-                                    hit_download_url,
-                                ),
-                                InlineButton.get_button(
-                                    InlineButtonType.ADD_TO_FAVORITE_PLAYLIST
-                                )
-                                .change_text(
-                                    self.db.graph.audio_in_favorite_playlist(
-                                        from_user,
-                                        hit_download_url,
-                                    )
-                                )
-                                .get_inline_keyboard_button(
-                                    from_user.chosen_language_code,
-                                    callback_arg=hit.download_url,
-                                ),
-                            ],
-                            [
-                                InlineButton.get_button(InlineButtonType.DISLIKE_AUDIO)
-                                .change_text(
-                                    self.db.graph.audio_is_interacted_by_user(
-                                        from_user,
-                                        hit_download_url,
-                                        InteractionType.DISLIKE,
-                                    )
-                                )
-                                .get_inline_keyboard_button(
-                                    from_user.chosen_language_code,
-                                    callback_arg=hit_download_url,
-                                ),
-                                InlineButton.get_button(InlineButtonType.LIKE_AUDIO)
-                                .change_text(
-                                    self.db.graph.audio_is_interacted_by_user(
-                                        from_user,
-                                        hit_download_url,
-                                        InteractionType.LIKE,
-                                    )
-                                )
-                                .get_inline_keyboard_button(
-                                    from_user.chosen_language_code,
-                                    callback_arg=hit_download_url,
-                                ),
-                            ],
-                            [
-                                InlineButton.get_button(
-                                    InlineButtonType.HOME
-                                ).get_inline_keyboard_button(
-                                    from_user.chosen_language_code,
-                                ),
-                            ],
-                        ]
-                        markup = InlineKeyboardMarkup(markup)
-                    else:
-                        markup = [
-                            [
-                                InlineButton.get_button(
-                                    InlineButtonType.HOME
-                                ).get_inline_keyboard_button(
-                                    from_user.chosen_language_code,
-                                ),
-                            ],
-                        ]
-                        markup = InlineKeyboardMarkup(markup)
+                    from tase.telegram.bots.ui.inline_buttons.common import (
+                        get_audio_markup_keyboard,
+                    )
+
+                    markup_keyboard = get_audio_markup_keyboard(
+                        self.telegram_client.get_me().username,
+                        ChatType.BOT,
+                        from_user.chosen_language_code,
+                        hit.download_url,
+                        audio_vertex.valid_for_inline_search,
+                        self.db.graph.audio_in_favorite_playlist(
+                            from_user,
+                            hit.download_url,
+                        ),
+                        self.db.graph.audio_is_interacted_by_user(
+                            from_user,
+                            hit.download_url,
+                            InteractionType.DISLIKE,
+                        ),
+                        self.db.graph.audio_is_interacted_by_user(
+                            from_user,
+                            hit.download_url,
+                            InteractionType.LIKE,
+                        ),
+                    )
 
                     if audio_vertex.audio_type == TelegramAudioType.AUDIO_FILE:
                         message.reply_audio(
                             audio=file_id,
                             caption=text,
                             parse_mode=ParseMode.HTML,
-                            reply_markup=markup,
+                            reply_markup=markup_keyboard,
                         )
                     else:
                         message.reply_document(
                             document=file_id,
                             caption=text,
                             parse_mode=ParseMode.HTML,
-                            reply_markup=markup,
+                            reply_markup=markup_keyboard,
                         )
 
                     db_download = self.db.graph.create_interaction(

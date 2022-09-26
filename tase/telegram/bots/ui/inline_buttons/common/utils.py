@@ -2,10 +2,12 @@ import collections
 from typing import List, Deque
 
 import pyrogram
+from pyrogram.types import InlineKeyboardMarkup
 
 from tase.db.arangodb import graph as graph_models
-from tase.db.arangodb.enums import InlineQueryType, InteractionType
+from tase.db.arangodb.enums import InlineQueryType, InteractionType, ChatType
 from tase.telegram.bots.inline import CustomInlineQueryResult
+from tase.telegram.bots.ui.inline_buttons.base import InlineButton, InlineButtonType
 from tase.telegram.bots.ui.inline_items import (
     CreateNewPlaylistItem,
     PlaylistItem,
@@ -135,14 +137,232 @@ def populate_audio_items(
                     handler.db.graph.audio_is_interacted_by_user(
                         from_user,
                         hit.download_url,
-                        InteractionType.LIKE,
+                        InteractionType.DISLIKE,
                     ),
                     handler.db.graph.audio_is_interacted_by_user(
                         from_user,
                         hit.download_url,
-                        InteractionType.DISLIKE,
+                        InteractionType.LIKE,
                     ),
                 )
             )
     else:
         pass
+
+
+def get_audio_markup_keyboard(
+    bot_username: str,
+    chat_type: ChatType,
+    chosen_language_code: str,
+    hit_download_url: str,
+    valid_for_inline_search: bool,
+    audio_in_favorite_playlist: bool,
+    audio_is_disliked: bool,
+    audio_is_liked: bool,
+) -> InlineKeyboardMarkup:
+    """
+    Get markup keyboard for an audio message
+
+    Parameters
+    ----------
+    bot_username : str
+        Username of the BOT queried
+    chat_type : ChatType
+        Type of the chat this audio message is sent to
+    chosen_language_code : str
+        Language code the user that ran this query
+    hit_download_url : str
+        Download URL of the hit
+    valid_for_inline_search : bool
+        Whether this audio is valid for inline mode or not
+    audio_in_favorite_playlist : bool
+        Whether this audio belongs to the user's favorite playlist or not
+    audio_is_disliked : bool
+        Whether this audio is disliked by the user or not
+    audio_is_liked : bool
+        Whether this audio is liked by the user or not
+
+    Returns
+    -------
+    InlineKeyboardMarkup
+        Markup keyboard for the audio message
+
+    """
+    if chat_type == ChatType.BOT:
+        if valid_for_inline_search:
+            markup = [
+                [
+                    InlineButton.get_button(
+                        InlineButtonType.ADD_TO_PLAYLIST
+                    ).get_inline_keyboard_button(
+                        chosen_language_code,
+                        hit_download_url,
+                    ),
+                    InlineButton.get_button(
+                        InlineButtonType.REMOVE_FROM_PLAYLIST
+                    ).get_inline_keyboard_button(
+                        chosen_language_code,
+                        hit_download_url,
+                    ),
+                    InlineButton.get_button(InlineButtonType.ADD_TO_FAVORITE_PLAYLIST)
+                    .change_text(audio_in_favorite_playlist)
+                    .get_inline_keyboard_button(
+                        chosen_language_code,
+                        callback_arg=hit_download_url,
+                    ),
+                ],
+                [
+                    InlineButton.get_button(InlineButtonType.DISLIKE_AUDIO)
+                    .change_text(audio_is_disliked)
+                    .get_inline_keyboard_button(
+                        chosen_language_code,
+                        callback_arg=hit_download_url,
+                    ),
+                    InlineButton.get_button(InlineButtonType.LIKE_AUDIO)
+                    .change_text(audio_is_liked)
+                    .get_inline_keyboard_button(
+                        chosen_language_code,
+                        callback_arg=hit_download_url,
+                    ),
+                ],
+                [
+                    InlineButton.get_button(
+                        InlineButtonType.HOME
+                    ).get_inline_keyboard_button(
+                        chosen_language_code,
+                    ),
+                ],
+            ]
+        else:
+            markup = [
+                [
+                    InlineButton.get_button(InlineButtonType.DISLIKE_AUDIO)
+                    .change_text(audio_is_disliked)
+                    .get_inline_keyboard_button(
+                        chosen_language_code,
+                        callback_arg=hit_download_url,
+                    ),
+                    InlineButton.get_button(InlineButtonType.LIKE_AUDIO)
+                    .change_text(audio_is_liked)
+                    .get_inline_keyboard_button(
+                        chosen_language_code,
+                        callback_arg=hit_download_url,
+                    ),
+                ],
+                [
+                    InlineButton.get_button(
+                        InlineButtonType.HOME
+                    ).get_inline_keyboard_button(
+                        chosen_language_code,
+                    ),
+                ],
+            ]
+
+        markup = InlineKeyboardMarkup(markup)
+    else:
+        markup = [
+            [
+                InlineButton.get_button(
+                    InlineButtonType.DOWNLOAD_AUDIO
+                ).get_inline_keyboard_button(
+                    chosen_language_code,
+                    url=f"https://t.me/{bot_username}?start=dl_{hit_download_url}",
+                ),
+            ]
+        ]
+        markup = InlineKeyboardMarkup(markup)
+
+    return markup
+
+
+def get_playlist_markup_keyboard(
+    playlist: graph_models.vertices.Playlist,
+    chosen_language_code: str,
+) -> InlineKeyboardMarkup:
+    """
+    Get markup keyboard for a playlist
+
+    Parameters
+    ----------
+    playlist : graph_models.vertices.Playlist
+        Playlist vertex object
+    chosen_language_code : str
+        Language code chosen by the user who owns this playlist
+
+    Returns
+    -------
+    InlineKeyboardMarkup
+        Markup keyboard for the playlist
+
+    """
+    if playlist.is_favorite:
+        markup = [
+            [
+                InlineButton.get_button(
+                    InlineButtonType.GET_PLAYLIST_AUDIOS
+                ).get_inline_keyboard_button(
+                    chosen_language_code,
+                    playlist.key,
+                ),
+                # todo: add a button to get the top 10 audios from this playlist as a message
+            ],
+            [
+                InlineButton.get_button(
+                    InlineButtonType.HOME
+                ).get_inline_keyboard_button(
+                    chosen_language_code,
+                ),
+                InlineButton.get_button(
+                    InlineButtonType.BACK_TO_PLAYLISTS
+                ).get_inline_keyboard_button(
+                    chosen_language_code,
+                ),
+            ],
+        ]
+    else:
+        markup = [
+            [
+                InlineButton.get_button(
+                    InlineButtonType.HOME
+                ).get_inline_keyboard_button(chosen_language_code),
+                InlineButton.get_button(
+                    InlineButtonType.BACK_TO_PLAYLISTS
+                ).get_inline_keyboard_button(chosen_language_code),
+            ],
+            [
+                InlineButton.get_button(
+                    InlineButtonType.GET_PLAYLIST_AUDIOS
+                ).get_inline_keyboard_button(
+                    chosen_language_code,
+                    playlist.key,
+                ),
+                # todo: add a button to get the top 10 audios from this playlist as a message
+            ],
+            [
+                InlineButton.get_button(
+                    InlineButtonType.EDIT_PLAYLIST_TITLE
+                ).get_inline_keyboard_button(
+                    chosen_language_code,
+                    playlist.key,
+                    callback_arg=playlist.key,
+                ),
+                InlineButton.get_button(
+                    InlineButtonType.EDIT_PLAYLIST_DESCRIPTION
+                ).get_inline_keyboard_button(
+                    chosen_language_code,
+                    playlist.key,
+                    callback_arg=playlist.key,
+                ),
+            ],
+            [
+                InlineButton.get_button(
+                    InlineButtonType.DELETE_PLAYLIST
+                ).get_inline_keyboard_button(
+                    chosen_language_code,
+                    playlist.key,
+                    callback_arg=playlist.key,
+                ),
+            ],
+        ]
+
+    return InlineKeyboardMarkup(markup)
