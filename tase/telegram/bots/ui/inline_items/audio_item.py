@@ -1,3 +1,4 @@
+import random
 from typing import Optional
 
 import pyrogram.types
@@ -84,7 +85,7 @@ class AudioItem(BaseInlineItem):
 
         return InlineQueryResultCachedAudio(
             audio_file_id=telegram_file_id,
-            id=f"{telegram_inline_query.id}->{hit.download_url}->{chat_type.value}",
+            id=f"{telegram_inline_query.id}->{hit.download_url}->{chat_type.value}->{random.randint(1, 1_000_000)}",
             caption=BaseTemplate.registry.audio_caption_template.render(
                 AudioCaptionData.parse_from_es_audio_doc(
                     es_audio_doc,
