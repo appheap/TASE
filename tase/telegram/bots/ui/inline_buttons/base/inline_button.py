@@ -33,6 +33,7 @@ class InlineButton(
 
     text: Optional[str]
     is_inline: bool = Field(default=False)
+    is_url: bool = Field(default=False)
     url: Optional[str]
 
     @classmethod
@@ -109,15 +110,20 @@ class InlineButton(
     ) -> str:
         return self.get_translated_text(lang_code)
 
-    def get_url(self) -> str:
-        return self.url
+    def get_url(
+        self,
+        url: str,
+    ) -> str:
+        if url is None:
+            return self.url
+        return url
 
     def get_callback_data(
         self,
         chat_type: ChatType,
         callback_arg=None,
     ) -> Optional[str]:
-        if self.is_inline:
+        if self.is_inline or self.is_url:
             return None
         return f"{self.type.value}->{callback_arg}->{chat_type.value}"
 
@@ -132,12 +138,13 @@ class InlineButton(
         lang_code: str = "en",
         switch_inline_arg=None,
         callback_arg=None,
+        url: str = None,
         chat_type: ChatType = ChatType.BOT,
     ):
         return InlineKeyboardButton(
             text=self.get_text(lang_code),
             callback_data=self.get_callback_data(chat_type, callback_arg),
-            url=self.get_url(),
+            url=self.get_url(url),
             switch_inline_query_current_chat=self.get_switch_inline_query_current_chat(
                 switch_inline_arg,
             ),
