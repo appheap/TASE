@@ -33,7 +33,7 @@ class ToggleFavoritePlaylistInlineButton(InlineButton):
         telegram_callback_query: pyrogram.types.CallbackQuery,
     ):
         result_id_list = telegram_callback_query.data.split("->")
-        inline_query_id = result_id_list[0]
+        button_type_value = result_id_list[0]
         hit_download_url = result_id_list[1]
         chat_type = ChatType(int(result_id_list[2]))
 
