@@ -121,6 +121,7 @@ def populate_audio_items(
 
             results.append(
                 AudioItem.get_item(
+                    handler.telegram_client.get_me().username,
                     audio_doc.file_id,
                     from_user,
                     es_audio_doc,

@@ -6,10 +6,8 @@ import pyrogram
 from jinja2 import Template
 from pyrogram import filters, handlers
 from pyrogram.enums import ParseMode
-from pyrogram.types import InlineKeyboardMarkup
 
 from tase.common.utils import (
-    _trans,
     datetime_to_timestamp,
     exception_handler,
     get_now_timestamp,
@@ -19,18 +17,11 @@ from tase.db.arangodb.document import BotTask
 from tase.db.arangodb.enums import (
     BotTaskType,
     BotTaskStatus,
-    TelegramAudioType,
-    InteractionType,
-    ChatType,
 )
-from tase.db.db_utils import get_telegram_message_media_type
 from tase.db.elasticsearchdb import models as elasticsearch_models
-from tase.errors import TelegramMessageWithNoAudio
 from tase.my_logger import logger
 from tase.telegram.bots.bot_commands import BaseCommand, BotCommandType
-from tase.telegram.bots.ui.inline_buttons.base import InlineButton, InlineButtonType
 from tase.telegram.bots.ui.templates import (
-    AudioCaptionData,
     BaseTemplate,
     NoResultsWereFoundData,
     QueryResultsData,
@@ -105,170 +96,13 @@ class BotMessageHandler(BaseHandler):
         """
         logger.debug(f"base_downloads_handler: {message.text}")
 
-        # todo: find a better way to update user when it's necessary
-        from_user = self.db.graph.get_user_by_telegram_id(message.from_user.id)
-        if not from_user:
-            from_user = self.db.graph.update_or_create_user(message.from_user)
-
-        valid = False
-        # todo: handle errors for invalid messages
-        hit_download_url = message.text.split("/dl_")[1]
-        hit = self.db.graph.find_hit_by_download_url(hit_download_url)
-        if hit is not None:
-            audio_vertex = self.db.graph.get_audio_from_hit(hit)
-            if audio_vertex is not None:
-                es_audio_doc = self.db.index.get_audio_by_id(audio_vertex.key)
-                if es_audio_doc:
-                    audio_doc = self.db.document.get_audio_by_key(
-                        self.telegram_client.telegram_id, es_audio_doc.id
-                    )
-                    chat = self.db.graph.get_chat_by_telegram_chat_id(
-                        es_audio_doc.chat_id
-                    )
-                    if not audio_doc:
-                        # fixme: find a better way of getting messages that have not been cached yet
-                        messages = client.get_messages(
-                            chat.username, [es_audio_doc.message_id]
-                        )
-                        if not messages or not len(messages):
-                            # todo: could not get the audio from telegram servers, what to do now?
-                            logger.error(
-                                "could not get the audio from telegram servers, what to do now?"
-                            )
-                            return
-
-                        audio, audio_type = get_telegram_message_media_type(messages[0])
-                        if audio is None or audio_type == TelegramAudioType.NON_AUDIO:
-                            # fixme: instead of raising an exception, it is better to mark the audio file in the
-                            #  database as invalid and update related edges and vertices accordingly
-                            raise TelegramMessageWithNoAudio(
-                                messages[0].id, messages[0].chat.id
-                            )
-                        else:
-                            file_id = audio.file_id
-                    else:
-                        file_id = audio_doc.file_id
-
-                    text = BaseTemplate.registry.audio_caption_template.render(
-                        AudioCaptionData.parse_from_es_audio_doc(
-                            es_audio_doc,
-                            from_user,
-                            chat,
-                            bot_url="https://t.me/bot?start",
-                            include_source=True,
-                        )
-                    )
-
-                    if audio_vertex.valid_for_inline_search:
-                        markup = [
-                            [
-                                InlineButton.get_button(
-                                    InlineButtonType.ADD_TO_PLAYLIST
-                                ).get_inline_keyboard_button(
-                                    from_user.chosen_language_code,
-                                    hit_download_url,
-                                ),
-                                InlineButton.get_button(
-                                    InlineButtonType.REMOVE_FROM_PLAYLIST
-                                ).get_inline_keyboard_button(
-                                    from_user.chosen_language_code,
-                                    hit_download_url,
-                                ),
-                                InlineButton.get_button(
-                                    InlineButtonType.ADD_TO_FAVORITE_PLAYLIST
-                                )
-                                .change_text(
-                                    self.db.graph.audio_in_favorite_playlist(
-                                        from_user,
-                                        hit_download_url,
-                                    )
-                                )
-                                .get_inline_keyboard_button(
-                                    from_user.chosen_language_code,
-                                    callback_arg=hit.download_url,
-                                ),
-                            ],
-                            [
-                                InlineButton.get_button(InlineButtonType.DISLIKE_AUDIO)
-                                .change_text(
-                                    self.db.graph.audio_is_interacted_by_user(
-                                        from_user,
-                                        hit_download_url,
-                                        InteractionType.DISLIKE,
-                                    )
-                                )
-                                .get_inline_keyboard_button(
-                                    from_user.chosen_language_code,
-                                    callback_arg=hit_download_url,
-                                ),
-                                InlineButton.get_button(InlineButtonType.LIKE_AUDIO)
-                                .change_text(
-                                    self.db.graph.audio_is_interacted_by_user(
-                                        from_user,
-                                        hit_download_url,
-                                        InteractionType.LIKE,
-                                    )
-                                )
-                                .get_inline_keyboard_button(
-                                    from_user.chosen_language_code,
-                                    callback_arg=hit_download_url,
-                                ),
-                            ],
-                            [
-                                InlineButton.get_button(
-                                    InlineButtonType.HOME
-                                ).get_inline_keyboard_button(
-                                    from_user.chosen_language_code,
-                                ),
-                            ],
-                        ]
-                        markup = InlineKeyboardMarkup(markup)
-                    else:
-                        markup = [
-                            [
-                                InlineButton.get_button(
-                                    InlineButtonType.HOME
-                                ).get_inline_keyboard_button(
-                                    from_user.chosen_language_code,
-                                ),
-                            ],
-                        ]
-                        markup = InlineKeyboardMarkup(markup)
-
-                    if audio_vertex.audio_type == TelegramAudioType.AUDIO_FILE:
-                        message.reply_audio(
-                            audio=file_id,
-                            caption=text,
-                            parse_mode=ParseMode.HTML,
-                            reply_markup=markup,
-                        )
-                    else:
-                        message.reply_document(
-                            document=file_id,
-                            caption=text,
-                            parse_mode=ParseMode.HTML,
-                            reply_markup=markup,
-                        )
-
-                    db_download = self.db.graph.create_interaction(
-                        hit_download_url,
-                        from_user,
-                        self.telegram_client.telegram_id,
-                        InteractionType.DOWNLOAD,
-                        ChatType.BOT,
-                    )
-                    valid = True
-        if not valid:
-            # todo: An Error occurred while processing this audio download url, why?
-            logger.error(
-                f"An error occurred while processing the download URL for this audio: {hit_download_url}"
-            )
-            message.reply_text(
-                _trans(
-                    "An error occurred while processing the download URL for this audio",
-                    from_user.chosen_language_code,
-                )
-            )
+        from_user = self.db.graph.get_or_create_user(message.from_user)
+        self.download_audio(
+            client,
+            from_user,
+            message.text,
+            message,
+        )
 
     @exception_handler
     def search_query_handler(

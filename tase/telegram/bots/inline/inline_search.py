@@ -115,6 +115,7 @@ class InlineSearch(OnInlineQuery):
                     for (audio_doc, es_audio_doc), hit in zip(temp_res, hits):
                         results.append(
                             AudioItem.get_item(
+                                handler.telegram_client.get_me().username,
                                 audio_doc.file_id,
                                 from_user,
                                 es_audio_doc,

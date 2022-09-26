@@ -15,6 +15,7 @@ class AudioItem(BaseInlineItem):
     @classmethod
     def get_item(
         cls,
+        bot_username: str,
         telegram_file_id: str,
         from_user: graph_models.vertices.User,
         es_audio_doc: elasticsearch_models.Audio,
@@ -35,44 +36,42 @@ class AudioItem(BaseInlineItem):
             InlineButtonType,
         )
 
-        markup = [
-            [
-                InlineButton.get_button(
-                    InlineButtonType.ADD_TO_PLAYLIST
-                ).get_inline_keyboard_button(
-                    from_user.chosen_language_code,
-                    hit.download_url,
-                ),
-                InlineButton.get_button(
-                    InlineButtonType.REMOVE_FROM_PLAYLIST
-                ).get_inline_keyboard_button(
-                    from_user.chosen_language_code,
-                    hit.download_url,
-                ),
-                InlineButton.get_button(InlineButtonType.ADD_TO_FAVORITE_PLAYLIST)
-                .change_text(audio_in_favorite_playlist)
-                .get_inline_keyboard_button(
-                    from_user.chosen_language_code,
-                    callback_arg=hit.download_url,
-                ),
-            ],
-            [
-                InlineButton.get_button(InlineButtonType.DISLIKE_AUDIO)
-                .change_text(audio_is_disliked)
-                .get_inline_keyboard_button(
-                    from_user.chosen_language_code,
-                    callback_arg=hit.download_url,
-                ),
-                InlineButton.get_button(InlineButtonType.LIKE_AUDIO)
-                .change_text(audio_is_liked)
-                .get_inline_keyboard_button(
-                    from_user.chosen_language_code,
-                    callback_arg=hit.download_url,
-                ),
-            ],
-        ]
         if chat_type == ChatType.BOT:
-            markup.append(
+            markup = [
+                [
+                    InlineButton.get_button(
+                        InlineButtonType.ADD_TO_PLAYLIST
+                    ).get_inline_keyboard_button(
+                        from_user.chosen_language_code,
+                        hit.download_url,
+                    ),
+                    InlineButton.get_button(
+                        InlineButtonType.REMOVE_FROM_PLAYLIST
+                    ).get_inline_keyboard_button(
+                        from_user.chosen_language_code,
+                        hit.download_url,
+                    ),
+                    InlineButton.get_button(InlineButtonType.ADD_TO_FAVORITE_PLAYLIST)
+                    .change_text(audio_in_favorite_playlist)
+                    .get_inline_keyboard_button(
+                        from_user.chosen_language_code,
+                        callback_arg=hit.download_url,
+                    ),
+                ],
+                [
+                    InlineButton.get_button(InlineButtonType.DISLIKE_AUDIO)
+                    .change_text(audio_is_disliked)
+                    .get_inline_keyboard_button(
+                        from_user.chosen_language_code,
+                        callback_arg=hit.download_url,
+                    ),
+                    InlineButton.get_button(InlineButtonType.LIKE_AUDIO)
+                    .change_text(audio_is_liked)
+                    .get_inline_keyboard_button(
+                        from_user.chosen_language_code,
+                        callback_arg=hit.download_url,
+                    ),
+                ],
                 [
                     InlineButton.get_button(
                         InlineButtonType.HOME
@@ -80,8 +79,21 @@ class AudioItem(BaseInlineItem):
                         from_user.chosen_language_code,
                         chat_type=chat_type,
                     ),
+                ],
+            ]
+            markup = InlineKeyboardMarkup(markup)
+        else:
+            markup = [
+                [
+                    InlineButton.get_button(
+                        InlineButtonType.DOWNLOAD_AUDIO
+                    ).get_inline_keyboard_button(
+                        from_user.chosen_language_code,
+                        url=f"https://t.me/{bot_username}?start=dl_{hit.download_url}",
+                    ),
                 ]
-            )
+            ]
+            markup = InlineKeyboardMarkup(markup)
 
         return InlineQueryResultCachedAudio(
             audio_file_id=telegram_file_id,
@@ -91,9 +103,9 @@ class AudioItem(BaseInlineItem):
                     es_audio_doc,
                     from_user,
                     chats_dict[es_audio_doc.chat_id],
-                    bot_url="https://t.me/bot?start",
+                    bot_url=f"https://t.me/{bot_username}?start=dl_{hit.download_url}",
                     include_source=True,
                 )
             ),
-            reply_markup=InlineKeyboardMarkup(markup),
+            reply_markup=markup,
         )

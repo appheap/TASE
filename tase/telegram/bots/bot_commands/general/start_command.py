@@ -25,16 +25,29 @@ class StartCommand(BaseCommand):
         from_user: graph_models.vertices.User,
         from_callback_query: bool,
     ) -> None:
-        data = WelcomeData(
-            name=message.from_user.first_name or message.from_user.last_name,
-            lang_code=from_user.chosen_language_code,
-        )
+        if len(message.command) == 1:
+            data = WelcomeData(
+                name=message.from_user.first_name or message.from_user.last_name,
+                lang_code=from_user.chosen_language_code,
+            )
 
-        client.send_message(
-            chat_id=message.from_user.id,
-            text=BaseTemplate.registry.welcome_template.render(data),
-            parse_mode=ParseMode.HTML,
-        )
+            client.send_message(
+                chat_id=message.from_user.id,
+                text=BaseTemplate.registry.welcome_template.render(data),
+                parse_mode=ParseMode.HTML,
+            )
+        elif len(message.command) == 2:
+            arg = message.command[1]
+            from_user = handler.db.graph.get_or_create_user(message.from_user)
+            if "dl_" in arg:
+                handler.download_audio(
+                    client,
+                    from_user,
+                    arg,
+                    message,
+                )
+        else:
+            pass
 
         # show language choosing menu if user hasn't chosen one yet
         if from_user.chosen_language_code is None:
