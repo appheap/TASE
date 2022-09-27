@@ -2,6 +2,7 @@ from enum import Enum
 from typing import Coroutine, Iterable, List, Optional, Union, Dict, Any
 
 import pyrogram
+from pyrogram.errors import PeerIdInvalid
 from pyrogram.handlers.handler import Handler
 
 import tase
@@ -222,7 +223,14 @@ class BotTelegramClient(TelegramClient):
         commands_list: List[Dict[str, Any]],
     ):
         for command_arg in commands_list:
-            self._client.set_bot_commands(
-                command_arg["commands"],
-                command_arg["scope"],
-            )
+            try:
+                self._client.set_bot_commands(
+                    command_arg["commands"],
+                    command_arg["scope"],
+                )
+            except PeerIdInvalid as e:
+                # todo: the user is not queried the bot yet, so it needs to be cached
+
+                logger.error("peer invalid")
+            except Exception as e:
+                logger.exception(e)

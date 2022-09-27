@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import collections
 from enum import Enum
-from typing import Optional, List, TYPE_CHECKING, Dict, Any
+from typing import Optional, List, TYPE_CHECKING, Dict, Any, Union
 
 import pyrogram
 from pydantic import Field
@@ -56,6 +56,8 @@ class User(BaseVertex):
 
     role: UserRole = Field(default=UserRole.SEARCHER)
 
+    created_from_telegram_chat: bool
+
     @classmethod
     def parse_key(
         cls,
@@ -68,7 +70,7 @@ class User(BaseVertex):
     @classmethod
     def parse(
         cls,
-        telegram_user: pyrogram.types.User,
+        telegram_user: Union[pyrogram.types.User, pyrogram.types.Chat],
     ) -> Optional[User]:
         if telegram_user is None:
             return None
@@ -77,26 +79,46 @@ class User(BaseVertex):
         if key is None:
             return None
 
+        if isinstance(telegram_user, pyrogram.types.Chat):
+            is_bot = telegram_user.type == pyrogram.enums.ChatType.BOT
+            is_premium = None
+            language_code = None
+            phone_number = None
+            created_from_telegram_chat = True
+        elif isinstance(telegram_user, pyrogram.types.User):
+            is_bot = telegram_user.is_bot
+            is_premium = telegram_user.is_premium
+            language_code = telegram_user.language_code
+            phone_number = telegram_user.phone_number
+            created_from_telegram_chat = False
+        else:
+            is_bot = None
+            is_premium = None
+            language_code = None
+            phone_number = None
+            created_from_telegram_chat = False
+
         return User(
             key=key,
             user_id=telegram_user.id,
-            is_deleted=telegram_user.is_deleted,
-            is_bot=telegram_user.is_bot,
+            is_deleted=getattr(telegram_user, "is_deleted", None),
+            is_bot=is_bot,
             is_verified=telegram_user.is_verified,
             is_restricted=telegram_user.is_restricted,
             is_scam=telegram_user.is_scam,
             is_fake=telegram_user.is_fake,
             is_support=telegram_user.is_support,
-            is_premium=telegram_user.is_premium,
+            is_premium=is_premium,
             first_name=telegram_user.first_name,
             last_name=telegram_user.last_name,
             username=telegram_user.username,
-            language_code=telegram_user.language_code,
+            language_code=language_code,
             dc_id=telegram_user.dc_id,
-            phone_number=telegram_user.phone_number,
+            phone_number=phone_number,
             restrictions=Restriction.parse_from_restrictions(
                 telegram_user.restrictions
             ),
+            created_from_telegram_chat=created_from_telegram_chat,
         )
 
     def update_chosen_language(
@@ -130,9 +152,21 @@ class UserMethods:
         "   return user"
     )
 
+    def _get_or_create_favorite_playlist(
+        self: ArangoGraphMethods,
+        user: User,
+    ):
+        if not user.is_bot:
+            fav_playlist = self.get_or_create_favorite_playlist(user)
+            if not fav_playlist:
+                # fixme: could not create/get favorite playlist.
+                logger.error(
+                    f"could not create/get favorite playlist for user: {prettify(user)}"
+                )
+
     def create_user(
-        self,
-        telegram_user: pyrogram.types.User,
+        self: ArangoGraphMethods,
+        telegram_user: Union[pyrogram.types.User, pyrogram.types.Chat],
     ) -> Optional[User]:
         """
         Create a user in the database from a telegram user object.
@@ -152,13 +186,14 @@ class UserMethods:
 
         user, successful = User.insert(User.parse(telegram_user))
         if user and successful:
+            self._get_or_create_favorite_playlist(user)
             return user
 
         return None
 
     def get_or_create_user(
-        self,
-        telegram_user: pyrogram.types.User,
+        self: ArangoGraphMethods,
+        telegram_user: Union[pyrogram.types.User, pyrogram.types.Chat],
     ) -> Optional[User]:
         """
         Get a user from the database if it exists, otherwise create a user in the database from a telegram user object.
@@ -181,11 +216,19 @@ class UserMethods:
             # user does not exist in the database, create it
             user = self.create_user(telegram_user)
 
+        else:
+            # check if the user vertex was created from a telegram chat object, if that is the case, then update the
+            # user with the new object before returning
+            if user.created_from_telegram_chat and isinstance(
+                telegram_user, pyrogram.types.User
+            ):
+                self.update_or_create_user(telegram_user)
+
         return user
 
     def update_or_create_user(
         self: ArangoGraphMethods,
-        telegram_user: pyrogram.types.User,
+        telegram_user: Union[pyrogram.types.User, pyrogram.types.Chat],
     ) -> Optional[User]:
         """
         Update a user in the database if it exists, otherwise create a user in the database from a telegram user
@@ -211,14 +254,6 @@ class UserMethods:
         else:
             # user does not exist in the database, create it
             user = self.create_user(telegram_user)
-
-        if not user.is_bot:
-            fav_playlist = self.get_or_create_favorite_playlist(user)
-            if not fav_playlist:
-                # fixme: could not create/get favorite playlist.
-                logger.error(
-                    f"could not create/get favorite playlist for user: {prettify(user)}"
-                )
 
         return user
 
@@ -313,7 +348,10 @@ class UserMethods:
 
         res = collections.deque()
         for user_vertex in admins_and_owners:
-            if user_vertex.role in (UserRole.ADMIN, UserRole.OWNER):
+            if user_vertex is not None and user_vertex.role in (
+                UserRole.ADMIN,
+                UserRole.OWNER,
+            ):
                 res.append(
                     {
                         "scope": BotCommandScopeChat(user_vertex.user_id),
@@ -329,3 +367,30 @@ class UserMethods:
         )
 
         return list(res)
+
+    def get_user_by_username(
+        self,
+        username: str,
+    ) -> Optional[User]:
+        """
+        Get `User` vertex by its `username`
+
+        Parameters
+        ----------
+        username : str
+            Username to find the user by
+
+        Returns
+        -------
+        User, optional
+            User if it exists by the given username, otherwise, return None
+
+        """
+        if username is None:
+            return None
+
+        cursor = User._collection.find({"username": username.lower()})
+        if cursor and len(cursor):
+            return User.from_collection(cursor.pop())
+        else:
+            return None
