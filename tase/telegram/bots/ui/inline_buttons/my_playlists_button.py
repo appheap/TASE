@@ -70,5 +70,5 @@ class MyPlaylistsInlineButton(InlineButton):
 
             client.send_message(
                 from_user.user_id,
-                text="Enter your playlist title. Enter your playlist description in the next line",
+                text="Enter your playlist title. Enter your playlist description in the next line\nYou can cancel anytime by sending /cancel",
             )

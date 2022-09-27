@@ -18,6 +18,7 @@ class BotCommandType(Enum):
     HOME = "home"
     HELP = "help"
     LANGUAGE = "lang"
+    CANCEL = "cancel"
 
     # admin/creator commands
     ADD_CHANNEL = "add_channel"
