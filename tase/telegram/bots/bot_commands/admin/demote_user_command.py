@@ -17,13 +17,13 @@ from ..base_command import BaseCommand
 from ..bot_command_type import BotCommandType
 
 
-class PromoteUserCommand(BaseCommand):
+class DemoteUserCommand(BaseCommand):
     """
-    Promote a user's role to `admin`
+    Demote a user's role to `searcher`
     """
 
-    command_type: BotCommandType = Field(default=BotCommandType.PROMOTE_USER)
-    command_description = "Promote a user's role to admin"
+    command_type: BotCommandType = Field(default=BotCommandType.DEMOTE_USER)
+    command_description = "Demote a user's role to searcher"
     required_role_level: UserRole = UserRole.OWNER
     number_of_required_arguments = 1
 
@@ -46,38 +46,39 @@ class PromoteUserCommand(BaseCommand):
         if user:
             if user.user_id == from_user.user_id:
                 message.reply_text(
-                    "You cannot promote yourself!",
+                    "You cannot demote yourself!",
                     quote=True,
                     parse_mode=ParseMode.HTML,
                     disable_web_page_preview=True,
                 )
             else:
                 if user.role == UserRole.SEARCHER:
-                    updated = user.update_role(UserRole.ADMIN)
+                    message.reply_text(
+                        "The user's role is already `searcher`",
+                        quote=True,
+                        parse_mode=ParseMode.HTML,
+                        disable_web_page_preview=True,
+                    )
+
+                elif user.role == UserRole.ADMIN:
+                    updated = user.update_role(UserRole.SEARCHER)
                     if updated:
                         message.reply_text(
-                            "The user promoted successfully",
+                            "Successfully demoted the user",
                             quote=True,
                             parse_mode=ParseMode.HTML,
                             disable_web_page_preview=True,
                         )
                     else:
                         message.reply_text(
-                            "The user could not be promoted, please try again",
+                            "The user could not be demoted, please try again",
                             quote=True,
                             parse_mode=ParseMode.HTML,
                             disable_web_page_preview=True,
                         )
-                elif user.role == UserRole.ADMIN:
-                    message.reply_text(
-                        "The user is already promoted",
-                        quote=True,
-                        parse_mode=ParseMode.HTML,
-                        disable_web_page_preview=True,
-                    )
                 elif user.role == UserRole.OWNER:
                     message.reply_text(
-                        "User's role is `owner`",
+                        "User's role is `owner` and cannot be demoted",
                         quote=True,
                         parse_mode=ParseMode.HTML,
                         disable_web_page_preview=True,
@@ -120,10 +121,10 @@ class PromoteUserCommand(BaseCommand):
                 if tg_chat:
                     user = handler.db.graph.get_or_create_user(tg_chat)
                     if user:
-                        updated = user.update_role(UserRole.ADMIN)
+                        updated = user.update_role(UserRole.SEARCHER)
                         if updated:
                             message.reply_text(
-                                "The user promoted successfully",
+                                "The user demoted successfully",
                                 quote=True,
                                 parse_mode=ParseMode.HTML,
                                 disable_web_page_preview=True,
@@ -132,7 +133,7 @@ class PromoteUserCommand(BaseCommand):
                             # todo: cache the user peer for all the bots
                         else:
                             message.reply_text(
-                                "The user could not be promoted, please try again",
+                                "The user could not be demoted, please try again",
                                 quote=True,
                                 parse_mode=ParseMode.HTML,
                                 disable_web_page_preview=True,

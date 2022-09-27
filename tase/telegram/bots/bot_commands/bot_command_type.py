@@ -23,6 +23,7 @@ class BotCommandType(Enum):
     # admin/creator commands
     ADD_CHANNEL = "add_channel"
     PROMOTE_USER = "promote_user"
+    DEMOTE_USER = "demote_user"
     INDEX_CHANNEL = "index_channel"
     SHUTDOWN_SYSTEM = "shutdown_system"
 
