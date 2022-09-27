@@ -4,7 +4,7 @@ import pyrogram
 
 from tase.common.utils import _trans, emoji
 from tase.db.arangodb import graph as graph_models
-from tase.db.arangodb.enums import BotTaskType
+from tase.db.arangodb.enums import BotTaskType, ChatType
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
 from .base import InlineButtonType, InlineButton
@@ -30,22 +30,26 @@ class MyPlaylistsInlineButton(InlineButton):
         query_date: int,
         reg: Optional[Match] = None,
     ):
+        chat_type = ChatType.parse_from_pyrogram(telegram_inline_query.chat_type)
+        if chat_type != ChatType.BOT:
+            result.results = []
 
-        results = populate_playlist_list(
-            from_user,
-            handler,
-            result,
-            telegram_inline_query,
-        )
-
-        if len(results):
-            result.results = results
         else:
-            if result.from_ is None or result.from_ == 0:
-                telegram_inline_query.answer(
-                    [NoPlaylistItem.get_item(from_user)],
-                    cache_time=1,
-                )
+            results = populate_playlist_list(
+                from_user,
+                handler,
+                result,
+                telegram_inline_query,
+            )
+
+            if len(results):
+                result.results = results
+            else:
+                if result.from_ is None or result.from_ == 0:
+                    telegram_inline_query.answer(
+                        [NoPlaylistItem.get_item(from_user)],
+                        cache_time=1,
+                    )
 
     def on_chosen_inline_query(
         self,
