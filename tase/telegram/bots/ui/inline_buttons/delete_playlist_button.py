@@ -37,5 +37,5 @@ class DeletePlaylistInlineButton(InlineButton):
         # todo: make it translatable
         client.send_message(
             from_user.user_id,
-            "Please send 1 to confirm deleting the playlist:",
+            "Please send 1 to confirm deleting the playlist:\nYou can cancel anytime by sending /cancel",
         )

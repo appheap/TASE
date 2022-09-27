@@ -36,5 +36,5 @@ class EditPlaylistTitleInlineButton(InlineButton):
         # todo: make it translatable
         client.send_message(
             from_user.user_id,
-            "Enter the new Title:",
+            "Enter the new Title:\nYou can cancel anytime by sending /cancel",
         )
