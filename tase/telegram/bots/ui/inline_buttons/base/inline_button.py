@@ -110,6 +110,13 @@ class InlineButton(
     ) -> str:
         return self.get_translated_text(lang_code)
 
+    def change_text(
+        self,
+        *args,
+        **kwargs,
+    ) -> InlineButton:
+        raise NotImplementedError
+
     def get_url(
         self,
         url: str,

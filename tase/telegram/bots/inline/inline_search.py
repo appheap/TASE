@@ -129,12 +129,12 @@ class InlineSearch(OnInlineQuery):
                                 handler.db.graph.audio_is_interacted_by_user(
                                     from_user,
                                     hit.download_url,
-                                    InteractionType.LIKE,
+                                    InteractionType.DISLIKE,
                                 ),
                                 handler.db.graph.audio_is_interacted_by_user(
                                     from_user,
                                     hit.download_url,
-                                    InteractionType.DISLIKE,
+                                    InteractionType.LIKE,
                                 ),
                             )
                         )
