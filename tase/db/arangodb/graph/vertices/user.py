@@ -6,7 +6,7 @@ from typing import Optional, List, TYPE_CHECKING, Dict, Any, Union
 
 import pyrogram
 from pydantic import Field
-from pyrogram.types import BotCommand, BotCommandScopeChat, BotCommandScopeDefault
+from pyrogram.types import BotCommandScopeChat, BotCommandScopeDefault
 
 from tase.common.utils import prettify
 from tase.my_logger import logger
@@ -296,6 +296,21 @@ class UserMethods:
         return list(res)
 
     @classmethod
+    def get_bot_command_for_telegram_user(
+        cls,
+        user: User,
+        role: UserRole,
+    ) -> dict:
+        from tase.telegram.bots.bot_commands import BaseCommand
+
+        return {
+            "scope": BotCommandScopeChat(user.user_id),
+            "commands": BaseCommand.populate_commands(
+                user.role if role is None else role
+            ),
+        }
+
+    @classmethod
     def get_bot_commands_list_for_telegram(
         cls,
         admins_and_owners: List[User],
@@ -315,36 +330,7 @@ class UserMethods:
 
         """
 
-        from tase.telegram.bots.bot_commands import BaseCommand, BotCommandType
-
-        def populate_commands(role: UserRole) -> List[BaseCommand]:
-            commands = collections.deque()
-            for command in sorted(
-                filter(
-                    lambda c: c is not None,
-                    map(
-                        BaseCommand.get_command,
-                        filter(
-                            lambda c_type: c_type
-                            not in (
-                                BotCommandType.INVALID,
-                                BotCommandType.UNKNOWN,
-                                BotCommandType.BASE,
-                            ),
-                            list(BotCommandType),
-                        ),
-                    ),
-                ),
-                key=lambda c: str(c.command_type.value),
-            ):
-                if command.required_role_level.value <= role.value:
-                    bot_command = BotCommand(
-                        str(command.command_type.value),
-                        command.command_description,
-                    )
-                    commands.append(bot_command)
-
-            return list(commands)
+        from tase.telegram.bots.bot_commands import BaseCommand
 
         res = collections.deque()
         for user_vertex in admins_and_owners:
@@ -355,14 +341,14 @@ class UserMethods:
                 res.append(
                     {
                         "scope": BotCommandScopeChat(user_vertex.user_id),
-                        "commands": populate_commands(user_vertex.role),
+                        "commands": BaseCommand.populate_commands(user_vertex.role),
                     }
                 )
 
         res.append(
             {
                 "scope": BotCommandScopeDefault(),
-                "commands": populate_commands(UserRole.SEARCHER),
+                "commands": BaseCommand.populate_commands(UserRole.SEARCHER),
             }
         )
 
