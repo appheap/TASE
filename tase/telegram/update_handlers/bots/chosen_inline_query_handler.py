@@ -29,7 +29,7 @@ class ChosenInlineQueryHandler(BaseHandler):
     ):
         logger.debug(f"on_chosen_inline_query: {chosen_inline_result}")
 
-        from_user = self.db.graph.get_or_create_user(chosen_inline_result.from_user)
+        from_user = self.db.graph.get_interacted_user(chosen_inline_result.from_user)
 
         reg = re.search(
             "^#(?P<command>[a-zA-Z0-9_]+)(\s(?P<arg1>[a-zA-Z0-9_]+))?",

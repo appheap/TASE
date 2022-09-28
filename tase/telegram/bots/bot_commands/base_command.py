@@ -122,7 +122,7 @@ class BaseCommand(BaseModel):
                 )
                 return
 
-            user: User = handler.db.graph.get_or_create_user(message.from_user)
+            user: User = handler.db.graph.get_interacted_user(message.from_user)
             if user is None:
                 raise Exception(
                     f"Could not get/create user vertex from: {message.from_user}"

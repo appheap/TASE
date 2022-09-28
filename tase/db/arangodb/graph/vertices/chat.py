@@ -703,8 +703,4 @@ class ChatMethods:
         if username is None:
             return None
 
-        cursor = Chat._collection.find({"username": username.lower()})
-        if cursor and len(cursor):
-            return Chat.from_collection(cursor.pop())
-        else:
-            return None
+        return Chat.find_one({"username": username.lower()})

@@ -57,7 +57,7 @@ class ClientManager(mp.Process):
         me = self.telegram_client.get_me()
         if me:
             self.telegram_client.telegram_id = me.id
-            self.db.graph.update_or_create_user(me)
+            self.db.graph.get_interacted_user(me, update=True)
 
         worker = ClientWorkerThread(
             telegram_client=self.telegram_client,

@@ -60,7 +60,7 @@ class InlineQueryHandler(BaseHandler):
         logger.debug(f"on_inline_query: {inline_query}")
         query_date = get_now_timestamp()
 
-        from_user = self.db.graph.get_or_create_user(inline_query.from_user)
+        from_user = self.db.graph.get_interacted_user(inline_query.from_user)
 
         result = CustomInlineQueryResult(inline_query)
         InlineSearch.on_inline_query(
@@ -87,7 +87,7 @@ class InlineQueryHandler(BaseHandler):
         logger.debug(f"custom_commands_handler: {inline_query}")
         query_date = get_now_timestamp()
 
-        user = self.db.graph.get_or_create_user(inline_query.from_user)
+        user = self.db.graph.get_interacted_user(inline_query.from_user)
 
         reg = re.search(
             r"^#(?P<command>[a-zA-Z0-9_]+)(\s(?P<arg1>[a-zA-Z0-9_]+))?",

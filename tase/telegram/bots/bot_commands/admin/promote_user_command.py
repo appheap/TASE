@@ -41,60 +41,68 @@ class PromoteUserCommand(BaseCommand):
         user = handler.db.graph.get_user_by_username(username)
 
         if user:
-            if user.user_id == from_user.user_id:
+            if user.has_interacted_with_bot:
+                if user.user_id == from_user.user_id:
+                    message.reply_text(
+                        "You cannot promote yourself!",
+                        quote=True,
+                        parse_mode=ParseMode.MARKDOWN,
+                        disable_web_page_preview=True,
+                    )
+                else:
+                    if user.role == UserRole.SEARCHER:
+                        updated = user.update_role(UserRole.ADMIN)
+                        if updated:
+                            message.reply_text(
+                                "The user promoted successfully",
+                                quote=True,
+                                parse_mode=ParseMode.MARKDOWN,
+                                disable_web_page_preview=True,
+                            )
+                            telegram_command_dict = (
+                                handler.db.graph.get_bot_command_for_telegram_user(
+                                    user,
+                                    UserRole.ADMIN,
+                                )
+                            )
+                            try:
+                                client.set_bot_commands(
+                                    commands=telegram_command_dict["commands"],
+                                    scope=telegram_command_dict["scope"],
+                                )
+                            except PeerIdInvalid as e:
+                                # todo: cache the user peer for all the bots
+                                pass
+                            except Exception as e:
+                                logger.exception(e)
+                        else:
+                            message.reply_text(
+                                "The user could not be promoted, please try again",
+                                quote=True,
+                                parse_mode=ParseMode.MARKDOWN,
+                                disable_web_page_preview=True,
+                            )
+                    elif user.role == UserRole.ADMIN:
+                        message.reply_text(
+                            "The user is already promoted",
+                            quote=True,
+                            parse_mode=ParseMode.MARKDOWN,
+                            disable_web_page_preview=True,
+                        )
+                    elif user.role == UserRole.OWNER:
+                        message.reply_text(
+                            "User's role is `owner`",
+                            quote=True,
+                            parse_mode=ParseMode.MARKDOWN,
+                            disable_web_page_preview=True,
+                        )
+            else:
                 message.reply_text(
-                    "You cannot promote yourself!",
+                    "This User is in the database but hasn't interacted with the bot yet",
                     quote=True,
                     parse_mode=ParseMode.MARKDOWN,
                     disable_web_page_preview=True,
                 )
-            else:
-                if user.role == UserRole.SEARCHER:
-                    updated = user.update_role(UserRole.ADMIN)
-                    if updated:
-                        message.reply_text(
-                            "The user promoted successfully",
-                            quote=True,
-                            parse_mode=ParseMode.MARKDOWN,
-                            disable_web_page_preview=True,
-                        )
-                        telegram_command_dict = (
-                            handler.db.graph.get_bot_command_for_telegram_user(
-                                user,
-                                UserRole.ADMIN,
-                            )
-                        )
-                        try:
-                            client.set_bot_commands(
-                                commands=telegram_command_dict["commands"],
-                                scope=telegram_command_dict["scope"],
-                            )
-                        except PeerIdInvalid as e:
-                            # todo: cache the user peer for all the bots
-                            pass
-                        except Exception as e:
-                            logger.exception(e)
-                    else:
-                        message.reply_text(
-                            "The user could not be promoted, please try again",
-                            quote=True,
-                            parse_mode=ParseMode.MARKDOWN,
-                            disable_web_page_preview=True,
-                        )
-                elif user.role == UserRole.ADMIN:
-                    message.reply_text(
-                        "The user is already promoted",
-                        quote=True,
-                        parse_mode=ParseMode.MARKDOWN,
-                        disable_web_page_preview=True,
-                    )
-                elif user.role == UserRole.OWNER:
-                    message.reply_text(
-                        "User's role is `owner`",
-                        quote=True,
-                        parse_mode=ParseMode.MARKDOWN,
-                        disable_web_page_preview=True,
-                    )
         else:
             message.reply_text(
                 "User hasn't interacted with the bot yet",
