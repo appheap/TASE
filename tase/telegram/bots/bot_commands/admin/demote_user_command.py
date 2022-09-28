@@ -42,55 +42,63 @@ class DemoteUserCommand(BaseCommand):
         user = handler.db.graph.get_user_by_username(username)
 
         if user:
-            if user.user_id == from_user.user_id:
+            if user.has_interacted_with_bot:
+                if user.user_id == from_user.user_id:
+                    message.reply_text(
+                        "You cannot demote yourself!",
+                        quote=True,
+                        parse_mode=ParseMode.MARKDOWN,
+                        disable_web_page_preview=True,
+                    )
+                else:
+                    if user.role == UserRole.SEARCHER:
+                        message.reply_text(
+                            "The user's role is already `searcher`",
+                            quote=True,
+                            parse_mode=ParseMode.MARKDOWN,
+                            disable_web_page_preview=True,
+                        )
+
+                    elif user.role == UserRole.ADMIN:
+                        updated = user.update_role(UserRole.SEARCHER)
+                        if updated:
+                            message.reply_text(
+                                "Successfully demoted the user",
+                                quote=True,
+                                parse_mode=ParseMode.MARKDOWN,
+                                disable_web_page_preview=True,
+                            )
+                            try:
+                                client.delete_bot_commands(
+                                    BotCommandScopeChat(user.user_id)
+                                )
+                            except PeerIdInvalid as e:
+                                # todo: The peer id being used is invalid or not known yet. Make sure you meet the peer
+                                #  before interacting with it
+                                pass
+                            except Exception as e:
+                                logger.exception(e)
+                        else:
+                            message.reply_text(
+                                "The user could not be demoted, please try again",
+                                quote=True,
+                                parse_mode=ParseMode.MARKDOWN,
+                                disable_web_page_preview=True,
+                            )
+                    elif user.role == UserRole.OWNER:
+                        message.reply_text(
+                            "User's role is `owner` and cannot be demoted",
+                            quote=True,
+                            parse_mode=ParseMode.MARKDOWN,
+                            disable_web_page_preview=True,
+                        )
+            else:
                 message.reply_text(
-                    "You cannot demote yourself!",
+                    "This User is in the database but hasn't interacted with the bot yet",
                     quote=True,
                     parse_mode=ParseMode.MARKDOWN,
                     disable_web_page_preview=True,
                 )
-            else:
-                if user.role == UserRole.SEARCHER:
-                    message.reply_text(
-                        "The user's role is already `searcher`",
-                        quote=True,
-                        parse_mode=ParseMode.MARKDOWN,
-                        disable_web_page_preview=True,
-                    )
-
-                elif user.role == UserRole.ADMIN:
-                    updated = user.update_role(UserRole.SEARCHER)
-                    if updated:
-                        message.reply_text(
-                            "Successfully demoted the user",
-                            quote=True,
-                            parse_mode=ParseMode.MARKDOWN,
-                            disable_web_page_preview=True,
-                        )
-                        try:
-                            client.delete_bot_commands(
-                                BotCommandScopeChat(user.user_id)
-                            )
-                        except PeerIdInvalid as e:
-                            # todo: The peer id being used is invalid or not known yet. Make sure you meet the peer
-                            #  before interacting with it
-                            pass
-                        except Exception as e:
-                            logger.exception(e)
-                    else:
-                        message.reply_text(
-                            "The user could not be demoted, please try again",
-                            quote=True,
-                            parse_mode=ParseMode.MARKDOWN,
-                            disable_web_page_preview=True,
-                        )
-                elif user.role == UserRole.OWNER:
-                    message.reply_text(
-                        "User's role is `owner` and cannot be demoted",
-                        quote=True,
-                        parse_mode=ParseMode.MARKDOWN,
-                        disable_web_page_preview=True,
-                    )
         else:
             message.reply_text(
                 "User hasn't interacted with the bot yet",

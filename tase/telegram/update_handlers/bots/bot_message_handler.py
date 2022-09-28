@@ -96,7 +96,7 @@ class BotMessageHandler(BaseHandler):
         """
         logger.debug(f"base_downloads_handler: {message.text}")
 
-        from_user = self.db.graph.get_or_create_user(message.from_user)
+        from_user = self.db.graph.get_interacted_user(message.from_user)
         self.download_audio(
             client,
             from_user,
@@ -113,8 +113,7 @@ class BotMessageHandler(BaseHandler):
         logger.info(f"search_query_handler: {message.text}")
         query = message.text
 
-        # update the user
-        from_user = self.db.graph.update_or_create_user(message.from_user)
+        from_user = self.db.graph.get_interacted_user(message.from_user)
 
         if from_user.chosen_language_code is None or not len(
             from_user.chosen_language_code

@@ -31,6 +31,7 @@ class User(BaseVertex):
     _extra_do_not_update_fields = [
         "chosen_language_code",
         "role",
+        "has_interacted_with_bot",
     ]
 
     user_id: int
@@ -57,6 +58,7 @@ class User(BaseVertex):
     role: UserRole = Field(default=UserRole.SEARCHER)
 
     created_from_telegram_chat: bool
+    has_interacted_with_bot: bool = Field(default=False)
 
     @classmethod
     def parse_key(
@@ -111,7 +113,7 @@ class User(BaseVertex):
             is_premium=is_premium,
             first_name=telegram_user.first_name,
             last_name=telegram_user.last_name,
-            username=telegram_user.username,
+            username=telegram_user.username.lower() if telegram_user.username else None,
             language_code=language_code,
             dc_id=telegram_user.dc_id,
             phone_number=phone_number,
@@ -141,6 +143,17 @@ class User(BaseVertex):
 
         self_copy = self.copy(deep=True)
         self_copy.role = role
+        return self.update(self_copy, reserve_non_updatable_fields=False)
+
+    def update_has_interacted_with_bot(
+        self,
+        new_value: bool,
+    ) -> bool:
+        if new_value is None:
+            return False
+
+        self_copy: User = self.copy(deep=True)
+        self_copy.has_interacted_with_bot = new_value
         return self.update(self_copy, reserve_non_updatable_fields=False)
 
 
@@ -223,6 +236,41 @@ class UserMethods:
                 telegram_user, pyrogram.types.User
             ):
                 self.update_or_create_user(telegram_user)
+
+        return user
+
+    def get_interacted_user(
+        self,
+        telegram_user: pyrogram.types.User,
+        update: bool = False,
+    ) -> Optional[User]:
+        """
+        Get the `User` vertex if it exists in the ArangoDb, otherwise, create it. set the `has_interacted_with_bot`
+        property of the user if it is set to `False`
+
+        Parameters
+        ----------
+        telegram_user : pyrogram.types.User
+            Telegram user to get/create/update the vertex from
+        update : bool, default : False
+            Whether to update the vertex from the telegram object or not. Default is set to False.
+
+        Returns
+        -------
+        User, optional
+            User object if the operation was successful, otherwise, return None
+
+        """
+        if telegram_user is None:
+            return None
+
+        user = (
+            self.update_or_create_user(telegram_user)
+            if update
+            else self.get_or_create_user(telegram_user)
+        )
+        if user and not user.has_interacted_with_bot:
+            user.update_has_interacted_with_bot(True)
 
         return user
 
@@ -375,8 +423,4 @@ class UserMethods:
         if username is None:
             return None
 
-        cursor = User._collection.find({"username": username.lower()})
-        if cursor and len(cursor):
-            return User.from_collection(cursor.pop())
-        else:
-            return None
+        return User.find_one({"username": username.lower()})
