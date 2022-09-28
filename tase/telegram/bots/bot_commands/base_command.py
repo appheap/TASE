@@ -5,6 +5,7 @@ from typing import List, Optional
 
 import pyrogram
 from pydantic import BaseModel, Field
+from pyrogram.types import BotCommand
 
 from tase.common.utils import _trans
 from tase.db.arangodb import graph as graph_models
@@ -248,3 +249,39 @@ class BaseCommand(BaseModel):
             List of all command types
         """
         return cls.get_command_strings(list(BotCommandType))
+
+    @classmethod
+    def get_commands_for_a_role(
+        cls,
+        role: UserRole,
+    ) -> List[BaseCommand]:
+        return sorted(
+            filter(
+                lambda c: c is not None and c.required_role_level.value <= role.value,
+                map(
+                    BaseCommand.get_command,
+                    filter(
+                        lambda c_type: c_type
+                        not in (
+                            BotCommandType.INVALID,
+                            BotCommandType.UNKNOWN,
+                            BotCommandType.BASE,
+                        ),
+                        list(BotCommandType),
+                    ),
+                ),
+            ),
+            key=lambda c: str(c.command_type.value),
+        )
+
+    @classmethod
+    def populate_commands(cls, role: UserRole) -> List[BaseCommand]:
+        commands = collections.deque()
+        for command in BaseCommand.get_commands_for_a_role(role):
+            telegram_bot_command = BotCommand(
+                str(command.command_type.value),
+                command.command_description,
+            )
+            commands.append(telegram_bot_command)
+
+        return list(commands)

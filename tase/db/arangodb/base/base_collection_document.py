@@ -647,7 +647,7 @@ class BaseCollectionDocument(BaseCollectionAttributes):
                 return_new=False,
             )
             doc._update_metadata(metadata)
-            # successful = True if copy_attrs_from_new_document(self, doc) is not None else False
+            self.__dict__.update(doc.__dict__)
             # copy_attrs_from_new_document(self, doc)
         except DocumentUpdateError as e:
             # Failed to update document.

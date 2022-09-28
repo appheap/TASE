@@ -2,11 +2,9 @@ import pyrogram
 from pydantic import Field
 from pyrogram.enums import ParseMode
 from pyrogram.errors import (
-    FloodWait,
-    UsernameNotOccupied,
-    UsernameInvalid,
     PeerIdInvalid,
 )
+from pyrogram.types import BotCommandScopeChat
 
 from tase.common.utils import find_telegram_usernames
 from tase.db.arangodb import graph as graph_models
@@ -48,7 +46,7 @@ class DemoteUserCommand(BaseCommand):
                 message.reply_text(
                     "You cannot demote yourself!",
                     quote=True,
-                    parse_mode=ParseMode.HTML,
+                    parse_mode=ParseMode.MARKDOWN,
                     disable_web_page_preview=True,
                 )
             else:
@@ -56,7 +54,7 @@ class DemoteUserCommand(BaseCommand):
                     message.reply_text(
                         "The user's role is already `searcher`",
                         quote=True,
-                        parse_mode=ParseMode.HTML,
+                        parse_mode=ParseMode.MARKDOWN,
                         disable_web_page_preview=True,
                     )
 
@@ -66,89 +64,37 @@ class DemoteUserCommand(BaseCommand):
                         message.reply_text(
                             "Successfully demoted the user",
                             quote=True,
-                            parse_mode=ParseMode.HTML,
+                            parse_mode=ParseMode.MARKDOWN,
                             disable_web_page_preview=True,
                         )
+                        try:
+                            client.delete_bot_commands(
+                                BotCommandScopeChat(user.user_id)
+                            )
+                        except PeerIdInvalid as e:
+                            # todo: The peer id being used is invalid or not known yet. Make sure you meet the peer
+                            #  before interacting with it
+                            pass
+                        except Exception as e:
+                            logger.exception(e)
                     else:
                         message.reply_text(
                             "The user could not be demoted, please try again",
                             quote=True,
-                            parse_mode=ParseMode.HTML,
+                            parse_mode=ParseMode.MARKDOWN,
                             disable_web_page_preview=True,
                         )
                 elif user.role == UserRole.OWNER:
                     message.reply_text(
                         "User's role is `owner` and cannot be demoted",
                         quote=True,
-                        parse_mode=ParseMode.HTML,
+                        parse_mode=ParseMode.MARKDOWN,
                         disable_web_page_preview=True,
                     )
         else:
-            try:
-                tg_chat: pyrogram.types.Chat = handler.telegram_client.get_chat(
-                    username
-                )
-            except (
-                KeyError,
-                ValueError,
-                UsernameNotOccupied,
-                UsernameInvalid,
-                PeerIdInvalid,
-            ) as e:
-                # ValueError: In case the chat invite link points to a chat that this telegram client hasn't joined yet.
-                # KeyError or UsernameNotOccupied: The username is not occupied by anyone, so update the username
-                # UsernameInvalid: The username is invalid
-
-                message.reply_text(
-                    f"Username `{username}` is not valid",
-                    quote=True,
-                    parse_mode=ParseMode.HTML,
-                    disable_web_page_preview=True,
-                )
-
-            except FloodWait as e:
-                # fixme: find a solution for this
-                pass
-            except Exception as e:
-                message.reply_text(
-                    "Internal error, please try again",
-                    quote=True,
-                    parse_mode=ParseMode.HTML,
-                    disable_web_page_preview=True,
-                )
-                logger.exception(e)
-            else:
-                if tg_chat:
-                    user = handler.db.graph.get_or_create_user(tg_chat)
-                    if user:
-                        updated = user.update_role(UserRole.SEARCHER)
-                        if updated:
-                            message.reply_text(
-                                "The user demoted successfully",
-                                quote=True,
-                                parse_mode=ParseMode.HTML,
-                                disable_web_page_preview=True,
-                            )
-
-                            # todo: cache the user peer for all the bots
-                        else:
-                            message.reply_text(
-                                "The user could not be demoted, please try again",
-                                quote=True,
-                                parse_mode=ParseMode.HTML,
-                                disable_web_page_preview=True,
-                            )
-                    else:
-                        message.reply_text(
-                            "Internal error, please try again",
-                            quote=True,
-                            parse_mode=ParseMode.HTML,
-                            disable_web_page_preview=True,
-                        )
-                else:
-                    message.reply_text(
-                        "Internal error, please try again",
-                        quote=True,
-                        parse_mode=ParseMode.HTML,
-                        disable_web_page_preview=True,
-                    )
+            message.reply_text(
+                "User hasn't interacted with the bot yet",
+                quote=True,
+                parse_mode=ParseMode.MARKDOWN,
+                disable_web_page_preview=True,
+            )

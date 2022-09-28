@@ -2,9 +2,6 @@ import pyrogram
 from pydantic import Field
 from pyrogram.enums import ParseMode
 from pyrogram.errors import (
-    FloodWait,
-    UsernameNotOccupied,
-    UsernameInvalid,
     PeerIdInvalid,
 )
 
@@ -48,7 +45,7 @@ class PromoteUserCommand(BaseCommand):
                 message.reply_text(
                     "You cannot promote yourself!",
                     quote=True,
-                    parse_mode=ParseMode.HTML,
+                    parse_mode=ParseMode.MARKDOWN,
                     disable_web_page_preview=True,
                 )
             else:
@@ -58,96 +55,50 @@ class PromoteUserCommand(BaseCommand):
                         message.reply_text(
                             "The user promoted successfully",
                             quote=True,
-                            parse_mode=ParseMode.HTML,
+                            parse_mode=ParseMode.MARKDOWN,
                             disable_web_page_preview=True,
                         )
+                        telegram_command_dict = (
+                            handler.db.graph.get_bot_command_for_telegram_user(
+                                user,
+                                UserRole.ADMIN,
+                            )
+                        )
+                        try:
+                            client.set_bot_commands(
+                                commands=telegram_command_dict["commands"],
+                                scope=telegram_command_dict["scope"],
+                            )
+                        except PeerIdInvalid as e:
+                            # todo: cache the user peer for all the bots
+                            pass
+                        except Exception as e:
+                            logger.exception(e)
                     else:
                         message.reply_text(
                             "The user could not be promoted, please try again",
                             quote=True,
-                            parse_mode=ParseMode.HTML,
+                            parse_mode=ParseMode.MARKDOWN,
                             disable_web_page_preview=True,
                         )
                 elif user.role == UserRole.ADMIN:
                     message.reply_text(
                         "The user is already promoted",
                         quote=True,
-                        parse_mode=ParseMode.HTML,
+                        parse_mode=ParseMode.MARKDOWN,
                         disable_web_page_preview=True,
                     )
                 elif user.role == UserRole.OWNER:
                     message.reply_text(
                         "User's role is `owner`",
                         quote=True,
-                        parse_mode=ParseMode.HTML,
+                        parse_mode=ParseMode.MARKDOWN,
                         disable_web_page_preview=True,
                     )
         else:
-            try:
-                tg_chat: pyrogram.types.Chat = handler.telegram_client.get_chat(
-                    username
-                )
-            except (
-                KeyError,
-                ValueError,
-                UsernameNotOccupied,
-                UsernameInvalid,
-                PeerIdInvalid,
-            ) as e:
-                # ValueError: In case the chat invite link points to a chat that this telegram client hasn't joined yet.
-                # KeyError or UsernameNotOccupied: The username is not occupied by anyone, so update the username
-                # UsernameInvalid: The username is invalid
-
-                message.reply_text(
-                    f"Username `{username}` is not valid",
-                    quote=True,
-                    parse_mode=ParseMode.HTML,
-                    disable_web_page_preview=True,
-                )
-
-            except FloodWait as e:
-                # fixme: find a solution for this
-                pass
-            except Exception as e:
-                message.reply_text(
-                    "Internal error, please try again",
-                    quote=True,
-                    parse_mode=ParseMode.HTML,
-                    disable_web_page_preview=True,
-                )
-                logger.exception(e)
-            else:
-                if tg_chat:
-                    user = handler.db.graph.get_or_create_user(tg_chat)
-                    if user:
-                        updated = user.update_role(UserRole.ADMIN)
-                        if updated:
-                            message.reply_text(
-                                "The user promoted successfully",
-                                quote=True,
-                                parse_mode=ParseMode.HTML,
-                                disable_web_page_preview=True,
-                            )
-
-                            # todo: cache the user peer for all the bots
-                        else:
-                            message.reply_text(
-                                "The user could not be promoted, please try again",
-                                quote=True,
-                                parse_mode=ParseMode.HTML,
-                                disable_web_page_preview=True,
-                            )
-                    else:
-                        message.reply_text(
-                            "Internal error, please try again",
-                            quote=True,
-                            parse_mode=ParseMode.HTML,
-                            disable_web_page_preview=True,
-                        )
-                else:
-                    message.reply_text(
-                        "Internal error, please try again",
-                        quote=True,
-                        parse_mode=ParseMode.HTML,
-                        disable_web_page_preview=True,
-                    )
+            message.reply_text(
+                "User hasn't interacted with the bot yet",
+                quote=True,
+                parse_mode=ParseMode.MARKDOWN,
+                disable_web_page_preview=True,
+            )
