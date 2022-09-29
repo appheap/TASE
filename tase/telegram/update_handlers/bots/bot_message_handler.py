@@ -7,6 +7,7 @@ from jinja2 import Template
 from pyrogram import filters, handlers
 from pyrogram.enums import ParseMode
 
+from tase.common.preprocessing import clean_audio_item_text
 from tase.common.utils import (
     datetime_to_timestamp,
     exception_handler,
@@ -188,13 +189,18 @@ class BotMessageHandler(BaseHandler):
                     seconds=es_audio_doc.duration if es_audio_doc.duration else 0
                 )
                 d = datetime(1, 1, 1) + duration
-                _performer = es_audio_doc.performer or ""
-                _title = es_audio_doc.title or ""
-                _file_name = es_audio_doc.file_name or ""
-                if not (len(_title) < 2 or len(_performer) < 2):
+                _performer = clean_audio_item_text(es_audio_doc.raw_performer)
+                _title = clean_audio_item_text(es_audio_doc.raw_title)
+                _file_name = clean_audio_item_text(
+                    es_audio_doc.raw_file_name,
+                    remove_file_extension_=True,
+                )
+                if len(_title) >= 2 and len(_performer) >= 2:
                     name = f"{_performer} - {_title}"
-                elif not len(_performer) < 2:
+                elif len(_performer) >= 2:
                     name = f"{_performer} - {_file_name}"
+                elif len(_title) >= 2:
+                    name = _title
                 else:
                     name = _file_name
 

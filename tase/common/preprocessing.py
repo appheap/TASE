@@ -9,14 +9,15 @@ import nltk
 
 from tase.my_logger import logger
 
-url_regex = r"(?:[a-zA-Z]+://)?(?:www\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)"
+url_regex = r"(?i)(?:[a-zA-Z]+://)?(?:www[./])?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9@:%_\\+.~#?&\\/=]*)"
 stop_words_regex = r"""(?x)                          # Set flag to allow verbose regexps
           \w+(?:-\w+)*                              # Words with optional internal hyphens 
           | \s*                                     # Any space
           | [][!"#$%&'*+,-./:;<=>?@\\^():_`{|}~]    # Any symbol 
         """
 
-punctuation_regex = r"[" + string.punctuation + "]"
+punctuation_chars = string.punctuation
+punctuation_chars_without_dot = string.punctuation.replace(".", "")
 tags_regex = r"@[a-zA-Z0-9_]+"
 html_tags_regex = r"""(?x)                              # Turn on free-spacing
           <[^>]+>                                       # Remove <html> tags
@@ -1999,21 +2000,15 @@ def remove_hashtags(text: str) -> Optional[str]:
     return replace_hashtags(text, "")
 
 
-def replace_punctuation(
-    text: str,
-    symbol: str = " ",
-) -> Optional[str]:
-    if text is None:
-        return None
-
-    return re.sub(punctuation_regex, symbol, text)
-
-
 def remove_punctuation(text: str) -> Optional[str]:
     if text is None:
         return None
 
-    return replace_punctuation(text, " ")
+    return text.translate(str.maketrans("", "", punctuation_chars))
+
+
+def remove_punctuation_without_dot(text: str) -> Optional[str]:
+    return text.translate(str.maketrans("", "", punctuation_chars_without_dot))
 
 
 def remove_diacritics(text: str) -> Optional[str]:
@@ -2185,6 +2180,7 @@ def get_audio_item_pipeline() -> List[Callable[[str], str]]:
         remove_telegram_urls,
         remove_urls,
         remove_hashtags,
+        remove_punctuation_without_dot,
         remove_whitespace,
         remove_lines,
         remove_extra_spaces,
@@ -2194,8 +2190,15 @@ def get_audio_item_pipeline() -> List[Callable[[str], str]]:
 audio_item_pipeline = get_audio_item_pipeline()
 
 
-def clean_audio_item_text(text: str) -> Optional[str]:
-    return clean_text(text, audio_item_pipeline)
+def clean_audio_item_text(
+    text: str,
+    remove_file_extension_: bool = False,
+) -> Optional[str]:
+    text = clean_text(text, audio_item_pipeline)
+    if remove_file_extension_:
+        text = remove_file_extension(text)
+
+    return text
 
 
 def get_hashtag_cleaning_pipeline() -> List[Callable[[str], str]]:
