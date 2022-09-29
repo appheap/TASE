@@ -21,6 +21,7 @@ def populate_playlist_list(
     handler: BaseHandler,
     result: CustomInlineQueryResult,
     telegram_inline_query: pyrogram.types.InlineQuery,
+    filter_by_capacity: bool = False,
 ) -> List[pyrogram.types.InlineQueryResult]:
     """
     Populate a list with the given `User` playlists
@@ -35,6 +36,8 @@ def populate_playlist_list(
         Result object to used for populating playlists
     telegram_inline_query : pyrogram.types.InlineQuery
         Telegram Inline Query object
+    filter_by_capacity : bool, default : False
+        Whether to filter the playlists by their length
 
     Returns
     -------
@@ -43,9 +46,16 @@ def populate_playlist_list(
 
 
     """
-    playlists = handler.db.graph.get_user_playlists(
-        from_user,
-        offset=result.from_,
+    playlists = (
+        handler.db.graph.get_user_valid_playlists(
+            from_user,
+            offset=result.from_,
+        )
+        if filter_by_capacity
+        else handler.db.graph.get_user_playlists(
+            from_user,
+            offset=result.from_,
+        )
     )
 
     results = collections.deque()
