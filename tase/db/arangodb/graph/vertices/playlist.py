@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Optional, Tuple, Generator, TYPE_CHECKING
+import collections
+from typing import Optional, Tuple, Generator, TYPE_CHECKING, List
 
 from pydantic import Field
 
@@ -114,6 +115,12 @@ class PlaylistMethods:
         "   return v"
     )
 
+    _get_user_playlists_count_query = (
+        "for v,e in 1..1 outbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@has'],vertexCollections:['@playlists']}"
+        "   COLLECT WITH COUNT INTO playlist_count"
+        "   return playlist_count"
+    )
+
     _get_playlist_audios_query = (
         "for audio_v,e in 1..1 outbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@has'], vertexCollections:['@audios']}"
         "   sort e.created_at DESC"
@@ -122,8 +129,13 @@ class PlaylistMethods:
     )
 
     _get_audio_playlists_query = (
+        "let playlist_keys=("
+        "   for v,e in 1..1 outbound '@user_id' graph '@graph_name' options {order:'dfs', edgeCollections:['@has'],vertexCollections:['@playlists']}"
+        "       return v._key"
+        ")"
         "for v,e in 1..1 inbound '@start_vertex' graph '@graph_name' options {order : 'dfs', edgeCollections : ['@has'], vertexCollections : ['@playlists']}"
         "   sort v.rank ASC, e.created_at DESC"
+        "   filter v.is_soft_deleted == false and v._key in playlist_keys"
         "   limit @offset, @limit"
         "   return v"
     )
@@ -442,6 +454,11 @@ class PlaylistMethods:
         deleted_at : int
             Timestamp of the deletion
 
+        Raises
+        ------
+        PlaylistDoesNotExists
+            If the user does not have a playlist with the given `playlist_key` parameter
+
         Returns
         -------
         bool
@@ -492,8 +509,8 @@ class PlaylistMethods:
         self,
         user: User,
         offset: int = 0,
-        limit: int = 10,
-    ) -> Generator[Playlist, None, None]:
+        limit: int = 15,
+    ) -> List[Playlist]:
         """
         Get `User` playlists.
 
@@ -503,17 +520,17 @@ class PlaylistMethods:
             User to get playlist list for
         offset : int, default : 0
             Offset to get the playlists query after
-        limit : int, default : 10
+        limit : int, default : 15
             Number of `Playlists`s to query
 
-        Yields
+        Returns
         ------
-        Playlist
-            Playlists that the given user has
+        list of Playlist
+            List of Playlists that the given user has
 
         """
         if user is None:
-            return None
+            return []
 
         from tase.db.arangodb.graph.edges import Has
 
@@ -527,9 +544,48 @@ class PlaylistMethods:
                 "limit": limit,
             },
         )
+        res = collections.deque()
         if cursor is not None and len(cursor):
             for doc in cursor:
-                yield Playlist.from_collection(doc)
+                res.append(Playlist.from_collection(doc))
+
+        return list(res)
+
+    def get_user_playlists_count(
+        self,
+        user: User,
+    ) -> int:
+        """
+        Get `User` playlists count.
+
+        Parameters
+        ----------
+        user : User
+            User to get playlist list for
+
+        Returns
+        ------
+        int
+            Number of Playlists that the given user has
+
+        """
+        if user is None:
+            return 0
+
+        from tase.db.arangodb.graph.edges import Has
+
+        cursor = Playlist.execute_query(
+            self._get_user_playlists_count_query,
+            bind_vars={
+                "start_vertex": user.id,
+                "has": Has._collection_name,
+                "playlists": Playlist._collection_name,
+            },
+        )
+        if cursor is not None and len(cursor):
+            return cursor.pop()
+
+        return 0
 
     def _get_playlist_and_audio(
         self: ArangoGraphMethods,
@@ -780,10 +836,10 @@ class PlaylistMethods:
         user: User,
         hit_download_url: str,
         offset: int = 0,
-        limit: int = 10,
+        limit: int = 15,
     ) -> Generator[Audio, None, None]:
         """
-        Get Playlists that this audio belongs to.
+        Get Playlists of a user that an audio belongs to.
 
         Parameters
         ----------
@@ -793,7 +849,7 @@ class PlaylistMethods:
             Hit download_url to get the audio from
         offset : int, default : 0
             Offset to get the playlist query after
-        limit : int, default : 10
+        limit : int, default : 15
             Number of `Playlist`s to query
 
         Returns
@@ -823,6 +879,7 @@ class PlaylistMethods:
                 "start_vertex": audio.id,
                 "has": Has._collection_name,
                 "playlists": Playlist._collection_name,
+                "user_id": user.id,
                 "offset": offset,
                 "limit": limit,
             },

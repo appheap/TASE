@@ -19,6 +19,7 @@ from tase.db.arangodb.enums import (
     BotTaskStatus,
 )
 from tase.db.elasticsearchdb import models as elasticsearch_models
+from tase.errors import PlaylistDoesNotExists
 from tase.my_logger import logger
 from tase.telegram.bots.bot_commands import BaseCommand, BotCommandType
 from tase.telegram.bots.ui.templates import (
@@ -395,31 +396,26 @@ class BotMessageHandler(BaseHandler):
                 pass
             else:
                 if message.text == result:
-                    # delete the playlist
                     deleted_at = get_now_timestamp()
 
-                    playlist = self.db.graph.get_user_playlist_by_key(
-                        from_user,
-                        playlist_key,
-                        filter_out_soft_deleted=True,
-                    )
-                    if playlist:
-                        deleted = playlist.delete(
-                            soft_delete=True,
-                            is_exact_date=True,
-                            deleted_at=deleted_at,
+                    try:
+                        deleted = self.db.graph.remove_playlist(
+                            from_user,
+                            playlist_key,
+                            deleted_at,
                         )
+                    except PlaylistDoesNotExists:
+                        bot_task.update_status(BotTaskStatus.FAILED)
+                        message.reply_text("The target playlist does not exist!")
+                    else:
                         if deleted:
                             bot_task.update_status(BotTaskStatus.DONE)
                             message.reply_text("Successfully Deleted The Playlist")
                         else:
                             message.reply_text("Could not delete the playlist")
-                    else:
-                        bot_task.update_status(BotTaskStatus.FAILED)
-                        message.reply_text("The target playlist does not exist!")
                 else:
                     # message sent does not equal to the result, send an error
-                    message.reply_text("Confirm code is wrong")
+                    message.reply_text("Confirmation code is wrong")
                     bot_task.update_retry_count()
 
         else:
