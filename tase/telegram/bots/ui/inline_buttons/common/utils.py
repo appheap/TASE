@@ -50,7 +50,10 @@ def populate_playlist_list(
 
     results = collections.deque()
 
-    if result.from_ == 0:
+    user_playlist_count = handler.db.graph.get_user_playlists_count(from_user)
+
+    if result.from_ == 0 and user_playlist_count < 11:
+        # a total number of 10 playlists is allowed for each user (favorite playlist excluded)
         results.append(
             CreateNewPlaylistItem.get_item(
                 from_user,

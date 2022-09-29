@@ -48,7 +48,7 @@ class RemoveFromPlaylistInlineButton(InlineButton):
                 offset=result.from_,
             )
         except HitNoLinkedAudio:
-            # fixme: this happen if the hit with the given `download_url` does not have any audio vertex linked to
+            # fixme: this happens if the hit with the given `download_url` does not have any audio vertex linked to
             #  it. notify the user about this situation and update the database
             client.send_message(
                 from_user.user_id,
