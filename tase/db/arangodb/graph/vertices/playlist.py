@@ -115,6 +115,19 @@ class PlaylistMethods:
         "   return v"
     )
 
+    _get_user_valid_playlists_query = (
+        "for v,e in 1..1 outbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@has'],vertexCollections:['@playlists']}"
+        "   sort v.rank ASC, e.created_at DESC"
+        "   let playlist_length=("
+        "       for audio_v in 1..1 outbound v._id graph '@graph_name' options {order:'dfs', edgeCollections:['@has'], vertexCollections:['@audios']}"
+        "           collect with count into length"
+        "           return length"
+        "   )"
+        "   filter v.is_favorite or playlist_length[0] < @playlist_capacity"
+        "   limit @offset, @limit"
+        "   return v"
+    )
+
     _get_user_playlists_count_query = (
         "for v,e in 1..1 outbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@has'],vertexCollections:['@playlists']}"
         "   COLLECT WITH COUNT INTO playlist_count"
@@ -540,6 +553,57 @@ class PlaylistMethods:
                 "start_vertex": user.id,
                 "has": Has._collection_name,
                 "playlists": Playlist._collection_name,
+                "offset": offset,
+                "limit": limit,
+            },
+        )
+        res = collections.deque()
+        if cursor is not None and len(cursor):
+            for doc in cursor:
+                res.append(Playlist.from_collection(doc))
+
+        return list(res)
+
+    def get_user_valid_playlists(
+        self,
+        user: User,
+        playlist_capacity: int = 200,
+        offset: int = 0,
+        limit: int = 15,
+    ) -> List[Playlist]:
+        """
+        Get `User` playlists their length is less than the given limit.
+
+        Parameters
+        ----------
+        user : User
+            User to get playlist list for
+        playlist_capacity : int, default : 200
+            Length to filter the playlists by
+        offset : int, default : 0
+            Offset to get the playlists query after
+        limit : int, default : 15
+            Number of `Playlists`s to query
+
+        Returns
+        ------
+        list of Playlist
+            List of Playlists that their length is less than the given limit belonging to the given user
+
+        """
+        if user is None:
+            return []
+
+        from tase.db.arangodb.graph.edges import Has
+
+        cursor = Playlist.execute_query(
+            self._get_user_valid_playlists_query,
+            bind_vars={
+                "start_vertex": user.id,
+                "has": Has._collection_name,
+                "playlists": Playlist._collection_name,
+                "audios": Audio._collection_name,
+                "playlist_capacity": playlist_capacity,
                 "offset": offset,
                 "limit": limit,
             },
