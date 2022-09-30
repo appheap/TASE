@@ -83,12 +83,15 @@ class ToggleLikeAudioInlineButton(InlineButton):
 
                 if telegram_callback_query.message is not None:
                     reply_markup = telegram_callback_query.message.reply_markup
-                    reply_markup.inline_keyboard[1][
+                    like_dislike_index = (
+                        1 if len(reply_markup.inline_keyboard) == 3 else 0
+                    )
+                    reply_markup.inline_keyboard[like_dislike_index][
                         1
                     ].text = f"{emoji._dark_thumbs_up if not has_liked else emoji._light_thumbs_up}"
 
                     if update_dislike_button:
-                        reply_markup.inline_keyboard[1][
+                        reply_markup.inline_keyboard[like_dislike_index][
                             0
                         ].text = f"{emoji._dark_thumbs_down if not is_disliked else emoji._light_thumbs_down}"
                     try:

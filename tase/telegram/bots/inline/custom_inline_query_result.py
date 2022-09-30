@@ -56,5 +56,9 @@ class CustomInlineQueryResult(BaseModel):
                 cache_time=self.cache_time,
                 next_offset=self.get_next_offset(),
             )
+        except QueryIdInvalid:
+            pass
+        except BadRequest as e:
+            logger.exception(e)
         except Exception as e:
             logger.exception(e)

@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import copy
-
 import pyrogram
 
 from tase.common.utils import emoji
