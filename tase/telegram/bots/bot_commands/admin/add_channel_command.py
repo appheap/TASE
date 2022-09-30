@@ -36,7 +36,7 @@ class AddChannelCommand(BaseCommand):
             channel_username = username_list[0][0]
 
         db_chat = handler.db.graph.get_chat_by_username(channel_username)
-        if db_chat:
+        if db_chat and db_chat.audio_indexer_metadata:
             # todo: translate me
             message.reply_text(
                 f"This channel `{db_chat.title}` already exists in the Database!"

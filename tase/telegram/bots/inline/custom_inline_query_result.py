@@ -2,6 +2,7 @@ from typing import Any, List, Optional
 
 import pyrogram
 from pydantic import BaseModel, Field
+from pyrogram.errors import QueryIdInvalid, BadRequest
 
 from tase.errors import NullTelegramInlineQuery
 from tase.my_logger import logger

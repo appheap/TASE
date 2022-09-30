@@ -1,5 +1,6 @@
 from pydantic import Field
 from pyrogram.enums import ChatType
+from pyrogram.errors import UsernameNotOccupied
 
 from tase.db import DatabaseClient
 from tase.my_logger import logger
@@ -34,7 +35,9 @@ class AddChannelTask(BaseTask):
                     pass
             else:
                 pass
-
+        except UsernameNotOccupied:
+            # The username is not occupied by anyone
+            pass
         except ValueError as e:
             # In case the chat invite link points to a chat this telegram client hasn't joined yet.
             # todo: send an appropriate message to notify the user of this situation
