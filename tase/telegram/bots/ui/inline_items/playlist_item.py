@@ -8,7 +8,6 @@ from pyrogram.types import (
 )
 
 from tase.db.arangodb import graph as graph_models
-from tase.db.arangodb.enums import ChatType
 from tase.telegram.bots.ui.templates import BaseTemplate, PlaylistData
 from .base_inline_item import BaseInlineItem
 

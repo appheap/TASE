@@ -14,7 +14,11 @@ from tase.my_logger import logger
 from .base_document import BaseDocument
 from ...arangodb.enums import TelegramAudioType
 from ...arangodb.helpers import ElasticQueryMetadata
-from ...db_utils import get_telegram_message_media_type, parse_audio_key
+from ...db_utils import (
+    get_telegram_message_media_type,
+    parse_audio_key,
+    is_audio_valid_for_inline,
+)
 
 
 class Audio(BaseDocument):
@@ -165,12 +169,7 @@ class Audio(BaseDocument):
 
         title = getattr(audio, "title", None)
 
-        # todo: check if the following statement is actually true
-        valid_for_inline = (
-            True
-            if title is not None and audio_type == TelegramAudioType.AUDIO_FILE
-            else False
-        )
+        valid_for_inline = is_audio_valid_for_inline(audio, audio_type)
 
         raw_title = copy.copy(title)
         raw_caption = copy.copy(

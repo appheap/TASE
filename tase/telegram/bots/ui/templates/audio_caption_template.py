@@ -7,10 +7,9 @@ from typing import Optional
 from jinja2 import Template
 
 from tase.common.preprocessing import clean_audio_item_text
-from tase.common.utils import _trans
+from tase.common.utils import _trans, emoji
 from tase.db.arangodb import graph as graph_models
 from tase.db.elasticsearchdb import models as elasticsearch_models
-from tase.static import Emoji
 from .base_template import BaseTemplate, BaseTemplateData
 
 
@@ -41,13 +40,13 @@ class AudioCaptionData(BaseTemplateData):
     s_audio_search_engine: str = _trans("Audio Search Engine")
     s_sent_by_users: str = _trans("Submitted by Telegram Audio Search Engine Users")
 
-    title: str
-    performer: str
-    file_name: str
+    title: Optional[str]
+    performer: Optional[str]
+    file_name: Optional[str]
     source: str
     include_source: bool
     bot_url: str
-    plant: str = random.choice(Emoji().plants_list)
+    plant: str = random.choice(emoji.plants_list)
 
     @staticmethod
     def parse_from_es_audio_doc(
@@ -71,7 +70,6 @@ class AudioCaptionData(BaseTemplateData):
             source=f"<a href ='https://t.me/{chat.username}/{es_audio_doc.message_id}'>{chat.username}</a>",
             include_source=include_source,
             bot_url=bot_url,
-            # todo: fix this
-            plant=random.choice(Emoji().plants_list),
+            plant=random.choice(emoji.plants_list),
             lang_code=user.chosen_language_code,
         )

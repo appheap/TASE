@@ -13,7 +13,11 @@ from tase.common.utils import (
     get_now_timestamp,
     find_hashtags_in_text,
 )
-from tase.db.db_utils import get_telegram_message_media_type, parse_audio_key
+from tase.db.db_utils import (
+    get_telegram_message_media_type,
+    parse_audio_key,
+    is_audio_valid_for_inline,
+)
 from tase.errors import (
     TelegramMessageWithNoAudio,
     InvalidToVertex,
@@ -150,12 +154,7 @@ class Audio(BaseVertex):
 
         title = getattr(audio, "title", None)
 
-        # todo: check if the following statement is actually true
-        valid_for_inline = (
-            True
-            if title is not None and audio_type == TelegramAudioType.AUDIO_FILE
-            else False
-        )
+        valid_for_inline = is_audio_valid_for_inline(audio, audio_type)
 
         is_forwarded = True if telegram_message.forward_date else False
 
