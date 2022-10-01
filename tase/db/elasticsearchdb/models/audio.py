@@ -13,7 +13,7 @@ from tase.errors import TelegramMessageWithNoAudio
 from tase.my_logger import logger
 from .base_document import BaseDocument
 from ...arangodb.enums import TelegramAudioType
-from ...arangodb.helpers import ElasticQueryMetadata
+from ...arangodb.helpers import ElasticQueryMetadata, BitRateType
 from ...db_utils import (
     get_telegram_message_media_type,
     parse_audio_key,
@@ -55,6 +55,11 @@ class Audio(BaseDocument):
             "dislikes": {"type": "long"},
             "audio_type": {"type": "integer"},
             "valid_for_inline_search": {"type": "boolean"},
+            "estimated_bit_rate_type": {"type": "integer"},
+            "is_forwarded": {"type": "boolean"},
+            "is_deleted": {"type": "boolean"},
+            "deleted_at": {"type": "long"},
+            "is_edited": {"type": "boolean"},
         }
     }
 
@@ -108,6 +113,11 @@ class Audio(BaseDocument):
      query search, then, it cannot be shown in `download_history` section or any other sections that work in inline
      mode.
     """
+    estimated_bit_rate_type: BitRateType
+    is_forwarded: bool
+    is_deleted: bool
+    deleted_at: Optional[int]  # this is not always accurate
+    is_edited: bool
 
     @classmethod
     def parse_id(
@@ -189,6 +199,8 @@ class Audio(BaseDocument):
         performer = clean_text(getattr(audio, "performer", None))
         file_name = clean_text(audio.file_name)
 
+        duration = getattr(audio, "duration", None)
+
         return Audio(
             id=_id,
             chat_id=telegram_message.chat.id,
@@ -197,7 +209,7 @@ class Audio(BaseDocument):
             raw_message_caption=raw_caption,
             message_date=datetime_to_timestamp(telegram_message.date),
             file_unique_id=audio.file_unique_id,
-            duration=getattr(audio, "duration", None),
+            duration=duration,
             performer=performer,
             raw_performer=raw_performer,
             title=title,
@@ -210,7 +222,14 @@ class Audio(BaseDocument):
             ########################################
             views=telegram_message.views or 0,
             valid_for_inline_search=valid_for_inline,
+            estimated_bit_rate_type=BitRateType.estimate(
+                audio.file_size,
+                duration,
+            ),
             audio_type=audio_type,
+            is_forwarded=True if telegram_message.forward_date else False,
+            is_deleted=True if telegram_message.empty else False,
+            is_edited=True if telegram_message.edit_date else False,
         )
 
     @classmethod
@@ -292,8 +311,14 @@ class Audio(BaseDocument):
     ) -> Optional[dict]:
         return {
             "_score": {"order": "desc"},
-            "downloads": {"order": "desc"},
+            "estimated_bit_rate_type": {"order": "desc"},
             "date": {"order": "desc"},
+            "downloads": {"order": "desc"},
+            "shares": {"order": "desc"},
+            "search_hits": {"order": "desc"},
+            "non_search_hits": {"order": "desc"},
+            "likes": {"order": "desc"},
+            "dislikes": {"order": "asc"},
         }
 
 

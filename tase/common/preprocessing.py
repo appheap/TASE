@@ -3,11 +3,9 @@ import re
 import string
 import unicodedata
 from io import StringIO
-from typing import Set, Callable, Optional, List
+from typing import Set, Callable, Optional, List, Tuple
 
 import nltk
-
-from tase.my_logger import logger
 
 url_regex = r"(?i)(?:[a-zA-Z]+://)?(?:www[./])?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9@:%_\\+.~#?&\\/=]*)"
 stop_words_regex = r"""(?x)                          # Set flag to allow verbose regexps
@@ -2094,6 +2092,27 @@ def guess_extension(mime_type: str) -> Optional[str]:
     return mimetypes.guess_extension(mime_type)
 
 
+def separate_file_name_and_extension(text: str) -> Tuple[Optional[str], Optional[str]]:
+    if text is None:
+        return None, None
+
+    mime_type = guess_mime_type(text)
+    if mime_type is None:
+        return text, None
+
+    if not mime_type.startswith("audio/"):
+        return text, None
+
+    ext = guess_extension(mime_type)
+    if ext is None:
+        return text, None
+
+    file_name = text[: text.lower().find(ext)]
+    extension = text[text.lower().find(ext) :]
+
+    return file_name, extension
+
+
 def remove_file_extension(text: str) -> Optional[str]:
     """
     Guess the file name by filtering out extension part
@@ -2193,10 +2212,19 @@ audio_item_pipeline = get_audio_item_pipeline()
 def clean_audio_item_text(
     text: str,
     remove_file_extension_: bool = False,
+    is_file_name: bool = False,
 ) -> Optional[str]:
+    extension = None
+    if is_file_name:
+        text, extension = separate_file_name_and_extension(text)
+
     text = clean_text(text, audio_item_pipeline)
     if remove_file_extension_:
         text = remove_file_extension(text)
+
+    if is_file_name:
+        if text is not None and extension is not None and not remove_file_extension_:
+            text = text + extension
 
     return text
 
@@ -2232,6 +2260,8 @@ def clean_text(
 ) -> Optional[str]:
     if text is None:
         return None
+
+    from tase.my_logger import logger
 
     if pipeline is None or not len(pipeline):
         pipeline = default_pipeline
