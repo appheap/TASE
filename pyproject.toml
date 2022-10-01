@@ -61,6 +61,7 @@ Cython = "^0.29.32"
 #spacy = "<3.0.0"
 nltk = "^3.7"
 spacy = "^3.4.1"
+numpy = "^1.23.3"
 
 [tool.poetry.dev-dependencies]
 

@@ -9,7 +9,6 @@ from arango import CursorEmptyError
 from tase.common.preprocessing import clean_text
 from tase.common.utils import (
     datetime_to_timestamp,
-    generate_token_urlsafe,
     get_now_timestamp,
     find_hashtags_in_text,
 )
@@ -29,6 +28,7 @@ from .base_vertex import BaseVertex
 from .hit import Hit
 from .interaction import Interaction
 from .user import User
+from ...helpers import BitRateType
 
 if TYPE_CHECKING:
     from .. import ArangoGraphMethods
@@ -41,7 +41,6 @@ class Audio(BaseVertex):
 
     _extra_do_not_update_fields = [
         "has_checked_forwarded_message_at",
-        "download_url",
         "deleted_at",
     ]
 
@@ -88,6 +87,7 @@ class Audio(BaseVertex):
      mode.
     """
 
+    estimated_bit_rate_type: BitRateType
     has_checked_forwarded_message: Optional[bool]
     has_checked_forwarded_message_at: Optional[int]
 
@@ -190,6 +190,8 @@ class Audio(BaseVertex):
         performer = clean_text(getattr(audio, "performer", None))
         file_name = clean_text(audio.file_name)
 
+        duration = getattr(audio, "duration", None)
+
         return Audio(
             key=key,
             chat_id=telegram_message.chat.id,
@@ -209,7 +211,7 @@ class Audio(BaseVertex):
             has_protected_content=telegram_message.has_protected_content,
             ################################
             file_unique_id=audio.file_unique_id,
-            duration=getattr(audio, "duration", None),
+            duration=duration,
             performer=performer,
             raw_performer=raw_performer,
             title=title,
@@ -221,6 +223,10 @@ class Audio(BaseVertex):
             date=datetime_to_timestamp(audio.date),
             ################################
             valid_for_inline_search=valid_for_inline,
+            estimated_bit_rate_type=BitRateType.estimate(
+                audio.file_size,
+                duration,
+            ),
             audio_type=audio_type,
             has_checked_forwarded_message=has_checked_forwarded_message,
             is_forwarded=is_forwarded,

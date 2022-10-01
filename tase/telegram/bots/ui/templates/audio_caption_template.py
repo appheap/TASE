@@ -23,6 +23,9 @@ class AudioCaptionTemplate(BaseTemplate):
         "{{c_new_line}}"
         "{{c_dir}}<b>{{s_file_name}}:</b> {{file_name}}"
         "{{c_new_line}}"
+        "{{c_dir}}<b>{{s_quality}}:</b> ~{{quality_string}}"
+        "{{c_new_line}}"
+        "{{c_new_line}}"
         "{{c_dir}}{{emoji._round_pushpin}}{{s_source}}: {% if include_source %}{{source}}{%else%}{{s_sent_by_users}}{% endif %}"
         "{{c_new_line}}"
         "{{c_new_line}}"
@@ -37,6 +40,7 @@ class AudioCaptionData(BaseTemplateData):
     s_performer: str = _trans("Performer")
     s_file_name: str = _trans("File name")
     s_source: str = _trans("Source")
+    s_quality: str = _trans("Quality")
     s_audio_search_engine: str = _trans("Audio Search Engine")
     s_sent_by_users: str = _trans("Submitted by Telegram Audio Search Engine Users")
 
@@ -47,6 +51,7 @@ class AudioCaptionData(BaseTemplateData):
     include_source: bool
     bot_url: str
     plant: str = random.choice(emoji.plants_list)
+    quality_string: str
 
     @staticmethod
     def parse_from_es_audio_doc(
@@ -63,7 +68,7 @@ class AudioCaptionData(BaseTemplateData):
             title=clean_audio_item_text(es_audio_doc.raw_title),
             performer=clean_audio_item_text(es_audio_doc.raw_performer),
             file_name=textwrap.shorten(
-                clean_audio_item_text(es_audio_doc.raw_file_name),
+                clean_audio_item_text(es_audio_doc.raw_file_name, is_file_name=True),
                 width=40,
                 placeholder="...",
             ),
@@ -71,5 +76,8 @@ class AudioCaptionData(BaseTemplateData):
             include_source=include_source,
             bot_url=bot_url,
             plant=random.choice(emoji.plants_list),
+            quality_string=es_audio_doc.estimated_bit_rate_type.get_bit_rate_string(
+                True
+            ),
             lang_code=user.chosen_language_code,
         )

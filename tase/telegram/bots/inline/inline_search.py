@@ -78,14 +78,6 @@ class InlineSearch(OnInlineQuery):
                         es_audio_doc.id,
                     )
 
-                    #  todo: Some audios have null titles, solution?
-                    if not es_audio_doc.valid_for_inline_search:
-                        continue
-
-                    # todo: telegram cannot handle these mime types, any alternative?
-                    if es_audio_doc.mime_type in forbidden_mime_types:
-                        continue
-
                     search_metadata_lst.append(es_audio_doc.search_metadata)
                     audio_keys.append(es_audio_doc.id)
 

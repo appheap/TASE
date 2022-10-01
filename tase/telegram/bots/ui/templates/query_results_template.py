@@ -24,7 +24,7 @@ class QueryResultsTemplate(BaseTemplate):
         "{% for item in items %}"
         "{{c_dir}}<b>{{item.index}}. {{c_dir}}{{emoji._headphone_emoji}} </b><b>{{item.name}}</b>"
         "{{c_new_line}}"
-        "{{c_dir}}      {{emoji._floppy_emoji}} | {{item.file_size}} {{s_MB}} {{c_dir}}{{emoji._clock_emoji}} | {{item.time}}{{c_dir}}"
+        "{{c_dir}}      {{emoji._floppy_emoji}} {{item.file_size}} {{s_MB}} | {{c_dir}}{{emoji._clock_emoji}} {{item.time}}{{c_dir}} | {{emoji._cd}} {{item.quality_string}}"
         "{{c_new_line}}"
         "{{c_dir}}       {{s_download}} /dl_{{item.url}}"
         "{{c_new_line}}"
@@ -59,6 +59,7 @@ class QueryResultsData(BaseTemplateData):
         _title = clean_audio_item_text(es_audio_doc.raw_title)
         _file_name = clean_audio_item_text(
             es_audio_doc.raw_file_name,
+            is_file_name=True,
             remove_file_extension_=True,
         )
         if _title is None:
@@ -86,6 +87,7 @@ class QueryResultsData(BaseTemplateData):
             else "",
             "url": hit.download_url,
             "sep": f"{40 * '-' if index != 0 else ''}",
+            "quality_string": es_audio_doc.estimated_bit_rate_type.get_bit_rate_string(),
         }
 
     @classmethod

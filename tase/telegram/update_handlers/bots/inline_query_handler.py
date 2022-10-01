@@ -13,25 +13,6 @@ from tase.telegram.bots.inline import CustomInlineQueryResult, InlineSearch
 from tase.telegram.bots.ui.inline_buttons.base import InlineButton
 from tase.telegram.update_handlers.base import BaseHandler, HandlerMetadata
 
-known_mime_types = (
-    "audio/mpeg",
-    "audio/mp3",
-    "audio/mp4",
-    "audio/m4a",
-    "audio/mpeg3",
-    "audio/flac",
-    "audio/ogg",
-    "audio/MP3",
-    "audio/x-vorbis+ogg",
-    "audio/x-opus+ogg",
-)
-
-forbidden_mime_types = (
-    "audio/ogg",
-    "audio/x-vorbis+ogg",
-    "audio/x-opus+ogg",
-)
-
 
 class InlineQueryHandler(BaseHandler):
     def init_handlers(self) -> List[HandlerMetadata]:
