@@ -318,7 +318,7 @@ class Audio(BaseDocument):
             "search_hits": {"order": "desc"},
             "non_search_hits": {"order": "desc"},
             "likes": {"order": "desc"},
-            "dislike": {"order": "asc"},
+            "dislikes": {"order": "asc"},
         }
 
 

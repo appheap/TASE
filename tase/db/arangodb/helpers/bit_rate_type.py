@@ -86,6 +86,8 @@ class BitRateType(Enum):
         if include_bps and 1 <= int(self.value) <= 9:
             return q + " kbps"
 
+        return q
+
 
 if __name__ == "__main__":
     print(
