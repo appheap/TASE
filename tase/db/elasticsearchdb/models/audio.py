@@ -252,9 +252,9 @@ class Audio(BaseDocument):
     def get_query(
         cls,
         query: Optional[str],
-        valid_for_inline_search: Optional[bool] = True,
+        filter_by_valid_for_inline_search: Optional[bool] = True,
     ) -> Optional[dict]:
-        if valid_for_inline_search:
+        if filter_by_valid_for_inline_search:
             return {
                 "bool": {
                     "must": {
@@ -413,7 +413,7 @@ class AudioMethods:
         query: str,
         from_: int = 0,
         size: int = 10,
-        valid_for_inline_search: Optional[bool] = True,
+        filter_by_valid_for_inline_search: Optional[bool] = True,
     ) -> Tuple[Optional[List[Audio]], Optional[ElasticQueryMetadata]]:
         """
         Search among the audio files with the given query
@@ -426,7 +426,7 @@ class AudioMethods:
             Number of audio files to skip in the query
         size : int, default : 50
             Number of audio files to return
-        valid_for_inline_search : bool, default: True
+        filter_by_valid_for_inline_search : bool, default: True
             Whether to filter audios by the validity to be shown in inline search of telegram
 
 
@@ -443,6 +443,6 @@ class AudioMethods:
             query,
             from_,
             size,
-            valid_for_inline_search,
+            filter_by_valid_for_inline_search,
         )
         return audios, query_metadata

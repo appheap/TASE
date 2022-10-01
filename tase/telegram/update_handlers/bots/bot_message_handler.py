@@ -146,7 +146,7 @@ class BotMessageHandler(BaseHandler):
                 es_audio_docs, query_metadata = self.db.index.search_audio(
                     query,
                     size=10,
-                    valid_for_inline_search=False,  # todo: is this a good idea?
+                    filter_by_valid_for_inline_search=False,  # todo: is this a good idea?
                 )
                 if (
                     not es_audio_docs
