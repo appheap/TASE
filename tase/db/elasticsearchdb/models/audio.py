@@ -266,7 +266,9 @@ class Audio(BaseDocument):
                             "fields": cls._search_fields,
                         }
                     },
-                    "filter": {"exists": {"field": "title"}},
+                    "filter": {
+                        "match": {"valid_for_inline_search": {"query": "true"}},
+                    },
                 }
             }
         else:
@@ -281,7 +283,6 @@ class Audio(BaseDocument):
                             "fields": cls._search_fields,
                         }
                     },
-                    "filter": {"exists": {"field": "title"}},
                 }
             }
 

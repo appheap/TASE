@@ -179,61 +179,11 @@ class BotMessageHandler(BaseHandler):
                     found_any = False
 
         if found_any:
-
-            def process_item(
-                index,
-                es_audio_doc: elasticsearch_models.Audio,
-                hit: graph_models.vertices.Hit,
-            ) -> Dict[str, str]:
-                duration = timedelta(
-                    seconds=es_audio_doc.duration if es_audio_doc.duration else 0
-                )
-                d = datetime(1, 1, 1) + duration
-                _performer = clean_audio_item_text(es_audio_doc.raw_performer)
-                _title = clean_audio_item_text(es_audio_doc.raw_title)
-                _file_name = clean_audio_item_text(
-                    es_audio_doc.raw_file_name,
-                    remove_file_extension_=True,
-                )
-                if len(_title) >= 2 and len(_performer) >= 2:
-                    name = f"{_performer} - {_title}"
-                elif len(_performer) >= 2:
-                    name = f"{_performer} - {_file_name}"
-                elif len(_title) >= 2:
-                    name = _title
-                else:
-                    name = _file_name
-
-                return {
-                    "index": f"{index + 1:02}",
-                    "name": textwrap.shorten(name, width=35, placeholder="..."),
-                    "file_size": round(es_audio_doc.file_size / 1000_000, 1),
-                    "time": f"{str(d.hour) + ':' if d.hour > 0 else ''}{d.minute:02}:{d.second:02}"
-                    if duration
-                    else "",
-                    "url": hit.download_url,
-                    "sep": f"{40 * '-' if index != 0 else ''}",
-                }
-
-            items = [
-                process_item(index, es_audio_doc, db_hit)
-                for index, (es_audio_doc, db_hit) in reversed(
-                    list(
-                        enumerate(
-                            # filter(
-                            #     lambda args: args[0].title is not None,
-                            #     zip(db_audio_docs, hits),
-                            # )
-                            zip(es_audio_docs, hits),
-                        )
-                    )
-                )
-            ]
-
-            data = QueryResultsData(
+            data = QueryResultsData.parse_from_query(
                 query=query,
-                items=items,
                 lang_code=from_user.chosen_language_code,
+                es_audio_docs=es_audio_docs,
+                hits=hits,
             )
 
             text = BaseTemplate.registry.query_results_template.render(data)
