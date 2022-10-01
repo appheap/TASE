@@ -14,7 +14,11 @@ from tase.my_logger import logger
 from .base_document import BaseDocument
 from ...arangodb.enums import TelegramAudioType
 from ...arangodb.helpers import ElasticQueryMetadata
-from ...db_utils import get_telegram_message_media_type, parse_audio_key
+from ...db_utils import (
+    get_telegram_message_media_type,
+    parse_audio_key,
+    is_audio_valid_for_inline,
+)
 
 
 class Audio(BaseDocument):
@@ -165,12 +169,7 @@ class Audio(BaseDocument):
 
         title = getattr(audio, "title", None)
 
-        # todo: check if the following statement is actually true
-        valid_for_inline = (
-            True
-            if title is not None and audio_type == TelegramAudioType.AUDIO_FILE
-            else False
-        )
+        valid_for_inline = is_audio_valid_for_inline(audio, audio_type)
 
         raw_title = copy.copy(title)
         raw_caption = copy.copy(
@@ -253,9 +252,9 @@ class Audio(BaseDocument):
     def get_query(
         cls,
         query: Optional[str],
-        valid_for_inline_search: Optional[bool] = True,
+        filter_by_valid_for_inline_search: Optional[bool] = True,
     ) -> Optional[dict]:
-        if valid_for_inline_search:
+        if filter_by_valid_for_inline_search:
             return {
                 "bool": {
                     "must": {
@@ -267,7 +266,9 @@ class Audio(BaseDocument):
                             "fields": cls._search_fields,
                         }
                     },
-                    "filter": {"exists": {"field": "title"}},
+                    "filter": {
+                        "match": {"valid_for_inline_search": {"query": "true"}},
+                    },
                 }
             }
         else:
@@ -282,7 +283,6 @@ class Audio(BaseDocument):
                             "fields": cls._search_fields,
                         }
                     },
-                    "filter": {"exists": {"field": "title"}},
                 }
             }
 
@@ -413,7 +413,7 @@ class AudioMethods:
         query: str,
         from_: int = 0,
         size: int = 10,
-        valid_for_inline_search: Optional[bool] = True,
+        filter_by_valid_for_inline_search: Optional[bool] = True,
     ) -> Tuple[Optional[List[Audio]], Optional[ElasticQueryMetadata]]:
         """
         Search among the audio files with the given query
@@ -426,7 +426,7 @@ class AudioMethods:
             Number of audio files to skip in the query
         size : int, default : 50
             Number of audio files to return
-        valid_for_inline_search : bool, default: True
+        filter_by_valid_for_inline_search : bool, default: True
             Whether to filter audios by the validity to be shown in inline search of telegram
 
 
@@ -443,6 +443,6 @@ class AudioMethods:
             query,
             from_,
             size,
-            valid_for_inline_search,
+            filter_by_valid_for_inline_search,
         )
         return audios, query_metadata

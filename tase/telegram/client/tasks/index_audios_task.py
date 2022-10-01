@@ -40,7 +40,7 @@ class IndexAudiosTask(BaseTask):
             chat = db.graph.update_or_create_chat(tg_chat)
 
             if chat:
-                self.metadata = chat.audio_indexer_metadata
+                self.metadata = chat.audio_indexer_metadata.copy()
                 if self.metadata is None:
                     return
                 self.metadata.reset_counters()

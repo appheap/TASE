@@ -477,7 +477,7 @@ class BaseDocument(BaseModel):
         query: str,
         from_: int = 0,
         size: int = 10,
-        valid_for_inline_search: Optional[bool] = True,
+        filter_by_valid_for_inline_search: Optional[bool] = True,
     ) -> Tuple[Optional[List[TBaseDocument]], Optional[ElasticQueryMetadata]]:
         """
         Search among the documents with the given query
@@ -490,7 +490,7 @@ class BaseDocument(BaseModel):
             Number of documents to skip in the query
         size : int, default : 50
             Number of documents to return
-        valid_for_inline_search : bool, default: True
+        filter_by_valid_for_inline_search : bool, default: True
             Whether to filter documents by the validity to be shown in inline search of telegram
 
 
@@ -509,7 +509,7 @@ class BaseDocument(BaseModel):
                 index=cls._index_name,
                 from_=from_,
                 size=size,
-                query=cls.get_query(query, valid_for_inline_search),
+                query=cls.get_query(query, filter_by_valid_for_inline_search),
                 sort=cls.get_sort(),
             )
 
@@ -553,7 +553,7 @@ class BaseDocument(BaseModel):
     def get_query(
         cls,
         query: Optional[str],
-        valid_for_inline_search: Optional[bool] = True,
+        filter_by_valid_for_inline_search: Optional[bool] = True,
     ) -> dict:
         """
         Get the query for this index
@@ -562,7 +562,7 @@ class BaseDocument(BaseModel):
         ----------
         query : str, optional
             Query string to search for
-        valid_for_inline_search : bool, default : True
+        filter_by_valid_for_inline_search : bool, default : True
             Whether to filter documents by the validity to be shown in inline search of telegram
 
         Returns

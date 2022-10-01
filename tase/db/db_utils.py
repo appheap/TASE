@@ -51,3 +51,45 @@ def parse_audio_key(telegram_message: pyrogram.types.Message) -> Optional[str]:
     if telegram_message is None:
         return None
     return f"{telegram_message.chat.id}:{telegram_message.id}"
+
+
+forbidden_mime_types = (
+    "audio/aac",
+    "audio/AAC",
+    "audio/x-flac",
+    "audio/flac",
+    "audio/MP3",
+    "audio/m4a",
+    "audio/mpeg3",
+    "audio/x-wav",
+    "audio/wav",
+    "audio/ogg",
+    "audio/x-vorbis+ogg",
+    "audio/x-opus+ogg",
+)
+
+valid_mime_types_for_for_inline_search = (
+    "audio/mpeg",
+    "audio/mp3",
+    "audio/mp4",
+)
+
+
+def is_audio_valid_for_inline(
+    audio: Union[pyrogram.types.Audio, pyrogram.types.Document],
+    audio_type: TelegramAudioType,
+) -> bool:
+    title = getattr(audio, "title", None)
+    if title is None or not len(title):
+        return False
+    if audio_type != TelegramAudioType.AUDIO_FILE:
+        return False
+    if audio.mime_type is None:
+        return False
+    if (
+        audio.mime_type in forbidden_mime_types
+        or audio.mime_type not in valid_mime_types_for_for_inline_search
+    ):
+        return False
+
+    return True

@@ -59,7 +59,7 @@ class InlineSearch(OnInlineQuery):
                     telegram_inline_query.query,
                     from_=result.from_,
                     size=15,  # todo: update?
-                    valid_for_inline_search=True,
+                    filter_by_valid_for_inline_search=True,
                 )
 
                 if not es_audio_docs or not len(es_audio_docs) or not query_metadata:
