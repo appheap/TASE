@@ -78,7 +78,6 @@ class Audio(BaseVertex):
     date: Optional[int]
 
     ####################################################
-    download_url: str
     audio_type: TelegramAudioType  # whether the audio file is shown in the `audios` or `files/documents` section of telegram app
     valid_for_inline_search: bool
     """
@@ -221,7 +220,6 @@ class Audio(BaseVertex):
             file_size=audio.file_size,
             date=datetime_to_timestamp(audio.date),
             ################################
-            download_url=generate_token_urlsafe(),
             valid_for_inline_search=valid_for_inline,
             audio_type=audio_type,
             has_checked_forwarded_message=has_checked_forwarded_message,
