@@ -5,6 +5,7 @@ import pyrogram
 from tase.common.utils import emoji
 from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.enums import ChatType, InteractionType
+from tase.db.arangodb.helpers import AudioKeyboardStatus
 from tase.errors import (
     PlaylistDoesNotExists,
     HitDoesNotExists,
@@ -14,6 +15,7 @@ from tase.errors import (
 from tase.my_logger import logger
 from tase.telegram.update_handlers.base import BaseHandler
 from .base import InlineButton, InlineButtonType
+from .common import get_audio_markup_keyboard
 
 
 class ToggleLikeAudioInlineButton(InlineButton):
@@ -88,22 +90,79 @@ class ToggleLikeAudioInlineButton(InlineButton):
                     )
                     reply_markup.inline_keyboard[like_dislike_index][
                         1
-                    ].text = f"{emoji._dark_thumbs_up if not has_liked else emoji._light_thumbs_up}"
+                    ].text = self.new_text(not has_liked)
 
                     if update_dislike_button:
                         reply_markup.inline_keyboard[like_dislike_index][
                             0
-                        ].text = f"{emoji._dark_thumbs_down if not is_disliked else emoji._light_thumbs_down}"
+                        ].text = self.new_text(
+                            not is_disliked,
+                            thumbs_up=False,
+                        )
                     try:
                         telegram_callback_query.edit_message_reply_markup(reply_markup)
                     except Exception as e:
                         pass
+                elif telegram_callback_query.inline_message_id:
+                    audio_inline_message = handler.db.document.find_audio_inline_message_by_message_inline_id(
+                        handler.telegram_client.telegram_id,
+                        from_user.user_id,
+                        telegram_callback_query.inline_message_id,
+                    )
+                    if audio_inline_message:
+                        status = AudioKeyboardStatus.get_status(
+                            handler.db,
+                            from_user,
+                            hit_download_url,
+                        )
+
+                        reply_markup = get_audio_markup_keyboard(
+                            handler.telegram_client.get_me().username,
+                            chat_type,
+                            from_user.chosen_language_code,
+                            hit_download_url,
+                            True,
+                            status,
+                        )
+                        if reply_markup:
+                            like_dislike_index = (
+                                1 if len(reply_markup.inline_keyboard) == 3 else 0
+                            )
+                            reply_markup.inline_keyboard[like_dislike_index][
+                                1
+                            ].text = self.new_text(not has_liked)
+
+                            if update_dislike_button:
+                                reply_markup.inline_keyboard[like_dislike_index][
+                                    0
+                                ].text = self.new_text(
+                                    not is_disliked,
+                                    thumbs_up=False,
+                                )
+
+                            try:
+                                client.edit_inline_reply_markup(
+                                    telegram_callback_query.inline_message_id,
+                                    reply_markup,
+                                )
+                            except Exception as e:
+                                logger.exception(e)
             else:
                 telegram_callback_query.answer("Internal error")
 
+    def new_text(
+        self,
+        active: bool,
+        thumbs_up: bool = True,
+    ) -> str:
+        if thumbs_up:
+            return f"{emoji._dark_thumbs_up if active else emoji._light_thumbs_up}"
+        else:
+            return f"{emoji._dark_thumbs_down if active else emoji._light_thumbs_down}"
+
     def change_text(
         self,
-        has_liked: bool,
+        is_disliked: bool,
     ) -> ToggleLikeAudioInlineButton:
-        self.text = f"{emoji._dark_thumbs_up if has_liked else emoji._light_thumbs_up}"
+        self.text = self.new_text(is_disliked)
         return self

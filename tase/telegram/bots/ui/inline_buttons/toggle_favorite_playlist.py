@@ -5,6 +5,7 @@ import pyrogram
 from tase.common.utils import emoji
 from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.enums import ChatType
+from tase.db.arangodb.helpers import AudioKeyboardStatus
 from tase.errors import (
     PlaylistDoesNotExists,
     HitDoesNotExists,
@@ -14,6 +15,7 @@ from tase.errors import (
 from tase.my_logger import logger
 from tase.telegram.update_handlers.base import BaseHandler
 from .base import InlineButton, InlineButtonType
+from .common import get_audio_markup_keyboard
 
 
 class ToggleFavoritePlaylistInlineButton(InlineButton):
@@ -68,10 +70,42 @@ class ToggleFavoritePlaylistInlineButton(InlineButton):
                     )
                     if telegram_callback_query.message is not None:
                         reply_markup = telegram_callback_query.message.reply_markup
-                        reply_markup.inline_keyboard[0][
-                            2
-                        ].text = f"{emoji._red_heart if not in_favorite_playlist else emoji._white_heart}"
+                        reply_markup.inline_keyboard[0][2].text = self.new_text(
+                            not in_favorite_playlist
+                        )
+
                         telegram_callback_query.edit_message_reply_markup(reply_markup)
+                    elif telegram_callback_query.inline_message_id:
+                        audio_inline_message = handler.db.document.find_audio_inline_message_by_message_inline_id(
+                            handler.telegram_client.telegram_id,
+                            from_user.user_id,
+                            telegram_callback_query.inline_message_id,
+                        )
+                        if audio_inline_message:
+                            status = AudioKeyboardStatus.get_status(
+                                handler.db,
+                                from_user,
+                                hit_download_url,
+                            )
+                            reply_markup = get_audio_markup_keyboard(
+                                handler.telegram_client.get_me().username,
+                                chat_type,
+                                from_user.chosen_language_code,
+                                hit_download_url,
+                                True,
+                                status,
+                            )
+                            if reply_markup:
+                                reply_markup.inline_keyboard[0][2].text = self.new_text(
+                                    not in_favorite_playlist
+                                )
+                                try:
+                                    client.edit_inline_reply_markup(
+                                        telegram_callback_query.inline_message_id,
+                                        reply_markup,
+                                    )
+                                except Exception as e:
+                                    logger.exception(e)
                 else:
                     telegram_callback_query.answer("It's already on the playlist")
             else:
@@ -79,11 +113,15 @@ class ToggleFavoritePlaylistInlineButton(InlineButton):
                     "Did not add to / remove from the playlist"
                 )
 
+    def new_text(
+        self,
+        active: bool,
+    ) -> str:
+        return f"{emoji._red_heart if active else emoji._white_heart}"
+
     def change_text(
         self,
-        in_favorite_playlist: bool,
+        active: bool,
     ) -> ToggleFavoritePlaylistInlineButton:
-        self.text = (
-            f"{emoji._red_heart if in_favorite_playlist else emoji._white_heart}"
-        )
+        self.text = self.new_text(active)
         return self

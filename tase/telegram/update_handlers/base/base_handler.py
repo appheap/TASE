@@ -9,6 +9,7 @@ from pyrogram.enums import ParseMode
 from tase.common.utils import _trans
 from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.enums import TelegramAudioType, InteractionType, ChatType
+from tase.db.arangodb.helpers import AudioKeyboardStatus
 from tase.db.database_client import DatabaseClient
 from tase.db.db_utils import get_telegram_message_media_type
 from tase.db.elasticsearchdb import models as elasticsearch_models
@@ -151,26 +152,19 @@ class BaseHandler(BaseModel):
                         get_audio_markup_keyboard,
                     )
 
+                    status = AudioKeyboardStatus.get_status(
+                        self.db,
+                        from_user,
+                        hit_download_url,
+                    )
+
                     markup_keyboard = get_audio_markup_keyboard(
                         self.telegram_client.get_me().username,
                         ChatType.BOT,
                         from_user.chosen_language_code,
                         hit.download_url,
                         audio_vertex.valid_for_inline_search,
-                        self.db.graph.audio_in_favorite_playlist(
-                            from_user,
-                            hit.download_url,
-                        ),
-                        self.db.graph.audio_is_interacted_by_user(
-                            from_user,
-                            hit.download_url,
-                            InteractionType.DISLIKE,
-                        ),
-                        self.db.graph.audio_is_interacted_by_user(
-                            from_user,
-                            hit.download_url,
-                            InteractionType.LIKE,
-                        ),
+                        status,
                     )
 
                     if audio_vertex.audio_type == TelegramAudioType.AUDIO_FILE:

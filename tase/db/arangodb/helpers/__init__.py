@@ -4,6 +4,7 @@ This package is used to include store that are neither `vertex` nor `edge`, but 
 """
 from .audio_doc_indexer_metadata import AudioDocIndexerMetadata
 from .audio_indexer_metadata import AudioIndexerMetadata
+from .audio_keyboard_status import AudioKeyboardStatus
 from .base_indexer_metadata import BaseIndexerMetadata
 from .bit_rate_type import BitRateType
 from .elastic_query_metadata import ElasticQueryMetadata

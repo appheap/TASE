@@ -6,12 +6,24 @@ from pyrogram.types import InlineQueryResultCachedAudio
 
 from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.enums import ChatType
+from tase.db.arangodb.helpers import AudioKeyboardStatus
 from tase.db.elasticsearchdb import models as elasticsearch_models
 from tase.telegram.bots.ui.templates import AudioCaptionData, BaseTemplate
 from .base_inline_item import BaseInlineItem
 
 
 class AudioItem(BaseInlineItem):
+    @classmethod
+    def parse_id(
+        cls,
+        telegram_inline_query: pyrogram.types.InlineQuery,
+        hit: graph_models.vertices.Hit,
+        chat_type: Optional[ChatType] = None,
+    ) -> Optional[str]:
+        if chat_type is None:
+            chat_type = ChatType.parse_from_pyrogram(telegram_inline_query.chat_type)
+        return f"{telegram_inline_query.id}->{hit.download_url}->{chat_type.value}->{random.randint(1, 1_000_000)}"
+
     @classmethod
     def get_item(
         cls,
@@ -22,22 +34,26 @@ class AudioItem(BaseInlineItem):
         telegram_inline_query: pyrogram.types.InlineQuery,
         chats_dict: dict,
         hit: graph_models.vertices.Hit,
-        audio_in_favorite_playlist: bool,
-        audio_is_disliked: bool,
-        audio_is_liked: bool,
+        status: AudioKeyboardStatus,
     ) -> Optional[pyrogram.types.InlineQueryResult]:
         if telegram_file_id is None or from_user is None:
             return None
-
-        chat_type = ChatType.parse_from_pyrogram(telegram_inline_query.chat_type)
 
         from tase.telegram.bots.ui.inline_buttons.common import (
             get_audio_markup_keyboard,
         )
 
+        chat_type = ChatType.parse_from_pyrogram(telegram_inline_query.chat_type)
+
+        result_id = cls.parse_id(
+            telegram_inline_query,
+            hit,
+            chat_type,
+        )
+
         return InlineQueryResultCachedAudio(
             audio_file_id=telegram_file_id,
-            id=f"{telegram_inline_query.id}->{hit.download_url}->{chat_type.value}->{random.randint(1, 1_000_000)}",
+            id=result_id,
             caption=BaseTemplate.registry.audio_caption_template.render(
                 AudioCaptionData.parse_from_es_audio_doc(
                     es_audio_doc,
@@ -53,8 +69,6 @@ class AudioItem(BaseInlineItem):
                 from_user.chosen_language_code,
                 hit.download_url,
                 es_audio_doc.valid_for_inline_search,
-                audio_in_favorite_playlist,
-                audio_is_disliked,
-                audio_is_liked,
+                status,
             ),
         )

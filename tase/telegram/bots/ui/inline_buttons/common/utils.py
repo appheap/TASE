@@ -5,7 +5,8 @@ import pyrogram
 from pyrogram.types import InlineKeyboardMarkup
 
 from tase.db.arangodb import graph as graph_models
-from tase.db.arangodb.enums import InlineQueryType, InteractionType, ChatType
+from tase.db.arangodb.enums import InlineQueryType, ChatType
+from tase.db.arangodb.helpers import AudioKeyboardStatus
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.bots.ui.inline_buttons.base import InlineButton, InlineButtonType
 from tase.telegram.bots.ui.inline_items import (
@@ -134,6 +135,18 @@ def populate_audio_items(
             if not audio_doc or not audio_vertex.valid_for_inline_search:
                 continue
 
+            handler.db.document.get_or_create_audio_inline_message(
+                handler.telegram_client.telegram_id,
+                from_user.user_id,
+                telegram_inline_query.id,
+            )
+
+            status = AudioKeyboardStatus.get_status(
+                handler.db,
+                from_user,
+                hit.download_url,
+            )
+
             results.append(
                 AudioItem.get_item(
                     handler.telegram_client.get_me().username,
@@ -143,20 +156,7 @@ def populate_audio_items(
                     telegram_inline_query,
                     chats_dict,
                     hit,
-                    handler.db.graph.audio_in_favorite_playlist(
-                        from_user,
-                        hit.download_url,
-                    ),
-                    handler.db.graph.audio_is_interacted_by_user(
-                        from_user,
-                        hit.download_url,
-                        InteractionType.DISLIKE,
-                    ),
-                    handler.db.graph.audio_is_interacted_by_user(
-                        from_user,
-                        hit.download_url,
-                        InteractionType.LIKE,
-                    ),
+                    status,
                 )
             )
     else:
@@ -169,9 +169,7 @@ def get_audio_markup_keyboard(
     chosen_language_code: str,
     hit_download_url: str,
     valid_for_inline_search: bool,
-    audio_in_favorite_playlist: bool,
-    audio_is_disliked: bool,
-    audio_is_liked: bool,
+    status: AudioKeyboardStatus,
 ) -> InlineKeyboardMarkup:
     """
     Get markup keyboard for an audio message
@@ -188,12 +186,8 @@ def get_audio_markup_keyboard(
         Download URL of the hit
     valid_for_inline_search : bool
         Whether this audio is valid for inline mode or not
-    audio_in_favorite_playlist : bool
-        Whether this audio belongs to the user's favorite playlist or not
-    audio_is_disliked : bool
-        Whether this audio is disliked by the user or not
-    audio_is_liked : bool
-        Whether this audio is liked by the user or not
+    status : AudioKeyboardStatus
+        Keyboard status of this audio file
 
     Returns
     -------
@@ -218,7 +212,7 @@ def get_audio_markup_keyboard(
                         hit_download_url,
                     ),
                     InlineButton.get_button(InlineButtonType.ADD_TO_FAVORITE_PLAYLIST)
-                    .change_text(audio_in_favorite_playlist)
+                    .change_text(status.is_in_favorite_playlist)
                     .get_inline_keyboard_button(
                         chosen_language_code,
                         callback_arg=hit_download_url,
@@ -226,13 +220,13 @@ def get_audio_markup_keyboard(
                 ],
                 [
                     InlineButton.get_button(InlineButtonType.DISLIKE_AUDIO)
-                    .change_text(audio_is_disliked)
+                    .change_text(status.is_disliked)
                     .get_inline_keyboard_button(
                         chosen_language_code,
                         callback_arg=hit_download_url,
                     ),
                     InlineButton.get_button(InlineButtonType.LIKE_AUDIO)
-                    .change_text(audio_is_liked)
+                    .change_text(status.is_liked)
                     .get_inline_keyboard_button(
                         chosen_language_code,
                         callback_arg=hit_download_url,
@@ -250,13 +244,13 @@ def get_audio_markup_keyboard(
             markup = [
                 [
                     InlineButton.get_button(InlineButtonType.DISLIKE_AUDIO)
-                    .change_text(audio_is_disliked)
+                    .change_text(status.is_disliked)
                     .get_inline_keyboard_button(
                         chosen_language_code,
                         callback_arg=hit_download_url,
                     ),
                     InlineButton.get_button(InlineButtonType.LIKE_AUDIO)
-                    .change_text(audio_is_liked)
+                    .change_text(status.is_liked)
                     .get_inline_keyboard_button(
                         chosen_language_code,
                         callback_arg=hit_download_url,
