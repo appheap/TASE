@@ -289,8 +289,18 @@ class AudioMethods:
         "for dl_v,dl_e in 1..1 outbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@has'], vertexCollections:['@interactions']}"
         "   filter dl_v.type == @interaction_type"
         "   sort dl_e.created_at DESC"
-        "   limit @offset, @limit"
         "   for aud_v,has_e in 1..1 outbound dl_v graph '@graph_name' options {order:'dfs', edgeCollections:['@has'], vertexCollections:['@audios']}"
+        "       limit @offset, @limit"
+        "       return aud_v"
+    )
+
+    _get_user_download_history_inline_query = (
+        "for dl_v,dl_e in 1..1 outbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@has'], vertexCollections:['@interactions']}"
+        "   filter dl_v.type == @interaction_type"
+        "   sort dl_e.created_at DESC"
+        "   for aud_v,has_e in 1..1 outbound dl_v graph '@graph_name' options {order:'dfs', edgeCollections:['@has'], vertexCollections:['@audios']}"
+        "       filter aud_v.valid_for_inline_search == true"
+        "       limit @offset, @limit"
         "       return aud_v"
     )
 
@@ -595,8 +605,9 @@ class AudioMethods:
     def get_user_download_history(
         self,
         user: User,
+        filter_by_valid_for_inline_search: bool = True,
         offset: int = 0,
-        limit: int = 10,
+        limit: int = 15,
     ) -> Generator[Audio, None, None]:
         """
         Get `User` download history.
@@ -605,9 +616,11 @@ class AudioMethods:
         ----------
         user : User
             User to get the download history
+        filter_by_valid_for_inline_search : bool, default : True
+            Whether to only get audio files that are valid to be shown in inline mode
         offset : int, default : 0
             Offset to get the download history query after
-        limit : int, default : 10
+        limit : int, default : 15
             Number of `Audio`s to query
 
         Yields
@@ -622,7 +635,9 @@ class AudioMethods:
         from tase.db.arangodb.graph.edges import Has
 
         cursor = Audio.execute_query(
-            self._get_user_download_history_query,
+            self._get_user_download_history_inline_query
+            if filter_by_valid_for_inline_search
+            else self._get_user_download_history_query,
             bind_vars={
                 "start_vertex": user.id,
                 "has": Has._collection_name,

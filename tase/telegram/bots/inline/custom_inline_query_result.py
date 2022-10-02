@@ -9,10 +9,11 @@ from tase.my_logger import logger
 
 
 class CustomInlineQueryResult(BaseModel):
-    results: List["pyrogram.types.InlineQueryResult"] = Field(default_factory=list)
+    results: List[pyrogram.types.InlineQueryResult] = Field(default_factory=list)
     next_offset: Optional[int]
     cache_time: int = Field(default=1)
     from_: int = Field(default=0)
+    extra_items: int = Field(default=0)
 
     class Config:
         arbitrary_types_allowed = True
@@ -26,8 +27,18 @@ class CustomInlineQueryResult(BaseModel):
         if inline_query.offset is not None and len(inline_query.offset):
             self.from_ = int(inline_query.offset)
 
+    def set_extra_items(self, value: int):
+        if value is None:
+            return
+
+        self.extra_items = value
+
     def get_next_offset(self) -> str:
-        return str(self.from_ + len(self.results) + 1) if len(self.results) else None
+        return (
+            str(self.from_ + len(self.results) - self.extra_items)
+            if len(self.results)
+            else None
+        )
 
     def answer_query(
         self,

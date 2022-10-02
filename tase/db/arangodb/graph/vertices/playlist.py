@@ -141,6 +141,14 @@ class PlaylistMethods:
         "   return audio_v"
     )
 
+    _get_playlist_audios_for_inline_query = (
+        "for audio_v,e in 1..1 outbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@has'], vertexCollections:['@audios']}"
+        "   sort e.created_at DESC"
+        "   filter audio_v.valid_for_inline_search == true"
+        "   limit @offset, @limit"
+        "   return audio_v"
+    )
+
     _get_audio_playlists_query = (
         "let playlist_keys=("
         "   for v,e in 1..1 outbound '@user_id' graph '@graph_name' options {order:'dfs', edgeCollections:['@has'],vertexCollections:['@playlists']}"
@@ -843,8 +851,9 @@ class PlaylistMethods:
         self: ArangoGraphMethods,
         user: User,
         playlist_key: str,
+        filter_by_valid_for_inline_search: bool = True,
         offset: int = 0,
-        limit: int = 10,
+        limit: int = 15,
     ) -> Generator[Audio, None, None]:
         """
         Get `Playlist` audios.
@@ -855,9 +864,11 @@ class PlaylistMethods:
             User to get the playlist audios from
         playlist_key : str
             Playlist key to get the audios from
+        filter_by_valid_for_inline_search : bool, default : True
+            Whether to only get audio files that are valid to be shown in inline mode
         offset : int, default : 0
             Offset to get the audios query after
-        limit : int, default : 10
+        limit : int, default : 15
             Number of `Audio`s to query
 
         Yields
@@ -882,7 +893,9 @@ class PlaylistMethods:
         from tase.db.arangodb.graph.edges import Has
 
         cursor = Audio.execute_query(
-            self._get_playlist_audios_query,
+            self._get_playlist_audios_for_inline_query
+            if filter_by_valid_for_inline_search
+            else self._get_playlist_audios_query,
             bind_vars={
                 "start_vertex": playlist.id,
                 "has": Has._collection_name,

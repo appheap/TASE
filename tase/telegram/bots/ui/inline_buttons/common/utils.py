@@ -71,6 +71,10 @@ def populate_playlist_list(
                 telegram_inline_query,
             )
         )
+
+    if user_playlist_count < 11:
+        result.set_extra_items(1)
+
     for playlist in playlists:
         results.append(
             PlaylistItem.get_item(
@@ -122,7 +126,7 @@ def populate_audio_items(
         audio_vertices,
         telegram_inline_query=telegram_inline_query,
         inline_query_type=InlineQueryType.COMMAND,
-        next_offset=result.get_next_offset(),
+        next_offset=result.get_next_offset(),  # fixme: the result is not correct
     )
     if db_query and hits:
         for audio_vertex, hit in zip(audio_vertices, hits):
@@ -132,7 +136,7 @@ def populate_audio_items(
             )
             es_audio_doc = handler.db.index.get_audio_by_id(audio_vertex.key)
 
-            if not audio_doc or not audio_vertex.valid_for_inline_search:
+            if not audio_doc:
                 continue
 
             handler.db.document.get_or_create_audio_inline_message(
