@@ -87,6 +87,18 @@ class DownloadHistoryInlineButton(InlineButton):
         hit_download_url = result_id_list[1]
         chat_type = ChatType(int(result_id_list[2]))
 
+        if chat_type == ChatType.BOT:
+            # fixme: only store audio inline messages for inline queries in the bot chat
+            updated = handler.db.document.set_audio_inline_message_id(
+                handler.telegram_client.telegram_id,
+                from_user.user_id,
+                inline_query_id,
+                telegram_chosen_inline_result.inline_message_id,
+            )
+            if not updated:
+                # could not update the inline message document, what now?
+                pass
+
         interaction_vertex = handler.db.graph.create_interaction(
             hit_download_url,
             from_user,
