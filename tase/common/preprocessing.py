@@ -5,6 +5,7 @@ import unicodedata
 from io import StringIO
 from typing import Set, Callable, Optional, List, Tuple
 
+import emoji
 import nltk
 
 url_regex = r"(?i)(?:[a-zA-Z]+://)?(?:www[./])?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9@:%_\\+.~#?&\\/=]*)"
@@ -1998,11 +1999,32 @@ def remove_hashtags(text: str) -> Optional[str]:
     return replace_hashtags(text, "")
 
 
+def replace_punctuation(
+    text: str,
+    symbol: str = " ",
+) -> Optional[str]:
+    if text is None:
+        return None
+
+    table = str.maketrans({key: symbol for key in string.punctuation})
+    return text.translate(table)
+
+
 def remove_punctuation(text: str) -> Optional[str]:
     if text is None:
         return None
 
     return text.translate(str.maketrans("", "", punctuation_chars))
+
+
+def replace_punctuation_without_dot(
+    text: str,
+    symbol: str = " ",
+) -> Optional[str]:
+    if text is None:
+        return None
+    table = str.maketrans({key: symbol for key in punctuation_chars_without_dot})
+    return text.translate(table)
 
 
 def remove_punctuation_without_dot(text: str) -> Optional[str]:
@@ -2148,6 +2170,20 @@ def remove_file_extension(text: str) -> Optional[str]:
     return temp
 
 
+def replace_emojis(
+    text: str,
+    symbol: str = " ",
+) -> Optional[str]:
+    if text is None:
+        return None
+
+    return emoji.replace_emoji(text, symbol)
+
+
+def remove_emojis(text: str) -> Optional[str]:
+    return replace_emojis(text, "")
+
+
 ###################################################################
 
 
@@ -2161,10 +2197,11 @@ def get_default_pipeline() -> List[Callable[[str], str]]:
      3. :meth:`tase.common.preprocessing.remove_html_tags`
      4. :meth:`tase.common.preprocessing.remove_telegram_urls`
      5. :meth:`tase.common.preprocessing.remove_urls`
-     6. :meth:`tase.common.preprocessing.remove_punctuation`
-     7. :meth:`tase.common.preprocessing.remove_whitespace`
-     8. :meth:`tase.common.preprocessing.remove_lines`
-     9. :meth:`tase.common.preprocessing.remove_extra_spaces`
+     6. :meth:`tase.common.preprocessing.replace_punctuation`
+     7. :meth:`tase.common.preprocessing.remove_emojis`
+     8. :meth:`tase.common.preprocessing.remove_whitespace`
+     9. :meth:`tase.common.preprocessing.remove_lines`
+     10. :meth:`tase.common.preprocessing.remove_extra_spaces`
     """
     return [
         # lowercase,
@@ -2173,7 +2210,8 @@ def get_default_pipeline() -> List[Callable[[str], str]]:
         remove_html_tags,
         remove_telegram_urls,
         remove_urls,
-        remove_punctuation,
+        replace_punctuation,
+        remove_emojis,
         remove_whitespace,
         remove_lines,
         remove_extra_spaces,
@@ -2199,7 +2237,9 @@ def get_audio_item_pipeline() -> List[Callable[[str], str]]:
         remove_telegram_urls,
         remove_urls,
         remove_hashtags,
-        remove_punctuation_without_dot,
+        # remove_punctuation_without_dot,
+        replace_punctuation_without_dot,
+        remove_emojis,
         remove_whitespace,
         remove_lines,
         remove_extra_spaces,
@@ -2242,6 +2282,7 @@ def get_hashtag_cleaning_pipeline() -> List[Callable[[str], str]]:
     return [
         remove_diacritics,
         lowercase,
+        remove_emojis,
         remove_lines,
         remove_extra_spaces,
     ]
