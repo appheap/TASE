@@ -60,6 +60,21 @@ class ChosenInlineQueryHandler(BaseHandler):
 
             chat_type = ChatType(int(chat_type_value))
 
+            if chat_type == ChatType.BOT:
+                # fixme: only store audio inline messages for inline queries in the bot chat
+                audio_inline_message = self.db.document.find_audio_inline_message(
+                    self.telegram_client.telegram_id,
+                    from_user.user_id,
+                    inline_query_id,
+                )
+                if audio_inline_message:
+                    updated = audio_inline_message.set_inline_message_id(
+                        chosen_inline_result.inline_message_id
+                    )
+                    if not updated:
+                        # could not update the audio inline message, what now?
+                        pass
+
             interaction_vertex = self.db.graph.create_interaction(
                 hit_download_url,
                 from_user,

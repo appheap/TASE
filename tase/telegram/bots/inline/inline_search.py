@@ -3,8 +3,9 @@ from typing import List, Optional
 
 import pyrogram
 
-from tase.db.arangodb.enums import InlineQueryType, InteractionType
+from tase.db.arangodb.enums import InlineQueryType
 from tase.db.arangodb.graph.vertices import User
+from tase.db.arangodb.helpers import AudioKeyboardStatus
 from tase.db.elasticsearchdb import models as elasticsearch_models
 from tase.telegram.bots.ui.inline_items import AudioItem, NoResultItem
 from tase.telegram.update_handlers.base import BaseHandler
@@ -105,6 +106,18 @@ class InlineSearch(OnInlineQuery):
 
                 if db_query and hits:
                     for (audio_doc, es_audio_doc), hit in zip(temp_res, hits):
+                        status = AudioKeyboardStatus.get_status(
+                            handler.db,
+                            from_user,
+                            hit.download_url,
+                        )
+
+                        handler.db.document.get_or_create_audio_inline_message(
+                            handler.telegram_client.telegram_id,
+                            from_user.user_id,
+                            telegram_inline_query.id,
+                        )
+
                         results.append(
                             AudioItem.get_item(
                                 handler.telegram_client.get_me().username,
@@ -114,20 +127,7 @@ class InlineSearch(OnInlineQuery):
                                 telegram_inline_query,
                                 chats_dict,
                                 hit,
-                                handler.db.graph.audio_in_favorite_playlist(
-                                    from_user,
-                                    hit.download_url,
-                                ),
-                                handler.db.graph.audio_is_interacted_by_user(
-                                    from_user,
-                                    hit.download_url,
-                                    InteractionType.DISLIKE,
-                                ),
-                                handler.db.graph.audio_is_interacted_by_user(
-                                    from_user,
-                                    hit.download_url,
-                                    InteractionType.LIKE,
-                                ),
+                                status,
                             )
                         )
 
