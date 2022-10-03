@@ -1,17 +1,18 @@
 from kombu.mixins import ConsumerProducerMixin
 
-import tase
-from tase.telegram.client.worker_commands import BaseWorkerCommand
+from tase.db import DatabaseClient
+from tase.task_distribution import BaseTask
+from tase.telegram.client import TelegramClient
 
 
-class ShutdownCommand(BaseWorkerCommand):
-    name = "shutdown_command"
+class ShutdownTask(BaseTask):
+    name = "shutdown_task"
 
-    def run_command(
+    def run_task(
         self,
         consumer_producer: ConsumerProducerMixin,
-        telegram_client: tase.telegram.client.TelegramClient,
-        db: tase.db.DatabaseClient,
+        telegram_client: TelegramClient,
+        db: DatabaseClient,
     ) -> None:
         consumer_producer.should_stop = True
         # todo: add more functionality to this command. for instance, wrap the tasks in queue in a job and schedule

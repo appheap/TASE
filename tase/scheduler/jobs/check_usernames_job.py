@@ -1,15 +1,15 @@
-import apscheduler.triggers.interval
 import arrow
+from apscheduler.triggers.interval import IntervalTrigger
 
 import tase
-from tase import tase_globals
+from tase.task_distribution import task_globals
 from tase.telegram.client.tasks import CheckUsernamesTask
 from .base_job import BaseJob
 
 
 class CheckUsernamesJob(BaseJob):
     name = "check_usernames_job"
-    trigger = apscheduler.triggers.interval.IntervalTrigger(
+    trigger = IntervalTrigger(
         hours=1,
         start_date=arrow.now().shift(seconds=+20).datetime,
     )
@@ -22,7 +22,7 @@ class CheckUsernamesJob(BaseJob):
 
         for username in usernames:
             # todo: blocking or non-blocking? which one is better suited for this case?
-            tase_globals.publish_client_task(
+            task_globals.publish_client_task(
                 CheckUsernamesTask(
                     kwargs={
                         "username": username,

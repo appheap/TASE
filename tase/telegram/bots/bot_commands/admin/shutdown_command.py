@@ -1,10 +1,10 @@
 import pyrogram
 from pydantic import Field
 
-from tase import tase_globals
 from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.graph.vertices.user import UserRole
-from tase.telegram.client import worker_commands
+from tase.task_distribution import task_globals
+from tase.telegram.client.tasks import ShutdownTask
 from tase.telegram.update_handlers.base import BaseHandler
 from ..base_command import BaseCommand
 from ..bot_command_type import BotCommandType
@@ -30,5 +30,5 @@ class ShutdownCommand(BaseCommand):
     ) -> None:
         # todo: translate me
         message.reply_text("Starting to shutdown the system...")
-        tase_globals.broadcast_worker_command_task(worker_commands.ShutdownCommand())
+        task_globals.broadcast_worker_command_task(ShutdownTask())
         message.reply_text("Shutdown command completed successfully.")

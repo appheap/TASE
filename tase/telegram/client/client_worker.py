@@ -7,14 +7,12 @@ from kombu import Consumer, Queue, Connection
 from kombu.mixins import ConsumerProducerMixin
 from kombu.transport import pyamqp
 
-from tase import tase_globals
 from tase.common.utils import exception_handler
 from tase.configs import ClientTypes
 from tase.db import DatabaseClient
 from tase.my_logger import logger
+from tase.task_distribution import BaseTask, task_globals
 from tase.telegram.client import TelegramClient
-from tase.telegram.client.tasks import BaseTask
-from tase.telegram.client.worker_commands import BaseWorkerCommand
 
 
 class ClientTaskConsumer(ConsumerProducerMixin):
@@ -33,7 +31,7 @@ class ClientTaskConsumer(ConsumerProducerMixin):
 
         client_worker_task_queue = Queue(
             f"{self.telegram_client.get_session_name()}_task_queue",
-            exchange=tase_globals.tase_telegram_exchange,
+            exchange=task_globals.tase_telegram_exchange,
             routing_key=f"{self.telegram_client.get_session_name()}_task_queue",
             auto_delete=True,
         )
@@ -43,7 +41,7 @@ class ClientTaskConsumer(ConsumerProducerMixin):
 
         client_worker_command_queue = Queue(
             f"{self.telegram_client.get_session_name()}_command_queue",
-            exchange=tase_globals.client_worker_controller_broadcast_exchange,
+            exchange=task_globals.client_worker_controller_broadcast_exchange,
             routing_key=f"{self.telegram_client.get_session_name()}_command_queue",
             auto_delete=True,
         )
@@ -71,7 +69,7 @@ class ClientTaskConsumer(ConsumerProducerMixin):
                     accept=["pickle"],
                 ),
                 Consumer(
-                    queues=[tase_globals.telegram_workers_general_task_queue],
+                    queues=[task_globals.telegram_workers_general_task_queue],
                     callbacks=[self.on_task],
                     channel=channel,
                     prefetch_count=1,
@@ -104,18 +102,12 @@ class ClientTaskConsumer(ConsumerProducerMixin):
     ):
         message.ack()
 
-        if isinstance(body, BaseWorkerCommand):
-            body.run_command(self, self.telegram_client, self.db)
-            logger.info(
-                f"Worker got a new command: {body.name} @{self.telegram_client.get_session_name()}"
-            )
-        elif isinstance(body, BaseTask):
+        if isinstance(body, BaseTask):
             logger.info(
                 f"Worker got a new task: {body.name} @ {self.telegram_client.get_session_name()}"
             )
-
             if self.telegram_client.is_connected() and body.name:
-                body.run_task(self.telegram_client, self.db)
+                body.run_task(self, self.telegram_client, self.db)
         else:
             # todo: unknown type for body detected, what now?
             raise TypeError(f"Unknown type for `body`: {type(body)}")

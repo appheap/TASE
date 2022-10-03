@@ -1,5 +1,6 @@
 from typing import Optional
 
+from kombu.mixins import ConsumerProducerMixin
 from pydantic import Field
 
 from tase.common.utils import datetime_to_timestamp, prettify
@@ -7,8 +8,8 @@ from tase.db import DatabaseClient
 from tase.db.arangodb.graph.vertices import Chat
 from tase.db.arangodb.helpers import AudioIndexerMetadata
 from tase.my_logger import logger
+from tase.task_distribution import BaseTask
 from tase.telegram.client import TelegramClient
-from .base_task import BaseTask
 
 
 class IndexAudiosTask(BaseTask):
@@ -18,6 +19,7 @@ class IndexAudiosTask(BaseTask):
 
     def run_task(
         self,
+        consumer_producer: ConsumerProducerMixin,
         telegram_client: TelegramClient,
         db: DatabaseClient,
     ):

@@ -9,10 +9,9 @@ from kombu.mixins import ConsumerProducerMixin
 from kombu.transport import pyamqp
 
 import tase
-from tase import tase_globals
 from tase.common.utils import exception_handler
 from tase.my_logger import logger
-from tase.scheduler.jobs import BaseJob
+from tase.task_distribution import task_globals
 
 
 class SchedulerWorkerProcess(Process):
@@ -56,7 +55,7 @@ class SchedulerJobConsumer(ConsumerProducerMixin):
         self.db = db
         self.task_queues = task_queues
 
-        self.scheduler_queue = tase_globals.scheduler_queue
+        self.scheduler_queue = task_globals.scheduler_queue
 
         self.scheduler = BackgroundScheduler()
         self.scheduler.start()
@@ -117,6 +116,8 @@ class SchedulerJobConsumer(ConsumerProducerMixin):
             Object containing information about this message
         """
         message.ack()
+
+        from tase.scheduler.jobs import BaseJob
 
         job: BaseJob = body
         logger.info(f"scheduler_task_consumer_on_job : {job.name}")

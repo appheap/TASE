@@ -1,9 +1,9 @@
 import pyrogram
 from pydantic import Field
 
-from tase import tase_globals
 from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.graph.vertices.user import UserRole
+from tase.task_distribution import task_globals
 from tase.telegram.bots.bot_commands.base_command import BaseCommand
 from tase.telegram.bots.bot_commands.bot_command_type import BotCommandType
 from tase.telegram.client.tasks import DummyTask
@@ -27,4 +27,4 @@ class DummyCommand(BaseCommand):
         from_user: graph_models.vertices.User,
         from_callback_query: bool,
     ) -> None:
-        tase_globals.publish_client_task(DummyTask())
+        task_globals.publish_client_task(DummyTask())

@@ -1,6 +1,7 @@
 from typing import List, Optional, Union
 
 import pyrogram
+from kombu.mixins import ConsumerProducerMixin
 from pydantic import Field
 
 from tase.common.utils import datetime_to_timestamp, prettify, find_telegram_usernames
@@ -9,8 +10,8 @@ from tase.db.arangodb.enums import MentionSource
 from tase.db.arangodb.graph.vertices import Chat
 from tase.db.arangodb.helpers import UsernameExtractorMetadata
 from tase.my_logger import logger
+from tase.task_distribution import BaseTask
 from tase.telegram.client import TelegramClient
-from .base_task import BaseTask
 
 
 class ExtractUsernamesTask(BaseTask):
@@ -115,6 +116,7 @@ class ExtractUsernamesTask(BaseTask):
 
     def run_task(
         self,
+        consumer_producer: ConsumerProducerMixin,
         telegram_client: TelegramClient,
         db: DatabaseClient,
     ):

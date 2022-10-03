@@ -1,10 +1,10 @@
 import pyrogram
 from pydantic import Field
 
-from tase import tase_globals
 from tase.common.utils import find_telegram_usernames
 from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.graph.vertices.user import UserRole
+from tase.task_distribution import task_globals
 from tase.telegram.client.tasks import IndexAudiosTask, AddChannelTask
 from tase.telegram.update_handlers.base import BaseHandler
 from ..base_command import BaseCommand
@@ -38,10 +38,10 @@ class IndexChannelCommand(BaseCommand):
         chat = handler.db.graph.get_chat_by_username(channel_username)
         if chat:
             if not chat.audio_indexer_metadata:
-                tase_globals.publish_client_task(
+                task_globals.publish_client_task(
                     AddChannelTask(kwargs={"channel_username": channel_username}),
                 )
-            tase_globals.publish_client_task(
+            task_globals.publish_client_task(
                 IndexAudiosTask(kwargs={"chat": chat}),
             )
             # todo: translate me
@@ -49,7 +49,7 @@ class IndexChannelCommand(BaseCommand):
 
         else:
             message.reply_text("This channel does not exist in the Database!")
-            tase_globals.publish_client_task(
+            task_globals.publish_client_task(
                 AddChannelTask(kwargs={"channel_username": channel_username}),
             )
             # todo: translate me

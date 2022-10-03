@@ -1,13 +1,10 @@
-import textwrap
-from datetime import datetime, timedelta
-from typing import List, Dict
+from typing import List
 
 import pyrogram
 from jinja2 import Template
 from pyrogram import filters, handlers
 from pyrogram.enums import ParseMode
 
-from tase.common.preprocessing import clean_audio_item_text
 from tase.common.utils import (
     datetime_to_timestamp,
     exception_handler,
@@ -19,7 +16,6 @@ from tase.db.arangodb.enums import (
     BotTaskType,
     BotTaskStatus,
 )
-from tase.db.elasticsearchdb import models as elasticsearch_models
 from tase.errors import PlaylistDoesNotExists
 from tase.my_logger import logger
 from tase.telegram.bots.bot_commands import BaseCommand, BotCommandType

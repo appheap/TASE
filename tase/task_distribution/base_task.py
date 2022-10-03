@@ -1,5 +1,6 @@
 from typing import List, Optional
 
+from kombu.mixins import ConsumerProducerMixin
 from pydantic import BaseModel, Field
 
 from tase.db.database_client import DatabaseClient
@@ -13,6 +14,7 @@ class BaseTask(BaseModel):
 
     def run_task(
         self,
+        consumer: ConsumerProducerMixin,
         telegram_client: TelegramClient,
         db: DatabaseClient,
     ):

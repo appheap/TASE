@@ -1,10 +1,12 @@
+from typing import TYPE_CHECKING
+
 import kombu
 from decouple import config
 from kombu.entity import TRANSIENT_DELIVERY_MODE
 
-from tase.scheduler.jobs import BaseJob
-from tase.telegram.client.tasks.base_task import BaseTask
-from tase.telegram.client.worker_commands import BaseWorkerCommand
+if TYPE_CHECKING:
+    from tase.scheduler.jobs import BaseJob
+from .base_task import BaseTask
 
 tase_telegram_exchange = kombu.Exchange(
     "tase_telegram_exchange",
@@ -49,7 +51,7 @@ def publish_client_task(
 
     Parameters
     ----------
-    task : tase.telegram.tasks.BaseTask
+    task : tase.task_distribution.BaseTask
         Task to be executed
     target_queue : kombu.Queue
         Queue to send to task to. If no queue is provided, then the task will be broadcasted to all available workers
@@ -61,7 +63,7 @@ def publish_client_task(
     publish(task, target_queue)
 
 
-def publish_job_to_scheduler(job: BaseJob) -> None:
+def publish_job_to_scheduler(job: "BaseJob") -> None:
     """
     Publishes a job on the global scheduler queue to be scheduled
 
@@ -74,14 +76,14 @@ def publish_job_to_scheduler(job: BaseJob) -> None:
 
 
 def broadcast_worker_command_task(
-    task: BaseWorkerCommand,
+    task: BaseTask,
 ) -> None:
     """
     Broadcasts a command on a queue to be executed by all consumers.
 
     Parameters
     ----------
-    task : tase.telegram.client.worker_commands.BaseWorkerCommand
+    task : tase.task_distribution.BaseTask
         Command to be executed
     """
     publish(task, exchange=client_worker_controller_broadcast_exchange)

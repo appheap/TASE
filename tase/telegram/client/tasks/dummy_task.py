@@ -1,11 +1,12 @@
 import time
 
+from kombu.mixins import ConsumerProducerMixin
 from pydantic import Field
 
 from tase.db import DatabaseClient
 from tase.my_logger import logger
+from tase.task_distribution import BaseTask
 from tase.telegram.client import TelegramClient
-from .base_task import BaseTask
 
 
 class DummyTask(BaseTask):
@@ -13,6 +14,7 @@ class DummyTask(BaseTask):
 
     def run_task(
         self,
+        consumer_producer: ConsumerProducerMixin,
         telegram_client: TelegramClient,
         db: DatabaseClient,
     ):
