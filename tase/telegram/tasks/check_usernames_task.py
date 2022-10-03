@@ -1,5 +1,6 @@
 import time
 
+from kombu.mixins import ConsumerProducerMixin
 from pydantic import Field
 from pyrogram.errors import UsernameNotOccupied, UsernameInvalid, FloodWait
 
@@ -7,17 +8,19 @@ from tase.common.utils import get_now_timestamp
 from tase.db import DatabaseClient
 from tase.db.arangodb import graph as graph_models
 from tase.my_logger import logger
+from tase.task_distribution import BaseTask, TaskType
 from tase.telegram.client import TelegramClient
-from .base_task import BaseTask
 
 
 class CheckUsernamesTask(BaseTask):
     name: str = Field(default="check_usernames_task")
+    type = TaskType.ANY_TELEGRAM_CLIENTS_CONSUMER_WORK
 
-    def run_task(
+    def run(
         self,
-        telegram_client: TelegramClient,
+        consumer_producer: ConsumerProducerMixin,
         db: DatabaseClient,
+        telegram_client: TelegramClient = None,
     ):
         username_vertex: graph_models.vertices.Username = self.kwargs.get("username")
         if (

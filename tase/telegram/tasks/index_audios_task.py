@@ -1,5 +1,6 @@
 from typing import Optional
 
+from kombu.mixins import ConsumerProducerMixin
 from pydantic import Field
 
 from tase.common.utils import datetime_to_timestamp, prettify
@@ -7,19 +8,21 @@ from tase.db import DatabaseClient
 from tase.db.arangodb.graph.vertices import Chat
 from tase.db.arangodb.helpers import AudioIndexerMetadata
 from tase.my_logger import logger
+from tase.task_distribution import BaseTask, TaskType
 from tase.telegram.client import TelegramClient
-from .base_task import BaseTask
 
 
 class IndexAudiosTask(BaseTask):
     name: str = Field(default="index_audios_task")
+    type = TaskType.ANY_TELEGRAM_CLIENTS_CONSUMER_WORK
 
     metadata: Optional[AudioIndexerMetadata]
 
-    def run_task(
+    def run(
         self,
-        telegram_client: TelegramClient,
+        consumer_producer: ConsumerProducerMixin,
         db: DatabaseClient,
+        telegram_client: TelegramClient = None,
     ):
         chat: Chat = self.kwargs.get("chat")
         if chat is None:

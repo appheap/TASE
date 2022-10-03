@@ -1,21 +1,24 @@
+from kombu.mixins import ConsumerProducerMixin
 from pydantic import Field
 from pyrogram.enums import ChatType
 from pyrogram.errors import UsernameNotOccupied
 
 from tase.db import DatabaseClient
 from tase.my_logger import logger
+from tase.task_distribution import BaseTask, TaskType
 from tase.telegram.channel_analyzer import ChannelAnalyzer
 from tase.telegram.client import TelegramClient
-from .base_task import BaseTask
 
 
 class AddChannelTask(BaseTask):
     name = Field(default="add_channel_task")
+    type = TaskType.ANY_TELEGRAM_CLIENTS_CONSUMER_WORK
 
-    def run_task(
+    def run(
         self,
-        telegram_client: TelegramClient,
+        consumer_producer: ConsumerProducerMixin,
         db: DatabaseClient,
+        telegram_client: TelegramClient = None,
     ):
         try:
             tg_chat = telegram_client.get_chat(self.kwargs.get("channel_username"))

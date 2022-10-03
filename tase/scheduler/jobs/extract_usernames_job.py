@@ -1,10 +1,9 @@
 import apscheduler.triggers.interval
 import arrow
+from kombu.mixins import ConsumerProducerMixin
 
 import tase
-from tase import tase_globals
 from tase.my_logger import logger
-from tase.telegram.client.tasks import ExtractUsernamesTask
 from .base_job import BaseJob
 
 
@@ -15,19 +14,20 @@ class ExtractUsernamesJob(BaseJob):
         start_date=arrow.now().shift(seconds=+20).datetime,
     )
 
-    def run_job(
+    def run(
         self,
+        consumer: ConsumerProducerMixin,
         db: tase.db.DatabaseClient,
+        telegram_client: "TelegramClient" = None,
     ) -> None:
         db_chats = db.graph.get_chats_sorted_by_username_extractor_score()
+        from tase.telegram.tasks import ExtractUsernamesTask
 
         for chat in db_chats:
             logger.debug(chat.username)
             # todo: blocking or non-blocking? which one is better suited for this case?
-            tase_globals.publish_client_task(
-                ExtractUsernamesTask(
-                    kwargs={
-                        "chat": chat,
-                    }
-                ),
-            )
+            ExtractUsernamesTask(
+                kwargs={
+                    "chat": chat,
+                }
+            ).publish()

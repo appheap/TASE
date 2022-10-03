@@ -70,11 +70,7 @@ class TASE:
                     self.clients.append(tg_client)
                     self.client_managers.append(client_manager)
 
-                scheduler = SchedulerWorkerProcess(
-                    0,
-                    self.database_client,
-                    client_worker_queues,
-                )
+                scheduler = SchedulerWorkerProcess(self.database_client)
                 scheduler.start()
 
                 # todo: do initial job scheduling in a proper way
