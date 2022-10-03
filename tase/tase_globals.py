@@ -1,5 +1,6 @@
 import kombu
 from decouple import config
+from kombu.entity import TRANSIENT_DELIVERY_MODE
 
 from tase.scheduler.jobs import BaseJob
 from tase.telegram.client.tasks.base_task import BaseTask
@@ -8,7 +9,7 @@ from tase.telegram.client.worker_commands import BaseWorkerCommand
 tase_telegram_exchange = kombu.Exchange(
     "tase_telegram_exchange",
     "direct",
-    durable=True,
+    durable=False,
 )
 
 client_worker_controller_broadcast_exchange = kombu.Exchange(
@@ -22,6 +23,7 @@ telegram_workers_general_task_queue = kombu.Queue(
     "telegram_workers_general_task_queue",
     exchange=tase_telegram_exchange,
     routing_key="tase_telegram_queue",
+    auto_delete=True,
 )
 callback_queue = kombu.Queue(
     kombu.uuid(),
@@ -32,6 +34,7 @@ scheduler_queue = kombu.Queue(
     f"scheduler_queue",
     exchange=tase_telegram_exchange,
     routing_key="scheduler_queue",
+    auto_delete=True,
 )
 
 kombu.enable_insecure_serializers()
@@ -125,6 +128,7 @@ def publish(
         producer = conn.Producer(serializer="pickle")
         producer.publish(
             body=body,
+            delivery_mode=TRANSIENT_DELIVERY_MODE,
             exchange=exchange_,
             routing_key=routing_key,
             declare=declare,

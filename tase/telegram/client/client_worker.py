@@ -35,6 +35,7 @@ class ClientTaskConsumer(ConsumerProducerMixin):
             f"{self.telegram_client.get_session_name()}_task_queue",
             exchange=tase_globals.tase_telegram_exchange,
             routing_key=f"{self.telegram_client.get_session_name()}_task_queue",
+            auto_delete=True,
         )
         self.client_worker_task_queue = client_worker_task_queue
         self.client_worker_queues[self.telegram_client.name] = client_worker_task_queue
@@ -44,6 +45,7 @@ class ClientTaskConsumer(ConsumerProducerMixin):
             f"{self.telegram_client.get_session_name()}_command_queue",
             exchange=tase_globals.client_worker_controller_broadcast_exchange,
             routing_key=f"{self.telegram_client.get_session_name()}_command_queue",
+            auto_delete=True,
         )
         self.client_worker_command_queue = client_worker_command_queue
 
