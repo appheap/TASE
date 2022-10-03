@@ -8,20 +8,21 @@ from tase.db import DatabaseClient
 from tase.db.arangodb.graph.vertices import Chat
 from tase.db.arangodb.helpers import AudioIndexerMetadata
 from tase.my_logger import logger
-from tase.task_distribution import BaseTask
+from tase.task_distribution import BaseTask, TaskType
 from tase.telegram.client import TelegramClient
 
 
 class IndexAudiosTask(BaseTask):
     name: str = Field(default="index_audios_task")
+    type = TaskType.ANY_TELEGRAM_CLIENTS_CONSUMER_WORK
 
     metadata: Optional[AudioIndexerMetadata]
 
-    def run_task(
+    def run(
         self,
         consumer_producer: ConsumerProducerMixin,
-        telegram_client: TelegramClient,
         db: DatabaseClient,
+        telegram_client: TelegramClient = None,
     ):
         chat: Chat = self.kwargs.get("chat")
         if chat is None:

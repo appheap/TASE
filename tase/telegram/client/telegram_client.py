@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from enum import Enum
 from typing import Coroutine, Iterable, List, Optional, Union, Dict, Any
 
@@ -5,10 +7,10 @@ import pyrogram
 from pyrogram.errors import PeerIdInvalid
 from pyrogram.handlers.handler import Handler
 
-import tase
 from tase.configs import ClientConfig, ClientTypes
 from tase.my_logger import logger
 from tase.telegram.client.raw_methods import search_messages
+from tase.telegram.update_handlers.base import BaseHandler
 
 
 class UserClientRoles(Enum):
@@ -38,14 +40,14 @@ class BotClientRoles(Enum):
 
 
 class TelegramClient:
-    _client: "pyrogram.Client" = None
-    name: "str" = None
-    api_id: "int" = None
-    api_hash: "str" = None
-    workdir: "str" = None
+    _client: pyrogram.Client = None
+    name: str = None
+    api_id: int = None
+    api_hash: str = None
+    workdir: str = None
     telegram_id: int = None
-    client_type: "ClientTypes"
-    _me: Optional["pyrogram.types.User"] = None
+    client_type: ClientTypes
+    _me: Optional[pyrogram.types.User] = None
 
     def init_client(self):
         pass
@@ -71,7 +73,7 @@ class TelegramClient:
     def is_connected(self) -> bool:
         return self._client.is_connected
 
-    def get_me(self) -> Optional["pyrogram.types.User"]:
+    def get_me(self) -> Optional[pyrogram.types.User]:
         # todo: add a feature to update this on fixed intervals to have latest information
         if self._me is None:
             self._me = self._client.get_me()
@@ -80,7 +82,7 @@ class TelegramClient:
     def get_chat(
         self,
         chat_id: Union[int, str],
-    ) -> Union["pyrogram.types.Chat", "pyrogram.types.ChatPreview"]:
+    ) -> Union[pyrogram.types.Chat, pyrogram.types.ChatPreview]:
         return self._client.get_chat(chat_id=chat_id)
 
     def get_session_name(self) -> str:
@@ -88,14 +90,14 @@ class TelegramClient:
 
     def add_handler(
         self,
-        handler: "Handler",
+        handler: pyrogram.handlers.handler.Handler,
         group: int = 0,
     ):
         return self._client.add_handler(handler, group)
 
     def add_handlers(
         self,
-        handlers_list: List["tase.telegram.update_handlers.base.BaseHandler"],
+        handlers_list: List[BaseHandler],
     ):
         for handler in handlers_list:
             for h in handler.init_handlers():
@@ -113,7 +115,7 @@ class TelegramClient:
 
     def iter_messages(
         self,
-        chat_id: Union["str", "int"],
+        chat_id: Union[str, int],
         query: str = "",
         offset: int = 0,
         offset_id: int = 0,
@@ -132,9 +134,9 @@ class TelegramClient:
 
     @staticmethod
     def _parse(
-        client_config: "ClientConfig",
+        client_config: ClientConfig,
         workdir: str,
-    ) -> Optional["TelegramClient"]:
+    ) -> Optional[TelegramClient]:
         if client_config.type == ClientTypes.USER:
             return UserTelegramClient(
                 client_config,
@@ -153,7 +155,7 @@ class TelegramClient:
         self,
         chat_id: Union[int, str],
         message_ids: Union[int, Iterable[int]] = None,
-    ) -> Union["pyrogram.types.Message", List["pyrogram.types.Message"]]:
+    ) -> Union[pyrogram.types.Message, List[pyrogram.types.Message]]:
         messages = self._client.get_messages(
             chat_id=chat_id,
             message_ids=message_ids,
@@ -165,11 +167,11 @@ class TelegramClient:
 
 
 class UserTelegramClient(TelegramClient):
-    role: "UserClientRoles"
+    role: UserClientRoles
 
     def __init__(
         self,
-        client_config: "ClientConfig",
+        client_config: ClientConfig,
         workdir: str,
     ):
         self.client_type = ClientTypes.USER
@@ -191,12 +193,12 @@ class UserTelegramClient(TelegramClient):
 
 
 class BotTelegramClient(TelegramClient):
-    role: "BotClientRoles"
-    token: "str"
+    role: BotClientRoles
+    token: str
 
     def __init__(
         self,
-        client_config: "ClientConfig",
+        client_config: ClientConfig,
         workdir: str,
     ):
         self.client_type = ClientTypes.BOT

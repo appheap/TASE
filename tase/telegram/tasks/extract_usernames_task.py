@@ -10,12 +10,13 @@ from tase.db.arangodb.enums import MentionSource
 from tase.db.arangodb.graph.vertices import Chat
 from tase.db.arangodb.helpers import UsernameExtractorMetadata
 from tase.my_logger import logger
-from tase.task_distribution import BaseTask
+from tase.task_distribution import BaseTask, TaskType
 from tase.telegram.client import TelegramClient
 
 
 class ExtractUsernamesTask(BaseTask):
     name: str = Field(default="extract_usernames_task")
+    type = TaskType.ANY_TELEGRAM_CLIENTS_CONSUMER_WORK
 
     db: Optional[DatabaseClient] = Field(default=None)
     chat: Optional[Chat] = Field(default=None)
@@ -114,11 +115,11 @@ class ExtractUsernamesTask(BaseTask):
             message.id,
         )
 
-    def run_task(
+    def run(
         self,
         consumer_producer: ConsumerProducerMixin,
-        telegram_client: TelegramClient,
         db: DatabaseClient,
+        telegram_client: TelegramClient = None,
     ):
         db_chat: Chat = self.kwargs.get("db_chat")
         if db_chat is None:

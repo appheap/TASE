@@ -5,19 +5,20 @@ from pyrogram.errors import UsernameNotOccupied
 
 from tase.db import DatabaseClient
 from tase.my_logger import logger
-from tase.task_distribution import BaseTask
+from tase.task_distribution import BaseTask, TaskType
 from tase.telegram.channel_analyzer import ChannelAnalyzer
 from tase.telegram.client import TelegramClient
 
 
 class AddChannelTask(BaseTask):
     name = Field(default="add_channel_task")
+    type = TaskType.ANY_TELEGRAM_CLIENTS_CONSUMER_WORK
 
-    def run_task(
+    def run(
         self,
         consumer_producer: ConsumerProducerMixin,
-        telegram_client: TelegramClient,
         db: DatabaseClient,
+        telegram_client: TelegramClient = None,
     ):
         try:
             tg_chat = telegram_client.get_chat(self.kwargs.get("channel_username"))

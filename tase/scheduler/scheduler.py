@@ -1,36 +1,35 @@
 from multiprocessing import Process
-from typing import Dict, List
+from typing import List
 
 import kombu
 from apscheduler.schedulers.background import BackgroundScheduler
 from decouple import config
-from kombu import Connection, Consumer
+from kombu import Connection, Consumer, Queue
 from kombu.mixins import ConsumerProducerMixin
 from kombu.transport import pyamqp
 
-import tase
+from tase import task_globals
 from tase.common.utils import exception_handler
+from tase.db import DatabaseClient
 from tase.my_logger import logger
-from tase.task_distribution import task_globals
+from tase.scheduler.jobs import BaseJob
+from tase.task_distribution import BaseTask
 
 
 class SchedulerWorkerProcess(Process):
     def __init__(
         self,
-        index: int,
-        db: "tase.db.DatabaseClient",
-        task_queues: Dict["str", "kombu.Queue"],
+        db: DatabaseClient,
     ):
         super().__init__()
+
         self.daemon = True
-        self.name = f"SchedulerWorkerProcess {index}"
-        self.index = index
+        self.name = "SchedulerWorkerProcess"
         self.db = db
-        self.task_queues = task_queues
         self.consumer = None
 
     def run(self) -> None:
-        logger.info(f"SchedulerWorkerProcess {self.index} started ....")
+        logger.info("SchedulerWorkerProcess started ....")
         self.consumer = SchedulerJobConsumer(
             connection=Connection(
                 config("RABBITMQ_URL"),
@@ -38,7 +37,6 @@ class SchedulerWorkerProcess(Process):
                 password=config("RABBITMQ_DEFAULT_PASS"),
             ),
             db=self.db,
-            task_queues=self.task_queues,
         )
         self.consumer.run()
 
@@ -46,19 +44,25 @@ class SchedulerWorkerProcess(Process):
 class SchedulerJobConsumer(ConsumerProducerMixin):
     def __init__(
         self,
-        connection: "Connection",
-        db,
-        task_queues: Dict["str", "kombu.Queue"],
+        connection: kombu.Connection,
+        db: DatabaseClient,
     ):
         logger.info("scheduler task consumer started...")
         self.connection = connection
         self.db = db
-        self.task_queues = task_queues
 
         self.scheduler_queue = task_globals.scheduler_queue
 
         self.scheduler = BackgroundScheduler()
         self.scheduler.start()
+
+        rabbitmq_worker_command_queue = Queue(
+            "scheduler_command_queue",
+            exchange=task_globals.rabbitmq_worker_command_exchange,
+            routing_key="scheduler_command_queue",
+            auto_delete=True,
+        )
+        self.rabbitmq_worker_command_queue = rabbitmq_worker_command_queue
 
     def get_consumers(
         self,
@@ -67,6 +71,13 @@ class SchedulerJobConsumer(ConsumerProducerMixin):
     ) -> List[Consumer]:
         return [
             Consumer(
+                queues=[self.rabbitmq_worker_command_queue],
+                callbacks=[self.on_job],
+                channel=channel,
+                prefetch_count=1,
+                accept=["pickle"],
+            ),
+            Consumer(
                 queues=[self.scheduler_queue],
                 callbacks=[self.on_job_scheduled],
                 channel=channel,
@@ -74,6 +85,22 @@ class SchedulerJobConsumer(ConsumerProducerMixin):
                 accept=["pickle"],
             ),
         ]
+
+    @exception_handler
+    def on_job(
+        self,
+        body: object,
+        message: pyamqp.Message,
+    ):
+        message.ack()
+
+        if isinstance(body, (BaseJob, BaseTask)):
+            logger.info(f"Scheduler got a new task: {body.name}")
+            if body.name:
+                body.run(self, self.db)
+        else:
+            # todo: unknown type for body detected, what now?
+            raise TypeError(f"Unknown type for `body`: {type(body)}")
 
     @exception_handler
     def job_runner(
@@ -96,7 +123,7 @@ class SchedulerJobConsumer(ConsumerProducerMixin):
         -------
         None
         """
-        args[0].run_job(self.db)
+        args[0].run(self, self.db)
 
     @exception_handler
     def on_job_scheduled(

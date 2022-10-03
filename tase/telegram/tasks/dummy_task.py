@@ -5,18 +5,19 @@ from pydantic import Field
 
 from tase.db import DatabaseClient
 from tase.my_logger import logger
-from tase.task_distribution import BaseTask
+from tase.task_distribution import BaseTask, TaskType
 from tase.telegram.client import TelegramClient
 
 
 class DummyTask(BaseTask):
     name: str = Field(default="dummy_task")
+    type = TaskType.ANY_TELEGRAM_CLIENTS_CONSUMER_WORK
 
-    def run_task(
+    def run(
         self,
         consumer_producer: ConsumerProducerMixin,
-        telegram_client: TelegramClient,
         db: DatabaseClient,
+        telegram_client: TelegramClient = None,
     ):
         logger.info(f"Running Dummy Task with client: {telegram_client.name}")
         time.sleep(5)

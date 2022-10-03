@@ -1,9 +1,10 @@
 import arrow
 from apscheduler.triggers.interval import IntervalTrigger
+from kombu.mixins import ConsumerProducerMixin
 
+from tase.db import DatabaseClient
 from tase.my_logger import logger
-from . import BaseJob
-from ...db import DatabaseClient
+from .base_job import BaseJob
 
 
 class DummyJob(BaseJob):
@@ -13,8 +14,10 @@ class DummyJob(BaseJob):
         start_date=arrow.now().datetime,
     )
 
-    def run_job(
+    def run(
         self,
+        consumer: ConsumerProducerMixin,
         db: DatabaseClient,
+        telegram_client: "TelegramClient" = None,
     ):
         logger.info(f"{self.name} : {self.kwargs}")

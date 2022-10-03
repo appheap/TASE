@@ -1,7 +1,9 @@
-from . import task_globals
 from .base_task import BaseTask
+from .shutdown_task import ShutdownTask
+from .task_type import TaskType
 
 __all__ = [
-    "task_globals",
     "BaseTask",
+    "ShutdownTask",
+    "TaskType",
 ]

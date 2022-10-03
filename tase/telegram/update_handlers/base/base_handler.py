@@ -15,14 +15,15 @@ from tase.db.db_utils import get_telegram_message_media_type
 from tase.db.elasticsearchdb import models as elasticsearch_models
 from tase.errors import TelegramMessageWithNoAudio
 from tase.my_logger import logger
-from tase.telegram.client import TelegramClient
+
+# from tase.telegram.client import TelegramClient
 from .handler_metadata import HandlerMetadata
 
 
 class BaseHandler(BaseModel):
     db: DatabaseClient
     task_queues: Dict[str, kombu.Queue]
-    telegram_client: TelegramClient
+    telegram_client: object
 
     class Config:
         arbitrary_types_allowed = True

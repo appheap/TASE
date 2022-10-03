@@ -1,0 +1,9 @@
+from enum import Enum
+
+
+class TaskType(Enum):
+    UNKNOWN = 0
+    ANY_TELEGRAM_CLIENTS_CONSUMER_WORK = 1
+    ONE_TELEGRAM_CLIENT_CONSUMER_WORK = 2
+    RABBITMQ_CONSUMER_COMMAND = 3
+    SCHEDULER_JOB = 4

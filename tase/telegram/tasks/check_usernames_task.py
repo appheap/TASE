@@ -8,18 +8,19 @@ from tase.common.utils import get_now_timestamp
 from tase.db import DatabaseClient
 from tase.db.arangodb import graph as graph_models
 from tase.my_logger import logger
-from tase.task_distribution import BaseTask
+from tase.task_distribution import BaseTask, TaskType
 from tase.telegram.client import TelegramClient
 
 
 class CheckUsernamesTask(BaseTask):
     name: str = Field(default="check_usernames_task")
+    type = TaskType.ANY_TELEGRAM_CLIENTS_CONSUMER_WORK
 
-    def run_task(
+    def run(
         self,
         consumer_producer: ConsumerProducerMixin,
-        telegram_client: TelegramClient,
         db: DatabaseClient,
+        telegram_client: TelegramClient = None,
     ):
         username_vertex: graph_models.vertices.Username = self.kwargs.get("username")
         if (

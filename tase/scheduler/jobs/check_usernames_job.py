@@ -1,10 +1,10 @@
 import arrow
 from apscheduler.triggers.interval import IntervalTrigger
+from kombu.mixins import ConsumerProducerMixin
 
 import tase
-from tase.task_distribution import task_globals
-from tase.telegram.client.tasks import CheckUsernamesTask
 from .base_job import BaseJob
+from ...telegram.tasks import CheckUsernamesTask
 
 
 class CheckUsernamesJob(BaseJob):
@@ -14,18 +14,19 @@ class CheckUsernamesJob(BaseJob):
         start_date=arrow.now().shift(seconds=+20).datetime,
     )
 
-    def run_job(
+    def run(
         self,
+        consumer: ConsumerProducerMixin,
         db: tase.db.DatabaseClient,
+        telegram_client: "TelegramClient" = None,
     ) -> None:
         usernames = db.graph.get_unchecked_usernames()
 
         for username in usernames:
             # todo: blocking or non-blocking? which one is better suited for this case?
-            task_globals.publish_client_task(
-                CheckUsernamesTask(
-                    kwargs={
-                        "username": username,
-                    }
-                ),
-            )
+
+            CheckUsernamesTask(
+                kwargs={
+                    "username": username,
+                }
+            ).publish()

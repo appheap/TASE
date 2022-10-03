@@ -4,8 +4,7 @@ from pydantic import Field
 from tase.common.utils import find_telegram_usernames
 from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.graph.vertices.user import UserRole
-from tase.task_distribution import task_globals
-from tase.telegram.client.tasks import IndexAudiosTask, AddChannelTask
+from tase.telegram.tasks import IndexAudiosTask, AddChannelTask
 from tase.telegram.update_handlers.base import BaseHandler
 from ..base_command import BaseCommand
 from ..bot_command_type import BotCommandType
@@ -38,19 +37,13 @@ class IndexChannelCommand(BaseCommand):
         chat = handler.db.graph.get_chat_by_username(channel_username)
         if chat:
             if not chat.audio_indexer_metadata:
-                task_globals.publish_client_task(
-                    AddChannelTask(kwargs={"channel_username": channel_username}),
-                )
-            task_globals.publish_client_task(
-                IndexAudiosTask(kwargs={"chat": chat}),
-            )
+                AddChannelTask(kwargs={"channel_username": channel_username}).publish()
+            IndexAudiosTask(kwargs={"chat": chat}).publish()
             # todo: translate me
             message.reply_text(f"Started indexing `{chat.title}` channel")
 
         else:
             message.reply_text("This channel does not exist in the Database!")
-            task_globals.publish_client_task(
-                AddChannelTask(kwargs={"channel_username": channel_username}),
-            )
+            AddChannelTask(kwargs={"channel_username": channel_username}).publish()
             # todo: translate me
             message.reply_text("Added channel to the Database for indexing.")
