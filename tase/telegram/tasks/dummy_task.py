@@ -4,14 +4,15 @@ from kombu.mixins import ConsumerProducerMixin
 from pydantic import Field
 
 from tase.db import DatabaseClient
+from tase.db.arangodb.enums import RabbitMQTaskType
 from tase.my_logger import logger
-from tase.task_distribution import BaseTask, TaskType
+from tase.task_distribution import BaseTask, TargetWorkerType
 from tase.telegram.client import TelegramClient
 
 
 class DummyTask(BaseTask):
-    name: str = Field(default="dummy_task")
-    type = TaskType.ANY_TELEGRAM_CLIENTS_CONSUMER_WORK
+    target_worker_type = TargetWorkerType.ANY_TELEGRAM_CLIENTS_CONSUMER_WORK
+    type = RabbitMQTaskType.DUMMY_TASK
 
     def run(
         self,

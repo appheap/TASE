@@ -3,12 +3,13 @@ from kombu.mixins import ConsumerProducerMixin
 from tase.db import DatabaseClient
 from tase.telegram.client import TelegramClient
 from .base_task import BaseTask
-from .task_type import TaskType
+from .target_worker_type import TargetWorkerType
+from ..db.arangodb.enums import RabbitMQTaskType
 
 
 class ShutdownTask(BaseTask):
-    name = "shutdown_task"
-    type = TaskType.RABBITMQ_CONSUMER_COMMAND
+    target_worker_type = TargetWorkerType.RABBITMQ_CONSUMER_COMMAND
+    type = RabbitMQTaskType.SHUTDOWN_TASK
 
     def run(
         self,

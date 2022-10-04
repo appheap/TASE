@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class TaskType(Enum):
+class TargetWorkerType(Enum):
     UNKNOWN = 0
     ANY_TELEGRAM_CLIENTS_CONSUMER_WORK = 1
     ONE_TELEGRAM_CLIENT_CONSUMER_WORK = 2

@@ -4,12 +4,14 @@ from kombu.mixins import ConsumerProducerMixin
 
 import tase
 from .base_job import BaseJob
+from ...db.arangodb.enums import RabbitMQTaskType
 from ...telegram.client import TelegramClient
 from ...telegram.tasks import CheckUsernamesTask
 
 
 class CheckUsernamesJob(BaseJob):
-    name = "check_usernames_job"
+    type = RabbitMQTaskType.CHECK_USERNAMES_JOB
+
     trigger = IntervalTrigger(
         hours=1,
         start_date=arrow.now().shift(seconds=+20).datetime,

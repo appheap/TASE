@@ -3,7 +3,7 @@ from typing import Optional
 import apscheduler.triggers.base
 from pydantic import Field
 
-from tase.task_distribution import BaseTask, TaskType
+from tase.task_distribution import BaseTask, TargetWorkerType
 
 
 class BaseJob(BaseTask):
@@ -12,7 +12,7 @@ class BaseJob(BaseTask):
     """
 
     trigger: Optional[apscheduler.triggers.base.BaseTrigger] = Field(default=None)
-    type = TaskType.SCHEDULER_JOB
+    target_worker_type = TargetWorkerType.SCHEDULER_JOB
 
     class Config:
         arbitrary_types_allowed = True

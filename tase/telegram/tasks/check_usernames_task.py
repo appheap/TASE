@@ -7,14 +7,15 @@ from pyrogram.errors import UsernameNotOccupied, UsernameInvalid, FloodWait
 from tase.common.utils import get_now_timestamp
 from tase.db import DatabaseClient
 from tase.db.arangodb import graph as graph_models
+from tase.db.arangodb.enums import RabbitMQTaskType
 from tase.my_logger import logger
-from tase.task_distribution import BaseTask, TaskType
+from tase.task_distribution import BaseTask, TargetWorkerType
 from tase.telegram.client import TelegramClient
 
 
 class CheckUsernamesTask(BaseTask):
-    name: str = Field(default="check_usernames_task")
-    type = TaskType.ANY_TELEGRAM_CLIENTS_CONSUMER_WORK
+    target_worker_type = TargetWorkerType.ANY_TELEGRAM_CLIENTS_CONSUMER_WORK
+    type = RabbitMQTaskType.CHECK_USERNAMES_TASK
 
     def run(
         self,

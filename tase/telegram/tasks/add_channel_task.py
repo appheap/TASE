@@ -4,15 +4,16 @@ from pyrogram.enums import ChatType
 from pyrogram.errors import UsernameNotOccupied
 
 from tase.db import DatabaseClient
+from tase.db.arangodb.enums import RabbitMQTaskType
 from tase.my_logger import logger
-from tase.task_distribution import BaseTask, TaskType
+from tase.task_distribution import BaseTask, TargetWorkerType
 from tase.telegram.channel_analyzer import ChannelAnalyzer
 from tase.telegram.client import TelegramClient
 
 
 class AddChannelTask(BaseTask):
-    name = Field(default="add_channel_task")
-    type = TaskType.ANY_TELEGRAM_CLIENTS_CONSUMER_WORK
+    target_worker_type = TargetWorkerType.ANY_TELEGRAM_CLIENTS_CONSUMER_WORK
+    type = RabbitMQTaskType.ADD_CHANNEL_TASK
 
     def run(
         self,

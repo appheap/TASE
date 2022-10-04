@@ -7,13 +7,14 @@ from kombu.mixins import ConsumerProducerMixin, logger
 from pydantic import BaseModel, Field
 
 from tase.db import DatabaseClient
-from .task_type import TaskType
+from .target_worker_type import TargetWorkerType
 from .. import task_globals
+from ..db.arangodb.enums import RabbitMQTaskType
 
 
 class BaseTask(BaseModel):
-    name: Optional[str] = Field(default=None)
-    type: TaskType = Field(default=TaskType.UNKNOWN)
+    target_worker_type: TargetWorkerType = Field(default=TargetWorkerType.UNKNOWN)
+    type: RabbitMQTaskType = Field(default=RabbitMQTaskType.UNKNOWN)
 
     args: List[object] = Field(default_factory=list)
     kwargs: dict = Field(default_factory=dict)
@@ -26,27 +27,33 @@ class BaseTask(BaseModel):
         published = True
 
         try:
-            if self.type == TaskType.UNKNOWN:
+            if self.target_worker_type == TargetWorkerType.UNKNOWN:
                 published = False
-            elif self.type == TaskType.ANY_TELEGRAM_CLIENTS_CONSUMER_WORK:
+            elif (
+                self.target_worker_type
+                == TargetWorkerType.ANY_TELEGRAM_CLIENTS_CONSUMER_WORK
+            ):
                 self._publish_task(
                     task_globals.telegram_workers_general_task_queue,
                     task_globals.telegram_client_worker_exchange,
                     priority,
                 )
-            elif self.type == TaskType.ONE_TELEGRAM_CLIENT_CONSUMER_WORK:
+            elif (
+                self.target_worker_type
+                == TargetWorkerType.ONE_TELEGRAM_CLIENT_CONSUMER_WORK
+            ):
                 self._publish_task(
                     target_queue,
                     task_globals.telegram_client_worker_exchange,
                     priority,
                 )
-            elif self.type == TaskType.RABBITMQ_CONSUMER_COMMAND:
+            elif self.target_worker_type == TargetWorkerType.RABBITMQ_CONSUMER_COMMAND:
                 self._publish_task(
                     None,
                     task_globals.rabbitmq_worker_command_exchange,
                     priority,
                 )
-            elif self.type == TaskType.SCHEDULER_JOB:
+            elif self.target_worker_type == TargetWorkerType.SCHEDULER_JOB:
                 self._publish_task(
                     task_globals.scheduler_queue,
                     task_globals.scheduler_exchange,

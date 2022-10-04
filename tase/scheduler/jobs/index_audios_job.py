@@ -6,11 +6,13 @@ import tase
 from tase.my_logger import logger
 from tase.telegram.tasks import IndexAudiosTask
 from .base_job import BaseJob
+from ...db.arangodb.enums import RabbitMQTaskType
 from ...telegram.client import TelegramClient
 
 
-class IndexChannelsJob(BaseJob):
-    name = "index_channels_job"
+class IndexAudiosJob(BaseJob):
+    type = RabbitMQTaskType.INDEX_AUDIOS_JOB
+
     trigger = apscheduler.triggers.interval.IntervalTrigger(
         hours=1,
         start_date=arrow.now().shift(seconds=+10).datetime,

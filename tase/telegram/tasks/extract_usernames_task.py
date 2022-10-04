@@ -6,17 +6,17 @@ from pydantic import Field
 
 from tase.common.utils import datetime_to_timestamp, prettify, find_telegram_usernames
 from tase.db import DatabaseClient
-from tase.db.arangodb.enums import MentionSource
+from tase.db.arangodb.enums import MentionSource, RabbitMQTaskType
 from tase.db.arangodb.graph.vertices import Chat
 from tase.db.arangodb.helpers import UsernameExtractorMetadata
 from tase.my_logger import logger
-from tase.task_distribution import BaseTask, TaskType
+from tase.task_distribution import BaseTask, TargetWorkerType
 from tase.telegram.client import TelegramClient
 
 
 class ExtractUsernamesTask(BaseTask):
-    name: str = Field(default="extract_usernames_task")
-    type = TaskType.ANY_TELEGRAM_CLIENTS_CONSUMER_WORK
+    target_worker_type = TargetWorkerType.ANY_TELEGRAM_CLIENTS_CONSUMER_WORK
+    type = RabbitMQTaskType.EXTRACT_USERNAMES_TASK
 
     db: Optional[DatabaseClient] = Field(default=None)
     chat: Optional[Chat] = Field(default=None)

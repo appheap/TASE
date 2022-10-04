@@ -4,13 +4,15 @@ from kombu.mixins import ConsumerProducerMixin
 
 import tase
 from tase.my_logger import logger
-from .base_job import BaseJob
-from ...telegram.client import TelegramClient
 from tase.telegram.tasks import ExtractUsernamesTask
+from .base_job import BaseJob
+from ...db.arangodb.enums import RabbitMQTaskType
+from ...telegram.client import TelegramClient
 
 
 class ExtractUsernamesJob(BaseJob):
-    name = "extract_usernames_job"
+    type = RabbitMQTaskType.EXTRACT_USERNAMES_JOB
+
     trigger = apscheduler.triggers.interval.IntervalTrigger(
         hours=1,
         start_date=arrow.now().shift(seconds=+20).datetime,

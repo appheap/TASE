@@ -5,16 +5,17 @@ from pydantic import Field
 
 from tase.common.utils import datetime_to_timestamp, prettify
 from tase.db import DatabaseClient
+from tase.db.arangodb.enums import RabbitMQTaskType
 from tase.db.arangodb.graph.vertices import Chat
 from tase.db.arangodb.helpers import AudioIndexerMetadata
 from tase.my_logger import logger
-from tase.task_distribution import BaseTask, TaskType
+from tase.task_distribution import BaseTask, TargetWorkerType
 from tase.telegram.client import TelegramClient
 
 
 class IndexAudiosTask(BaseTask):
-    name: str = Field(default="index_audios_task")
-    type = TaskType.ANY_TELEGRAM_CLIENTS_CONSUMER_WORK
+    target_worker_type = TargetWorkerType.ANY_TELEGRAM_CLIENTS_CONSUMER_WORK
+    type = RabbitMQTaskType.INDEX_AUDIOS_TASK
 
     metadata: Optional[AudioIndexerMetadata]
 

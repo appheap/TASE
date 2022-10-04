@@ -74,6 +74,7 @@ class BotTask(BaseDocument):
         if self.update(self_copy, reserve_non_updatable_fields=False):
             if new_retry_count >= self.max_retry_count:
                 return self.update_status(BotTaskStatus.FAILED)
+            return True
         else:
             raise UpdateRetryCountFailed()
 
