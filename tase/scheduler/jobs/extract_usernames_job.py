@@ -5,6 +5,8 @@ from kombu.mixins import ConsumerProducerMixin
 import tase
 from tase.my_logger import logger
 from .base_job import BaseJob
+from ...telegram.client import TelegramClient
+from tase.telegram.tasks import ExtractUsernamesTask
 
 
 class ExtractUsernamesJob(BaseJob):
@@ -18,10 +20,9 @@ class ExtractUsernamesJob(BaseJob):
         self,
         consumer: ConsumerProducerMixin,
         db: tase.db.DatabaseClient,
-        telegram_client: "TelegramClient" = None,
+        telegram_client: TelegramClient = None,
     ) -> None:
         db_chats = db.graph.get_chats_sorted_by_username_extractor_score()
-        from tase.telegram.tasks import ExtractUsernamesTask
 
         for chat in db_chats:
             logger.debug(chat.username)

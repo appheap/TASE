@@ -4,6 +4,7 @@ from kombu.mixins import ConsumerProducerMixin
 
 import tase
 from .base_job import BaseJob
+from ...telegram.client import TelegramClient
 from ...telegram.tasks import CheckUsernamesTask
 
 
@@ -18,7 +19,7 @@ class CheckUsernamesJob(BaseJob):
         self,
         consumer: ConsumerProducerMixin,
         db: tase.db.DatabaseClient,
-        telegram_client: "TelegramClient" = None,
+        telegram_client: TelegramClient = None,
     ) -> None:
         usernames = db.graph.get_unchecked_usernames()
 

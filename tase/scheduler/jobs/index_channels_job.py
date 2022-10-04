@@ -4,7 +4,9 @@ from kombu.mixins import ConsumerProducerMixin
 
 import tase
 from tase.my_logger import logger
+from tase.telegram.tasks import IndexAudiosTask
 from .base_job import BaseJob
+from ...telegram.client import TelegramClient
 
 
 class IndexChannelsJob(BaseJob):
@@ -18,10 +20,9 @@ class IndexChannelsJob(BaseJob):
         self,
         consumer: ConsumerProducerMixin,
         db: tase.db.DatabaseClient,
-        telegram_client: "TelegramClient" = None,
+        telegram_client: TelegramClient = None,
     ) -> None:
         chats = db.graph.get_chats_sorted_by_audio_indexer_score()
-        from tase.telegram.tasks import IndexAudiosTask
 
         # todo: blocking or non-blocking? which one is better suited for this case?
         for chat in chats:
