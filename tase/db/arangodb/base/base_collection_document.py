@@ -657,6 +657,8 @@ class BaseCollectionDocument(BaseCollectionAttributes):
             # The expected and actual document revisions mismatched.
             pass
             # logger.exception(f"{self.__class__.__name__} : {e}")
+        except KeyError as e:
+            logger.exception(f"{self.__class__.__name__} : {e}")
         except Exception as e:
             logger.exception(f"{self.__class__.__name__} : {e}")
         else:
@@ -831,7 +833,7 @@ class BaseCollectionDocument(BaseCollectionAttributes):
                 # bind_vars=bind_vars,
                 count=True,
             )
-            if not len(cursor):
+            if cursor is None or not len(cursor):
                 return None
 
         except AQLQueryExecuteError as e:

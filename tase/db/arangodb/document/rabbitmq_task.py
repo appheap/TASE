@@ -17,6 +17,24 @@ class RabbitMQTask(BaseDocument):
     status: RabbitMQTaskStatus = Field(default=RabbitMQTaskStatus.CREATED)
     state_dict: dict = Field(default=dict())
 
+    @classmethod
+    def parse(
+        cls,
+        task_type: RabbitMQTaskType,
+        state_dict: dict = None,
+    ) -> Optional[RabbitMQTask]:
+        if task_type is None:
+            return None
+
+        bot_task = RabbitMQTask(
+            key=str(uuid.uuid4()),
+            type=task_type,
+        )
+        if state_dict is not None and len(state_dict):
+            bot_task.state_dict = state_dict
+
+        return bot_task
+
     def update_status(
         self,
         status: RabbitMQTaskStatus,
@@ -40,24 +58,6 @@ class RabbitMQTask(BaseDocument):
         self_copy = self.copy(deep=True)
         self_copy.status = status
         return self.update(self_copy, reserve_non_updatable_fields=True)
-
-    @classmethod
-    def parse(
-        cls,
-        task_type: RabbitMQTaskType,
-        state_dict: dict = None,
-    ) -> Optional[RabbitMQTask]:
-        if task_type is None:
-            return None
-
-        bot_task = RabbitMQTask(
-            key=str(uuid.uuid4()),
-            type=task_type,
-        )
-        if state_dict is not None and len(state_dict):
-            bot_task.state_dict = state_dict
-
-        return bot_task
 
     def update_task_state_dict(
         self,
@@ -85,10 +85,10 @@ class RabbitMQTask(BaseDocument):
 
 
 class RabbitMQTaskMethods:
-    _get_rabbitmq_tasks_with_query = (
+    _get_active_rabbitmq_task_query = (
         "for doc_task in @rabbitmq_tasks"
         "   sort doc_task.modified_at desc"
-        "   filter doc_task.type == @type and and doc_task.status in @status_list"
+        "   filter doc_task.type == '@type' and doc_task.status in @status_list and doc_task.state_dict != null"
         "   filter @input_attr_list all in attributes(doc_task.state_dict) and @input_value_list all in values(doc_task.state_dict)"
         "   limit 1"
         "   return doc_task"
@@ -103,6 +103,29 @@ class RabbitMQTaskMethods:
         "   } in @rabbitmq_tasks options {mergeObjects: true}"
         "   return NEW"
     )
+
+    def get_rabbitmq_task_by_key(
+        self,
+        key: str,
+    ) -> Optional[RabbitMQTask]:
+        """
+        Get `a RabbitMQTask` by its `key`
+
+        Parameters
+        ----------
+        key : str
+            Key of the task to get
+
+        Returns
+        -------
+        RabbitMQTask, optional
+            Task if it exists in the database, otherwise, return None
+
+        """
+        if key is None:
+            return None
+
+        return RabbitMQTask.get(key)
 
     def create_rabbitmq_task(
         self,
@@ -128,7 +151,7 @@ class RabbitMQTaskMethods:
             BotTask document if the creation was successful, otherwise, return None
         """
         if cancel_active_tasks:
-            self.cancel_recent_rabbitmq_task(
+            self.cancel_active_rabbitmq_tasks(
                 task_type,
             )
 
@@ -143,19 +166,19 @@ class RabbitMQTaskMethods:
 
         return None
 
-    def can_rabbitmq_task_be_be_published(
+    def get_active_rabbitmq_task(
         self,
         task_type: RabbitMQTaskType,
         state_dict: dict = None,
-    ) -> bool:
+    ) -> Optional[RabbitMQTask]:
         if task_type is None or task_type == RabbitMQTaskType.UNKNOWN:
-            return False
+            return None
 
         if state_dict is None:
             state_dict = {}
 
         cursor = RabbitMQTask.execute_query(
-            self._get_rabbitmq_tasks_with_query,
+            self._get_active_rabbitmq_task_query,
             bind_vars={
                 "rabbitmq_tasks": RabbitMQTask._collection_name,
                 "type": task_type.value,
@@ -164,16 +187,16 @@ class RabbitMQTaskMethods:
                     RabbitMQTaskStatus.IN_QUEUE.value,
                     RabbitMQTaskStatus.IN_WORKER.value,
                 ],
-                "input_attr_list": state_dict.keys(),
-                "input_value_list": state_dict.values(),
+                "input_attr_list": list(state_dict.keys()),
+                "input_value_list": list(state_dict.values()),
             },
         )
         if cursor is not None and len(cursor):
-            return False
-        else:
-            return True
+            return RabbitMQTask.from_collection(cursor.pop())
 
-    def cancel_recent_rabbitmq_task(
+        return None
+
+    def cancel_active_rabbitmq_tasks(
         self,
         task_type: RabbitMQTaskType,
     ) -> bool:

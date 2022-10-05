@@ -23,6 +23,7 @@ class CheckUsernamesJob(BaseJob):
         db: tase.db.DatabaseClient,
         telegram_client: TelegramClient = None,
     ) -> None:
+        self.task_in_worker(db)
         usernames = db.graph.get_unchecked_usernames()
 
         for username in usernames:
@@ -32,4 +33,6 @@ class CheckUsernamesJob(BaseJob):
                 kwargs={
                     "username": username,
                 }
-            ).publish()
+            ).publish(db)
+
+        self.task_done(db)

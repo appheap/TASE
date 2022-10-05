@@ -26,4 +26,19 @@ class DummyCommand(BaseCommand):
         from_user: graph_models.vertices.User,
         from_callback_query: bool,
     ) -> None:
-        DummyTask().publish()
+        kwargs = None
+        if message.command and len(message.command) > 1:
+            kwargs = {f"key_{i}": arg for i, arg in enumerate(message.command[1:])}
+
+        status, created = DummyTask(kwargs=kwargs).publish(handler.db)
+        if status is None:
+            message.reply_text("internal error")
+        else:
+            if created:
+                if status.is_active():
+                    message.reply_text("Added the task to be processed!")
+            else:
+                if status.is_active():
+                    message.reply_text("This task already being processed")
+                else:
+                    message.reply_text("The task is already finished")

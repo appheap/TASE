@@ -41,7 +41,9 @@ class AddChannelCommand(BaseCommand):
                 f"This channel `{db_chat.title}` already exists in the Database!"
             )
         else:
-            AddChannelTask(kwargs={"channel_username": channel_username}).publish()
+            AddChannelTask(kwargs={"channel_username": channel_username}).publish(
+                handler.db
+            )
             # todo: translate me
             message.reply_text(
                 f"Added channel `{channel_username}` to the Database for indexing."

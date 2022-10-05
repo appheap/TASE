@@ -10,3 +10,31 @@ class RabbitMQTaskStatus(Enum):
     CANCELED = 5
     DELETED = 6
     FAILED = 7
+
+    def is_active(self) -> bool:
+        return (
+            True
+            if self
+            in (
+                RabbitMQTaskStatus.CREATED,
+                RabbitMQTaskStatus.IN_QUEUE,
+                RabbitMQTaskStatus.IN_WORKER,
+            )
+            else False
+        )
+
+    def is_finished(self) -> bool:
+        return (
+            True
+            if self
+            in (
+                RabbitMQTaskStatus.DONE,
+                RabbitMQTaskStatus.CANCELED,
+                RabbitMQTaskStatus.DELETED,
+                RabbitMQTaskStatus.FAILED,
+            )
+            else False
+        )
+
+    def is_failed(self):
+        return self == RabbitMQTaskStatus.FAILED

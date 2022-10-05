@@ -2,7 +2,7 @@ from enum import Enum
 
 
 class RabbitMQTaskType(Enum):
-    UNKNOWN = 0
+    UNKNOWN = "unknown"
 
     ADD_CHANNEL_TASK = "add_channel_task"
     CHECK_USERNAMES_TASK = "check_usernames_task"

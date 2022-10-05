@@ -21,6 +21,8 @@ class AddChannelTask(BaseTask):
         db: DatabaseClient,
         telegram_client: TelegramClient = None,
     ):
+        self.task_in_worker(db)
+
         try:
             tg_chat = telegram_client.get_chat(self.kwargs.get("channel_username"))
 
@@ -34,22 +36,24 @@ class AddChannelTask(BaseTask):
                     )
                     logger.debug(f"Channel {chat.username} score: {score}")
                     updated = chat.update_audio_indexer_score(score)
-                    logger.error(updated)
+
+                    self.task_done(db)
                 else:
-                    pass
+                    self.task_failed(db)
             else:
-                pass
+                self.task_failed(db)
         except UsernameNotOccupied:
             # The username is not occupied by anyone
-            pass
+            self.task_failed(db)
         except ValueError as e:
             # In case the chat invite link points to a chat this telegram client hasn't joined yet.
             # todo: send an appropriate message to notify the user of this situation
-            pass
+            self.task_failed(db)
         except KeyError as e:
             # the provided username is not valid
             # todo: send an appropriate message to notify the user of this situation
-            pass
+            self.task_failed(db)
         except Exception as e:
             # this is an unexpected error
             logger.exception(e)
+            self.task_failed(db)

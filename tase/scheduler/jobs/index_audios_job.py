@@ -24,6 +24,8 @@ class IndexAudiosJob(BaseJob):
         db: tase.db.DatabaseClient,
         telegram_client: TelegramClient = None,
     ) -> None:
+        self.task_in_worker(db)
+
         chats = db.graph.get_chats_sorted_by_audio_indexer_score()
 
         # todo: blocking or non-blocking? which one is better suited for this case?
@@ -33,4 +35,6 @@ class IndexAudiosJob(BaseJob):
                 kwargs={
                     "chat": chat,
                 }
-            ).publish()
+            ).publish(db)
+
+        self.task_done(db)

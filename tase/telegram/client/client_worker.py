@@ -37,7 +37,9 @@ class ClientTaskConsumer(ConsumerProducerMixin):
             auto_delete=True,
         )
         self.telegram_client_worker_task_queue = telegram_client_worker_task_queue
-        self.client_worker_queues[self.telegram_client.name] = telegram_client_worker_task_queue
+        self.client_worker_queues[
+            self.telegram_client.name
+        ] = telegram_client_worker_task_queue
         logger.info(f"client_worker_queues: {self.client_worker_queues}")
 
         rabbitmq_worker_command_queue = Queue(
@@ -106,8 +108,13 @@ class ClientTaskConsumer(ConsumerProducerMixin):
         from tase.task_distribution import BaseTask
 
         if isinstance(body, BaseTask):
-            logger.info(f"Worker got a new task: {body.type.value} @ {self.telegram_client.get_session_name()}")
-            if self.telegram_client.is_connected() and body.type != RabbitMQTaskType.UNKNOWN:
+            logger.info(
+                f"Worker got a new task: {body.type.value} @ {self.telegram_client.get_session_name()}"
+            )
+            if (
+                self.telegram_client.is_connected()
+                and body.type != RabbitMQTaskType.UNKNOWN
+            ):
                 body.run(self, self.db, self.telegram_client)
         else:
             # todo: unknown type for body detected, what now?

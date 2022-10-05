@@ -1,7 +1,6 @@
 import time
 
 from kombu.mixins import ConsumerProducerMixin
-from pydantic import Field
 from pyrogram.errors import UsernameNotOccupied, UsernameInvalid, FloodWait
 
 from tase.common.utils import get_now_timestamp
@@ -23,6 +22,8 @@ class CheckUsernamesTask(BaseTask):
         db: DatabaseClient,
         telegram_client: TelegramClient = None,
     ):
+        self.task_in_worker(db)
+
         username_vertex: graph_models.vertices.Username = self.kwargs.get("username")
         if (
             username_vertex is None
@@ -32,6 +33,7 @@ class CheckUsernamesTask(BaseTask):
             return
 
         if not db.graph.get_username(username_vertex.username):
+            self.task_failed(db)
             return
 
         logger.info(f"Checking: {username_vertex.username}")
@@ -51,11 +53,14 @@ class CheckUsernamesTask(BaseTask):
                 # todo: update wasn't successful, what now?
                 raise Exception("Unexpected error")
 
+            self.task_done(db)
+
         except FloodWait as e:
             # fixme: find a solution for this
-            pass
+            self.task_failed(db)
         except Exception as e:
             logger.exception(e)
+            self.task_failed(db)
         else:
             mentioned_chat = db.graph.update_or_create_chat(tg_mentioned_chat)
 
@@ -72,6 +77,8 @@ class CheckUsernamesTask(BaseTask):
                 else:
                     # todo: update wasn't successful, what now?
                     raise Exception("Unexpected error")
+
+            self.task_done(db)
         finally:
             # this is necessary to avoid flood errors
             # todo: is this one good enough?

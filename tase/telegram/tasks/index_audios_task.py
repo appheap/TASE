@@ -1,7 +1,6 @@
 from typing import Optional
 
 from kombu.mixins import ConsumerProducerMixin
-from pydantic import Field
 
 from tase.common.utils import datetime_to_timestamp, prettify
 from tase.db import DatabaseClient
@@ -25,8 +24,11 @@ class IndexAudiosTask(BaseTask):
         db: DatabaseClient,
         telegram_client: TelegramClient = None,
     ):
+        self.task_in_worker(db)
+
         chat: Chat = self.kwargs.get("chat")
         if chat is None:
+            self.task_failed(db)
             return
 
         chat_id = chat.username if chat.username else chat.invite_link
@@ -38,14 +40,17 @@ class IndexAudiosTask(BaseTask):
             # In case the chat invite link points to a chat that this telegram client hasn't joined yet.
             # todo: fix this
             logger.exception(e)
+            self.task_failed(db)
         except Exception as e:
             logger.exception(e)
+            self.task_failed(db)
         else:
             chat = db.graph.update_or_create_chat(tg_chat)
 
             if chat:
                 self.metadata = chat.audio_indexer_metadata.copy()
                 if self.metadata is None:
+                    self.task_failed(db)
                     return
                 self.metadata.reset_counters()
 
@@ -71,5 +76,8 @@ class IndexAudiosTask(BaseTask):
                 chat.update_audio_indexer_metadata(self.metadata)
                 logger.info(f"{prettify(self.metadata)}")
                 logger.debug(f"Finished {title}")
+
+                self.task_done(db)
             else:
                 logger.debug(f"Error occurred: {title}")
+                self.task_failed(db)

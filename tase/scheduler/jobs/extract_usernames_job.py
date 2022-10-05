@@ -24,6 +24,7 @@ class ExtractUsernamesJob(BaseJob):
         db: tase.db.DatabaseClient,
         telegram_client: TelegramClient = None,
     ) -> None:
+        self.task_in_worker(db)
         db_chats = db.graph.get_chats_sorted_by_username_extractor_score()
 
         for chat in db_chats:
@@ -33,4 +34,6 @@ class ExtractUsernamesJob(BaseJob):
                 kwargs={
                     "chat": chat,
                 }
-            ).publish()
+            ).publish(db)
+
+        self.task_done(db)

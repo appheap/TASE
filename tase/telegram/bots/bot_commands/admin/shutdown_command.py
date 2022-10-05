@@ -29,7 +29,7 @@ class ShutdownCommand(BaseCommand):
     ) -> None:
         # todo: translate me
         message.reply_text("Starting to shutdown the system...")
-        published = ShutdownTask().publish()
+        published = ShutdownTask().publish(handler.db)
         if published:
             message.reply_text("Shutdown command completed successfully.")
         else:

@@ -1,7 +1,6 @@
 import time
 
 from kombu.mixins import ConsumerProducerMixin
-from pydantic import Field
 
 from tase.db import DatabaseClient
 from tase.db.arangodb.enums import RabbitMQTaskType
@@ -20,6 +19,10 @@ class DummyTask(BaseTask):
         db: DatabaseClient,
         telegram_client: TelegramClient = None,
     ):
+        self.task_in_worker(db)
+
         logger.info(f"Running Dummy Task with client: {telegram_client.name}")
-        time.sleep(5)
+        time.sleep(10)
         logger.info(f"Finished Dummy Task with client: {telegram_client.name}")
+
+        self.task_done(db)

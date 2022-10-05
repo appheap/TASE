@@ -22,4 +22,6 @@ class DummyJob(BaseJob):
         db: DatabaseClient,
         telegram_client: "TelegramClient" = None,
     ):
+        self.task_in_worker(db)
         logger.info(f"{self.type.value} : {self.kwargs}")
+        self.task_done(db)

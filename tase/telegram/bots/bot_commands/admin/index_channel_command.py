@@ -37,13 +37,17 @@ class IndexChannelCommand(BaseCommand):
         chat = handler.db.graph.get_chat_by_username(channel_username)
         if chat:
             if not chat.audio_indexer_metadata:
-                AddChannelTask(kwargs={"channel_username": channel_username}).publish()
-            IndexAudiosTask(kwargs={"chat": chat}).publish()
+                AddChannelTask(kwargs={"channel_username": channel_username}).publish(
+                    handler.db
+                )
+            IndexAudiosTask(kwargs={"chat": chat}).publish(handler.db)
             # todo: translate me
             message.reply_text(f"Started indexing `{chat.title}` channel")
 
         else:
             message.reply_text("This channel does not exist in the Database!")
-            AddChannelTask(kwargs={"channel_username": channel_username}).publish()
+            AddChannelTask(kwargs={"channel_username": channel_username}).publish(
+                handler.db
+            )
             # todo: translate me
             message.reply_text("Added channel to the Database for indexing.")
