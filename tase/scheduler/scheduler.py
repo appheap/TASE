@@ -11,6 +11,7 @@ from kombu.transport import pyamqp
 from tase import task_globals
 from tase.common.utils import exception_handler
 from tase.db import DatabaseClient
+from tase.db.arangodb.enums import RabbitMQTaskType
 from tase.my_logger import logger
 from tase.scheduler.jobs import BaseJob
 from tase.task_distribution import BaseTask
@@ -147,9 +148,9 @@ class SchedulerJobConsumer(ConsumerProducerMixin):
         from tase.scheduler.jobs import BaseJob
 
         job: BaseJob = body
-        logger.info(f"scheduler_task_consumer_on_job : {job.name}")
+        logger.info(f"scheduler_task_consumer_on_job : {job.type.value}")
 
-        if job.name:
+        if job.type != RabbitMQTaskType.UNKNOWN:
             self.scheduler.add_job(
                 self.job_runner,
                 trigger=job.trigger,

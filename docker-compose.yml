@@ -218,7 +218,7 @@ services:
       retries: 120
 
   arangodb:
-    image: arangodb:${ARANGODB_VERSION}
+    image: arangodb/arangodb:${ARANGODB_VERSION}
     volumes:
       - arangodb_data_container:/var/lib/arangodb3
       - arangodb_apps_data_container:/var/lib/arangodb3-app

@@ -4,11 +4,15 @@ from kombu.mixins import ConsumerProducerMixin
 
 import tase
 from tase.my_logger import logger
+from tase.telegram.tasks import ExtractUsernamesTask
 from .base_job import BaseJob
+from ...db.arangodb.enums import RabbitMQTaskType
+from ...telegram.client import TelegramClient
 
 
 class ExtractUsernamesJob(BaseJob):
-    name = "extract_usernames_job"
+    type = RabbitMQTaskType.EXTRACT_USERNAMES_JOB
+
     trigger = apscheduler.triggers.interval.IntervalTrigger(
         hours=1,
         start_date=arrow.now().shift(seconds=+20).datetime,
@@ -18,10 +22,10 @@ class ExtractUsernamesJob(BaseJob):
         self,
         consumer: ConsumerProducerMixin,
         db: tase.db.DatabaseClient,
-        telegram_client: "TelegramClient" = None,
+        telegram_client: TelegramClient = None,
     ) -> None:
+        self.task_in_worker(db)
         db_chats = db.graph.get_chats_sorted_by_username_extractor_score()
-        from tase.telegram.tasks import ExtractUsernamesTask
 
         for chat in db_chats:
             logger.debug(chat.username)
@@ -30,4 +34,6 @@ class ExtractUsernamesJob(BaseJob):
                 kwargs={
                     "chat": chat,
                 }
-            ).publish()
+            ).publish(db)
+
+        self.task_done(db)

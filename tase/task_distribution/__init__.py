@@ -1,9 +1,9 @@
 from .base_task import BaseTask
 from .shutdown_task import ShutdownTask
-from .task_type import TaskType
+from .target_worker_type import TargetWorkerType
 
 __all__ = [
     "BaseTask",
     "ShutdownTask",
-    "TaskType",
+    "TargetWorkerType",
 ]

@@ -6,17 +6,17 @@ from pydantic import Field
 
 from tase.common.utils import datetime_to_timestamp, prettify, find_telegram_usernames
 from tase.db import DatabaseClient
-from tase.db.arangodb.enums import MentionSource
+from tase.db.arangodb.enums import MentionSource, RabbitMQTaskType
 from tase.db.arangodb.graph.vertices import Chat
 from tase.db.arangodb.helpers import UsernameExtractorMetadata
 from tase.my_logger import logger
-from tase.task_distribution import BaseTask, TaskType
+from tase.task_distribution import BaseTask, TargetWorkerType
 from tase.telegram.client import TelegramClient
 
 
 class ExtractUsernamesTask(BaseTask):
-    name: str = Field(default="extract_usernames_task")
-    type = TaskType.ANY_TELEGRAM_CLIENTS_CONSUMER_WORK
+    target_worker_type = TargetWorkerType.ANY_TELEGRAM_CLIENTS_CONSUMER_WORK
+    type = RabbitMQTaskType.EXTRACT_USERNAMES_TASK
 
     db: Optional[DatabaseClient] = Field(default=None)
     chat: Optional[Chat] = Field(default=None)
@@ -121,8 +121,11 @@ class ExtractUsernamesTask(BaseTask):
         db: DatabaseClient,
         telegram_client: TelegramClient = None,
     ):
+        self.task_in_worker(db)
+
         db_chat: Chat = self.kwargs.get("db_chat")
         if db_chat is None:
+            self.task_failed(db)
             return
 
         self.chat_username = db_chat.username.lower() if db_chat.username else None
@@ -136,13 +139,16 @@ class ExtractUsernamesTask(BaseTask):
             # In case the chat invite link points to a chat that this telegram client hasn't joined yet.
             # todo: fix this
             logger.exception(e)
+            self.task_failed(db)
         except Exception as e:
             logger.exception(e)
+            self.task_failed(db)
         else:
             db_chat = db.graph.update_or_create_chat(tg_chat)
 
             self.metadata = db_chat.username_extractor_metadata.copy()
             if self.metadata is None:
+                self.task_failed(db)
                 return
             self.metadata.reset_counters()
 
@@ -213,7 +219,10 @@ class ExtractUsernamesTask(BaseTask):
                 # check gathered usernames if they match the current policy of indexing and them to the Database
                 logger.info(f"Metadata: {prettify(self.metadata)}")
                 self.chat.update_username_extractor_metadata(self.metadata)
+
+                self.task_done(db)
             else:
+                self.task_failed(db)
                 logger.error(f"Error occurred: {title}")
 
     class Config:

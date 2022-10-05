@@ -1,64 +1,98 @@
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 import kombu
 from decouple import config
 from kombu.entity import TRANSIENT_DELIVERY_MODE
-from kombu.mixins import ConsumerProducerMixin, logger
+from kombu.mixins import ConsumerProducerMixin
 from pydantic import BaseModel, Field
 
 from tase.db import DatabaseClient
-from .task_type import TaskType
+from .target_worker_type import TargetWorkerType
 from .. import task_globals
+from ..db.arangodb.enums import RabbitMQTaskType, RabbitMQTaskStatus
+from ..my_logger import logger
 
 
 class BaseTask(BaseModel):
-    name: Optional[str] = Field(default=None)
-    type: TaskType = Field(default=TaskType.UNKNOWN)
+    target_worker_type: TargetWorkerType = Field(default=TargetWorkerType.UNKNOWN)
+    type: RabbitMQTaskType = Field(default=RabbitMQTaskType.UNKNOWN)
 
-    args: List[object] = Field(default_factory=list)
     kwargs: dict = Field(default_factory=dict)
+
+    task_key: Optional[str]
 
     def publish(
         self,
+        db: DatabaseClient,
         target_queue: kombu.Queue = None,
         priority: int = 1,
-    ) -> bool:
-        published = True
+    ) -> Tuple[Optional[RabbitMQTaskStatus], bool]:
+        if self.target_worker_type == TargetWorkerType.UNKNOWN:
+            return None, False
 
-        try:
-            if self.type == TaskType.UNKNOWN:
-                published = False
-            elif self.type == TaskType.ANY_TELEGRAM_CLIENTS_CONSUMER_WORK:
-                self._publish_task(
-                    task_globals.telegram_workers_general_task_queue,
-                    task_globals.telegram_client_worker_exchange,
-                    priority,
-                )
-            elif self.type == TaskType.ONE_TELEGRAM_CLIENT_CONSUMER_WORK:
-                self._publish_task(
-                    target_queue,
-                    task_globals.telegram_client_worker_exchange,
-                    priority,
-                )
-            elif self.type == TaskType.RABBITMQ_CONSUMER_COMMAND:
-                self._publish_task(
-                    None,
-                    task_globals.rabbitmq_worker_command_exchange,
-                    priority,
-                )
-            elif self.type == TaskType.SCHEDULER_JOB:
-                self._publish_task(
-                    task_globals.scheduler_queue,
-                    task_globals.scheduler_exchange,
-                    priority,
-                )
+        state_dict = self.kwargs if len(self.kwargs) else None
+        active_task = db.document.get_active_rabbitmq_task(
+            self.type,
+            state_dict,
+        )
+        status = None
+        created = False
+        if active_task is None:
+            new_task = db.document.create_rabbitmq_task(
+                self.type,
+                state_dict,
+            )
+            if new_task:
+                self.task_key = new_task.key
+
+            try:
+                if (
+                    self.target_worker_type
+                    == TargetWorkerType.ANY_TELEGRAM_CLIENTS_CONSUMER_WORK
+                ):
+                    self._publish_task(
+                        task_globals.telegram_workers_general_task_queue,
+                        task_globals.telegram_client_worker_exchange,
+                        priority,
+                    )
+                elif (
+                    self.target_worker_type
+                    == TargetWorkerType.ONE_TELEGRAM_CLIENT_CONSUMER_WORK
+                ):
+                    self._publish_task(
+                        target_queue,
+                        task_globals.telegram_client_worker_exchange,
+                        priority,
+                    )
+                elif (
+                    self.target_worker_type
+                    == TargetWorkerType.RABBITMQ_CONSUMER_COMMAND
+                ):
+                    self._publish_task(
+                        None,
+                        task_globals.rabbitmq_worker_command_exchange,
+                        priority,
+                    )
+                elif self.target_worker_type == TargetWorkerType.SCHEDULER_JOB:
+                    self._publish_task(
+                        task_globals.scheduler_queue,
+                        task_globals.scheduler_exchange,
+                        priority,
+                    )
+            except Exception as e:
+                logger.exception(e)
+                new_task.update_status(RabbitMQTaskStatus.FAILED)
             else:
-                published = False
-        except Exception as e:
-            logger.exception(e)
-            published = False
+                new_task.update_status(RabbitMQTaskStatus.IN_QUEUE)
 
-        return published
+            status = new_task.status
+            created = True
+
+        else:
+            status = active_task.status
+            created = False
+
+        return status, created
 
     def _publish_task(
         self,
@@ -116,3 +150,33 @@ class BaseTask(BaseModel):
         telegram_client: "TelegramClient" = None,
     ):
         raise NotImplementedError
+
+    def task_in_worker(
+        self,
+        db: DatabaseClient,
+    ) -> bool:
+        task = db.document.get_rabbitmq_task_by_key(self.task_key)
+        if task:
+            return task.update_status(RabbitMQTaskStatus.IN_WORKER)
+
+        return False
+
+    def task_done(
+        self,
+        db: DatabaseClient,
+    ) -> bool:
+        task = db.document.get_rabbitmq_task_by_key(self.task_key)
+        if task:
+            return task.update_status(RabbitMQTaskStatus.DONE)
+
+        return False
+
+    def task_failed(
+        self,
+        db: DatabaseClient,
+    ) -> bool:
+        task = db.document.get_rabbitmq_task_by_key(self.task_key)
+        if task:
+            return task.update_status(RabbitMQTaskStatus.FAILED)
+
+        return False

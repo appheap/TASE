@@ -11,6 +11,7 @@ from tase import task_globals
 from tase.common.utils import exception_handler
 from tase.configs import ClientTypes
 from tase.db import DatabaseClient
+from tase.db.arangodb.enums import RabbitMQTaskType
 from tase.my_logger import logger
 from tase.telegram.client import TelegramClient
 
@@ -108,9 +109,12 @@ class ClientTaskConsumer(ConsumerProducerMixin):
 
         if isinstance(body, BaseTask):
             logger.info(
-                f"Worker got a new task: {body.name} @ {self.telegram_client.get_session_name()}"
+                f"Worker got a new task: {body.type.value} @ {self.telegram_client.get_session_name()}"
             )
-            if self.telegram_client.is_connected() and body.name:
+            if (
+                self.telegram_client.is_connected()
+                and body.type != RabbitMQTaskType.UNKNOWN
+            ):
                 body.run(self, self.db, self.telegram_client)
         else:
             # todo: unknown type for body detected, what now?
