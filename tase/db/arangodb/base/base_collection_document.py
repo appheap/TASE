@@ -818,13 +818,21 @@ class BaseCollectionDocument(BaseCollectionAttributes):
                 # logger.error(cls._graph_name)
             for key, value in bind_vars.items():
                 if isinstance(value, list):
-                    if isinstance(value[0], str):
-                        value = str([str(v) for v in value])
-                    elif isinstance(value[0], (int, float)):
-                        value = str([v for v in value])
+                    if len(value):
+                        if isinstance(value[0], str):
+                            value = str([str(v) for v in value])
+                        elif isinstance(value[0], (int, float)):
+                            value = str([v for v in value])
+                        else:
+                            value = str([str(v) for v in value])
                     else:
-                        value = str([str(v) for v in value])
+                        value = str([])
                 else:
+                    # todo: fixme
+                    # if isinstance(value,str):
+                    #     value=f"'{value}'"
+                    # else:
+                    #     value = str(value)
                     value = str(value)
                 query = query.replace(f"@{key}", value)
 
