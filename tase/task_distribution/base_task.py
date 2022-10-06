@@ -14,8 +14,8 @@ from ..my_logger import logger
 
 
 class BaseTask(BaseModel):
-    target_worker_type: TargetWorkerType = Field(default=TargetWorkerType.UNKNOWN)
-    type: RabbitMQTaskType = Field(default=RabbitMQTaskType.UNKNOWN)
+    target_worker_type: TargetWorkerType
+    type: RabbitMQTaskType
 
     kwargs: dict = Field(default_factory=dict)
 
@@ -48,6 +48,8 @@ class BaseTask(BaseModel):
             )
             if new_task:
                 self.task_key = new_task.key
+            else:
+                raise Exception("could not create `RabbitMQTask` document")
 
             try:
                 if (

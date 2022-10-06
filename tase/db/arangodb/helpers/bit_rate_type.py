@@ -58,8 +58,9 @@ class BitRateType(Enum):
     B_1411K = 10
     B_5699K = 11
     B_6144K = 12
-    B_9600K = 13
-    B_18000K = 14
+    B_9216K = 13
+    B_9600K = 14
+    B_18000K = 15
 
     @classmethod
     def estimate(

@@ -261,7 +261,7 @@ class BaseCollectionAttributes(BaseModel):
             obj = cls(**doc)
         except ValidationError as e:
             # Attribute value mapping cannot be validated, and it cannot be converted to a python object
-            logger.debug(e.json())
+            logger.error(f"{cls.__name__} : {e.json()}")
         except Exception as e:
             # todo: check if this happens
             logger.exception(e)

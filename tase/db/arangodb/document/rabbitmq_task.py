@@ -150,6 +150,9 @@ class RabbitMQTaskMethods:
         BotTask, optional
             BotTask document if the creation was successful, otherwise, return None
         """
+        if task_type is None or task_type == RabbitMQTaskType.UNKNOWN:
+            return None
+
         if cancel_active_tasks:
             self.cancel_active_rabbitmq_tasks(
                 task_type,
