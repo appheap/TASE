@@ -13,9 +13,9 @@ class RabbitMQTask(BaseDocument):
     _collection_name = "doc_rabbitmq_tasks"
     schema_version = 1
 
-    type: RabbitMQTaskType = Field(default=RabbitMQTaskType.UNKNOWN)
+    type: RabbitMQTaskType
     status: RabbitMQTaskStatus = Field(default=RabbitMQTaskStatus.CREATED)
-    state_dict: dict = Field(default=dict())
+    state_dict: dict = Field(default_factory=dict)
 
     @classmethod
     def parse(
@@ -23,7 +23,7 @@ class RabbitMQTask(BaseDocument):
         task_type: RabbitMQTaskType,
         state_dict: dict = None,
     ) -> Optional[RabbitMQTask]:
-        if task_type is None:
+        if task_type is None or task_type == RabbitMQTaskType.UNKNOWN:
             return None
 
         bot_task = RabbitMQTask(

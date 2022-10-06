@@ -111,6 +111,29 @@ class UsernameMethods:
 
         return Username.get(Username.parse_key(username))
 
+    def get_username_by_key(
+        self,
+        key: str,
+    ) -> Optional[Username]:
+        """
+        Get `Username` by its 'key` f it exists in the ArangoDB.
+
+        Parameters
+        ----------
+        key : str
+            Key to get the `Username` vertex by
+
+        Returns
+        -------
+        Username, optional
+            Username if it exists in the ArangoDB, otherwise, return None.
+
+        """
+        if key is None:
+            return None
+
+        return Username.get(key)
+
     def create_username(
         self,
         chat: Chat,

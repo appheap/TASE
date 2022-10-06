@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple
+from typing import Optional, Tuple
 
 import kombu
 from decouple import config
@@ -27,7 +27,11 @@ class BaseTask(BaseModel):
         target_queue: kombu.Queue = None,
         priority: int = 1,
     ) -> Tuple[Optional[RabbitMQTaskStatus], bool]:
-        if self.target_worker_type == TargetWorkerType.UNKNOWN:
+        if (
+            db is None
+            or self.target_worker_type == TargetWorkerType.UNKNOWN
+            or self.type == RabbitMQTaskType.UNKNOWN
+        ):
             return None, False
 
         state_dict = self.kwargs if len(self.kwargs) else None
