@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import collections
 import uuid
-from typing import Optional, TYPE_CHECKING, Tuple
+from typing import Optional, TYPE_CHECKING, Tuple, List
 
 from tase.errors import (
     InvalidFromVertex,
@@ -15,6 +16,7 @@ from tase.my_logger import logger
 from .base_vertex import BaseVertex
 from .user import User
 from ...enums import ChatType, InteractionType, TelegramAudioType
+from ...helpers import InteractionCount
 
 if TYPE_CHECKING:
     from .. import ArangoGraphMethods
@@ -59,6 +61,16 @@ class InteractionMethods:
         "   for v_aud in 1..1 outbound v_int._id graph '@graph_name' options {order : 'dfs', edgeCollections : ['@has'], vertexCollections : ['@audios']}"
         "       filter v_aud._key == '@audio_key'"
         "       return v_int"
+    )
+
+    _count_interactions_query = (
+        "for interaction in @interactions"
+        "   filter interaction.created_at >= @last_run_at and interaction.created_at < @now"
+        "   for v,e in 1..1 outbound interaction graph '@graph_name' options {order: 'dfs', edgeCollections:['@has'], vertexCollections:['@audios']}"
+        "       collect audio_key = v._key, interaction_type = interaction.type"
+        "       aggregate count_ = length(0)"
+        "       sort count_ desc, interaction_type asc"
+        "   return {audio_key, interaction_type, count_}"
     )
 
     def create_interaction(
@@ -402,3 +414,50 @@ class InteractionMethods:
                 return True, has_interacted
             else:
                 return False, has_interacted
+
+    def count_interactions(
+        self,
+        last_run_at: int,
+        now: int,
+    ) -> List[InteractionCount]:
+        """
+        Count the interactions that have been created in the ArangoDB between `now` and `last_run_at` parameters.
+
+        Parameters
+        ----------
+        last_run_at : int
+            Timestamp of last run
+        now : int
+            Timestamp of now
+
+        Returns
+        -------
+        list of InteractionCount
+            List of InteractionCount objects
+
+        """
+        if last_run_at is None:
+            return []
+
+        from tase.db.arangodb.graph.edges import Has
+        from tase.db.arangodb.graph.vertices import Audio
+
+        cursor = Interaction.execute_query(
+            self._count_interactions_query,
+            bind_vars={
+                "interactions": Interaction._collection_name,
+                "last_run_at": last_run_at,
+                "now": now,
+                "has": Has._collection_name,
+                "audios": Audio._collection_name,
+            },
+        )
+
+        res = collections.deque()
+        if cursor is not None and len(cursor):
+            for doc in cursor:
+                obj = InteractionCount.parse(doc)
+                if obj is not None:
+                    res.append(obj)
+
+        return list(res)
