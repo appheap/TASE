@@ -42,7 +42,7 @@ class AddChannelCommand(BaseCommand):
             )
         else:
             status, created = AddChannelTask(
-                kwargs={"channel_username": channel_username}
+                kwargs={"channel_username": channel_username.lower()}
             ).publish(handler.db)
             if status is None:
                 message.reply_text("internal error")
