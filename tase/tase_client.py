@@ -7,8 +7,12 @@ from decouple import config
 from tase.configs import TASEConfig
 from tase.db import DatabaseClient
 from tase.scheduler import SchedulerWorkerProcess
-from tase.scheduler.jobs import IndexChannelsJob
-from tase.tase_globals import publish_job_to_scheduler
+from tase.scheduler.jobs import (
+    IndexAudiosJob,
+    ExtractUsernamesJob,
+    CheckUsernamesJob,
+    CountInteractionsJob,
+)
 from tase.telegram.client import TelegramClient
 from tase.telegram.client.client_manager import ClientManager
 
@@ -74,9 +78,11 @@ class TASE:
                 scheduler.start()
 
                 # todo: do initial job scheduling in a proper way
-                publish_job_to_scheduler(IndexChannelsJob())
-                # publish_job_to_scheduler(ExtractUsernamesJob())
-                # publish_job_to_scheduler(CheckUsernamesJob())
+                CountInteractionsJob().publish(self.database_client)
+
+                # IndexChannelsJob().publish()
+                # ExtractUsernamesJob().publish()
+                # CheckUsernamesJob().publish()
 
             else:
                 # todo: raise error (config file is invalid)

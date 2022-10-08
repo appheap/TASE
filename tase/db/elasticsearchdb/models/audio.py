@@ -12,8 +12,8 @@ from tase.common.utils import datetime_to_timestamp
 from tase.errors import TelegramMessageWithNoAudio
 from tase.my_logger import logger
 from .base_document import BaseDocument
-from ...arangodb.enums import TelegramAudioType
-from ...arangodb.helpers import ElasticQueryMetadata, BitRateType
+from ...arangodb.enums import TelegramAudioType, InteractionType
+from ...arangodb.helpers import ElasticQueryMetadata, BitRateType, InteractionCount
 from ...db_utils import (
     get_telegram_message_media_type,
     parse_audio_key,
@@ -320,6 +320,39 @@ class Audio(BaseDocument):
             "likes": {"order": "desc"},
             "dislikes": {"order": "asc"},
         }
+
+    def update_by_interaction_count(
+        self,
+        interaction_count: InteractionCount,
+    ) -> bool:
+        """
+        Update the attributes of the `Audio` index with the given `InteractionCount` object
+
+        Parameters
+        ----------
+        interaction_count : InteractionCount
+            InteractionCount object to update the index document with
+
+        Returns
+        -------
+        bool
+            Whether the update was successful or not
+
+        """
+        if interaction_count is None:
+            return False
+
+        self_copy: Audio = self.copy(deep=True)
+        if interaction_count.interaction_type == InteractionType.DOWNLOAD:
+            self_copy.downloads += interaction_count.count
+        elif interaction_count.interaction_type == InteractionType.SHARE:
+            self_copy.shares += interaction_count.count
+        elif interaction_count.interaction_type == InteractionType.LIKE:
+            self_copy.likes += interaction_count.count
+        elif interaction_count.interaction_type == InteractionType.DISLIKE:
+            self_copy.dislikes += interaction_count.count
+
+        return self.update(self_copy, reserve_non_updatable_fields=False)
 
 
 class AudioMethods:
