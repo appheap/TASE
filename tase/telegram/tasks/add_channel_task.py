@@ -39,7 +39,7 @@ class AddChannelTask(BaseTask):
 
                     self.task_done(db)
                 else:
-                    self.task_failed(db)
+                    self.task_done(db)
             else:
                 self.task_failed(db)
         except UsernameNotOccupied:

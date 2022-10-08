@@ -26,7 +26,9 @@ class IndexAudiosTask(BaseTask):
     ):
         self.task_in_worker(db)
 
-        chat: Chat = self.kwargs.get("chat")
+        chat_key = self.kwargs.get("chat_key", None)
+
+        chat: Chat = db.graph.get_chat_by_key(chat_key)
         if chat is None:
             self.task_failed(db)
             return

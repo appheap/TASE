@@ -465,9 +465,11 @@ class BaseDocument(BaseModel):
                     id=id,
                     doc=doc,
                 )
-                successful = True
+                self.__dict__.update(document.__dict__)
         except Exception as e:
             logger.exception(f"{self.__class__.__name__} : {e}")
+        else:
+            successful = True
 
         return successful
 

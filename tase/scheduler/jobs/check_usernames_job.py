@@ -31,7 +31,7 @@ class CheckUsernamesJob(BaseJob):
 
             CheckUsernamesTask(
                 kwargs={
-                    "username": username,
+                    "username_key": username.key,
                 }
             ).publish(db)
 

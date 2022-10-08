@@ -36,6 +36,7 @@ class ArangoDB(
             "_system",
             username=arangodb_config.db_username,
             password=arangodb_config.db_password,
+            auth_method="basic",
         )
 
         if not sys_db.has_database(arangodb_config.db_name):
@@ -47,6 +48,7 @@ class ArangoDB(
             arangodb_config.db_name,
             username=arangodb_config.db_username,
             password=arangodb_config.db_password,
+            auth_method="basic",
         )
 
         self.aql = self.db.aql
@@ -75,7 +77,7 @@ class ArangoDB(
                     to_vertex_collections=e_class.to_vertex_collections(),
                 )
             else:
-                _collection = self.graph.vertex_collection(e_class._collection_name)
+                _collection = self.graph.edge_collection(e_class._collection_name)
             e_class._graph_name = arangodb_config.graph_name
             e_class._collection = _collection
             e_class._aql = self.aql

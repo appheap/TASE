@@ -33,7 +33,7 @@ class IndexAudiosJob(BaseJob):
             logger.debug(chat.username)
             IndexAudiosTask(
                 kwargs={
-                    "chat": chat,
+                    "chat_key": chat.key,
                 }
             ).publish(db)
 

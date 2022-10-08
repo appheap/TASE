@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple
+from typing import Optional, Tuple
 
 import kombu
 from decouple import config
@@ -14,8 +14,8 @@ from ..my_logger import logger
 
 
 class BaseTask(BaseModel):
-    target_worker_type: TargetWorkerType = Field(default=TargetWorkerType.UNKNOWN)
-    type: RabbitMQTaskType = Field(default=RabbitMQTaskType.UNKNOWN)
+    target_worker_type: TargetWorkerType
+    type: RabbitMQTaskType
 
     kwargs: dict = Field(default_factory=dict)
 
@@ -27,7 +27,11 @@ class BaseTask(BaseModel):
         target_queue: kombu.Queue = None,
         priority: int = 1,
     ) -> Tuple[Optional[RabbitMQTaskStatus], bool]:
-        if self.target_worker_type == TargetWorkerType.UNKNOWN:
+        if (
+            db is None
+            or self.target_worker_type == TargetWorkerType.UNKNOWN
+            or self.type == RabbitMQTaskType.UNKNOWN
+        ):
             return None, False
 
         state_dict = self.kwargs if len(self.kwargs) else None
@@ -44,6 +48,8 @@ class BaseTask(BaseModel):
             )
             if new_task:
                 self.task_key = new_task.key
+            else:
+                raise Exception("could not create `RabbitMQTask` document")
 
             try:
                 if (

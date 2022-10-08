@@ -123,7 +123,7 @@ class BaseEdge(BaseCollectionDocument):
 
     @classmethod
     def from_vertex_collections(cls) -> List[str]:
-        return cls._get_vertices_collection_names(list(cls._to_vertex_collections))
+        return cls._get_vertices_collection_names(list(cls._from_vertex_collections))
 
     @classmethod
     def link(

@@ -32,7 +32,7 @@ class ExtractUsernamesJob(BaseJob):
             # todo: blocking or non-blocking? which one is better suited for this case?
             ExtractUsernamesTask(
                 kwargs={
-                    "chat": chat,
+                    "chat_key": chat.key,
                 }
             ).publish(db)
 

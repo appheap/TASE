@@ -41,10 +41,23 @@ class AddChannelCommand(BaseCommand):
                 f"This channel `{db_chat.title}` already exists in the Database!"
             )
         else:
-            AddChannelTask(kwargs={"channel_username": channel_username}).publish(
-                handler.db
-            )
-            # todo: translate me
-            message.reply_text(
-                f"Added channel `{channel_username}` to the Database for indexing."
-            )
+            status, created = AddChannelTask(
+                kwargs={"channel_username": channel_username.lower()}
+            ).publish(handler.db)
+            if status is None:
+                message.reply_text("internal error")
+            else:
+                if created:
+                    if status.is_active():
+                        message.reply_text(
+                            f"Added channel `{channel_username}` to the Database for indexing."
+                        )
+                else:
+                    if status.is_active():
+                        message.reply_text(
+                            f"Channel with username `{channel_username}` is already being processed"
+                        )
+                    else:
+                        message.reply_text(
+                            f"The task for adding channel with username `{channel_username}` is already finished"
+                        )

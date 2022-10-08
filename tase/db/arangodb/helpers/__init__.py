@@ -9,5 +9,6 @@ from .base_indexer_metadata import BaseIndexerMetadata
 from .bit_rate_type import BitRateType
 from .elastic_query_metadata import ElasticQueryMetadata
 from .inline_query_metadata import InlineQueryMetadata
+from .interaction_count import InteractionCount
 from .restriction import Restriction
 from .username_extractor_metadata import UsernameExtractorMetadata

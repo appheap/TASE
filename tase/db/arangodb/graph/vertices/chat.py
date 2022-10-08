@@ -704,3 +704,26 @@ class ChatMethods:
             return None
 
         return Chat.find_one({"username": username.lower()})
+
+    def get_chat_by_key(
+        self,
+        key: str,
+    ) -> Optional[Chat]:
+        """
+        Get `Chat` vertex by its `key`
+
+        Parameters
+        ----------
+        key : str
+            Key to find the chat by
+
+        Returns
+        -------
+        Chat, optional
+            Chat if it exists by the given key, otherwise, return None
+
+        """
+        if key is None:
+            return None
+
+        return Chat.get(key)

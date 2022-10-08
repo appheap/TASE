@@ -123,15 +123,17 @@ class ExtractUsernamesTask(BaseTask):
     ):
         self.task_in_worker(db)
 
-        db_chat: Chat = self.kwargs.get("db_chat")
-        if db_chat is None:
+        chat_key = self.kwargs.get("chat_key", None)
+
+        chat: Chat = db.graph.get_chat_by_key(chat_key)
+        if chat is None:
             self.task_failed(db)
             return
 
-        self.chat_username = db_chat.username.lower() if db_chat.username else None
+        self.chat_username = chat.username.lower() if chat.username else None
 
-        chat_id = db_chat.username if db_chat.username else db_chat.invite_link
-        title = db_chat.title
+        chat_id = chat.username if chat.username else chat.invite_link
+        title = chat.title
 
         try:
             tg_chat = telegram_client.get_chat(chat_id)
@@ -144,18 +146,18 @@ class ExtractUsernamesTask(BaseTask):
             logger.exception(e)
             self.task_failed(db)
         else:
-            db_chat = db.graph.update_or_create_chat(tg_chat)
+            chat = db.graph.update_or_create_chat(tg_chat)
 
-            self.metadata = db_chat.username_extractor_metadata.copy()
+            self.metadata = chat.username_extractor_metadata.copy()
             if self.metadata is None:
                 self.task_failed(db)
                 return
             self.metadata.reset_counters()
 
-            self.chat = db_chat
+            self.chat = chat
             self.db = db
 
-            if db_chat:
+            if chat:
                 for message in telegram_client.iter_messages(
                     chat_id=chat_id,
                     offset_id=self.metadata.last_message_offset_id,

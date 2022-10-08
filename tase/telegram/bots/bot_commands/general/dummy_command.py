@@ -26,7 +26,7 @@ class DummyCommand(BaseCommand):
         from_user: graph_models.vertices.User,
         from_callback_query: bool,
     ) -> None:
-        kwargs = None
+        kwargs = {}
         if message.command and len(message.command) > 1:
             kwargs = {f"key_{i}": arg for i, arg in enumerate(message.command[1:])}
 
