@@ -8,10 +8,8 @@ from tase.configs import TASEConfig
 from tase.db import DatabaseClient
 from tase.scheduler import SchedulerWorkerProcess
 from tase.scheduler.jobs import (
-    IndexAudiosJob,
-    ExtractUsernamesJob,
-    CheckUsernamesJob,
     CountInteractionsJob,
+    CountHitsJob,
 )
 from tase.telegram.client import TelegramClient
 from tase.telegram.client.client_manager import ClientManager
@@ -77,8 +75,12 @@ class TASE:
                 scheduler = SchedulerWorkerProcess(self.database_client)
                 scheduler.start()
 
+                # cancel active task from the last run
+                self.database_client.document.cancel_all_active_tasks()
+
                 # todo: do initial job scheduling in a proper way
                 CountInteractionsJob().publish(self.database_client)
+                CountHitsJob().publish(self.database_client)
 
                 # IndexChannelsJob().publish()
                 # ExtractUsernamesJob().publish()

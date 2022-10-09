@@ -1,11 +1,13 @@
 from __future__ import annotations
 
-from typing import Optional, TYPE_CHECKING
+import collections
+from typing import Optional, TYPE_CHECKING, List
 
 from tase.common.utils import generate_token_urlsafe
 from tase.db.helpers import SearchMetaData
 from tase.errors import InvalidFromVertex, InvalidToVertex, EdgeCreationFailed
 from tase.my_logger import logger
+from ...helpers import HitCount
 
 if TYPE_CHECKING:
     from .. import ArangoGraphMethods
@@ -63,6 +65,16 @@ class Hit(BaseVertex):
 
 
 class HitMethods:
+    _count_hits_query = (
+        "for hit in @hits"
+        "   filter hit.created_at >= @last_run_at and hit.created_at < @now"
+        "   for v,e in 1..1 outbound hit graph '@graph_name' options {order: 'dfs', edgeCollections:['@has'], vertexCollections:['@audios']}"
+        "       collect audio_key = v._key, hit_type = hit.hit_type"
+        "       aggregate count_ = length(0)"
+        "       sort count_ desc, hit_type asc"
+        "   return {audio_key, hit_type, count_}"
+    )
+
     def create_hit(
         self: ArangoGraphMethods,
         query: Query,
@@ -183,3 +195,50 @@ class HitMethods:
             return None
 
         return Hit.find_one({"download_url": download_url})
+
+    def count_hits(
+        self,
+        last_run_at: int,
+        now: int,
+    ) -> List[HitCount]:
+        """
+        Count the `Hit` vertices that have been created in the ArangoDB between `now` and `last_run_at` parameters.
+
+        Parameters
+        ----------
+        last_run_at : int
+            Timestamp of last run
+        now : int
+            Timestamp of now
+
+        Returns
+        -------
+        list of HitCount
+            List of HitCount objects
+
+        """
+        if last_run_at is None:
+            return []
+
+        from tase.db.arangodb.graph.edges import Has
+        from tase.db.arangodb.graph.vertices import Audio
+
+        cursor = Hit.execute_query(
+            self._count_hits_query,
+            bind_vars={
+                "hits": Hit._collection_name,
+                "last_run_at": last_run_at,
+                "now": now,
+                "has": Has._collection_name,
+                "audios": Audio._collection_name,
+            },
+        )
+
+        res = collections.deque()
+        if cursor is not None and len(cursor):
+            for doc in cursor:
+                obj = HitCount.parse(doc)
+                if obj is not None:
+                    res.append(obj)
+
+        return list(res)

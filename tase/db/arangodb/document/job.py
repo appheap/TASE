@@ -25,7 +25,7 @@ class Job(BaseDocument):
         if job_type is None or job_type == JobType.UNKNOWN:
             return None
 
-        return f"job_{job_type}"
+        return f"job_{job_type.value}"
 
     @classmethod
     def parse(

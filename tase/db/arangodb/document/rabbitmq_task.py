@@ -94,10 +94,10 @@ class RabbitMQTaskMethods:
         "   return doc_task"
     )
 
-    _cancel_recent_rabbitmq_tasks_query = (
+    _cancel_active_rabbitmq_tasks_query = (
         "for doc_task in @rabbitmq_tasks"
         "   sort doc_task.modified_at desc"
-        "   filter doc_task.type == @type and doc_task.status in @status_list"
+        "   filter doc_task.type == '@type' and doc_task.status in @status_list"
         "   update doc_task with {"
         "       status: @new_status"
         "   } in @rabbitmq_tasks options {mergeObjects: true}"
@@ -109,7 +109,7 @@ class RabbitMQTaskMethods:
         key: str,
     ) -> Optional[RabbitMQTask]:
         """
-        Get `a RabbitMQTask` by its `key`
+        Get a `RabbitMQTask` by its `key`
 
         Parameters
         ----------
@@ -199,6 +199,14 @@ class RabbitMQTaskMethods:
 
         return None
 
+    def cancel_all_active_tasks(self) -> None:
+        """
+        Cancel all active RabbitMQ tasks that their status are `created`, `in_queue`, or `in_worker`.
+
+        """
+        for task_type in list(RabbitMQTaskType):
+            self.cancel_active_rabbitmq_tasks(task_type)
+
     def cancel_active_rabbitmq_tasks(
         self,
         task_type: RabbitMQTaskType,
@@ -220,9 +228,9 @@ class RabbitMQTaskMethods:
             return False
 
         cursor = RabbitMQTask.execute_query(
-            self._cancel_recent_rabbitmq_tasks_query,
+            self._cancel_active_rabbitmq_tasks_query,
             bind_vars={
-                "doc_bot_tasks": RabbitMQTask._collection_name,
+                "rabbitmq_tasks": RabbitMQTask._collection_name,
                 "type": task_type.value,
                 "status_list": [
                     RabbitMQTaskStatus.CREATED.value,
