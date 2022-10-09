@@ -75,6 +75,9 @@ class TASE:
                 scheduler = SchedulerWorkerProcess(self.database_client)
                 scheduler.start()
 
+                # cancel active task from the last run
+                self.database_client.document.cancel_all_active_tasks()
+
                 # todo: do initial job scheduling in a proper way
                 CountInteractionsJob().publish(self.database_client)
                 CountHitsJob().publish(self.database_client)
