@@ -33,9 +33,6 @@ class CheckUsernamesTask(BaseTask):
             or username_vertex.username is None
             or username_vertex.is_checked
         ):
-            return
-
-        if not db.graph.get_username(username_vertex.username):
             self.task_failed(db)
             return
 
@@ -50,7 +47,6 @@ class CheckUsernamesTask(BaseTask):
             # UsernameInvalid: The username is invalid
 
             if username_vertex.check(True, get_now_timestamp(), False):
-                username_vertex = db.graph.get_username(username_vertex.username)
                 db.graph.update_mentions_edges_from_chat_to_username(username_vertex)
             else:
                 # todo: update wasn't successful, what now?
@@ -73,9 +69,9 @@ class CheckUsernamesTask(BaseTask):
                 if username_vertex.check(True, get_now_timestamp(), True):
                     # update `mentions` edges and `Username` vertices, Also, create new edges from `Username`
                     # vertices to `Chat` vertices and create edges from `Chat` to `Chat` vertices
-                    username_vertex = db.graph.get_username(username_vertex.username)
                     db.graph.create_and_check_mentions_edges_after_username_check(
-                        mentioned_chat, username_vertex
+                        mentioned_chat,
+                        username_vertex,
                     )
                 else:
                     # todo: update wasn't successful, what now?
