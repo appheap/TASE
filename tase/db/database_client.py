@@ -29,24 +29,48 @@ class DatabaseClient:
         self,
         message: pyrogram.types.Message,
         telegram_client_id: int,
-    ):
+    ) -> bool:
         if message is None or message.audio is None:
-            return
+            return False
+
         try:
-            self.graph.get_or_create_audio(message)
-            self.document.get_or_create_audio(message, telegram_client_id)
-            self.index.get_or_create_audio(message)
+            audio_vertex = self.graph.get_or_create_audio(message)
+            audio_doc = self.document.get_or_create_audio(message, telegram_client_id)
+            es_audio_doc = self.index.get_or_create_audio(message)
         except Exception as e:
             logger.exception(e)
+        else:
+            if (
+                audio_vertex is not None
+                and audio_doc is not None
+                and es_audio_doc is not None
+            ):
+                return True
+
+        return False
 
     def update_or_create_audio(
         self,
         telegram_message: pyrogram.types.Message,
         telegram_client_id: int,
-    ):
+    ) -> bool:
+        if telegram_message is None or telegram_client_id is None:
+            return False
+
         try:
-            self.graph.update_or_create_audio(telegram_message)
-            self.document.update_or_create_audio(telegram_message, telegram_client_id)
-            self.index.update_or_create_audio(telegram_message)
+            audio_vertex = self.graph.update_or_create_audio(telegram_message)
+            audio_doc = self.document.update_or_create_audio(
+                telegram_message, telegram_client_id
+            )
+            es_audio_doc = self.index.update_or_create_audio(telegram_message)
         except Exception as e:
             logger.exception(e)
+        else:
+            if (
+                audio_vertex is not None
+                and audio_doc is not None
+                and es_audio_doc is not None
+            ):
+                return True
+
+        return False

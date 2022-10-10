@@ -1,4 +1,0 @@
-emoji~=0.6.0
-schedule~=0.6.0
-elasticsearch~=7.10.1
-Pyrogram~=0.17.0

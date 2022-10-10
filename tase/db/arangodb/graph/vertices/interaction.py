@@ -211,8 +211,6 @@ class InteractionMethods:
             If `Hit` vertex does not exist with the `hit_download_url` parameter
         HitNoLinkedAudio
             If `Hit` vertex does not have any linked `Audio` vertex with it
-        InvalidAudioForInlineMode
-            If `Audio` vertex is not valid for inline mode
         ValueError
             If the given `Hit` vertex has more than one linked `Audio` vertices.
         """
@@ -226,8 +224,6 @@ class InteractionMethods:
         audio = self.get_audio_from_hit(hit)
         if audio is None:
             raise HitNoLinkedAudio(hit_download_url)
-        if audio.audio_type != TelegramAudioType.AUDIO_FILE:
-            raise InvalidAudioForInlineMode(audio.key)
 
         from tase.db.arangodb.graph.edges import Has
 
@@ -279,8 +275,6 @@ class InteractionMethods:
             If `Hit` vertex does not exist with the `hit_download_url` parameter
         HitNoLinkedAudio
             If `Hit` vertex does not have any linked `Audio` vertex with it
-        InvalidAudioForInlineMode
-            If `Audio` vertex is not valid for inline mode
         ValueError
             If the given `Hit` vertex has more than one linked `Audio` vertices.
         """
@@ -294,8 +288,6 @@ class InteractionMethods:
         audio = self.get_audio_from_hit(hit)
         if audio is None:
             raise HitNoLinkedAudio(hit_download_url)
-        if audio.audio_type != TelegramAudioType.AUDIO_FILE:
-            raise InvalidAudioForInlineMode(audio.key)
 
         from tase.db.arangodb.graph.edges import Has
 
@@ -352,8 +344,6 @@ class InteractionMethods:
             If `Hit` vertex does not exist with the `hit_download_url` parameter
         HitNoLinkedAudio
             If `Hit` vertex does not have any linked `Audio` vertex with it
-        InvalidAudioForInlineMode
-            If `Audio` vertex is not valid for inline mode
         EdgeDeletionFailed
             If deletion of an edge fails
         """
@@ -367,8 +357,6 @@ class InteractionMethods:
         audio = self.get_audio_from_hit(hit)
         if audio is None:
             raise HitNoLinkedAudio(hit_download_url)
-        if audio.audio_type != TelegramAudioType.AUDIO_FILE:
-            raise InvalidAudioForInlineMode(audio.key)
 
         interaction_vertex = self.get_audio_interaction_by_user(
             user,

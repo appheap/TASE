@@ -285,6 +285,14 @@ class AudioMethods:
         "   return v"
     )
 
+    _check_audio_validity_for_inline_mode = (
+        "for hit in @hits"
+        "   filter hit.download_url == '@hit_download_url'"
+        "   for v,e in 1..1 outbound hit graph '@graph_name' options {order:'dfs', edgeCollections:['@has'], vertexCollections:['@audios']}"
+        "       limit 1"
+        "       return v.valid_for_inline_search"
+    )
+
     _get_user_download_history_query = (
         "for dl_v,dl_e in 1..1 outbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@has'], vertexCollections:['@interactions']}"
         "   filter dl_v.type == @interaction_type"
@@ -601,6 +609,50 @@ class AudioMethods:
                     logger.exception(e)
                 else:
                     return Audio.from_collection(doc)
+
+    def is_audio_valid_for_inline_mode(
+        self,
+        hit_download_url: str,
+    ) -> Optional[bool]:
+        """
+        Check for inline validity of an `Audio` vertex from a `Hit` vertex `download_url`
+
+        Parameters
+        ----------
+        hit_download_url : str
+            Download URL of a hit vertex connected to the audio vertex
+
+        Returns
+        -------
+        bool, optional
+            Whether the audio vertex is valid for inline search if it exists in the database, otherwise return None
+
+        """
+        if hit_download_url is None or not len(hit_download_url):
+            return False
+
+        from tase.db.arangodb.graph.edges import Has
+
+        cursor = Audio.execute_query(
+            self._check_audio_validity_for_inline_mode,
+            bind_vars={
+                "hits": Hit._collection_name,
+                "hit_download_url": hit_download_url,
+                "audios": Audio._collection_name,
+                "has": Has._collection_name,
+            },
+        )
+        if cursor is not None and len(cursor):
+            try:
+                is_valid: bool = cursor.pop()
+            except CursorEmptyError:
+                pass
+            except Exception as e:
+                logger.exception(e)
+            else:
+                return is_valid
+
+        return False
 
     def get_user_download_history(
         self,
