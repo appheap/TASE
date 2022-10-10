@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 class AudioKeyboardStatus(BaseModel):
     is_liked: bool
     is_disliked: bool
-    is_in_favorite_playlist: bool
+    is_in_favorite_playlist: Optional[bool]
 
     @classmethod
     def get_status(
@@ -25,6 +25,12 @@ class AudioKeyboardStatus(BaseModel):
             return None
 
         from tase.db.arangodb.enums import InteractionType
+
+        hit = db.graph.find_hit_by_download_url(hit_download_url)
+        audio = db.graph.get_audio_from_hit(hit)
+        valid_for_inline = True
+        if audio and not audio.valid_for_inline_search:
+            valid_for_inline = False
 
         return AudioKeyboardStatus(
             is_liked=db.graph.audio_is_interacted_by_user(
@@ -40,5 +46,7 @@ class AudioKeyboardStatus(BaseModel):
             is_in_favorite_playlist=db.graph.audio_in_favorite_playlist(
                 from_user,
                 hit_download_url,
-            ),
+            )
+            if valid_for_inline
+            else None,
         )

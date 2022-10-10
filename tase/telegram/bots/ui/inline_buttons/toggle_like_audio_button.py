@@ -10,7 +10,6 @@ from tase.errors import (
     PlaylistDoesNotExists,
     HitDoesNotExists,
     HitNoLinkedAudio,
-    InvalidAudioForInlineMode,
 )
 from tase.my_logger import logger
 from tase.telegram.update_handlers.base import BaseHandler
@@ -53,8 +52,6 @@ class ToggleLikeAudioInlineButton(InlineButton):
             telegram_callback_query.answer("Given download url is not valid anymore")
         except HitNoLinkedAudio as e:
             telegram_callback_query.answer("Audio does not exist anymore")
-        except InvalidAudioForInlineMode as e:
-            telegram_callback_query.answer("This audio cannot be used in inline mode")
         except Exception as e:
             logger.exception(e)
             telegram_callback_query.answer(
