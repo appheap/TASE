@@ -1,12 +1,12 @@
-from typing import Optional
-
 from kombu.mixins import ConsumerProducerMixin
 
 from tase.common.utils import datetime_to_timestamp, prettify
 from tase.db import DatabaseClient
-from tase.db.arangodb.enums import RabbitMQTaskType
+from tase.db.arangodb import graph as graph_models
+from tase.db.arangodb.enums import RabbitMQTaskType, TelegramAudioType
 from tase.db.arangodb.graph.vertices import Chat
-from tase.db.arangodb.helpers import AudioIndexerMetadata
+from tase.db.arangodb.helpers import AudioIndexerMetadata, AudioDocIndexerMetadata
+from tase.db.db_utils import get_telegram_message_media_type
 from tase.my_logger import logger
 from tase.task_distribution import BaseTask, TargetWorkerType
 from tase.telegram.client import TelegramClient
@@ -15,8 +15,6 @@ from tase.telegram.client import TelegramClient
 class IndexAudiosTask(BaseTask):
     target_worker_type = TargetWorkerType.ANY_TELEGRAM_CLIENTS_CONSUMER_WORK
     type = RabbitMQTaskType.INDEX_AUDIOS_TASK
-
-    metadata: Optional[AudioIndexerMetadata]
 
     def run(
         self,
@@ -50,36 +48,66 @@ class IndexAudiosTask(BaseTask):
             chat = db.graph.update_or_create_chat(tg_chat)
 
             if chat:
-                self.metadata = chat.audio_indexer_metadata.copy()
-                if self.metadata is None:
-                    self.task_failed(db)
-                    return
-                self.metadata.reset_counters()
+                self.index_audios(db, telegram_client, chat, index_audio=True)
+                self.index_audios(db, telegram_client, chat, index_audio=False)
 
-                for message in telegram_client.iter_messages(
-                    chat_id=chat_id,
-                    offset_id=self.metadata.last_message_offset_id,
-                    only_newer_messages=True,
-                    filter="audio",
-                ):
-                    self.metadata.message_count += 1
-
-                    db.update_or_create_audio(
-                        message,
-                        telegram_client.telegram_id,
-                    )
-
-                    if message.id > self.metadata.last_message_offset_id:
-                        self.metadata.last_message_offset_id = message.id
-                        self.metadata.last_message_offset_date = datetime_to_timestamp(
-                            message.date
-                        )
-
-                chat.update_audio_indexer_metadata(self.metadata)
-                logger.info(f"{prettify(self.metadata)}")
                 logger.debug(f"Finished {title}")
-
                 self.task_done(db)
             else:
                 logger.debug(f"Error occurred: {title}")
                 self.task_failed(db)
+
+    def index_audios(
+        self,
+        db: DatabaseClient,
+        telegram_client: TelegramClient,
+        chat: graph_models.vertices.Chat,
+        index_audio: bool = True,
+    ):
+        if index_audio:
+            if chat.audio_indexer_metadata is not None:
+                metadata: AudioIndexerMetadata = chat.audio_indexer_metadata.copy()
+            else:
+                metadata: AudioIndexerMetadata = AudioIndexerMetadata()
+        else:
+            if chat.audio_doc_indexer_metadata is not None:
+                metadata: AudioDocIndexerMetadata = (
+                    chat.audio_doc_indexer_metadata.copy()
+                )
+            else:
+                metadata: AudioDocIndexerMetadata = AudioDocIndexerMetadata()
+
+        if metadata is None:
+            self.task_failed(db)
+            return
+
+        metadata.reset_counters()
+
+        for message in telegram_client.iter_messages(
+            chat_id=chat.chat_id,
+            offset_id=metadata.last_message_offset_id,
+            only_newer_messages=True,
+            filter="audio" if index_audio else "document",
+        ):
+            if not index_audio:
+                audio, audio_type = get_telegram_message_media_type(message)
+                if audio is None or audio_type == TelegramAudioType.NON_AUDIO:
+                    continue
+
+            successful = db.update_or_create_audio(
+                message,
+                telegram_client.telegram_id,
+            )
+            if successful:
+                metadata.message_count += 1
+
+            if message.id > metadata.last_message_offset_id:
+                metadata.last_message_offset_id = message.id
+                metadata.last_message_offset_date = datetime_to_timestamp(message.date)
+
+        if index_audio:
+            chat.update_audio_indexer_metadata(metadata)
+        else:
+            chat.update_audio_doc_indexer_metadata(metadata)
+
+        logger.info(f"{prettify(metadata)}")
