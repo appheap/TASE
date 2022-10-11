@@ -355,28 +355,35 @@ class ChatMethods:
     _get_chats_sorted_by_username_extractor_score_query = (
         "for chat in @chats"
         "   filter chat.chat_type == @chat_type and chat.is_public == true and chat.username_extractor_metadata != null"
-        "   sort chat.username_extractor_metadata.score desc, chat.member_count desc"
+        "   sort chat.username_extractor_metadata.score desc, chat.members_count desc"
         "   return chat"
     )
 
-    _get_chats_sorted_by_audio_indexer_score = (
+    _get_not_extracted_chats_sorted_by_members_count_query = (
+        "for chat in @chats"
+        "   filter chat.chat_type == @chat_type and chat.is_public == true and chat.username_extractor_metadata == null"
+        "   sort chat.members_count desc"
+        "   return chat"
+    )
+
+    _get_chats_sorted_by_audio_indexer_score_query = (
         "for chat in @chats"
         "   filter chat.chat_type == @chat_type and chat.is_public == true and chat.audio_indexer_metadata != null"
-        "   sort chat.audio_indexer_metadata.score desc, chat.member_count desc"
+        "   sort chat.audio_indexer_metadata.score desc, chat.members_count desc"
         "   return chat"
     )
 
-    _get_not_indexed_chats_sorted_by_audio_indexer_score = (
+    _get_not_indexed_chats_sorted_by_members_count_query = (
         "for chat in @chats"
         "   filter chat.chat_type == @chat_type and chat.is_public == true and chat.audio_indexer_metadata == null"
-        "   sort chat.member_count desc"
+        "   sort chat.members_count desc"
         "   return chat"
     )
 
     _get_chats_sorted_by_audio_doc_indexer_score = (
         "for chat in @chats"
         "   filter chat.chat_type == @chat_type and chat.audio_doc_indexer_metadata != null "
-        "   sort chat.audio_doc_indexer_metadata.score desc, chat.member_count desc"
+        "   sort chat.audio_doc_indexer_metadata.score desc, chat.members_count desc"
         "   return chat"
     )
 
@@ -595,9 +602,15 @@ class ChatMethods:
 
     def get_chats_sorted_by_username_extractor_score(
         self,
+        filter_by_indexed_chats: bool = True,
     ) -> Generator[Chat, None, None]:
         """
         Gets list of chats sorted by their username extractor importance score in a descending order
+
+        Parameters
+        ----------
+        filter_by_indexed_chats : bool, default: True
+            Whether to filter chats by whether they have been indexed before or not
 
         Yields
         ------
@@ -608,7 +621,9 @@ class ChatMethods:
         chat_type = ChatType.CHANNEL.value
 
         cursor = Chat.execute_query(
-            self._get_chats_sorted_by_username_extractor_score_query,
+            self._get_chats_sorted_by_username_extractor_score_query
+            if filter_by_indexed_chats
+            else self._get_not_extracted_chats_sorted_by_members_count_query,
             bind_vars={
                 "chats": Chat._collection_name,
                 "chat_type": chat_type,
@@ -625,6 +640,11 @@ class ChatMethods:
         """
         Get list of chats sorted by their audio importance score in a descending order
 
+        Parameters
+        ----------
+        filter_by_indexed_chats : bool, default: True
+            Whether to filter chats by whether they have been indexed before or not
+
         Yields
         ------
         Chat
@@ -634,9 +654,9 @@ class ChatMethods:
         chat_type = ChatType.CHANNEL.value
 
         cursor = Chat.execute_query(
-            self._get_chats_sorted_by_audio_indexer_score
+            self._get_chats_sorted_by_audio_indexer_score_query
             if filter_by_indexed_chats
-            else self._get_not_indexed_chats_sorted_by_audio_indexer_score,
+            else self._get_not_indexed_chats_sorted_by_members_count_query,
             bind_vars={
                 "chats": Chat._collection_name,
                 "chat_type": chat_type,

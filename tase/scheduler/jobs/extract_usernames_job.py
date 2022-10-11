@@ -1,3 +1,5 @@
+from itertools import chain
+
 import apscheduler.triggers.interval
 import arrow
 from kombu.mixins import ConsumerProducerMixin
@@ -26,8 +28,9 @@ class ExtractUsernamesJob(BaseJob):
     ) -> None:
         self.task_in_worker(db)
         db_chats = db.graph.get_chats_sorted_by_username_extractor_score()
+        not_extracted_db_chats = db.graph.get_chats_sorted_by_username_extractor_score()
 
-        for chat in db_chats:
+        for chat in chain(db_chats, not_extracted_db_chats):
             logger.debug(chat.username)
             # todo: blocking or non-blocking? which one is better suited for this case?
             ExtractUsernamesTask(
