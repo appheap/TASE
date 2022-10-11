@@ -25,97 +25,6 @@ class ExtractUsernamesTask(BaseTask):
     chat_username: Optional[str]
     metadata: Optional[UsernameExtractorMetadata]
 
-    def find_usernames_in_text(
-        self,
-        text: Union[str, List[Union[str, None]]],
-        is_direct_mention: bool,
-        message: pyrogram.types.Message,
-        mention_source: Union[MentionSource, List[MentionSource]],
-    ) -> None:
-        if message is None or mention_source is None:
-            return None
-
-        def find(text_: str, mention_source_: MentionSource):
-            for username, match_start in find_telegram_usernames(text_):
-                self.add_username(
-                    username,
-                    is_direct_mention,
-                    message,
-                    mention_source_,
-                    match_start,
-                )
-
-        if not isinstance(text, str) and isinstance(text, List):
-            if isinstance(mention_source, List):
-                if len(mention_source) != len(text):
-                    raise Exception(
-                        f"mention_source and text must of the the same size: {len(mention_source)} != "
-                        f"{len(text)}"
-                    )
-                for text__, mention_source_ in zip(text, mention_source):
-                    if text__ is not None and mention_source_ is not None:
-                        find(text__, mention_source_)
-            else:
-                for text__ in text:
-                    if text__ is not None:
-                        find(text__, mention_source)
-
-        else:
-            if text is not None:
-                find(text, mention_source)
-
-    def add_username(
-        self,
-        username: str,
-        is_direct_mention: bool,
-        message: pyrogram.types.Message,
-        mention_source: MentionSource,
-        mention_start_index: int,
-    ) -> None:
-        if (
-            username is None
-            or not len(username)
-            or is_direct_mention is None
-            or message is None
-            or mention_source is None
-            or mention_start_index is None
-        ):
-            return
-
-        username = username.lower()
-
-        # todo: this is not a valid username, it's an invite link for a private supergroup / channel.
-        if username in ("joinchat",):
-            return
-
-        if self.chat_username:
-            if username == self.chat_username:
-                if is_direct_mention:
-                    self.metadata.direct_self_mention_count += 1
-                else:
-                    self.metadata.indirect_self_mention_count += 1
-            else:
-                if is_direct_mention:
-                    self.metadata.direct_raw_mention_count += 1
-                else:
-                    self.metadata.indirect_raw_mention_count += 1
-        else:
-            if is_direct_mention:
-                self.metadata.direct_raw_mention_count += 1
-            else:
-                self.metadata.indirect_raw_mention_count += 1
-
-        mentioned_at = datetime_to_timestamp(message.date)
-        username_vertex = self.db.graph.get_or_create_username(
-            self.chat,
-            username,
-            is_direct_mention,
-            mentioned_at,
-            mention_source,
-            mention_start_index,
-            message.id,
-        )
-
     def run(
         self,
         consumer_producer: ConsumerProducerMixin,
@@ -242,6 +151,97 @@ class ExtractUsernamesTask(BaseTask):
             else:
                 self.task_failed(db)
                 logger.error(f"Error occurred: {title}")
+
+    def find_usernames_in_text(
+        self,
+        text: Union[str, List[Union[str, None]]],
+        is_direct_mention: bool,
+        message: pyrogram.types.Message,
+        mention_source: Union[MentionSource, List[MentionSource]],
+    ) -> None:
+        if message is None or mention_source is None:
+            return None
+
+        def find(text_: str, mention_source_: MentionSource):
+            for username, match_start in find_telegram_usernames(text_):
+                self.add_username(
+                    username,
+                    is_direct_mention,
+                    message,
+                    mention_source_,
+                    match_start,
+                )
+
+        if not isinstance(text, str) and isinstance(text, List):
+            if isinstance(mention_source, List):
+                if len(mention_source) != len(text):
+                    raise Exception(
+                        f"mention_source and text must of the the same size: {len(mention_source)} != "
+                        f"{len(text)}"
+                    )
+                for text__, mention_source_ in zip(text, mention_source):
+                    if text__ is not None and mention_source_ is not None:
+                        find(text__, mention_source_)
+            else:
+                for text__ in text:
+                    if text__ is not None:
+                        find(text__, mention_source)
+
+        else:
+            if text is not None:
+                find(text, mention_source)
+
+    def add_username(
+        self,
+        username: str,
+        is_direct_mention: bool,
+        message: pyrogram.types.Message,
+        mention_source: MentionSource,
+        mention_start_index: int,
+    ) -> None:
+        if (
+            username is None
+            or not len(username)
+            or is_direct_mention is None
+            or message is None
+            or mention_source is None
+            or mention_start_index is None
+        ):
+            return
+
+        username = username.lower()
+
+        # todo: this is not a valid username, it's an invite link for a private supergroup / channel.
+        if username in ("joinchat",):
+            return
+
+        if self.chat_username:
+            if username == self.chat_username:
+                if is_direct_mention:
+                    self.metadata.direct_self_mention_count += 1
+                else:
+                    self.metadata.indirect_self_mention_count += 1
+            else:
+                if is_direct_mention:
+                    self.metadata.direct_raw_mention_count += 1
+                else:
+                    self.metadata.indirect_raw_mention_count += 1
+        else:
+            if is_direct_mention:
+                self.metadata.direct_raw_mention_count += 1
+            else:
+                self.metadata.indirect_raw_mention_count += 1
+
+        mentioned_at = datetime_to_timestamp(message.date)
+        username_vertex = self.db.graph.get_or_create_username(
+            self.chat,
+            username,
+            is_direct_mention,
+            mentioned_at,
+            mention_source,
+            mention_start_index,
+            message.id,
+        )
 
     class Config:
         arbitrary_types_allowed = True
