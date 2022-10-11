@@ -26,6 +26,7 @@ class BotCommandType(Enum):
     DEMOTE_USER = "demote_user"
     INDEX_CHANNEL = "index_channel"
     SHUTDOWN_SYSTEM = "shutdown_system"
+    EXTRACT_USERNAMES = "extract_usernames"
 
     @classmethod
     def get_from_message(

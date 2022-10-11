@@ -3,6 +3,7 @@ from typing import List, Optional, Union
 import pyrogram
 from kombu.mixins import ConsumerProducerMixin
 from pydantic import Field
+from pyrogram.errors import UsernameNotOccupied
 
 from tase.common.utils import datetime_to_timestamp, prettify, find_telegram_usernames
 from tase.db import DatabaseClient
@@ -124,16 +125,25 @@ class ExtractUsernamesTask(BaseTask):
         self.task_in_worker(db)
 
         chat_key = self.kwargs.get("chat_key", None)
+        if chat_key is None:
+            channel_username: str = self.kwargs.get("channel_username", None)
+            if channel_username is None:
+                self.task_failed(db)
+                return
 
-        chat: Chat = db.graph.get_chat_by_key(chat_key)
-        if chat is None:
-            self.task_failed(db)
-            return
+            self.chat_username = channel_username.lower()
+            chat_id = channel_username
+            title = channel_username
 
-        self.chat_username = chat.username.lower() if chat.username else None
+        else:
+            chat: Chat = db.graph.get_chat_by_key(chat_key)
+            if chat is None:
+                self.task_failed(db)
+                return
 
-        chat_id = chat.username if chat.username else chat.invite_link
-        title = chat.title
+            self.chat_username = chat.username.lower() if chat.username else None
+            chat_id = chat.username if chat.username else chat.invite_link
+            title = chat.title
 
         try:
             tg_chat = telegram_client.get_chat(chat_id)
@@ -142,13 +152,19 @@ class ExtractUsernamesTask(BaseTask):
             # todo: fix this
             logger.exception(e)
             self.task_failed(db)
+        except UsernameNotOccupied as e:
+            self.task_failed(db)
         except Exception as e:
             logger.exception(e)
             self.task_failed(db)
         else:
             chat = db.graph.update_or_create_chat(tg_chat)
 
-            self.metadata = chat.username_extractor_metadata.copy()
+            if chat.username_extractor_metadata is None:
+                self.metadata: UsernameExtractorMetadata = UsernameExtractorMetadata()
+            else:
+                self.metadata = chat.username_extractor_metadata.copy()
+
             if self.metadata is None:
                 self.task_failed(db)
                 return
