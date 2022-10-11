@@ -354,15 +354,22 @@ class ChatMethods:
 
     _get_chats_sorted_by_username_extractor_score_query = (
         "for chat in @chats"
-        "   filter chat.chat_type == @chat_type and chat.username_extractor_metadata != null"
+        "   filter chat.chat_type == @chat_type and chat.is_public == true and chat.username_extractor_metadata != null"
         "   sort chat.username_extractor_metadata.score desc, chat.member_count desc"
         "   return chat"
     )
 
     _get_chats_sorted_by_audio_indexer_score = (
         "for chat in @chats"
-        "   filter chat.chat_type == @chat_type and chat.audio_indexer_metadata != null"
+        "   filter chat.chat_type == @chat_type and chat.is_public == true and chat.audio_indexer_metadata != null"
         "   sort chat.audio_indexer_metadata.score desc, chat.member_count desc"
+        "   return chat"
+    )
+
+    _get_not_indexed_chats_sorted_by_audio_indexer_score = (
+        "for chat in @chats"
+        "   filter chat.chat_type == @chat_type and chat.is_public == true and chat.audio_indexer_metadata == null"
+        "   sort chat.member_count desc"
         "   return chat"
     )
 
@@ -611,7 +618,10 @@ class ChatMethods:
             for doc in cursor:
                 yield Chat.from_collection(doc)
 
-    def get_chats_sorted_by_audio_indexer_score(self) -> Generator[Chat, None, None]:
+    def get_chats_sorted_by_audio_indexer_score(
+        self,
+        filter_by_indexed_chats: bool = True,
+    ) -> Generator[Chat, None, None]:
         """
         Get list of chats sorted by their audio importance score in a descending order
 
@@ -624,7 +634,9 @@ class ChatMethods:
         chat_type = ChatType.CHANNEL.value
 
         cursor = Chat.execute_query(
-            self._get_chats_sorted_by_audio_indexer_score,
+            self._get_chats_sorted_by_audio_indexer_score
+            if filter_by_indexed_chats
+            else self._get_not_indexed_chats_sorted_by_audio_indexer_score,
             bind_vars={
                 "chats": Chat._collection_name,
                 "chat_type": chat_type,

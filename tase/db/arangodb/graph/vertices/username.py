@@ -184,36 +184,6 @@ class UsernameMethods:
 
         db_username, successful = Username.insert(Username.parse(username))
         if db_username and successful:
-            from tase.db.arangodb.graph.edges import Mentions
-
-            if chat.username is not None:
-                if chat.username.lower() != username.lower():
-                    # this is not a self-mention edge, so it should be created
-                    create_mention_edge = True
-                else:
-                    # don't create self-mention edges
-                    create_mention_edge = False
-            else:
-                # the username is mentioned from a chat that doesn't have a username itself
-                create_mention_edge = True
-
-            if create_mention_edge:
-                # mentioned username is not self-mention, create the edge from `Chat` vertex to `Username` vertex
-                try:
-                    Mentions.get_or_create_edge(
-                        chat,
-                        db_username,
-                        is_direct_mention,
-                        mentioned_at,
-                        mention_source,
-                        mention_start_index,
-                        from_message_id,
-                    )
-                except (InvalidFromVertex, InvalidToVertex):
-                    logger.error(
-                        "ValueError: could not create the `Mentions`edge from `Chat` vertex to `Username` vertex"
-                    )
-
             return db_username
         else:
             return None
@@ -277,6 +247,37 @@ class UsernameMethods:
                 mention_start_index,
                 from_message_id,
             )
+
+        if db_username:
+            from tase.db.arangodb.graph.edges import Mentions
+
+            if chat.username is not None:
+                if chat.username.lower() != username.lower():
+                    # this is not a self-mention edge, so it should be created
+                    create_mention_edge = True
+                else:
+                    # don't create self-mention edges
+                    create_mention_edge = False
+            else:
+                # the username is mentioned from a chat that doesn't have a username itself
+                create_mention_edge = True
+
+            if create_mention_edge:
+                # mentioned username is not self-mention, create the edge from `Chat` vertex to `Username` vertex
+                try:
+                    Mentions.get_or_create_edge(
+                        chat,
+                        db_username,
+                        is_direct_mention,
+                        mentioned_at,
+                        mention_source,
+                        mention_start_index,
+                        from_message_id,
+                    )
+                except (InvalidFromVertex, InvalidToVertex):
+                    logger.error(
+                        "ValueError: could not create the `Mentions`edge from `Chat` vertex to `Username` vertex"
+                    )
 
         return db_username
 

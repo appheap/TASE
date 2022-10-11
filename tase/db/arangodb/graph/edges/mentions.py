@@ -40,12 +40,11 @@ class Mentions(BaseEdge):
         cls,
         from_vertex: Union[Chat, Username],
         to_vertex: Union[Chat, Username],
+        is_direct_mention: bool,
         mentioned_at: int,
         mention_source: MentionSource,
         mention_start_index: int,
         from_message_id: int,
-        *args,
-        **kwargs,
     ) -> Optional[str]:
         if (
             from_vertex is None
@@ -70,12 +69,11 @@ class Mentions(BaseEdge):
         mention_source: MentionSource,
         mention_start_index: int,
         from_message_id: int,
-        *args,
-        **kwargs,
     ) -> Optional[Mentions]:
         key = Mentions.parse_key(
             from_vertex,
             to_vertex,
+            is_direct_mention,
             mentioned_at,
             mention_source,
             mention_start_index,
@@ -171,22 +169,22 @@ class MentionsMethods:
                             Mentions.get_or_create_edge(
                                 username,
                                 mentioned_chat,
-                                mentions_edge.from_message_id,
                                 mentions_edge.is_direct_mention,
+                                mentions_edge.mentioned_at,
                                 mentions_edge.mention_source,
                                 mentions_edge.mention_start_index,
-                                mentions_edge.mentioned_at,
+                                mentions_edge.from_message_id,
                             )
 
                             # create the edge from `Chat` vertex to mentioned `Chat` vertex
                             Mentions.get_or_create_edge(
                                 source_chat,
                                 mentioned_chat,
-                                mentions_edge.from_message_id,
                                 mentions_edge.is_direct_mention,
+                                mentions_edge.mentioned_at,
                                 mentions_edge.mention_source,
                                 mentions_edge.mention_start_index,
-                                mentions_edge.mentioned_at,
+                                mentions_edge.from_message_id,
                             )
                         except (InvalidFromVertex, InvalidToVertex):
                             # fixme
