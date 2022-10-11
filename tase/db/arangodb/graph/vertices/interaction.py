@@ -4,18 +4,18 @@ import collections
 import uuid
 from typing import Optional, TYPE_CHECKING, Tuple, List
 
+from pydantic import Field
+
 from tase.errors import (
     InvalidFromVertex,
     InvalidToVertex,
     HitDoesNotExists,
     HitNoLinkedAudio,
-    InvalidAudioForInlineMode,
-    EdgeDeletionFailed,
 )
 from tase.my_logger import logger
 from .base_vertex import BaseVertex
 from .user import User
-from ...enums import ChatType, InteractionType, TelegramAudioType
+from ...enums import ChatType, InteractionType
 from ...helpers import InteractionCount
 
 if TYPE_CHECKING:
@@ -26,8 +26,12 @@ class Interaction(BaseVertex):
     _collection_name = "interactions"
     schema_version = 1
 
+    _extra_do_not_update_fields = ("is_active",)
+
     type: InteractionType
     chat_type: ChatType
+
+    is_active: bool = Field(default=True)
 
     @classmethod
     def parse(
@@ -45,11 +49,16 @@ class Interaction(BaseVertex):
             chat_type=chat_type,
         )
 
+    def toggle(self) -> bool:
+        self_copy: Interaction = self.copy(deep=True)
+        self_copy.is_active = not self.is_active
+        return self.update(self_copy, reserve_non_updatable_fields=False)
+
 
 class InteractionMethods:
     _is_audio_interacted_by_user_query = (
         "for v_int in 1..1 outbound '@user_id' graph '@graph_name' options {order : 'dfs', edgeCollections : ['@has'], vertexCollections : ['@interactions']}"
-        "   filter v_int.type == @interaction_type"
+        "   filter v_int.type == @interaction_type and v_int.is_active == true"
         "   for v_aud in 1..1 outbound v_int._id graph '@graph_name' options {order : 'dfs', edgeCollections : ['@has'], vertexCollections : ['@audios']}"
         "       filter v_aud._key == '@audio_key'"
         "       return true"
@@ -65,12 +74,12 @@ class InteractionMethods:
 
     _count_interactions_query = (
         "for interaction in @interactions"
-        "   filter interaction.created_at >= @last_run_at and interaction.created_at < @now"
+        "   filter interaction.modified_at >= @last_run_at and interaction.modified_at < @now"
         "   for v,e in 1..1 outbound interaction graph '@graph_name' options {order: 'dfs', edgeCollections:['@has'], vertexCollections:['@audios']}"
-        "       collect audio_key = v._key, interaction_type = interaction.type"
+        "       collect audio_key = v._key, interaction_type = interaction.type, is_active= interaction.is_active"
         "       aggregate count_ = length(0)"
         "       sort count_ desc, interaction_type asc"
-        "   return {audio_key, interaction_type, count_}"
+        "   return {audio_key, interaction_type, count_, is_active}"
     )
 
     def create_interaction(
@@ -363,34 +372,17 @@ class InteractionMethods:
             hit_download_url,
             interaction_type,
         )
-        has_interacted = interaction_vertex is not None
+        has_interacted = interaction_vertex is not None and interaction_vertex.is_active
 
         if interaction_vertex:
+            # user has already interacted with the audio, remove the interaction
             from tase.db.arangodb.graph.edges import Has
 
-            successful = False
-
-            has_interaction_edge = Has.get_or_create_edge(user, interaction_vertex)
-            if has_interaction_edge is not None:
-
-                deleted_has_interaction_edge = has_interaction_edge.delete()
-                if not deleted_has_interaction_edge:
-                    raise EdgeDeletionFailed(Has.__class__.__name__)
-
-                has_audio_edge = Has.get_or_create_edge(interaction_vertex, audio)
-                if has_audio_edge is not None:
-                    deleted_has_audio_edge = has_audio_edge.delete()
-                    if not deleted_has_audio_edge:
-                        raise EdgeDeletionFailed(Has.__class__.__name__)
-
-                    successful = True
-                else:
-                    logger.error("Unexpected error")
-            else:
-                logger.error("Unexpected error")
+            successful = interaction_vertex.toggle()
 
             return successful, has_interacted
         else:
+            # user has not interacted with the audio, create the interaction
             interaction = self.create_interaction(
                 hit_download_url,
                 user,

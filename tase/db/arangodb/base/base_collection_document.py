@@ -637,6 +637,8 @@ class BaseCollectionDocument(BaseCollectionAttributes):
             if graph_doc is None:
                 return False
 
+            graph_doc["modified_at"] = get_now_timestamp()
+
             metadata = self._collection.update(
                 graph_doc,
                 check_rev=check_rev,

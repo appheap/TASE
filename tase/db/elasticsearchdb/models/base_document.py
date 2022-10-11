@@ -460,6 +460,8 @@ class BaseDocument(BaseModel):
                 id, doc = document.to_index()
 
             if id and doc:
+                doc["modified_at"] = get_now_timestamp()
+
                 response = self._es.update(
                     index=self._index_name,
                     id=id,
