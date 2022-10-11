@@ -353,9 +353,17 @@ class Audio(BaseDocument):
         elif interaction_count.interaction_type == InteractionType.SHARE:
             self_copy.shares += interaction_count.count
         elif interaction_count.interaction_type == InteractionType.LIKE:
-            self_copy.likes += interaction_count.count
+            if interaction_count.is_active:
+                self_copy.likes += interaction_count.count
+            else:
+                if self_copy.likes > 0:
+                    self_copy.likes -= interaction_count.count
         elif interaction_count.interaction_type == InteractionType.DISLIKE:
-            self_copy.dislikes += interaction_count.count
+            if interaction_count.is_active:
+                self_copy.dislikes += interaction_count.count
+            else:
+                if self_copy.dislikes > 0:
+                    self_copy.dislikes -= interaction_count.count
 
         return self.update(self_copy, reserve_non_updatable_fields=False)
 
