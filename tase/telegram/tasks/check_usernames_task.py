@@ -12,9 +12,9 @@ from tase.task_distribution import BaseTask, TargetWorkerType
 from tase.telegram.client import TelegramClient
 
 
-class CheckUsernamesTask(BaseTask):
+class CheckUsernameTask(BaseTask):
     target_worker_type = TargetWorkerType.ANY_TELEGRAM_CLIENTS_CONSUMER_WORK
-    type = RabbitMQTaskType.CHECK_USERNAMES_TASK
+    type = RabbitMQTaskType.CHECK_USERNAME_TASK
 
     def run(
         self,

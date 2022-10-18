@@ -88,6 +88,21 @@ class UsernameMethods:
         "   return username"
     )
 
+    _get_checked_usernames_with_unchecked_mentions = (
+        "for username in @usernames"
+        "   filter username.is_checked == true and username.created_at < @now"
+        "   sort username.created_at desc"
+        "   let unchecked_mentions_count = ("
+        "       for chat, mention_e in 1..1 inbound username graph '@graph_name' options {order: 'dfs', edgeCollections: ['@mentions'], vertexCollections: ['@chats']}"
+        "           filter mention_e.is_checked == false"
+        "           collect with count into len"
+        "           return len"
+        "           )"
+        "   filter unchecked_mentions_count > 0"
+        "   sort unchecked_mentions_count desc"
+        "   return username"
+    )
+
     def get_username(
         self,
         username: str,
@@ -136,33 +151,15 @@ class UsernameMethods:
 
     def create_username(
         self,
-        chat: Chat,
         username: str,
-        is_direct_mention: bool,
-        mentioned_at: int,
-        mention_source: MentionSource,
-        mention_start_index: int,
-        from_message_id: int,
     ) -> Optional[Username]:
         """
         Create a Username in the ArangoDB.
 
         Parameters
         ----------
-        chat : Chat
-            Chat where this username is mentioned
         username : str
             Username string to create the object from
-        is_direct_mention: bool
-            Whether this username was mentioned in text/caption of a message or not
-        mentioned_at : int
-            Timestamp when this mention happened
-        mention_source : int
-            Source of the mentioned username. Mention can directly can be extracted within text or file attributes.
-        mention_start_index : int
-            Starting index of mentioned username in the source
-        from_message_id : int
-            Telegram Message ID of the message where the username was mentioned
 
         Returns
         -------
@@ -170,16 +167,7 @@ class UsernameMethods:
             Username object if creation was successful, otherwise, return None.
 
         """
-        if (
-            chat is None
-            or username is None
-            or not len(username)
-            or is_direct_mention is None
-            or mentioned_at is None
-            or mention_source is None
-            or mention_start_index is None
-            or from_message_id is None
-        ):
+        if username is None or not len(username):
             return None
 
         db_username, successful = Username.insert(Username.parse(username))
@@ -190,23 +178,24 @@ class UsernameMethods:
 
     def get_or_create_username(
         self,
-        chat: Chat,
         username: str,
-        is_direct_mention: bool,
-        mentioned_at: int,
-        mention_source: MentionSource,
-        mention_start_index: int,
-        from_message_id: int,
+        chat: Chat = None,
+        is_direct_mention: bool = None,
+        mentioned_at: int = None,
+        mention_source: MentionSource = None,
+        mention_start_index: int = None,
+        from_message_id: int = None,
+        create_mention_edge: bool = True,
     ) -> Optional[Username]:
         """
         Get Username if it exists in the ArangoDB, otherwise, create it.
 
         Parameters
         ----------
-        chat : Chat
-            Chat where this username is mentioned
         username : str
             Username string to create the object from
+        chat : Chat
+            Chat where this username is mentioned
         is_direct_mention: bool
             Whether this username was mentioned in text/caption of a message or not
         mentioned_at : int
@@ -217,6 +206,8 @@ class UsernameMethods:
             Starting index of mentioned username in the source
         from_message_id : int
             Telegram Message ID of the message where the username was mentioned
+        create_mention_edge : bool, default : True
+            Whether to create the mentions edge or not
 
         Returns
         -------
@@ -224,45 +215,39 @@ class UsernameMethods:
             Username object if operation was successful, otherwise, return None.
 
         """
-        if (
-            chat is None
-            or username is None
-            or not len(username)
-            or is_direct_mention is None
-            or mentioned_at is None
-            or mention_source is None
-            or mention_start_index is None
-            or from_message_id is None
-        ):
+
+        if username is None or not len(username):
             return None
 
         db_username = Username.get(Username.parse_key(username))
         if db_username is None:
-            db_username = self.create_username(
-                chat,
-                username,
-                is_direct_mention,
-                mentioned_at,
-                mention_source,
-                mention_start_index,
-                from_message_id,
-            )
+            db_username = self.create_username(username)
 
-        if db_username:
+        if db_username and create_mention_edge:
+            if (
+                chat is None
+                or is_direct_mention is None
+                or mentioned_at is None
+                or mention_source is None
+                or mention_start_index is None
+                or from_message_id is None
+            ):
+                return None
+
             from tase.db.arangodb.graph.edges import Mentions
 
             if chat.username is not None:
                 if chat.username.lower() != username.lower():
                     # this is not a self-mention edge, so it should be created
-                    create_mention_edge = True
+                    create_mention_edge_ = True
                 else:
                     # don't create self-mention edges
-                    create_mention_edge = False
+                    create_mention_edge_ = False
             else:
                 # the username is mentioned from a chat that doesn't have a username itself
-                create_mention_edge = True
+                create_mention_edge_ = True
 
-            if create_mention_edge:
+            if create_mention_edge_:
                 # mentioned username is not self-mention, create the edge from `Chat` vertex to `Username` vertex
                 try:
                     Mentions.get_or_create_edge(
@@ -296,6 +281,36 @@ class UsernameMethods:
             self._get_unchecked_usernames_query,
             bind_vars={
                 "usernames": Username._collection_name,
+                "now": now,
+            },
+        )
+
+        if cursor is not None and len(cursor):
+            for doc in cursor:
+                yield Username.from_collection(doc)
+
+    def get_checked_usernames_with_unchecked_mentions(
+        self,
+    ) -> Generator[Username, None, None]:
+        """
+        Get list of Usernames that have been checked, but they have mentions that have not been checked,
+        sorted by the number of unchecked `mentions` edges in a descending order
+
+        Yields
+        -------
+        Username
+            List of Username objects
+        """
+        now = get_now_timestamp()
+
+        from tase.db.arangodb.graph.edges import Mentions
+
+        cursor = Username.execute_query(
+            self._get_checked_usernames_with_unchecked_mentions,
+            bind_vars={
+                "usernames": Username._collection_name,
+                "mentions": Mentions._collection_name,
+                "chats": Chat._collection_name,
                 "now": now,
             },
         )

@@ -11,8 +11,8 @@ from ...telegram.client import TelegramClient
 from ...telegram.tasks import CheckUsernameTask
 
 
-class CheckUsernamesJob(BaseJob):
-    type = RabbitMQTaskType.CHECK_USERNAMES_JOB
+class CheckUsernamesWithUncheckedMentionsJob(BaseJob):
+    type = RabbitMQTaskType.CHECK_USERNAMES_WITH_UNCHECKED_MENTIONS_JOB
 
     trigger = IntervalTrigger(
         hours=1,
@@ -26,7 +26,7 @@ class CheckUsernamesJob(BaseJob):
         telegram_client: TelegramClient = None,
     ) -> None:
         self.task_in_worker(db)
-        usernames = db.graph.get_unchecked_usernames()
+        usernames = db.graph.get_checked_usernames_with_unchecked_mentions()
 
         for idx, username in enumerate(usernames):
             # todo: blocking or non-blocking? which one is better suited for this case?

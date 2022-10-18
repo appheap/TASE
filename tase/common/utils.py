@@ -190,15 +190,39 @@ def prettify(
     )
 
 
-def datetime_to_timestamp(date: Optional[datetime]) -> Optional[int]:
+def datetime_to_timestamp(date: datetime) -> Optional[int]:
+    """
+    Convert a `datetime` object into UTC timestamp in milliseconds.
+
+    Parameters
+    ----------
+    date : datetime
+        Datetime object to be converted
+
+    Returns
+    -------
+    int, optional
+        UTC timestamp in milliseconds
+
+
+    """
     if date is not None:
         # fixme: make sure this returns utc timestamp
-        return int(date.timestamp())
+        return int(date.timestamp() * 1000)
     return None
 
 
 def get_now_timestamp() -> int:
-    return int(arrow.utcnow().timestamp())
+    """
+    Get UTC timestamp in milliseconds
+
+    Returns
+    -------
+    int
+        UTC Timestamp in milliseconds
+
+    """
+    return int(arrow.utcnow().timestamp() * 1000)
 
 
 def timing(f):
