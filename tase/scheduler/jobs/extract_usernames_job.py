@@ -28,7 +28,7 @@ class ExtractUsernamesJob(BaseJob):
     ) -> None:
         self.task_in_worker(db)
         db_chats = db.graph.get_chats_sorted_by_username_extractor_score()
-        not_extracted_db_chats = db.graph.get_chats_sorted_by_username_extractor_score()
+        not_extracted_db_chats = db.graph.get_chats_sorted_by_username_extractor_score(filter_by_indexed_chats=False)
 
         for chat in chain(db_chats, not_extracted_db_chats):
             logger.debug(chat.username)
