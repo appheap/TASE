@@ -1,3 +1,5 @@
+import time
+
 import arrow
 from apscheduler.triggers.interval import IntervalTrigger
 from kombu.mixins import ConsumerProducerMixin
@@ -26,8 +28,12 @@ class CheckUsernamesJob(BaseJob):
         self.task_in_worker(db)
         usernames = db.graph.get_unchecked_usernames()
 
-        for username in usernames:
+        for idx, username in enumerate(usernames):
             # todo: blocking or non-blocking? which one is better suited for this case?
+
+            if idx > 0 and idx % 10 == 0:
+                # fixme: sleep to avoid publishing many tasks while the others haven't been processed yet
+                time.sleep(10 * 15)
 
             CheckUsernamesTask(
                 kwargs={

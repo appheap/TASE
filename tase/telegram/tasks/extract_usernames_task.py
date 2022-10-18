@@ -234,8 +234,8 @@ class ExtractUsernamesTask(BaseTask):
 
         mentioned_at = datetime_to_timestamp(message.date)
         username_vertex = self.db.graph.get_or_create_username(
-            self.chat,
             username,
+            self.chat,
             is_direct_mention,
             mentioned_at,
             mention_source,
