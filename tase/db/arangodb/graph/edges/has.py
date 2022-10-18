@@ -3,7 +3,17 @@ from __future__ import annotations
 from typing import Optional, Union
 
 from .base_edge import BaseEdge, EdgeEndsValidator
-from ..vertices import User, Playlist, Query, Hit, Interaction, Audio, Keyword
+from ..vertices import (
+    User,
+    Playlist,
+    Query,
+    Hit,
+    Interaction,
+    Audio,
+    Keyword,
+    Username,
+    Chat,
+)
 
 
 class Has(BaseEdge):
@@ -17,6 +27,7 @@ class Has(BaseEdge):
         Hit,
         Interaction,
         Audio,
+        Username,
     )
     _to_vertex_collections = (
         Playlist,
@@ -24,14 +35,15 @@ class Has(BaseEdge):
         Hit,
         Keyword,
         Interaction,
+        Chat,
     )
 
     @classmethod
     @EdgeEndsValidator
     def parse(
         cls,
-        from_vertex: Union[User, Playlist, Query, Hit, Interaction, Audio],
-        to_vertex: Union[Playlist, Audio, Hit, Keyword, Interaction],
+        from_vertex: Union[User, Playlist, Query, Hit, Interaction, Audio, Username],
+        to_vertex: Union[Playlist, Audio, Hit, Keyword, Interaction, Chat],
         *args,
         **kwargs,
     ) -> Optional[Has]:

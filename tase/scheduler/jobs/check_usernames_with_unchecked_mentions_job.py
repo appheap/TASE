@@ -1,5 +1,3 @@
-import time
-
 import arrow
 from apscheduler.triggers.interval import IntervalTrigger
 from kombu.mixins import ConsumerProducerMixin
@@ -8,7 +6,6 @@ import tase
 from .base_job import BaseJob
 from ...db.arangodb.enums import RabbitMQTaskType
 from ...telegram.client import TelegramClient
-from ...telegram.tasks import CheckUsernameTask
 
 
 class CheckUsernamesWithUncheckedMentionsJob(BaseJob):
@@ -16,7 +13,8 @@ class CheckUsernamesWithUncheckedMentionsJob(BaseJob):
 
     trigger = IntervalTrigger(
         hours=1,
-        start_date=arrow.now().shift(seconds=+20).datetime,
+        minutes=30,
+        start_date=arrow.now().shift(minutes=+10).datetime,
     )
 
     def run(
@@ -26,19 +24,12 @@ class CheckUsernamesWithUncheckedMentionsJob(BaseJob):
         telegram_client: TelegramClient = None,
     ) -> None:
         self.task_in_worker(db)
-        usernames = db.graph.get_checked_usernames_with_unchecked_mentions()
-
-        for idx, username in enumerate(usernames):
-            # todo: blocking or non-blocking? which one is better suited for this case?
-
-            if idx > 0 and idx % 10 == 0:
-                # fixme: sleep to avoid publishing many tasks while the others haven't been processed yet
-                time.sleep(10 * 15)
-
-            CheckUsernameTask(
-                kwargs={
-                    "username_key": username.key,
-                }
-            ).publish(db)
+        for idx, (username, mentioned_chat) in enumerate(
+            db.graph.get_checked_usernames_with_unchecked_mentions()
+        ):
+            db.graph.create_and_check_mentions_edges_after_username_check(
+                mentioned_chat,
+                username,
+            )
 
         self.task_done(db)

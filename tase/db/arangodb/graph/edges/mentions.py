@@ -3,6 +3,8 @@ from __future__ import annotations
 from typing import Optional, Union
 
 from tase.errors import InvalidFromVertex, InvalidToVertex
+from tase.my_logger import logger
+from . import Has
 from .base_edge import BaseEdge, EdgeEndsValidator
 from ..vertices import Chat, Username
 from ...enums import MentionSource, ChatType
@@ -144,6 +146,9 @@ class MentionsMethods:
             Username object to get data from for this update
 
         """
+        if mentioned_chat is None or username is None:
+            return None
+
         cursor = Mentions.execute_query(
             self._create_and_check_mentions_edges_query,
             bind_vars={
@@ -160,20 +165,17 @@ class MentionsMethods:
 
                 if mentions_edge and source_chat:
                     if (
-                        source_chat.username is None
-                        or mentioned_chat.username is None
-                        or mentioned_chat.username == source_chat.username
+                        source_chat.username is not None
+                        and mentioned_chat.username is not None
+                        and mentioned_chat.username != source_chat.username
                     ):
+                        # self-mentions and private chats are excluded
+
                         try:
                             # create the edge from `Username` vertex to mentioned `Chat` vertex
-                            Mentions.get_or_create_edge(
+                            Has.get_or_create_edge(
                                 username,
                                 mentioned_chat,
-                                mentions_edge.is_direct_mention,
-                                mentions_edge.mentioned_at,
-                                mentions_edge.mention_source,
-                                mentions_edge.mention_start_index,
-                                mentions_edge.from_message_id,
                             )
 
                             # create the edge from `Chat` vertex to mentioned `Chat` vertex
@@ -186,9 +188,9 @@ class MentionsMethods:
                                 mentions_edge.mention_start_index,
                                 mentions_edge.from_message_id,
                             )
-                        except (InvalidFromVertex, InvalidToVertex):
+                        except (InvalidFromVertex, InvalidToVertex) as e:
                             # fixme
-                            pass
+                            logger.info("invalid start or end vertex")
 
                         metadata = source_chat.username_extractor_metadata.copy()
                         metadata.reset_counters()
@@ -217,9 +219,7 @@ class MentionsMethods:
                             elif mentioned_chat.chat_type == ChatType.CHANNEL:
                                 metadata.indirect_valid_channel_mention_count += 1
 
-                        successful = source_chat.update_username_extractor_metadata(
-                            metadata
-                        )
+                        successful = source_chat.update_username_extractor_metadata(metadata)
                         if not successful:
                             # todo: the update wasn't successful, uncheck the edge so it could be updated later
                             mentions_edge.check(False, None)

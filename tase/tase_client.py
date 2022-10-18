@@ -10,6 +10,10 @@ from tase.scheduler import SchedulerWorkerProcess
 from tase.scheduler.jobs import (
     CountInteractionsJob,
     CountHitsJob,
+    CheckUsernamesWithUncheckedMentionsJob,
+    CheckUsernamesJob,
+    ExtractUsernamesJob,
+    IndexAudiosJob,
 )
 from tase.telegram.client import TelegramClient
 from tase.telegram.client.client_manager import ClientManager
@@ -82,9 +86,10 @@ class TASE:
                 CountInteractionsJob().publish(self.database_client)
                 CountHitsJob().publish(self.database_client)
 
-                # IndexChannelsJob().publish()
-                # ExtractUsernamesJob().publish()
-                # CheckUsernamesJob().publish()
+                IndexAudiosJob().publish(self.database_client)
+                ExtractUsernamesJob().publish(self.database_client)
+                CheckUsernamesJob().publish(self.database_client)
+                CheckUsernamesWithUncheckedMentionsJob().publish(self.database_client)
 
             else:
                 # todo: raise error (config file is invalid)

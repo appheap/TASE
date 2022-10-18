@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Optional, Generator
+from typing import Optional, Generator, Tuple
 
 from pydantic import Field
 
@@ -83,14 +83,14 @@ class Username(BaseVertex):
 class UsernameMethods:
     _get_unchecked_usernames_query = (
         "for username in @usernames"
-        "   filter username.is_checked == false and username.created_at < @now"
+        "   filter username.is_checked == false and username.modified_at < @now"
         "   sort username.created_at desc"
         "   return username"
     )
 
     _get_checked_usernames_with_unchecked_mentions = (
         "for username in @usernames"
-        "   filter username.is_checked == true and username.created_at < @now"
+        "   filter username.is_checked == true and username.modified_at < @now"
         "   sort username.created_at desc"
         "   let unchecked_mentions_count = ("
         "       for chat, mention_e in 1..1 inbound username graph '@graph_name' options {order: 'dfs', edgeCollections: ['@mentions'], vertexCollections: ['@chats']}"
@@ -98,9 +98,12 @@ class UsernameMethods:
         "           collect with count into len"
         "           return len"
         "           )"
-        "   filter unchecked_mentions_count > 0"
         "   sort unchecked_mentions_count desc"
-        "   return username"
+        "   let mentioned_chat = ("
+        "       for chat, e in 1..1 outbound username graph '@graph_name' options {order: 'dfs', edgeCollections: ['@has'], vertexCollections: ['@chats']}"
+        "           return chat"
+        "       )"
+        "   return {username_:username, mentioned_chat_:mentioned_chat[0], count_:unchecked_mentions_count[0]}"
     )
 
     def get_username(
@@ -275,7 +278,9 @@ class UsernameMethods:
         Username
             List of Username objects that have not been checked yet
         """
-        now = get_now_timestamp() - 60
+
+        # only get those username that have been modified more than 15 minutes ago
+        now = get_now_timestamp() - 15 * 60 * 1000
 
         cursor = Username.execute_query(
             self._get_unchecked_usernames_query,
@@ -291,7 +296,7 @@ class UsernameMethods:
 
     def get_checked_usernames_with_unchecked_mentions(
         self,
-    ) -> Generator[Username, None, None]:
+    ) -> Generator[Tuple[Username, Chat], None, None]:
         """
         Get list of Usernames that have been checked, but they have mentions that have not been checked,
         sorted by the number of unchecked `mentions` edges in a descending order
@@ -301,9 +306,12 @@ class UsernameMethods:
         Username
             List of Username objects
         """
-        now = get_now_timestamp()
+
+        # only get those username that have been modified more than 15 minutes ago
+        now = get_now_timestamp() - 15 * 60 * 1000
 
         from tase.db.arangodb.graph.edges import Mentions
+        from tase.db.arangodb.graph.edges import Has
 
         cursor = Username.execute_query(
             self._get_checked_usernames_with_unchecked_mentions,
@@ -311,10 +319,17 @@ class UsernameMethods:
                 "usernames": Username._collection_name,
                 "mentions": Mentions._collection_name,
                 "chats": Chat._collection_name,
+                "has": Has._collection_name,
                 "now": now,
             },
         )
 
         if cursor is not None and len(cursor):
             for doc in cursor:
-                yield Username.from_collection(doc)
+                count = int(doc.get("count_", None))
+                if count > 0:
+                    username = Username.from_collection(doc.get("username_", None))
+                    mentioned_chat = Username.from_collection(
+                        doc.get("mentioned_chat_", None)
+                    )
+                    yield username, mentioned_chat
