@@ -8,7 +8,7 @@ import tase
 from .base_job import BaseJob
 from ...db.arangodb.enums import RabbitMQTaskType
 from ...telegram.client import TelegramClient
-from ...telegram.tasks import CheckUsernamesTask
+from ...telegram.tasks import CheckUsernameTask
 
 
 class CheckUsernamesJob(BaseJob):
@@ -35,7 +35,7 @@ class CheckUsernamesJob(BaseJob):
                 # fixme: sleep to avoid publishing many tasks while the others haven't been processed yet
                 time.sleep(10 * 15)
 
-            CheckUsernamesTask(
+            CheckUsernameTask(
                 kwargs={
                     "username_key": username.key,
                 }

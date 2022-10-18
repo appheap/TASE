@@ -5,7 +5,7 @@ class RabbitMQTaskType(Enum):
     UNKNOWN = "unknown"
 
     ADD_CHANNEL_TASK = "add_channel_task"
-    CHECK_USERNAMES_TASK = "check_usernames_task"
+    CHECK_USERNAME_TASK = "check_username_task"
     DUMMY_TASK = "dummy_task"
     EXTRACT_USERNAMES_TASK = "extract_usernames_task"
     INDEX_AUDIOS_TASK = "index_audios_task"
