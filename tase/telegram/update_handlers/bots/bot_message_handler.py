@@ -211,6 +211,8 @@ class BotMessageHandler(BaseHandler):
         client: "pyrogram.Client",
         message: "pyrogram.types.Message",
     ):
+        from_user = self.db.graph.get_interacted_user(message.from_user, update=True)
+
         logger.info(f"bot_message_handler: {message}")
 
         if (
@@ -252,6 +254,8 @@ class BotMessageHandler(BaseHandler):
                 pass
 
         if message.forward_from_chat:
+            self.db.graph.update_or_create_chat(message.forward_from_chat)
+
             if message.forward_from_chat.username:
                 texts_to_check.add(f"@{message.forward_from_chat.username}")
             texts_to_check.add(message.forward_from_chat.description)
@@ -284,6 +288,9 @@ class BotMessageHandler(BaseHandler):
 
         if not found_any:
             logger.debug("No usernames found in this message")
+
+        if message.forward_from:
+            self.db.graph.update_or_create_user(message.forward_from)
 
     #######################################################################################################
 
