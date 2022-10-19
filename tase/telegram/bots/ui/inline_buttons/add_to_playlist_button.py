@@ -36,16 +36,13 @@ class AddToPlaylistInlineButton(InlineButton):
         query_date: int,
         reg: Optional[Match] = None,
     ):
-        results = populate_playlist_list(
+        populate_playlist_list(
             from_user,
             handler,
             result,
             telegram_inline_query,
             filter_by_capacity=True,
         )
-
-        if len(results):
-            result.results = results
 
     def on_chosen_inline_query(
         self,

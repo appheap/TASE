@@ -1,5 +1,4 @@
-import collections
-from typing import List, Deque
+from typing import List
 
 import pyrogram
 from pyrogram.types import InlineKeyboardMarkup
@@ -23,7 +22,7 @@ def populate_playlist_list(
     result: CustomInlineQueryResult,
     telegram_inline_query: pyrogram.types.InlineQuery,
     filter_by_capacity: bool = False,
-) -> List[pyrogram.types.InlineQueryResult]:
+) -> None:
     """
     Populate a list with the given `User` playlists
 
@@ -40,12 +39,6 @@ def populate_playlist_list(
     filter_by_capacity : bool, default : False
         Whether to filter the playlists by their length
 
-    Returns
-    -------
-    list of pyrogram.types.InlineQueryResult
-        List of InlineQueryResult objects
-
-
     """
     playlists = (
         handler.db.graph.get_user_valid_playlists(
@@ -59,35 +52,29 @@ def populate_playlist_list(
         )
     )
 
-    results = collections.deque()
-
     user_playlist_count = handler.db.graph.get_user_playlists_count(from_user)
 
-    if result.from_ == 0 and user_playlist_count < 11:
+    if result.is_first_page() and user_playlist_count < 11:
         # a total number of 10 playlists is allowed for each user (favorite playlist excluded)
-        results.append(
+        result.add_item(
             CreateNewPlaylistItem.get_item(
                 from_user,
                 telegram_inline_query,
-            )
+            ),
+            count=False,
         )
 
-    if user_playlist_count < 11:
-        result.set_extra_items(1)
-
     for playlist in playlists:
-        results.append(
+        result.add_item(
             PlaylistItem.get_item(
                 playlist,
                 from_user,
                 telegram_inline_query,
             )
         )
-    return list(results)
 
 
 def populate_audio_items(
-    results: Deque[pyrogram.types.InlineQueryResult],
     audio_vertices: List[graph_models.vertices.Audio],
     from_user: graph_models.vertices.User,
     handler: BaseHandler,
@@ -100,8 +87,6 @@ def populate_audio_items(
 
     Parameters
     ----------
-    results : Deque[pyrogram.types.InlineQueryResult]
-        Deque of the InlineQueryResult objects to populate
     audio_vertices : List[graph_models.vertices.Audio]
         List of `Audio` vertices to use for creating the `Query` vertex
     from_user : graph_models.vertices.User
@@ -151,7 +136,7 @@ def populate_audio_items(
                 hit.download_url,
             )
 
-            results.append(
+            result.add_item(
                 AudioItem.get_item(
                     handler.telegram_client.get_me().username,
                     audio_doc.file_id,

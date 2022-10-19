@@ -1,9 +1,6 @@
-import collections
 from typing import Match, Optional
 
 import pyrogram
-from pyrogram.enums import ParseMode
-from pyrogram.types import InlineQueryResultArticle, InputTextMessageContent
 
 from tase.common.utils import _trans, emoji
 from tase.db.arangodb import graph as graph_models
@@ -13,6 +10,7 @@ from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
 from .base import InlineButton, InlineButtonType
 from .common import populate_audio_items
+from ..inline_items import NoDownloadItem
 
 
 class DownloadHistoryInlineButton(InlineButton):
@@ -40,10 +38,7 @@ class DownloadHistoryInlineButton(InlineButton):
 
         audio_vertices = list(audio_vertices)
 
-        results = collections.deque()
-
         populate_audio_items(
-            results,
             audio_vertices,
             from_user,
             handler,
@@ -52,26 +47,8 @@ class DownloadHistoryInlineButton(InlineButton):
             telegram_inline_query,
         )
 
-        if len(results):
-            result.results = list(results)
-        else:
-            if result.from_ is None or result.from_ == 0:
-                result.results = [
-                    InlineQueryResultArticle(
-                        title=_trans(
-                            "No Results Were Found",
-                            from_user.chosen_language_code,
-                        ),
-                        description=_trans(
-                            "You haven't downloaded any audios yet",
-                            from_user.chosen_language_code,
-                        ),
-                        input_message_content=InputTextMessageContent(
-                            message_text=emoji.high_voltage,
-                            parse_mode=ParseMode.HTML,
-                        ),
-                    )
-                ]
+        if not len(result) and result.is_first_page():
+            result.set_results([NoDownloadItem.get_item(from_user)])
 
     def on_chosen_inline_query(
         self,

@@ -1,4 +1,3 @@
-import collections
 from typing import Match, Optional
 
 import pyrogram
@@ -35,14 +34,11 @@ class GetPlaylistAudioInlineButton(InlineButton):
     ):
         playlist_key = reg.group("arg1")
 
-        results = collections.deque()
         playlist_is_valid = (
             False  # whether the requested playlist belongs to the user or not
         )
 
-        if result.from_ == 0:
-            result.set_extra_items(1)
-
+        if result.is_first_page():
             playlist = handler.db.graph.get_user_playlist_by_key(
                 from_user,
                 playlist_key,
@@ -50,12 +46,13 @@ class GetPlaylistAudioInlineButton(InlineButton):
             )
             if playlist:
                 playlist_is_valid = True
-                results.append(
+                result.add_item(
                     PlaylistItem.get_item(
                         playlist,
                         from_user,
                         telegram_inline_query,
-                    )
+                    ),
+                    count=False,
                 )
             else:
                 playlist_is_valid = False
@@ -76,7 +73,6 @@ class GetPlaylistAudioInlineButton(InlineButton):
                 audio_vertices = list(audio_vertices)
 
                 populate_audio_items(
-                    results,
                     audio_vertices,
                     from_user,
                     handler,
@@ -85,11 +81,8 @@ class GetPlaylistAudioInlineButton(InlineButton):
                     telegram_inline_query,
                 )
 
-        if len(results) and playlist_is_valid:
-            result.results = list(results)
-        else:
-            if result.from_ is None or result.from_ == 0:
-                result.results = [NoDownloadItem.get_item(from_user)]
+        if not len(result) and not playlist_is_valid and result.is_first_page():
+            result.set_results([NoDownloadItem.get_item(from_user)])
 
     def on_chosen_inline_query(
         self,

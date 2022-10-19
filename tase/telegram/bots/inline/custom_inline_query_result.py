@@ -1,4 +1,4 @@
-from typing import Any, List, Optional
+from typing import Any, List
 
 import pyrogram
 from pydantic import BaseModel, Field
@@ -10,35 +10,58 @@ from tase.my_logger import logger
 
 class CustomInlineQueryResult(BaseModel):
     results: List[pyrogram.types.InlineQueryResult] = Field(default_factory=list)
-    next_offset: Optional[int]
     cache_time: int = Field(default=1)
     from_: int = Field(default=0)
-    extra_items: int = Field(default=0)
+    last_result_total_item_count: int = Field(default=0)
+    countable_items_length: int = Field(default=0)
 
     class Config:
         arbitrary_types_allowed = True
 
-    def __init__(self, inline_query, **data: Any):
+    def __init__(
+        self,
+        inline_query: pyrogram.types.InlineQuery,
+        **data: Any,
+    ):
         super().__init__(**data)
 
         if inline_query is None:
             self.from_ = 0
 
         if inline_query.offset is not None and len(inline_query.offset):
-            self.from_ = int(inline_query.offset)
+            last_result_len, last_countable_items_len = inline_query.offset.split(":")
 
-    def set_extra_items(self, value: int):
-        if value is None:
-            return
+            self.from_ = int(last_countable_items_len)
+            self.last_result_total_item_count = int(last_result_len)
 
-        self.extra_items = value
+    def __len__(self):
+        return self.countable_items_length
+
+    def add_item(
+        self,
+        item: pyrogram.types.InlineQueryResult,
+        count: bool = True,
+    ) -> None:
+        self.results.append(item)
+
+        if count:
+            self.countable_items_length += 1
 
     def get_next_offset(self) -> str:
-        return (
-            str(self.from_ + len(self.results) - self.extra_items)
-            if len(self.results)
-            else None
-        )
+        return f"{len(self.results)}:{self.from_ + self.countable_items_length}"
+
+    def is_first_page(self) -> bool:
+        return self.last_result_total_item_count == 0
+
+    def set_results(
+        self,
+        results: List[pyrogram.types.InlineQueryResult],
+        count: bool = False,
+    ) -> None:
+        self.results = results
+
+        if count:
+            self.countable_items_length += len(self.results)
 
     def answer_query(
         self,

@@ -1,4 +1,3 @@
-import collections
 from typing import Match, Optional
 
 import pyrogram
@@ -15,7 +14,7 @@ from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
 from .base import InlineButton, InlineButtonType
-from ..inline_items import PlaylistItem
+from ..inline_items import PlaylistItem, AudioInNoPlaylistItem
 
 
 class RemoveFromPlaylistInlineButton(InlineButton):
@@ -39,8 +38,6 @@ class RemoveFromPlaylistInlineButton(InlineButton):
         hit_download_url = reg.group("arg1")
         valid = True if hit_download_url is not None else False
 
-        results = collections.deque()
-
         try:
             db_playlists = handler.db.graph.get_audio_playlists(
                 from_user,
@@ -56,7 +53,7 @@ class RemoveFromPlaylistInlineButton(InlineButton):
             )
         else:
             for playlist in db_playlists:
-                results.append(
+                result.add_item(
                     PlaylistItem.get_item(
                         playlist,
                         from_user,
@@ -64,9 +61,9 @@ class RemoveFromPlaylistInlineButton(InlineButton):
                     )
                 )
 
-        if len(results) and valid:
-            result.results = list(results)
-        # todo: what to show when user doesn't have any playlists yet or hasn't added this audio to any playlist
+        if not len(result) and result.is_first_page():
+            # what to show when user doesn't have any playlists yet or hasn't added this audio to any playlist
+            result.set_results([AudioInNoPlaylistItem.get_item(from_user)])
 
     def on_chosen_inline_query(
         self,
