@@ -5,6 +5,7 @@ from jinja2 import Template
 from pyrogram import filters, handlers
 from pyrogram.enums import ParseMode
 
+from tase.common.preprocessing import telegram_url_regex, url_regex
 from tase.common.utils import (
     datetime_to_timestamp,
     exception_handler,
@@ -54,6 +55,8 @@ class BotMessageHandler(BaseHandler):
                 & ~filters.bot
                 & ~filters.via_bot
                 & ~filters.media
+                & ~filters.regex(telegram_url_regex)
+                & ~filters.regex(url_regex)
                 & ~filters.regex("^(.*/+.*)+$"),
                 group=0,
             ),
