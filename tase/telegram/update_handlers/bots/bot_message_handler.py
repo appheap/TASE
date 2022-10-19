@@ -54,6 +54,7 @@ class BotMessageHandler(BaseHandler):
                 cls=handlers.MessageHandler,
                 callback=self.search_query_handler,
                 filters=filters.private
+                & ~filters.forwarded
                 & filters.text
                 & ~filters.bot
                 & ~filters.via_bot
@@ -216,6 +217,7 @@ class BotMessageHandler(BaseHandler):
             message.from_user.is_bot
             or message.from_user.is_fake
             or message.from_user.is_scam
+            or message.from_user.is_restricted
         ):
             return
 
@@ -265,8 +267,7 @@ class BotMessageHandler(BaseHandler):
             for item in filter(lambda item: item is not None, texts_to_check)
         }
 
-        if not len(texts_to_check):
-            logger.debug("No usernames found in this message")
+        found_any = False
 
         for text in texts_to_check:
             if text is None or not len(text):
@@ -274,10 +275,15 @@ class BotMessageHandler(BaseHandler):
 
             for username, idx in find_telegram_usernames(text):
                 logger.debug(f"username `{username}` was found")
-                self.db.graph.get_or_create_username(
+                username_vertex = self.db.graph.get_or_create_username(
                     username,
                     create_mention_edge=False,
                 )
+                if username_vertex and not found_any:
+                    found_any = True
+
+        if not found_any:
+            logger.debug("No usernames found in this message")
 
     #######################################################################################################
 
