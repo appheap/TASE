@@ -32,6 +32,7 @@ class HelpCatalogInlineButton(InlineButton):
         # todo: make these messages translatable
         results = [
             InlineQueryResultArticle(
+                id="1",
                 title="TASE Developers",
                 description="To see authors's github and social media, click here",
                 thumb_url="https://telegra.ph/file/d15b185d0154fc8a92210.jpg",
@@ -43,6 +44,7 @@ class HelpCatalogInlineButton(InlineButton):
                 ),
             ),
             InlineQueryResultArticle(
+                id="2",
                 title="1. How To Advertise?",
                 description="If you need advertising, click here",
                 thumb_url="https://telegra.ph/file/d15b185d0154fc8a92210.jpg",
@@ -54,6 +56,7 @@ class HelpCatalogInlineButton(InlineButton):
                 ),
             ),
             InlineQueryResultArticle(
+                id="3",
                 title="2. How To Search For And Download An Audio Track",
                 description="You can easily send your audio file and get indexed by Telegram Audio Search Engine bot",
                 thumb_url="https://telegra.ph/file/d15b185d0154fc8a92210.jpg",
@@ -65,6 +68,7 @@ class HelpCatalogInlineButton(InlineButton):
                 ),
             ),
             InlineQueryResultArticle(
+                id="4",
                 title="3. How to Register My Own Audio Track?",
                 description="You can simply send your audio file and have it indexed by Telegram audio search engin",
                 thumb_url="https://telegra.ph/file/d15b185d0154fc8a92210.jpg",
@@ -77,6 +81,7 @@ class HelpCatalogInlineButton(InlineButton):
                 ),
             ),
             InlineQueryResultArticle(
+                id="5",
                 title="4. How To Add My Channel To Telegram Audio Search Engine",
                 description="If you feel your channel has not been indexed",
                 thumb_url="https://telegra.ph/file/d15b185d0154fc8a92210.jpg",
@@ -88,6 +93,7 @@ class HelpCatalogInlineButton(InlineButton):
                 ),
             ),
             InlineQueryResultArticle(
+                id="6",
                 title="5. Contact Us",
                 description="If you need to contact Telegram audio search engin admins then hit this item",
                 thumb_url="https://telegra.ph/file/d15b185d0154fc8a92210.jpg",
@@ -99,6 +105,7 @@ class HelpCatalogInlineButton(InlineButton):
                 ),
             ),
             InlineQueryResultArticle(
+                id="7",
                 title="6. About Us",
                 description="If you like to find out more about us, click on this link",
                 thumb_url="https://telegra.ph/file/d15b185d0154fc8a92210.jpg",

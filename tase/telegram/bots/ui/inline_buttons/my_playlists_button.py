@@ -32,8 +32,10 @@ class MyPlaylistsInlineButton(InlineButton):
     ):
         chat_type = ChatType.parse_from_pyrogram(telegram_inline_query.chat_type)
         if chat_type != ChatType.BOT:
-            result.results = []
-
+            result.set_results(
+                [],
+                count=True,
+            )
         else:
             populate_playlist_list(
                 from_user,
