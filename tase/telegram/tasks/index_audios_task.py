@@ -1,4 +1,8 @@
+import random
+import time
+
 from kombu.mixins import ConsumerProducerMixin
+from pyrogram.errors import FloodWait
 
 from tase.common.utils import datetime_to_timestamp, prettify
 from tase.db import DatabaseClient
@@ -41,6 +45,18 @@ class IndexAudiosTask(BaseTask):
             # todo: fix this
             logger.exception(e)
             self.task_failed(db)
+        except KeyError as e:
+            logger.exception(e)
+            self.task_failed(db)
+        except FloodWait as e:
+            self.task_failed(db)
+            logger.exception(e)
+
+            sleep_time = e.value + random.randint(1, 10)
+            logger.info(f"Sleeping for {sleep_time} seconds...")
+            time.sleep(sleep_time)
+            logger.info(f"Waking up after sleeping for {sleep_time} seconds...")
+
         except Exception as e:
             logger.exception(e)
             self.task_failed(db)
@@ -56,6 +72,9 @@ class IndexAudiosTask(BaseTask):
             else:
                 logger.debug(f"Error occurred: {title}")
                 self.task_failed(db)
+        finally:
+            # wait for a while before starting to index a new channel
+            time.sleep(random.randint(10, 20))
 
     def index_audios(
         self,

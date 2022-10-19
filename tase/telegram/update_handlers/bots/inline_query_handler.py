@@ -6,6 +6,7 @@ from typing import List
 import pyrogram
 from pyrogram import filters, handlers
 
+from tase.common.preprocessing import telegram_url_regex, url_regex
 from tase.common.utils import exception_handler, get_now_timestamp
 from tase.errors import NullTelegramInlineQuery
 from tase.my_logger import logger
@@ -28,6 +29,10 @@ class InlineQueryHandler(BaseHandler):
             HandlerMetadata(
                 cls=handlers.InlineQueryHandler,
                 callback=self.on_inline_query,
+                filters=~filters.bot
+                & ~filters.regex(telegram_url_regex)
+                & ~filters.regex(url_regex)
+                & ~filters.regex("^(.*/+.*)+$"),
                 group=0,
             ),
         ]

@@ -38,14 +38,13 @@ class CheckUsernameTask(BaseTask):
             return
 
         logger.info(f"Checking: {username_vertex.username}")
-        chat_id = username_vertex.username
-
         try:
-            tg_mentioned_chat = telegram_client.get_chat(chat_id)
+            tg_mentioned_chat = telegram_client.get_chat(username_vertex.username)
         except (KeyError, ValueError, UsernameNotOccupied, UsernameInvalid) as e:
             # ValueError: In case the chat invite link points to a chat that this telegram client hasn't joined yet.
             # KeyError or UsernameNotOccupied: The username is not occupied by anyone, so update the username
             # UsernameInvalid: The username is invalid
+            logger.info(f"Username `{username_vertex.username}` is invalid")
 
             if username_vertex.check(True, get_now_timestamp(), False):
                 db.graph.update_mentions_edges_from_chat_to_username(username_vertex)
@@ -58,10 +57,18 @@ class CheckUsernameTask(BaseTask):
         except FloodWait as e:
             # fixme: find a solution for this
             self.task_failed(db)
+
+            sleep_time = e.value + random.randint(1, 10)
+            logger.info(f"Sleeping for {sleep_time} seconds...")
+            time.sleep(sleep_time)
+            logger.info(f"Waking up after sleeping for {sleep_time} seconds...")
+
         except Exception as e:
             logger.exception(e)
             self.task_failed(db)
         else:
+            logger.info(f"Username `{username_vertex.username}` is valid")
+
             mentioned_chat = db.graph.update_or_create_chat(tg_mentioned_chat)
 
             if mentioned_chat:
@@ -74,11 +81,17 @@ class CheckUsernameTask(BaseTask):
                         mentioned_chat,
                         username_vertex,
                     )
+
+                    self.task_done(db)
                 else:
                     # todo: update wasn't successful, what now?
+                    self.task_failed(db)
                     raise Exception("Unexpected error")
+            else:
+                # fixme: this must not happen
+                self.task_failed(db)
+                raise Exception("Unexpected error")
 
-            self.task_done(db)
         finally:
             # this is necessary to avoid flood errors
             # todo: is this one good enough?

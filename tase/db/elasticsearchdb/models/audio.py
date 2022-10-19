@@ -365,7 +365,11 @@ class Audio(BaseDocument):
                 if self_copy.dislikes > 0:
                     self_copy.dislikes -= interaction_count.count
 
-        return self.update(self_copy, reserve_non_updatable_fields=False)
+        return self.update(
+            self_copy,
+            reserve_non_updatable_fields=False,
+            retry_on_failure=True,
+        )
 
     def update_by_hit_count(
         self,
@@ -394,7 +398,11 @@ class Audio(BaseDocument):
         elif hit_count.hit_type == HitType.INLINE_COMMAND:
             self_copy.non_search_hits += hit_count.count
 
-        return self.update(self_copy, reserve_non_updatable_fields=False)
+        return self.update(
+            self_copy,
+            reserve_non_updatable_fields=False,
+            retry_on_failure=True,
+        )
 
 
 class AudioMethods:

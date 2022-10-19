@@ -18,7 +18,7 @@ class InlineButtonType(Enum):
     BACK_TO_PLAYLISTS = "back_to_pl"
     CHOOSE_LANGUAGE = "choose_language"
     DELETE_PLAYLIST = "delete_playlist"
-    DOWNLOAD_HISTORY = "dl_history"
+    DOWNLOAD_HISTORY = "downloads"
     EDIT_PLAYLIST_DESCRIPTION = "edit_playlist_description"
     EDIT_PLAYLIST_TITLE = "edit_playlist_title"
     GET_PLAYLIST_AUDIOS = "get_pl"
