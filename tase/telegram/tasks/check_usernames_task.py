@@ -1,3 +1,4 @@
+import random
 import time
 
 from kombu.mixins import ConsumerProducerMixin
@@ -81,4 +82,4 @@ class CheckUsernameTask(BaseTask):
         finally:
             # this is necessary to avoid flood errors
             # todo: is this one good enough?
-            time.sleep(20)
+            time.sleep(random.randint(10, 20))
