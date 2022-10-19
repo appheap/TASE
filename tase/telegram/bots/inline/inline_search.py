@@ -12,25 +12,6 @@ from tase.telegram.update_handlers.base import BaseHandler
 from tase.telegram.update_interfaces import OnInlineQuery
 from . import CustomInlineQueryResult
 
-known_mime_types = (
-    "audio/mpeg",
-    "audio/mp3",
-    "audio/mp4",
-    "audio/m4a",
-    "audio/mpeg3",
-    "audio/flac",
-    "audio/ogg",
-    "audio/MP3",
-    "audio/x-vorbis+ogg",
-    "audio/x-opus+ogg",
-)
-
-forbidden_mime_types = (
-    "audio/ogg",
-    "audio/x-vorbis+ogg",
-    "audio/x-opus+ogg",
-)
-
 
 class InlineSearch(OnInlineQuery):
     @classmethod
