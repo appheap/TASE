@@ -1,3 +1,4 @@
+import random
 from typing import List
 
 import pyrogram
@@ -10,6 +11,8 @@ from tase.common.utils import (
     datetime_to_timestamp,
     exception_handler,
     get_now_timestamp,
+    find_telegram_usernames,
+    emoji,
 )
 from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.document import BotTask
@@ -51,6 +54,7 @@ class BotMessageHandler(BaseHandler):
                 cls=handlers.MessageHandler,
                 callback=self.search_query_handler,
                 filters=filters.private
+                & ~filters.forwarded
                 & filters.text
                 & ~filters.bot
                 & ~filters.via_bot
@@ -207,7 +211,86 @@ class BotMessageHandler(BaseHandler):
         client: "pyrogram.Client",
         message: "pyrogram.types.Message",
     ):
+        from_user = self.db.graph.get_interacted_user(message.from_user, update=True)
+
         logger.info(f"bot_message_handler: {message}")
+
+        if (
+            message.from_user.is_bot
+            or message.from_user.is_fake
+            or message.from_user.is_scam
+            or message.from_user.is_restricted
+        ):
+            return
+
+        # fixme: translate this string
+        message.reply_text(
+            f"Special thanks for your contribution <b>{message.from_user.first_name or message.from_user.last_name}</b>. {random.choice(emoji.plants_list)}{random.choice(emoji.heart_list)}"
+        )
+
+        texts_to_check = set()
+
+        texts_to_check.add(message.caption)
+        texts_to_check.add(message.text)
+
+        if message.entities:
+            for entity in message.entities:
+                texts_to_check.add(entity.url)
+
+        if message.media:
+            if message.caption_entities:
+                for entity in message.caption_entities:
+                    texts_to_check.add(entity.url)
+
+            if message.audio:
+                texts_to_check.add(message.audio.title)
+                texts_to_check.add(message.audio.performer)
+                texts_to_check.add(message.audio.file_name)
+            elif message.document:
+                texts_to_check.add(message.document.file_name)
+            elif message.video:
+                texts_to_check.add(message.video.file_name)
+            else:
+                pass
+
+        if message.forward_from_chat:
+            self.db.graph.update_or_create_chat(message.forward_from_chat)
+
+            if message.forward_from_chat.username:
+                texts_to_check.add(f"@{message.forward_from_chat.username}")
+            texts_to_check.add(message.forward_from_chat.description)
+
+        if message.reply_markup and message.reply_markup.inline_keyboard:
+            for inline_keyboard_button_lst in message.reply_markup.inline_keyboard:
+                for inline_keyboard_button in inline_keyboard_button_lst:
+                    texts_to_check.add(inline_keyboard_button.text)
+                    texts_to_check.add(inline_keyboard_button.url)
+
+        texts_to_check = {
+            item.lower()
+            for item in filter(lambda item: item is not None, texts_to_check)
+        }
+
+        found_any = False
+
+        for text in texts_to_check:
+            if text is None or not len(text):
+                continue
+
+            for username, idx in find_telegram_usernames(text):
+                logger.debug(f"username `{username}` was found")
+                username_vertex = self.db.graph.get_or_create_username(
+                    username,
+                    create_mention_edge=False,
+                )
+                if username_vertex and not found_any:
+                    found_any = True
+
+        if not found_any:
+            logger.debug("No usernames found in this message")
+
+        if message.forward_from:
+            self.db.graph.update_or_create_user(message.forward_from)
 
     #######################################################################################################
 
