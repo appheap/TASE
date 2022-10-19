@@ -26,7 +26,6 @@ class InlineSearch(OnInlineQuery):
         reg: Optional[Match] = None,
     ):
         found_any = True
-        results = []
         temp_res = []
 
         if telegram_inline_query.query is None or not len(telegram_inline_query.query):
@@ -99,7 +98,7 @@ class InlineSearch(OnInlineQuery):
                             telegram_inline_query.id,
                         )
 
-                        results.append(
+                        result.add_item(
                             AudioItem.get_item(
                                 handler.telegram_client.get_me().username,
                                 audio_doc.file_id,
@@ -112,9 +111,6 @@ class InlineSearch(OnInlineQuery):
                             )
                         )
 
-        if found_any and len(results):
-            result.results = results
-        else:
+        if not found_any and not len(result) and result.is_first_page():
             # todo: No results matching the query found, what now?
-            if result.from_ is None or result.from_ == 0:
-                result.results = [NoResultItem.get_item(from_user)]
+            result.set_results([NoResultItem.get_item(from_user)])

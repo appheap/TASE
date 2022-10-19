@@ -35,21 +35,15 @@ class MyPlaylistsInlineButton(InlineButton):
             result.results = []
 
         else:
-            results = populate_playlist_list(
+            populate_playlist_list(
                 from_user,
                 handler,
                 result,
                 telegram_inline_query,
             )
 
-            if len(results):
-                result.results = results
-            else:
-                if result.from_ is None or result.from_ == 0:
-                    telegram_inline_query.answer(
-                        [NoPlaylistItem.get_item(from_user)],
-                        cache_time=1,
-                    )
+            if not len(result) and result.is_first_page():
+                result.set_results([NoPlaylistItem.get_item(from_user)])
 
     def on_chosen_inline_query(
         self,

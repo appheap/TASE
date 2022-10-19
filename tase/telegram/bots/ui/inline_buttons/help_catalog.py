@@ -109,5 +109,8 @@ class HelpCatalogInlineButton(InlineButton):
             ),
         ]
 
-        result.results = results
+        result.set_results(
+            results,
+            count=True,
+        )
         result.cache_time = 300  # todo: fix me
