@@ -10,6 +10,7 @@ from arango import (
     DocumentDeleteError,
     DocumentGetError,
     AQLQueryExecuteError,
+    CursorCountError,
 )
 from arango.aql import AQL
 from arango.collection import VertexCollection, EdgeCollection, StandardCollection
@@ -849,7 +850,9 @@ class BaseCollectionDocument(BaseCollectionAttributes):
         except AQLQueryExecuteError as e:
             logger.error(query)
             logger.exception(e)
-
+        except CursorCountError as e:
+            logger.error(query)
+            logger.exception(e)
         except Exception as e:
             logger.exception(e)
         else:

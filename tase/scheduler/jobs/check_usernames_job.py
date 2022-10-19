@@ -1,3 +1,4 @@
+import random
 import time
 
 import arrow
@@ -33,7 +34,7 @@ class CheckUsernamesJob(BaseJob):
 
             if idx > 0 and idx % 10 == 0:
                 # fixme: sleep to avoid publishing many tasks while the others haven't been processed yet
-                time.sleep(10 * 15)
+                time.sleep(10 * random.randint(10, 15))
 
             CheckUsernameTask(
                 kwargs={

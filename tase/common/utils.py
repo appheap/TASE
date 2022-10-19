@@ -328,11 +328,14 @@ def find_telegram_usernames(text: str) -> Optional[List[Tuple[str, int]]]:
     for match in re.finditer(telegram_url_regex, text):
         username0 = match.group("username0")
         username1 = match.group("username1")
+        username2 = match.group("username2")
 
         if username0 is not None:
             username = username0
         elif username1 is not None:
             username = username1
+        elif username2 is not None:
+            username = username2
         else:
             continue
         usernames.append((username, match.start()))

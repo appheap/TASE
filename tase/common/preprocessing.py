@@ -22,7 +22,7 @@ html_tags_regex = r"""(?x)                              # Turn on free-spacing
           | &([a-z0-9]+|\#[0-9]{1,6}|\#x[0-9a-f]{1,6}); # Remove &nbsp;
           """
 hashtags_regex = r"#\w+"
-telegram_url_regex = r"(?:(?:https?://)?(?:www\.)?(?:t(?:elegram)?\.(?:org|me|dog)/(?:joinchat/|\+))([\w-]+)|(?:https?://)?(?:www\.)?(?:t(?:elegram)?\.(?:org|me|dog)/)(proxy\?.+)|(?:https?://)?(?:www\.)?(?:t(?:elegram)?\.(?:org|me|dog)/)(c/\d+/\d+/?)|(?:(?:@|(?:(?:(?:https?://)?t(?:elegram)?)\.me\/))(?P<username1>[a-zA-Z0-9_]{5,32})|((?:https?://)?(?P<username0>[a-zA-Z0-9_]{5,32})(\.t(elegram)?\.me)))(?:(/\d+/?)|.+)?)"
+telegram_url_regex = r"(?:(?:https?://)?(?:www\.)?(?:t(?:elegram)?\.(?:org|me|dog)/(?:joinchat/|\+))([\w-]+)|(?:https?://)?(?:www\.)?(?:t(?:elegram)?\.(?:org|me|dog)/)(proxy\?.+)|(?:https?://)?(?:www\.)?(?:t(?:elegram)?\.(?:org|me|dog)/)(c/\d+/\d+/?)|(?:(?:(?:(?:https?://)?t(?:elegram)?)\.me\/)(?P<username1>[a-zA-Z0-9_]{5,32})|(?:@)(?P<username2>[a-zA-Z0-9_]{5,32})(?:$|\s)|((?:https?://)?(?P<username0>[a-zA-Z0-9_]{5,32})(\.t(elegram)?\.me)))(?:(/\d+/?)|.+)?)"
 
 mimetypes = mimetypes.MimeTypes(("common/mime_types_file",))
 

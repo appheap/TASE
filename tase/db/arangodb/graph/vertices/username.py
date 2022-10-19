@@ -94,7 +94,7 @@ class UsernameMethods:
         "   sort username.created_at desc"
         "   let unchecked_mentions_count = ("
         "       for chat, mention_e in 1..1 inbound username graph '@graph_name' options {order: 'dfs', edgeCollections: ['@mentions'], vertexCollections: ['@chats']}"
-        "           filter mention_e.is_checked == false"
+        "           filter mention_e.modified_at < @now and mention_e.is_checked == false"
         "           collect with count into len"
         "           return len"
         "           )"
@@ -329,7 +329,7 @@ class UsernameMethods:
                 count = int(doc.get("count_", None))
                 if count > 0:
                     username = Username.from_collection(doc.get("username_", None))
-                    mentioned_chat = Username.from_collection(
+                    mentioned_chat = Chat.from_collection(
                         doc.get("mentioned_chat_", None)
                     )
                     yield username, mentioned_chat
