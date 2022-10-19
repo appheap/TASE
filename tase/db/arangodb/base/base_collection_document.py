@@ -1,3 +1,4 @@
+import time
 import typing
 from enum import Enum
 from typing import Dict, Optional, Any, Type, Union, Tuple
@@ -598,6 +599,8 @@ class BaseCollectionDocument(BaseCollectionAttributes):
         reserve_non_updatable_fields: bool = True,
         check_rev: Optional[bool] = True,
         sync: Optional[bool] = None,
+        retry_on_failure: bool = False,
+        run_depth: int = 1,
     ) -> bool:
         """
         Update an object in the database
@@ -612,6 +615,10 @@ class BaseCollectionDocument(BaseCollectionAttributes):
             If set to True, revision of current document (if given) is compared against the revision of target document. Default to `True`.
         sync : bool, default: None
             sync: Block until operation is synchronized to disk. Default to `None`
+        retry_on_failure : bool, default : False
+            Whether to retry the operation if it fails due to `revision` mismatch
+        run_depth : int
+            Depth of running the function. stop and return False after 10 runs.
 
         Returns
         -------
@@ -623,6 +630,10 @@ class BaseCollectionDocument(BaseCollectionAttributes):
             raise NotBaseCollectionDocumentInstance(doc.__class__.__name__)
 
         if doc is None:
+            return False
+
+        if retry_on_failure and run_depth > 10:
+            # stop if the update is retried for 10 times
             return False
 
         successful = False
@@ -657,8 +668,24 @@ class BaseCollectionDocument(BaseCollectionAttributes):
             # logger.exception(f"{self.__class__.__name__} : {e}")
             pass
         except DocumentRevisionError as e:
+            logger.error(f"DocumentRevisionError")
             # The expected and actual document revisions mismatched.
-            pass
+            if retry_on_failure:
+                logger.error("Retrying...")
+                # todo: sleep for a while before retrying
+                time.sleep(run_depth * 20 / 1000)
+
+                latest_doc = self.get(self.key)
+                successful = latest_doc.update(
+                    doc,
+                    reserve_non_updatable_fields=reserve_non_updatable_fields,
+                    check_rev=check_rev,
+                    sync=sync,
+                    retry_on_failure=retry_on_failure,
+                    run_depth=run_depth + 1,
+                )
+                if successful:
+                    self.__dict__.update(latest_doc.__dict__)
             # logger.exception(f"{self.__class__.__name__} : {e}")
         except KeyError as e:
             logger.exception(f"{self.__class__.__name__} : {e}")

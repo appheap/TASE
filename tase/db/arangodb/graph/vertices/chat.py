@@ -152,7 +152,6 @@ class Chat(BaseVertex):
     def update_username_extractor_metadata(
         self,
         metadata: UsernameExtractorMetadata,
-        run_depth: int = 1,
     ) -> bool:
         """
         Update username extractor metadata of the chat after being indexed
@@ -161,15 +160,13 @@ class Chat(BaseVertex):
         ----------
         metadata : UsernameExtractorMetadata
             Updated metadata
-        run_depth : int
-            Depth of running the function. stop and return False after 10 runs.
 
         Returns
         -------
         bool
             Whether the update was successful or not
         """
-        if metadata is None or run_depth > 10:
+        if metadata is None:
             return False
 
         self_copy: Chat = self.copy(deep=True)
@@ -180,18 +177,15 @@ class Chat(BaseVertex):
         )
         updated_metadata.update_score()
 
-        updated = self.update(self_copy, reserve_non_updatable_fields=False)
-
-        if not updated:
-            chat = Chat.get(self.key)
-            updated = chat.update_username_extractor_metadata(metadata, run_depth + 1)
-
-        return updated
+        return self.update(
+            self_copy,
+            reserve_non_updatable_fields=False,
+            retry_on_failure=True,
+        )
 
     def update_audio_indexer_metadata(
         self,
         metadata: AudioIndexerMetadata,
-        run_depth: int = 1,
     ) -> bool:
         """
         Update audio indexer metadata of the chat after being indexed
@@ -200,15 +194,13 @@ class Chat(BaseVertex):
         ----------
         metadata : AudioIndexerMetadata
             Updated metadata
-        run_depth : int
-            Depth of running the function. stop and return False after 10 runs.
 
         Returns
         -------
         bool
             Whether the update was successful or not
         """
-        if metadata is None or run_depth > 10:
+        if metadata is None:
             return False
 
         self_copy: Chat = self.copy(deep=True)
@@ -217,18 +209,15 @@ class Chat(BaseVertex):
         updated_metadata = self_copy.audio_indexer_metadata.update_metadata(metadata)
         updated_metadata.update_score()
 
-        updated = self.update(self_copy, reserve_non_updatable_fields=False)
-
-        if not updated:
-            chat = Chat.get(self.key)
-            updated = chat.update_audio_indexer_metadata(metadata, run_depth + 1)
-
-        return updated
+        return self.update(
+            self_copy,
+            reserve_non_updatable_fields=False,
+            retry_on_failure=True,
+        )
 
     def update_audio_doc_indexer_metadata(
         self,
         metadata: AudioDocIndexerMetadata,
-        run_depth: int = 1,
     ) -> bool:
         """
         Update audio doc indexer metadata of the chat after being indexed
@@ -245,7 +234,7 @@ class Chat(BaseVertex):
         bool
             Whether the update was successful or not
         """
-        if metadata is None or run_depth > 10:
+        if metadata is None:
             return False
 
         self_copy: Chat = self.copy(deep=True)
@@ -256,13 +245,11 @@ class Chat(BaseVertex):
         )
         updated_metadata.update_score()
 
-        updated = self.update(self_copy, reserve_non_updatable_fields=False)
-
-        if not updated:
-            chat = Chat.get(self.key)
-            updated = chat.update_audio_doc_indexer_metadata(metadata, run_depth + 1)
-
-        return updated
+        return self.update(
+            self_copy,
+            reserve_non_updatable_fields=False,
+            retry_on_failure=True,
+        )
 
     def update_audio_indexer_score(
         self,
@@ -289,7 +276,11 @@ class Chat(BaseVertex):
             self_copy.audio_indexer_metadata = AudioIndexerMetadata()
         self_copy.audio_indexer_metadata.score = score
 
-        return self.update(self_copy, reserve_non_updatable_fields=False)
+        return self.update(
+            self_copy,
+            reserve_non_updatable_fields=False,
+            retry_on_failure=True,
+        )
 
     def update_audio_doc_indexer_score(
         self,
@@ -316,7 +307,11 @@ class Chat(BaseVertex):
             self_copy.audio_doc_indexer_metadata = AudioDocIndexerMetadata()
         self_copy.audio_doc_indexer_metadata.score = score
 
-        return self.update(self_copy, reserve_non_updatable_fields=False)
+        return self.update(
+            self_copy,
+            reserve_non_updatable_fields=False,
+            retry_on_failure=True,
+        )
 
     def update_username_extractor_score(
         self,
@@ -343,7 +338,11 @@ class Chat(BaseVertex):
             self_copy.username_extractor_metadata = UsernameExtractorMetadata()
         self_copy.username_extractor_metadata.score = score
 
-        return self.update(self_copy, reserve_non_updatable_fields=False)
+        return self.update(
+            self_copy,
+            reserve_non_updatable_fields=False,
+            retry_on_failure=True,
+        )
 
 
 class ChatMethods:
