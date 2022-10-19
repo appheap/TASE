@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import time
 from enum import Enum
 from typing import Optional, Tuple, TypeVar, Dict, Any, Type, List
 
+import elasticsearch
 from elastic_transport import ObjectApiResponse
 from elasticsearch import ConflictError, Elasticsearch, NotFoundError
 from pydantic import BaseModel, Field, ValidationError
@@ -427,6 +429,8 @@ class BaseDocument(BaseModel):
         self,
         document: TBaseDocument,
         reserve_non_updatable_fields: bool = True,
+        retry_on_failure: bool = True,
+        run_depth: int = 1,
     ) -> bool:
         """
         Update a document in the database
@@ -437,6 +441,10 @@ class BaseDocument(BaseModel):
             Document used for updating the old document in the database
         reserve_non_updatable_fields : bool, default: True
             Whether to keep the non-updatable fields from the old document or not
+        retry_on_failure : bool, default : True
+            Whether to retry the operation if it fails due to `revision` mismatch
+        run_depth : int
+            Depth of running the function. stop and return False after 10 runs.
 
         Returns
         -------
@@ -451,6 +459,13 @@ class BaseDocument(BaseModel):
             raise Exception(
                 f"`document` is not an instance of {BaseDocument.__class__.__name__} class"
             )
+
+        if retry_on_failure and run_depth > 10:
+            logger.error(
+                f"{self.__class__.__name__}: `{self.id}` : failed after 10 retries"
+            )
+            # stop if the update is retried for 10 times
+            return False
 
         successful = False
         try:
@@ -468,6 +483,25 @@ class BaseDocument(BaseModel):
                     doc=doc,
                 )
                 self.__dict__.update(document.__dict__)
+        except elasticsearch.ConflictError as e:
+            logger.error(
+                f"{self.__class__.__name__}: `{self.id}` : elasticsearch.ConflictError"
+            )
+            if retry_on_failure:
+                logger.error(f"Retry #{run_depth}")
+                # todo: sleep for a while before retrying
+                time.sleep(run_depth * 20 / 1000)
+
+                latest_doc = self.get(self.id)
+                if latest_doc is not None:
+                    successful = latest_doc.update(
+                        document,
+                        reserve_non_updatable_fields=reserve_non_updatable_fields,
+                        retry_on_failure=retry_on_failure,
+                        run_depth=run_depth + 1,
+                    )
+                    if successful:
+                        self.__dict__.update(latest_doc.__dict__)
         except Exception as e:
             logger.exception(f"{self.__class__.__name__} : {e}")
         else:

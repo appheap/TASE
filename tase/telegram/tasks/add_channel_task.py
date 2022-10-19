@@ -1,7 +1,9 @@
+import random
+import time
+
 from kombu.mixins import ConsumerProducerMixin
-from pydantic import Field
 from pyrogram.enums import ChatType
-from pyrogram.errors import UsernameNotOccupied
+from pyrogram.errors import UsernameNotOccupied, FloodWait
 
 from tase.db import DatabaseClient
 from tase.db.arangodb.enums import RabbitMQTaskType
@@ -53,7 +55,19 @@ class AddChannelTask(BaseTask):
             # the provided username is not valid
             # todo: send an appropriate message to notify the user of this situation
             self.task_failed(db)
+        except FloodWait as e:
+            self.task_failed(db)
+            logger.exception(e)
+
+            sleep_time = e.value + random.randint(1, 10)
+            logger.info(f"Sleeping for {sleep_time} seconds...")
+            time.sleep(sleep_time)
+            logger.info(f"Waking up after sleeping for {sleep_time} seconds...")
+
         except Exception as e:
             # this is an unexpected error
             logger.exception(e)
             self.task_failed(db)
+        finally:
+            # sleep for a while before adding another channel
+            time.sleep(random.randint(5, 15))

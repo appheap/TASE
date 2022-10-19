@@ -60,7 +60,7 @@ class Chat(BaseVertex):
         cls,
         telegram_chat: pyrogram.types.Chat,
     ) -> Optional[str]:
-        if telegram_chat is None:
+        if telegram_chat is None or telegram_chat.id is None:
             return None
         return f"{telegram_chat.id}"
 

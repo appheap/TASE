@@ -1,9 +1,11 @@
+import random
+import time
 from typing import List, Optional, Union
 
 import pyrogram
 from kombu.mixins import ConsumerProducerMixin
 from pydantic import Field
-from pyrogram.errors import UsernameNotOccupied
+from pyrogram.errors import UsernameNotOccupied, FloodWait
 
 from tase.common.utils import datetime_to_timestamp, prettify, find_telegram_usernames
 from tase.db import DatabaseClient
@@ -61,6 +63,17 @@ class ExtractUsernamesTask(BaseTask):
             # todo: fix this
             logger.exception(e)
             self.task_failed(db)
+        except KeyError as e:
+            self.task_failed(db)
+            logger.exception(e)
+        except FloodWait as e:
+            self.task_failed(db)
+            logger.exception(e)
+
+            sleep_time = e.value + random.randint(1, 10)
+            logger.info(f"Sleeping for {sleep_time} seconds...")
+            time.sleep(sleep_time)
+            logger.info(f"Waking up after sleeping for {sleep_time} seconds...")
         except UsernameNotOccupied as e:
             self.task_failed(db)
         except Exception as e:
@@ -151,6 +164,9 @@ class ExtractUsernamesTask(BaseTask):
             else:
                 self.task_failed(db)
                 logger.error(f"Error occurred: {title}")
+        finally:
+            # wait for a while before starting to extract usernames from another channel
+            time.sleep(random.randint(10, 20))
 
     def find_usernames_in_text(
         self,
