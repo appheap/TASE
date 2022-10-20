@@ -100,7 +100,7 @@ class UsernameMethods:
         "           )"
         "   sort unchecked_mentions_count desc"
         "   let mentioned_chat = ("
-        "       for chat, e in 1..1 outbound username graph '@graph_name' options {order: 'dfs', edgeCollections: ['@has'], vertexCollections: ['@chats']}"
+        "       for chat, e in 1..1 inbound username graph '@graph_name' options {order: 'dfs', edgeCollections: ['@has'], vertexCollections: ['@chats']}"
         "           return chat"
         "       )"
         "   return {username_:username, mentioned_chat_:mentioned_chat[0], count_:unchecked_mentions_count[0]}"
