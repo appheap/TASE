@@ -37,27 +37,17 @@ class AddChannelCommand(BaseCommand):
         db_chat = handler.db.graph.get_chat_by_username(channel_username)
         if db_chat and db_chat.audio_indexer_metadata:
             # todo: translate me
-            message.reply_text(
-                f"This channel `{db_chat.title}` already exists in the Database!"
-            )
+            message.reply_text(f"This channel `{db_chat.title}` already exists in the Database!")
         else:
-            status, created = AddChannelTask(
-                kwargs={"channel_username": channel_username.lower()}
-            ).publish(handler.db)
+            status, created = AddChannelTask(kwargs={"channel_username": channel_username.lower()}).publish(handler.db)
             if status is None:
                 message.reply_text("internal error")
             else:
                 if created:
                     if status.is_active():
-                        message.reply_text(
-                            f"Added channel `{channel_username}` to the Database for indexing."
-                        )
+                        message.reply_text(f"Added channel `{channel_username}` to the Database for indexing.")
                 else:
                     if status.is_active():
-                        message.reply_text(
-                            f"Channel with username `{channel_username}` is already being processed"
-                        )
+                        message.reply_text(f"Channel with username `{channel_username}` is already being processed")
                     else:
-                        message.reply_text(
-                            f"The task for adding channel with username `{channel_username}` is already finished"
-                        )
+                        message.reply_text(f"The task for adding channel with username `{channel_username}` is already finished")

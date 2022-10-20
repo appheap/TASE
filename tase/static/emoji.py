@@ -31,9 +31,7 @@ class Emoji(BaseModel):
     _netherlands_flag = emoji.emojize(":Netherlands:", language="alias")
     _portugal_flag = emoji.emojize(":Portugal:", language="alias")
     _zap = emoji.emojize(":zap:", language="alias")
-    _globe_showing_Americas = emoji.emojize(
-        ":globe_showing_Americas:", language="alias"
-    )
+    _globe_showing_Americas = emoji.emojize(":globe_showing_Americas:", language="alias")
 
     # -------------Surprise--------------------------
     _party_popper = emoji.emojize(":party_popper:", language="alias")
@@ -55,15 +53,9 @@ class Emoji(BaseModel):
     _star_struck = emoji.emojize(":star-struck:", language="alias")
     _artist_palette = emoji.emojize(":artist_palette:", language="alias")
     _green_circle = emoji.emojize(":green_circle:", language="alias")
-    _backhand_index_pointing_right = emoji.emojize(
-        ":left_arrow_curving_right:", language="alias"
-    )
-    _exclamation_question_mark = emoji.emojize(
-        ":exclamation_question_mark:", language="alias"
-    )
-    _mobile_phone_with_arrow = emoji.emojize(
-        ":mobile_phone_with_arrow:", language="alias"
-    )
+    _backhand_index_pointing_right = emoji.emojize(":left_arrow_curving_right:", language="alias")
+    _exclamation_question_mark = emoji.emojize(":exclamation_question_mark:", language="alias")
+    _mobile_phone_with_arrow = emoji.emojize(":mobile_phone_with_arrow:", language="alias")
     _chart_increasing = emoji.emojize(":chart_increasing:", language="alias")
     _bar_chart = emoji.emojize(":bar_chart:", language="alias")
     _check_mark_button = emoji.emojize(":white_check_mark:", language="alias")
@@ -112,9 +104,7 @@ class Emoji(BaseModel):
     _shamrock = emoji.emojize(":shamrock:", language="alias")
     _four_leaf_clover = emoji.emojize(":four_leaf_clover:", language="alias")
     _fallen_leaf = emoji.emojize(":fallen_leaf:", language="alias")
-    _leaf_fluttering_in_wind = emoji.emojize(
-        ":leaf_fluttering_in_wind:", language="alias"
-    )
+    _leaf_fluttering_in_wind = emoji.emojize(":leaf_fluttering_in_wind:", language="alias")
 
     # -------------Fruits--------------------------
     _apple = emoji.emojize(":apple:", language="alias")
@@ -135,16 +125,10 @@ class Emoji(BaseModel):
     _cherries = emoji.emojize(":cherries:", language="alias")
 
     # -------------Faces--------------------------
-    _smiling_face_with_heart = emoji.emojize(
-        ":smiling_face_with_heart-eyes:", language="alias"
-    )
+    _smiling_face_with_heart = emoji.emojize(":smiling_face_with_heart-eyes:", language="alias")
     _face_blowing_a_kiss = emoji.emojize(":face_blowing_a_kiss:", language="alias")
-    _face_with_raised_eyebrow = emoji.emojize(
-        ":face_with_raised_eyebrow:", language="alias"
-    )
-    _smiling_face_with_sunglasses = emoji.emojize(
-        ":smiling_face_with_sunglasses:", language="alias"
-    )
+    _face_with_raised_eyebrow = emoji.emojize(":face_with_raised_eyebrow:", language="alias")
+    _smiling_face_with_sunglasses = emoji.emojize(":smiling_face_with_sunglasses:", language="alias")
     _winking_face = emoji.emojize(":winking_face:", language="alias")
 
     # ------------Others-----------------------------------

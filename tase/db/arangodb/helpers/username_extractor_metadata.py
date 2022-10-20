@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import math
 
 from pydantic import Field
@@ -52,119 +54,83 @@ class UsernameExtractorMetadata(BaseIndexerMetadata):
 
     def update_score(self):
         try:
-            direct_raw_mention_ratio = self.direct_raw_mention_count / (
-                self.direct_raw_mention_count + self.direct_self_mention_count
-            )
+            direct_raw_mention_ratio = self.direct_raw_mention_count / (self.direct_raw_mention_count + self.direct_self_mention_count)
         except ZeroDivisionError:
             direct_raw_mention_ratio = 0.0
 
         try:
-            indirect_raw_mention_ratio = self.indirect_raw_mention_count / (
-                self.indirect_raw_mention_count + self.indirect_self_mention_count
-            )
+            indirect_raw_mention_ratio = self.indirect_raw_mention_count / (self.indirect_raw_mention_count + self.indirect_self_mention_count)
         except ZeroDivisionError:
             indirect_raw_mention_ratio = 0.0
 
         #####################################################
 
         try:
-            direct_valid_mention_ratio = (
-                self.direct_valid_mention_count / self.direct_raw_mention_count
-            )
+            direct_valid_mention_ratio = self.direct_valid_mention_count / self.direct_raw_mention_count
         except ZeroDivisionError:
             direct_valid_mention_ratio = 0.0
 
         try:
-            indirect_valid_mention_ratio = (
-                self.indirect_valid_mention_count / self.indirect_raw_mention_count
-            )
+            indirect_valid_mention_ratio = self.indirect_valid_mention_count / self.indirect_raw_mention_count
         except ZeroDivisionError:
             indirect_valid_mention_ratio = 0.0
 
         #####################################################
         try:
-            direct_valid_channel_mention_ratio = (
-                self.direct_valid_channel_mention_count
-                / self.direct_valid_mention_count
-            )
+            direct_valid_channel_mention_ratio = self.direct_valid_channel_mention_count / self.direct_valid_mention_count
         except ZeroDivisionError:
             direct_valid_channel_mention_ratio = 0.0
 
         try:
-            indirect_valid_channel_mention_ratio = (
-                self.indirect_valid_channel_mention_count
-                / self.indirect_valid_mention_count
-            )
+            indirect_valid_channel_mention_ratio = self.indirect_valid_channel_mention_count / self.indirect_valid_mention_count
         except ZeroDivisionError:
             indirect_valid_channel_mention_ratio = 0.0
 
         #####################################################
 
         try:
-            direct_valid_supergroup_mention_ratio = (
-                self.direct_valid_supergroup_mention_count
-                / self.direct_valid_mention_count
-            )
+            direct_valid_supergroup_mention_ratio = self.direct_valid_supergroup_mention_count / self.direct_valid_mention_count
         except ZeroDivisionError:
             direct_valid_supergroup_mention_ratio = 0.0
 
         try:
-            indirect_valid_channel_mention_ratio = (
-                self.indirect_valid_channel_mention_count
-                / self.indirect_valid_mention_count
-            )
+            indirect_valid_channel_mention_ratio = self.indirect_valid_channel_mention_count / self.indirect_valid_mention_count
         except ZeroDivisionError:
             indirect_valid_channel_mention_ratio = 0.0
 
         #####################################################
 
         try:
-            direct_valid_supergroup_mention_ratio = (
-                self.direct_valid_supergroup_mention_count
-                / self.direct_valid_mention_count
-            )
+            direct_valid_supergroup_mention_ratio = self.direct_valid_supergroup_mention_count / self.direct_valid_mention_count
         except ZeroDivisionError:
             direct_valid_supergroup_mention_ratio = 0.0
 
         try:
-            indirect_valid_supergroup_mention_ratio = (
-                self.indirect_valid_supergroup_mention_count
-                / self.indirect_valid_mention_count
-            )
+            indirect_valid_supergroup_mention_ratio = self.indirect_valid_supergroup_mention_count / self.indirect_valid_mention_count
         except ZeroDivisionError:
             indirect_valid_supergroup_mention_ratio = 0.0
 
         #####################################################
 
         try:
-            direct_valid_bot_mention_ratio = (
-                self.direct_valid_bot_mention_count / self.direct_valid_mention_count
-            )
+            direct_valid_bot_mention_ratio = self.direct_valid_bot_mention_count / self.direct_valid_mention_count
         except ZeroDivisionError:
             direct_valid_bot_mention_ratio = 0.0
 
         try:
-            indirect_valid_bot_mention_ratio = (
-                self.indirect_valid_bot_mention_count
-                / self.indirect_valid_mention_count
-            )
+            indirect_valid_bot_mention_ratio = self.indirect_valid_bot_mention_count / self.indirect_valid_mention_count
         except ZeroDivisionError:
             indirect_valid_bot_mention_ratio = 0.0
 
         #####################################################
 
         try:
-            direct_valid_user_mention_ratio = (
-                self.direct_valid_user_mention_count / self.direct_valid_mention_count
-            )
+            direct_valid_user_mention_ratio = self.direct_valid_user_mention_count / self.direct_valid_mention_count
         except ZeroDivisionError:
             direct_valid_user_mention_ratio = 0.0
 
         try:
-            indirect_valid_user_mention_ratio = (
-                self.indirect_valid_user_mention_count
-                / self.indirect_valid_mention_count
-            )
+            indirect_valid_user_mention_ratio = self.indirect_valid_user_mention_count / self.indirect_valid_mention_count
         except ZeroDivisionError:
             indirect_valid_user_mention_ratio = 0.0
 
@@ -175,8 +141,9 @@ class UsernameExtractorMetadata(BaseIndexerMetadata):
         # self.score = (ratio * 2 + direct_raw_mention_ratio) / 3
 
     def update_metadata(
-        self, metadata: "UsernameExtractorMetadata"
-    ) -> "UsernameExtractorMetadata":
+        self,
+        metadata: UsernameExtractorMetadata,
+    ) -> UsernameExtractorMetadata:
         super(UsernameExtractorMetadata, self).update_metadata(metadata)
 
         if metadata is None or not isinstance(metadata, UsernameExtractorMetadata):
@@ -185,29 +152,17 @@ class UsernameExtractorMetadata(BaseIndexerMetadata):
         self.direct_self_mention_count += metadata.direct_self_mention_count
         self.direct_raw_mention_count += metadata.direct_raw_mention_count
         self.direct_valid_mention_count += metadata.direct_valid_mention_count
-        self.direct_valid_channel_mention_count += (
-            metadata.direct_valid_channel_mention_count
-        )
-        self.direct_valid_supergroup_mention_count += (
-            metadata.direct_valid_supergroup_mention_count
-        )
+        self.direct_valid_channel_mention_count += metadata.direct_valid_channel_mention_count
+        self.direct_valid_supergroup_mention_count += metadata.direct_valid_supergroup_mention_count
         self.direct_valid_bot_mention_count += metadata.direct_valid_bot_mention_count
         self.direct_valid_user_mention_count += metadata.direct_valid_user_mention_count
 
         self.indirect_self_mention_count += metadata.indirect_self_mention_count
         self.indirect_raw_mention_count += metadata.indirect_raw_mention_count
         self.indirect_valid_mention_count += metadata.indirect_valid_mention_count
-        self.indirect_valid_channel_mention_count += (
-            metadata.indirect_valid_channel_mention_count
-        )
-        self.indirect_valid_supergroup_mention_count += (
-            metadata.indirect_valid_supergroup_mention_count
-        )
-        self.indirect_valid_bot_mention_count += (
-            metadata.indirect_valid_bot_mention_count
-        )
-        self.indirect_valid_user_mention_count += (
-            metadata.indirect_valid_user_mention_count
-        )
+        self.indirect_valid_channel_mention_count += metadata.indirect_valid_channel_mention_count
+        self.indirect_valid_supergroup_mention_count += metadata.indirect_valid_supergroup_mention_count
+        self.indirect_valid_bot_mention_count += metadata.indirect_valid_bot_mention_count
+        self.indirect_valid_user_mention_count += metadata.indirect_valid_user_mention_count
 
         return self

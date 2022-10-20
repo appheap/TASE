@@ -37,9 +37,7 @@ class ExtractUsernamesCommand(BaseCommand):
         db_chat = handler.db.graph.get_chat_by_username(channel_username)
         if not db_chat:
             # todo: translate me
-            message.reply_text(
-                f"This channel `{channel_username}` does not exist in the Database!"
-            )
+            message.reply_text(f"This channel `{channel_username}` does not exist in the Database!")
             kwargs = {"channel_username": channel_username}
         else:
             kwargs = {"chat_key": db_chat.key}
@@ -50,15 +48,9 @@ class ExtractUsernamesCommand(BaseCommand):
         else:
             if created:
                 if status.is_active():
-                    message.reply_text(
-                        f"Added channel `{channel_username}` to the Database for username extraction."
-                    )
+                    message.reply_text(f"Added channel `{channel_username}` to the Database for username extraction.")
             else:
                 if status.is_active():
-                    message.reply_text(
-                        f"Channel with username `{channel_username}` is already being processed"
-                    )
+                    message.reply_text(f"Channel with username `{channel_username}` is already being processed")
                 else:
-                    message.reply_text(
-                        f"The task for extracting usernames from channel with username `{channel_username}` is already finished"
-                    )
+                    message.reply_text(f"The task for extracting usernames from channel with username `{channel_username}` is already finished")

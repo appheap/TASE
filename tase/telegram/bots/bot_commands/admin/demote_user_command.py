@@ -69,9 +69,7 @@ class DemoteUserCommand(BaseCommand):
                                 disable_web_page_preview=True,
                             )
                             try:
-                                client.delete_bot_commands(
-                                    BotCommandScopeChat(user.user_id)
-                                )
+                                client.delete_bot_commands(BotCommandScopeChat(user.user_id))
                             except PeerIdInvalid as e:
                                 # todo: The peer id being used is invalid or not known yet. Make sure you meet the peer
                                 #  before interacting with it

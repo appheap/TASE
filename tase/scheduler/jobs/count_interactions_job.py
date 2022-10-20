@@ -41,13 +41,9 @@ class CountInteractionsJob(BaseJob):
                     if not es_audio_doc:
                         continue
 
-                    updated = es_audio_doc.update_by_interaction_count(
-                        interaction_count
-                    )
+                    updated = es_audio_doc.update_by_interaction_count(interaction_count)
                     if not updated:
-                        logger.error(
-                            f"Could not update interaction count for audio with key : `{interaction_count.audio_key}`"
-                        )
+                        logger.error(f"Could not update interaction count for audio with key : `{interaction_count.audio_key}`")
 
                 updated = job.update_last_run(now)
                 if not updated:

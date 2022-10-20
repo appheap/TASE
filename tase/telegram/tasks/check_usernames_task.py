@@ -7,9 +7,10 @@ from pyrogram.errors import UsernameNotOccupied, UsernameInvalid, FloodWait
 from tase.common.utils import get_now_timestamp
 from tase.db import DatabaseClient
 from tase.db.arangodb import graph as graph_models
-from tase.db.arangodb.enums import RabbitMQTaskType
+from tase.db.arangodb.enums import RabbitMQTaskType, ChatType
 from tase.my_logger import logger
 from tase.task_distribution import BaseTask, TargetWorkerType
+from tase.telegram.channel_analyzer import ChannelAnalyzer
 from tase.telegram.client import TelegramClient
 
 
@@ -26,14 +27,8 @@ class CheckUsernameTask(BaseTask):
         self.task_in_worker(db)
 
         username_key = self.kwargs.get("username_key", None)
-        username_vertex: graph_models.vertices.Username = db.graph.get_username_by_key(
-            username_key
-        )
-        if (
-            username_vertex is None
-            or username_vertex.username is None
-            or username_vertex.is_checked
-        ):
+        username_vertex: graph_models.vertices.Username = db.graph.get_username_by_key(username_key)
+        if username_vertex is None or username_vertex.username is None or username_vertex.is_checked:
             self.task_failed(db)
             return
 
@@ -58,7 +53,7 @@ class CheckUsernameTask(BaseTask):
             # fixme: find a solution for this
             self.task_failed(db)
 
-            sleep_time = e.value + random.randint(1, 10)
+            sleep_time = e.value + random.randint(5, 15)
             logger.info(f"Sleeping for {sleep_time} seconds...")
             time.sleep(sleep_time)
             logger.info(f"Waking up after sleeping for {sleep_time} seconds...")
@@ -82,6 +77,18 @@ class CheckUsernameTask(BaseTask):
                         username_vertex,
                     )
 
+                    if mentioned_chat.chat_type == ChatType.CHANNEL and mentioned_chat.is_public:
+                        # wait for a while
+                        time.sleep(5)
+
+                        score = ChannelAnalyzer.calculate_score(
+                            telegram_client,
+                            mentioned_chat.chat_id,
+                            mentioned_chat.members_count,
+                        )
+                        updated = mentioned_chat.update_audio_indexer_score(score)
+                        logger.debug(f"Channel {mentioned_chat.username} score: {score}")
+
                     self.task_done(db)
                 else:
                     # todo: update wasn't successful, what now?
@@ -95,4 +102,4 @@ class CheckUsernameTask(BaseTask):
         finally:
             # this is necessary to avoid flood errors
             # todo: is this one good enough?
-            time.sleep(random.randint(10, 20))
+            time.sleep(random.randint(20, 30))

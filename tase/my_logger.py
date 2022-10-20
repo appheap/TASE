@@ -17,11 +17,7 @@ _nameToLevel = {
 
 def init_logger() -> "Logger":
     handler = colorlog.StreamHandler()
-    handler.setFormatter(
-        colorlog.ColoredFormatter(
-            "[%(log_color)s%(asctime)s: %(levelname)s/%(processName)s:%(threadName)s] %(message)s"
-        )
-    )
+    handler.setFormatter(colorlog.ColoredFormatter("[%(log_color)s%(asctime)s: %(levelname)s/%(processName)s:%(threadName)s] %(message)s"))
     logger = colorlog.getLogger(__name__)
     logger.propagate = False
     logger.addHandler(handler)

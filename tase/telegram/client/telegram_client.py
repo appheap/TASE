@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import asyncio
+import re
 from enum import Enum
 from typing import Coroutine, Iterable, List, Optional, Union, Dict, Any
 
@@ -72,6 +74,66 @@ class TelegramClient:
 
     def is_connected(self) -> bool:
         return self._client.is_connected
+
+    def peer_exists(
+        self,
+        peer_id: Union[str, int],
+    ) -> bool:
+        """
+        Check whether a peer exists in the local DB or not
+
+        Parameters
+        ----------
+        peer_id : str or int
+            Peer ID to check. Can be username, chat ID, user ID, phone number, etc.
+
+        Returns
+        -------
+        bool
+            Whether the peer exists in the DB or not
+
+        """
+        try:
+            # peer = self._client.resolve_peer(peer_id)
+            peer = asyncio.run(self._client.storage.get_peer_by_id(peer_id))
+        except KeyError:
+            # peer does not exist
+
+            if isinstance(peer_id, str):
+                if peer_id in ("self", "me"):
+                    return True
+
+                peer_id = re.sub(r"[@+\s]", "", peer_id.lower())
+
+                try:
+                    int(peer_id)
+                except ValueError:
+                    try:
+                        peer = asyncio.run(self._client.storage.get_peer_by_username(peer_id))
+                    except KeyError:
+                        pass
+                    else:
+                        if peer:
+                            return True
+                else:
+                    try:
+                        peer = asyncio.run(self._client.storage.get_peer_by_phone_number(peer_id))
+                    except KeyError:
+                        return False
+                    else:
+                        if peer:
+                            return True
+
+        except ValueError:
+            # invalid peer type
+            pass
+        except Exception as e:
+            logger.exception(e)
+        else:
+            if peer:
+                return True
+
+        return False
 
     def get_me(self) -> Optional[pyrogram.types.User]:
         # todo: add a feature to update this on fixed intervals to have latest information
@@ -179,9 +241,7 @@ class UserTelegramClient(TelegramClient):
         self.name = client_config.name
         self.api_id = client_config.api_id
         self.api_hash = client_config.api_hash
-        self.role = UserClientRoles._parse(
-            client_config.role
-        )  # todo: check for unknown roles
+        self.role = UserClientRoles._parse(client_config.role)  # todo: check for unknown roles
 
     def init_client(self):
         self._client = pyrogram.Client(
@@ -207,9 +267,7 @@ class BotTelegramClient(TelegramClient):
         self.api_id = client_config.api_id
         self.api_hash = client_config.api_hash
         self.token = client_config.bot_token
-        self.role = BotClientRoles._parse(
-            client_config.role
-        )  # todo: check for unknown roles
+        self.role = BotClientRoles._parse(client_config.role)  # todo: check for unknown roles
 
     def init_client(self):
         self._client = pyrogram.Client(

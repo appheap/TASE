@@ -39,17 +39,12 @@ class ToggleFavoritePlaylistInlineButton(InlineButton):
 
         # add the audio to the playlist
         try:
-            (
-                successful,
-                created,
-            ), in_favorite_playlist = handler.db.graph.toggle_favorite_playlist(
+            (successful, created,), in_favorite_playlist = handler.db.graph.toggle_favorite_playlist(
                 from_user,
                 hit_download_url,
             )
         except PlaylistDoesNotExists as e:
-            telegram_callback_query.answer(
-                "You do not have the playlist you have chosen"
-            )
+            telegram_callback_query.answer("You do not have the playlist you have chosen")
         except HitDoesNotExists as e:
             telegram_callback_query.answer("Given download url is not valid anymore")
         except HitNoLinkedAudio as e:
@@ -58,21 +53,15 @@ class ToggleFavoritePlaylistInlineButton(InlineButton):
             telegram_callback_query.answer("This audio cannot be used in inline mode")
         except Exception as e:
             logger.exception(e)
-            telegram_callback_query.answer(
-                "Could not add the audio to the playlist due to internal error"
-            )
+            telegram_callback_query.answer("Could not add the audio to the playlist due to internal error")
         else:
             # todo: update these messages
             if successful:
                 if created:
-                    telegram_callback_query.answer(
-                        f"{'Removed from' if in_favorite_playlist else 'Added to'} the favorite playlist"
-                    )
+                    telegram_callback_query.answer(f"{'Removed from' if in_favorite_playlist else 'Added to'} the favorite playlist")
                     if telegram_callback_query.message is not None:
                         reply_markup = telegram_callback_query.message.reply_markup
-                        reply_markup.inline_keyboard[0][2].text = self.new_text(
-                            not in_favorite_playlist
-                        )
+                        reply_markup.inline_keyboard[0][2].text = self.new_text(not in_favorite_playlist)
 
                         telegram_callback_query.edit_message_reply_markup(reply_markup)
                     elif telegram_callback_query.inline_message_id:
@@ -96,9 +85,7 @@ class ToggleFavoritePlaylistInlineButton(InlineButton):
                                 status,
                             )
                             if reply_markup:
-                                reply_markup.inline_keyboard[0][2].text = self.new_text(
-                                    not in_favorite_playlist
-                                )
+                                reply_markup.inline_keyboard[0][2].text = self.new_text(not in_favorite_playlist)
                                 try:
                                     client.edit_inline_reply_markup(
                                         telegram_callback_query.inline_message_id,
@@ -109,9 +96,7 @@ class ToggleFavoritePlaylistInlineButton(InlineButton):
                 else:
                     telegram_callback_query.answer("It's already on the playlist")
             else:
-                telegram_callback_query.answer(
-                    "Did not add to / remove from the playlist"
-                )
+                telegram_callback_query.answer("Did not add to / remove from the playlist")
 
     def new_text(
         self,

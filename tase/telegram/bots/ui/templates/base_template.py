@@ -47,9 +47,7 @@ class BaseTemplateData(BaseModel):
     ):
         if value is None:
             raise Exception("value cannot be None")
-        x = len(
-            [None for ch in value if unicodedata.bidirectional(ch) in ("R", "AL")]
-        ) / float(len(value))
+        x = len([None for ch in value if unicodedata.bidirectional(ch) in ("R", "AL")]) / float(len(value))
         self.c_dir = "&rlm;" if x > 0.5 else "&lrm;"
 
 

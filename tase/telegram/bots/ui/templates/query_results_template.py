@@ -51,9 +51,7 @@ class QueryResultsData(BaseTemplateData):
         es_audio_doc: elasticsearch_models.Audio,
         hit: graph_models.vertices.Hit,
     ) -> Dict[str, str]:
-        duration = timedelta(
-            seconds=es_audio_doc.duration if es_audio_doc.duration else 0
-        )
+        duration = timedelta(seconds=es_audio_doc.duration if es_audio_doc.duration else 0)
         d = datetime(1, 1, 1) + duration
         _performer = clean_audio_item_text(es_audio_doc.raw_performer)
         _title = clean_audio_item_text(es_audio_doc.raw_title)
@@ -82,9 +80,7 @@ class QueryResultsData(BaseTemplateData):
             "index": f"{index + 1:02}",
             "name": textwrap.shorten(name, width=35, placeholder="..."),
             "file_size": round(es_audio_doc.file_size / 1_048_576, 1),
-            "time": f"{str(d.hour) + ':' if d.hour > 0 else ''}{d.minute:02}:{d.second:02}"
-            if duration
-            else "",
+            "time": f"{str(d.hour) + ':' if d.hour > 0 else ''}{d.minute:02}:{d.second:02}" if duration else "",
             "url": hit.download_url,
             "sep": f"{40 * '-' if index != 0 else ''}",
             "quality_string": es_audio_doc.estimated_bit_rate_type.get_bit_rate_string(),

@@ -48,9 +48,7 @@ class Had(BaseEdge):
             raise ParamNotProvided("deleted_at")
 
         if not isinstance(deleted_at, int):
-            raise ValueError(
-                f"Wrong value passed for argument `deleted_at`, expected `int` got `{type(deleted_at)}` instead"
-            )
+            raise ValueError(f"Wrong value passed for argument `deleted_at`, expected `int` got `{type(deleted_at)}` instead")
 
         return f"{from_vertex.key}:{to_vertex.key}:{deleted_at}"
 
@@ -104,14 +102,10 @@ class Had(BaseEdge):
             raise ParamNotProvided("has")
 
         if not isinstance(deleted_at, int):
-            raise TypeError(
-                f"Wrong value passed for argument `deleted_at`, expected `int` got `{type(deleted_at)}` instead"
-            )
+            raise TypeError(f"Wrong value passed for argument `deleted_at`, expected `int` got `{type(deleted_at)}` instead")
 
         if not isinstance(has, Has):
-            raise TypeError(
-                f"Wrong value passed for argument `has`, expected `{Has.__class__.__name__}` got `{type(deleted_at)}`"
-            )
+            raise TypeError(f"Wrong value passed for argument `has`, expected `{Has.__class__.__name__}` got `{type(deleted_at)}`")
 
         key = Had.parse_key(from_vertex, to_vertex, *args, **kwargs)
         if key is None:

@@ -194,9 +194,7 @@ def replace_stopwords(
 
         stopwords_ = stopwords.DEFAULT
 
-    return "".join(
-        t if t not in stopwords_ else symbol for t in re.findall(stop_words_regex, text)
-    )
+    return "".join(t if t not in stopwords_ else symbol for t in re.findall(stop_words_regex, text))
 
 
 def remove_stopwords(

@@ -84,9 +84,7 @@ class Audio(BaseDocument):
 
         audio, audio_type = get_telegram_message_media_type(telegram_message)
         if audio is None or audio_type == TelegramAudioType.NON_AUDIO:
-            raise TelegramMessageWithNoAudio(
-                telegram_message.id, telegram_message.chat.id
-            )
+            raise TelegramMessageWithNoAudio(telegram_message.id, telegram_message.chat.id)
 
         return Audio(
             key=key,
@@ -128,9 +126,7 @@ class AudioMethods:
             return None
 
         try:
-            audio, successful = Audio.insert(
-                Audio.parse(telegram_message, telegram_client_id)
-            )
+            audio, successful = Audio.insert(Audio.parse(telegram_message, telegram_client_id))
         except ValueError:
             # the message does not contain any valid audio file
             pass
@@ -205,9 +201,7 @@ class AudioMethods:
                 audio = self.create_audio(telegram_message, telegram_client_id)
             else:
                 try:
-                    updated = audio.update(
-                        Audio.parse(telegram_message, telegram_client_id)
-                    )
+                    updated = audio.update(Audio.parse(telegram_message, telegram_client_id))
                 except ValueError:
                     updated = False
 

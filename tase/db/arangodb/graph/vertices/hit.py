@@ -125,9 +125,7 @@ class HitMethods:
                 if has_audio_edge is None:
                     raise EdgeCreationFailed(Has.__class__.__name__)
             except (InvalidFromVertex, InvalidToVertex):
-                logger.error(
-                    "ValueError: Could not create `has` edge from `hit` vertex to `audio` vertex"
-                )
+                logger.error("ValueError: Could not create `has` edge from `hit` vertex to `audio` vertex")
 
             return hit
 

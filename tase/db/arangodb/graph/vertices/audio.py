@@ -147,9 +147,7 @@ class Audio(BaseVertex):
 
         audio, audio_type = get_telegram_message_media_type(telegram_message)
         if audio is None or audio_type == TelegramAudioType.NON_AUDIO:
-            raise TelegramMessageWithNoAudio(
-                telegram_message.id, telegram_message.chat.id
-            )
+            raise TelegramMessageWithNoAudio(telegram_message.id, telegram_message.chat.id)
 
         title = getattr(audio, "title", None)
 
@@ -173,20 +171,12 @@ class Audio(BaseVertex):
             has_checked_forwarded_message = None
 
         raw_title = copy.copy(title)
-        raw_caption = copy.copy(
-            telegram_message.caption
-            if telegram_message.caption
-            else telegram_message.text
-        )
+        raw_caption = copy.copy(telegram_message.caption if telegram_message.caption else telegram_message.text)
         raw_performer = copy.copy(getattr(audio, "performer", None))
         raw_file_name = copy.copy(audio.file_name)
 
         title = clean_text(title)
-        caption = clean_text(
-            telegram_message.caption
-            if telegram_message.caption
-            else telegram_message.text
-        )
+        caption = clean_text(telegram_message.caption if telegram_message.caption else telegram_message.text)
         performer = clean_text(getattr(audio, "performer", None))
         file_name = clean_text(audio.file_name)
 
@@ -374,9 +364,7 @@ class AudioMethods:
                         MentionSource.MESSAGE_TEXT,
                         MentionSource.AUDIO_TITLE,
                         MentionSource.AUDIO_PERFORMER,
-                        MentionSource.AUDIO_FILE_NAME
-                        if audio.audio_type == TelegramAudioType.AUDIO_FILE
-                        else MentionSource.DOCUMENT_FILE_NAME,
+                        MentionSource.AUDIO_FILE_NAME if audio.audio_type == TelegramAudioType.AUDIO_FILE else MentionSource.DOCUMENT_FILE_NAME,
                     ],
                 )
 
@@ -419,13 +407,9 @@ class AudioMethods:
 
                 if audio.is_forwarded:
                     if telegram_message.forward_from:
-                        forwarded_from = self.get_or_create_user(
-                            telegram_message.forward_from
-                        )
+                        forwarded_from = self.get_or_create_user(telegram_message.forward_from)
                     elif telegram_message.forward_from_chat:
-                        forwarded_from = self.get_or_create_chat(
-                            telegram_message.forward_from_chat
-                        )
+                        forwarded_from = self.get_or_create_chat(telegram_message.forward_from_chat)
                     else:
                         forwarded_from = None
 
@@ -433,13 +417,9 @@ class AudioMethods:
                         try:
                             from tase.db.arangodb.graph.edges import ForwardedFrom
 
-                            forwarded_from_edge = ForwardedFrom.get_or_create_edge(
-                                audio, forwarded_from
-                            )
+                            forwarded_from_edge = ForwardedFrom.get_or_create_edge(audio, forwarded_from)
                             if forwarded_from_edge is None:
-                                raise EdgeCreationFailed(
-                                    ForwardedFrom.__class__.__name__
-                                )
+                                raise EdgeCreationFailed(ForwardedFrom.__class__.__name__)
                         except (InvalidFromVertex, InvalidToVertex):
                             pass
 
@@ -520,9 +500,7 @@ class AudioMethods:
         audio: Optional[Audio] = Audio.get(Audio.parse_key(telegram_message))
 
         if audio is not None:
-            telegram_audio, audio_type = get_telegram_message_media_type(
-                telegram_message
-            )
+            telegram_audio, audio_type = get_telegram_message_media_type(telegram_message)
             if telegram_audio is None or audio_type == TelegramAudioType.NON_AUDIO:
                 # this message doesn't contain any valid audio file, check if there is a previous audio in the database
                 # and check it as invalid audio.
@@ -610,9 +588,7 @@ class AudioMethods:
         )
         if cursor is not None and len(cursor):
             if len(cursor) > 1:
-                raise ValueError(
-                    f"Hit with id `{hit.id}` have more than one linked audios."
-                )
+                raise ValueError(f"Hit with id `{hit.id}` have more than one linked audios.")
             else:
                 try:
                     doc = cursor.pop()
@@ -700,9 +676,7 @@ class AudioMethods:
         from tase.db.arangodb.graph.edges import Has
 
         cursor = Audio.execute_query(
-            self._get_user_download_history_inline_query
-            if filter_by_valid_for_inline_search
-            else self._get_user_download_history_query,
+            self._get_user_download_history_inline_query if filter_by_valid_for_inline_search else self._get_user_download_history_query,
             bind_vars={
                 "start_vertex": user.id,
                 "has": Has._collection_name,

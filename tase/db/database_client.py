@@ -40,11 +40,7 @@ class DatabaseClient:
         except Exception as e:
             logger.exception(e)
         else:
-            if (
-                audio_vertex is not None
-                and audio_doc is not None
-                and es_audio_doc is not None
-            ):
+            if audio_vertex is not None and audio_doc is not None and es_audio_doc is not None:
                 return True
 
         return False
@@ -59,18 +55,12 @@ class DatabaseClient:
 
         try:
             audio_vertex = self.graph.update_or_create_audio(telegram_message)
-            audio_doc = self.document.update_or_create_audio(
-                telegram_message, telegram_client_id
-            )
+            audio_doc = self.document.update_or_create_audio(telegram_message, telegram_client_id)
             es_audio_doc = self.index.update_or_create_audio(telegram_message)
         except Exception as e:
             logger.exception(e)
         else:
-            if (
-                audio_vertex is not None
-                and audio_doc is not None
-                and es_audio_doc is not None
-            ):
+            if audio_vertex is not None and audio_doc is not None and es_audio_doc is not None:
                 return True
 
         return False

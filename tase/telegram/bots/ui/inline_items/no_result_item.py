@@ -20,9 +20,7 @@ class NoResultItem(BaseInlineItem):
 
         return InlineQueryResultArticle(
             title=_trans("No Results Were Found", db_from_user.chosen_language_code),
-            description=_trans(
-                "No results were found", db_from_user.chosen_language_code
-            ),
+            description=_trans("No results were found", db_from_user.chosen_language_code),
             input_message_content=InputTextMessageContent(
                 message_text=emoji.high_voltage,
                 parse_mode=ParseMode.HTML,

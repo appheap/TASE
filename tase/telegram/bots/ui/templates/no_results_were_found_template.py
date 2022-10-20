@@ -12,6 +12,4 @@ class NoResultsWereFoundData(BaseTemplateData):
 class NoResultsWereFoundTemplate(BaseTemplate):
     name = "no_results_were_found_template"
 
-    template = Template(
-        "{{emoji._traffic_light}}  {{s_no_results_were_found}}{{c_new_line}}<pre>{{query}}</pre>"
-    )
+    template = Template("{{emoji._traffic_light}}  {{s_no_results_were_found}}{{c_new_line}}<pre>{{query}}</pre>")

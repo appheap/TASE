@@ -112,13 +112,7 @@ class InteractionMethods:
             Interaction vertex if the creation was successful, otherwise, return None
 
         """
-        if (
-            hit_download_url is None
-            or user is None
-            or bot_id is None
-            or type_ is None
-            or chat_type is None
-        ):
+        if hit_download_url is None or user is None or bot_id is None or type_ is None or chat_type is None:
             return None
 
         bot = self.get_user_by_telegram_id(bot_id)
@@ -160,25 +154,19 @@ class InteractionMethods:
         try:
             Has.get_or_create_edge(interaction, audio)
         except (InvalidFromVertex, InvalidToVertex):
-            logger.error(
-                "ValueError: Could not create `has` edge from `Interaction` vertex to `Audio` vertex"
-            )
+            logger.error("ValueError: Could not create `has` edge from `Interaction` vertex to `Audio` vertex")
             return None
 
         try:
             FromHit.get_or_create_edge(interaction, hit)
         except (InvalidFromVertex, InvalidToVertex):
-            logger.error(
-                "ValueError: Could not create `from_hit` edge from `Interaction` vertex to `Hit` vertex"
-            )
+            logger.error("ValueError: Could not create `from_hit` edge from `Interaction` vertex to `Hit` vertex")
             return None
 
         try:
             Has.get_or_create_edge(user, interaction)
         except (InvalidFromVertex, InvalidToVertex):
-            logger.error(
-                "ValueError: Could not create `has` edge from `User` vertex to `Interaction` vertex"
-            )
+            logger.error("ValueError: Could not create `has` edge from `User` vertex to `Interaction` vertex")
             return None
 
         # try:

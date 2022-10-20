@@ -152,9 +152,7 @@ class BaseDocument(BaseModel):
     )
     _to_index_extra_processors: Optional[Tuple[ToDocumentBaseProcessor]] = None
 
-    _from_index_base_processors: Optional[Tuple[FromDocumentBaseProcessor]] = (
-        FromDocumentAttributeMapper,
-    )
+    _from_index_base_processors: Optional[Tuple[FromDocumentBaseProcessor]] = (FromDocumentAttributeMapper,)
     _from_index_extra_processors: Optional[Tuple[FromDocumentBaseProcessor]] = None
 
     _base_do_not_update_fields: Optional[Tuple[str]] = ("created_at",)
@@ -235,9 +233,7 @@ class BaseDocument(BaseModel):
 
             is_hit = True
         else:
-            raise ValueError(
-                "either `response` or `hit` parameter must be passed to this method"
-            )
+            raise ValueError("either `response` or `hit` parameter must be passed to this method")
 
         body = dict()
         for doc_processor in cls._from_index_base_processors:
@@ -403,9 +399,7 @@ class BaseDocument(BaseModel):
             return None, False
 
         if not isinstance(document, BaseDocument):
-            raise Exception(
-                f"`document` is not an instance of {BaseDocument.__class__.__name__} class"
-            )
+            raise Exception(f"`document` is not an instance of {BaseDocument.__class__.__name__} class")
 
         successful = False
         try:
@@ -456,14 +450,10 @@ class BaseDocument(BaseModel):
             return False
 
         if not isinstance(document, BaseDocument):
-            raise Exception(
-                f"`document` is not an instance of {BaseDocument.__class__.__name__} class"
-            )
+            raise Exception(f"`document` is not an instance of {BaseDocument.__class__.__name__} class")
 
         if retry_on_failure and run_depth > 10:
-            logger.error(
-                f"{self.__class__.__name__}: `{self.id}` : failed after 10 retries"
-            )
+            logger.error(f"{self.__class__.__name__}: `{self.id}` : failed after 10 retries")
             # stop if the update is retried for 10 times
             return False
 
@@ -484,9 +474,7 @@ class BaseDocument(BaseModel):
                 )
                 self.__dict__.update(document.__dict__)
         except elasticsearch.ConflictError as e:
-            logger.error(
-                f"{self.__class__.__name__}: `{self.id}` : elasticsearch.ConflictError"
-            )
+            logger.error(f"{self.__class__.__name__}: `{self.id}` : elasticsearch.ConflictError")
             if retry_on_failure:
                 logger.error(f"Retry #{run_depth}")
                 # todo: sleep for a while before retrying
