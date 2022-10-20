@@ -27,7 +27,7 @@ class Has(BaseEdge):
         Hit,
         Interaction,
         Audio,
-        Username,
+        Chat,
     )
     _to_vertex_collections = (
         Playlist,
@@ -35,7 +35,7 @@ class Has(BaseEdge):
         Hit,
         Keyword,
         Interaction,
-        Chat,
+        Username,
     )
 
     @classmethod

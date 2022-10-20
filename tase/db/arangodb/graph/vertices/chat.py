@@ -1,15 +1,19 @@
 from __future__ import annotations
 
-from typing import Optional, List, Tuple, Generator
+from typing import Optional, List, Tuple, Generator, TYPE_CHECKING
 
 import pyrogram
 from arango import CursorEmptyError
 
-from tase.common.utils import prettify
+from tase.common.utils import prettify, get_now_timestamp
 from tase.db.arangodb import graph as graph_models
 from tase.errors import InvalidFromVertex, InvalidToVertex
 from tase.my_logger import logger
 from .base_vertex import BaseVertex
+
+if TYPE_CHECKING:
+    from .. import ArangoGraphMethods
+
 from ...enums import ChatType
 from ...helpers import (
     Restriction,
@@ -351,6 +355,11 @@ class ChatMethods:
         "   return {linked_chat:v, edge:e}"
     )
 
+    _get_chat_username_with_edge_query = (
+        "for v,e in 1..1 outbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@has'], vertexCollections:['@usernames']}"
+        "   return {username:v, edge:e}"
+    )
+
     _get_chats_sorted_by_username_extractor_score_query = (
         "for chat in @chats"
         "   filter chat.chat_type == @chat_type and chat.is_public == true and chat.username_extractor_metadata != null"
@@ -387,7 +396,7 @@ class ChatMethods:
     )
 
     def _create_chat(
-        self,
+        self: ArangoGraphMethods,
         telegram_chat: pyrogram.types.Chat,
     ) -> Optional[Chat]:
         """
@@ -427,6 +436,9 @@ class ChatMethods:
                         f"Could not create linked_chat: {prettify(telegram_chat.linked_chat)}"
                     )
 
+            if chat.username:
+                self._create_chat_linked_username(chat)
+
             return chat
 
         return None
@@ -460,7 +472,7 @@ class ChatMethods:
         return chat
 
     def update_or_create_chat(
-        self,
+        self: ArangoGraphMethods,
         telegram_chat: pyrogram.types.Chat,
     ) -> Optional[Chat]:
         """
@@ -480,69 +492,161 @@ class ChatMethods:
         if telegram_chat is None:
             return None
 
-        from tase.db.arangodb.graph.edges import LinkedChat
-
         chat = Chat.get(Chat.parse_key(telegram_chat))
         if chat is not None:
             successful = chat.update(Chat.parse(telegram_chat))
             if successful:
-                if telegram_chat.linked_chat:
-                    # check if an update of connected vertices is needed
-                    try:
-                        (
-                            linked_chat,
-                            linked_chat_edge,
-                        ) = self.get_chat_linked_chat_with_edge(chat)
-                    except ValueError as e:
-                        logger.exception(e)
-                    else:
-                        if linked_chat and linked_chat_edge:
-                            # chat has linked chat already, check if it needs to create/update the existing one or delete
-                            # the old one and add a new one.
-                            if linked_chat.chat_id == telegram_chat.linked_chat.id:
-                                # update the linked chat
-                                updated = linked_chat.update(
-                                    Chat.parse(telegram_chat.linked_chat)
-                                )
-                            else:
-                                # delete the old link
-                                linked_chat_edge.delete()
+                self._update_linked_chat(chat, telegram_chat)
+                self._update_linked_username(chat, telegram_chat)
 
-                                # create the new link and new chat
-                                linked_chat = self.update_or_create_chat(
-                                    telegram_chat.linked_chat
-                                )
-                                try:
-                                    LinkedChat.get_or_create_edge(chat, linked_chat)
-                                except (InvalidFromVertex, InvalidToVertex):
-                                    pass
-                        else:
-                            # chat did not have any linked chat before, create it
-                            linked_chat = self.get_or_create_chat(
-                                telegram_chat.linked_chat
-                            )
-                            try:
-                                LinkedChat.get_or_create_edge(chat, linked_chat)
-                            except (InvalidFromVertex, InvalidToVertex):
-                                pass
-
-                else:
-                    # the chat doesn't have any linked chat, check if it had any before and delete the link
-                    try:
-                        (
-                            linked_chat,
-                            linked_chat_edge,
-                        ) = self.get_chat_linked_chat_with_edge(chat)
-                    except ValueError as e:
-                        logger.exception(e)
-                    else:
-                        if linked_chat and linked_chat_edge:
-                            # chat had linked chat before, remove the link
-                            linked_chat_edge.delete()
         else:
             chat: Chat = self._create_chat(telegram_chat)
 
         return chat
+
+    def _create_chat_linked_username(
+        self: ArangoGraphMethods,
+        chat: Chat,
+    ) -> bool:
+        usernames_vertex = self.get_or_create_username(
+            chat.username,
+            create_mention_edge=False,
+        )
+        if usernames_vertex:
+            if not usernames_vertex.is_checked:
+                usernames_vertex.check(True, get_now_timestamp(), True)
+
+            from tase.db.arangodb.graph.edges import Has
+
+            has_edge = Has.get_or_create_edge(chat, usernames_vertex)
+            if not has_edge:
+                logger.error(
+                    f"could not create `has` edge from `chat` with key `{chat.key}` to `username` with key `{usernames_vertex.key}`"
+                )
+                return False
+        else:
+            logger.error(
+                f"could not create the username vertex for chat with key `{chat.key}`"
+            )
+            return False
+
+        return True
+
+    def _update_linked_username(
+        self: ArangoGraphMethods,
+        chat: Chat,
+        telegram_chat: pyrogram.types.Chat,
+    ):
+        if chat is None or telegram_chat is None:
+            return
+
+        def remove_old_links(username_vertex_, has_edge_):
+            deleted = has_edge_.delete()
+            if not deleted:
+                logger.error(
+                    f"could not delete the `has` edge from chat with key `{chat.key}` to username with key `{username_vertex_.key}`"
+                )
+            else:
+                if not username_vertex_.check(False, get_now_timestamp(), False):
+                    logger.error(
+                        f"could not check username with key `{username_vertex_.key}`"
+                    )
+
+        if telegram_chat.username:
+            try:
+                username_vertex, has_edge = self.get_chat_username_with_edge(chat)
+            except ValueError as e:
+                # chat has more than one username linked with it
+                logger.exception(e)
+            else:
+                if username_vertex and has_edge:
+                    username_vertex: graph_models.vertices.Username = username_vertex
+                    has_edge: graph_models.edges.Has = has_edge
+
+                    if username_vertex.username != telegram_chat.username.lower():
+                        # the username of the chat has changed since last time, remove the link between the
+                        # chat and the old username and set the username's `is_checked` property as `False`
+                        if self._create_chat_linked_username(chat):
+                            remove_old_links(username_vertex, has_edge)
+                    else:
+                        # username has not changed since last, no need to update anything
+                        pass
+
+                else:
+                    # the chat did not have any usernames before, create it now
+                    self._create_chat_linked_username(chat)
+        else:
+            # the chat doesn't have any linked username, check if it had any before and delete the link
+            try:
+                username_vertex, has_edge = self.get_chat_username_with_edge(chat)
+            except ValueError as e:
+                # chat has more than one username linked with it
+                logger.exception(e)
+            else:
+                if username_vertex and has_edge:
+                    remove_old_links(username_vertex, has_edge)
+
+    def _update_linked_chat(
+        self,
+        chat: Chat,
+        telegram_chat: pyrogram.types.Chat,
+    ):
+        if chat is None or telegram_chat is None:
+            return
+
+        if telegram_chat.linked_chat:
+            # check if an update of connected vertices is needed
+            try:
+                (
+                    linked_chat,
+                    linked_chat_edge,
+                ) = self.get_chat_linked_chat_with_edge(chat)
+            except ValueError as e:
+                logger.exception(e)
+            else:
+                from tase.db.arangodb.graph.edges import LinkedChat
+
+                if linked_chat and linked_chat_edge:
+                    # chat has linked chat already, check if it needs to create/update the existing one or delete
+                    # the old one and add a new one.
+                    if linked_chat.chat_id == telegram_chat.linked_chat.id:
+                        # update the linked chat
+                        updated = linked_chat.update(
+                            Chat.parse(telegram_chat.linked_chat)
+                        )
+                    else:
+                        # delete the old link
+                        linked_chat_edge.delete()
+
+                        # create the new link and new chat
+                        linked_chat = self.update_or_create_chat(
+                            telegram_chat.linked_chat
+                        )
+                        try:
+                            LinkedChat.get_or_create_edge(chat, linked_chat)
+                        except (InvalidFromVertex, InvalidToVertex):
+                            pass
+                else:
+                    # chat did not have any linked chat before, create it
+                    linked_chat = self.get_or_create_chat(telegram_chat.linked_chat)
+                    try:
+                        LinkedChat.get_or_create_edge(chat, linked_chat)
+                    except (InvalidFromVertex, InvalidToVertex):
+                        pass
+
+        else:
+            # the chat doesn't have any linked chat, check if it had any before and delete the link
+            try:
+                (
+                    linked_chat,
+                    linked_chat_edge,
+                ) = self.get_chat_linked_chat_with_edge(chat)
+            except ValueError as e:
+                logger.exception(e)
+            else:
+                if linked_chat and linked_chat_edge:
+                    # chat had linked chat before, remove the link
+                    linked_chat_edge.delete()
 
     def get_chat_linked_chat_with_edge(
         self,
@@ -596,6 +700,64 @@ class ChatMethods:
                     linked_chat: Chat = Chat.from_collection(doc["linked_chat"])
                     edge: LinkedChat = LinkedChat.from_collection(doc["edge"])
                     return linked_chat, edge
+
+        return None, None
+
+    def get_chat_username_with_edge(
+        self,
+        chat: Chat,
+    ) -> Tuple[
+        Optional[graph_models.vertices.Username], Optional[graph_models.edges.Has]
+    ]:
+        """
+        Get `Username` vertex with `has` edge for the given `Chat`.
+
+        Parameters
+        ----------
+        chat : Chat
+            Chat to get its linked chats
+
+        Returns
+        -------
+        tuple
+            Username and Has edge
+
+        Raises
+        ------
+        ValueError
+            If the given `Chat` has more than one username.
+
+        """
+        if chat is None or chat.id is None:
+            return None, None
+
+        from tase.db.arangodb.graph.edges import Has
+        from tase.db.arangodb.graph.vertices import Username
+
+        cursor = Chat.execute_query(
+            self._get_chat_username_with_edge_query,
+            bind_vars={
+                "start_vertex": chat.id,
+                "has": Has._collection_name,
+                "usernames": Username._collection_name,
+            },
+        )
+        if cursor is not None and len(cursor):
+            if len(cursor) > 1:
+                raise ValueError(
+                    f"Chat with id `{chat.id}` have more than one usernames."
+                )
+            else:
+                try:
+                    doc = cursor.pop()
+                except CursorEmptyError:
+                    pass
+                except Exception as e:
+                    logger.exception(e)
+                else:
+                    username: Username = Username.from_collection(doc["username"])
+                    edge: Has = Has.from_collection(doc["edge"])
+                    return username, edge
 
         return None, None
 

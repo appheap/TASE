@@ -174,12 +174,12 @@ class MentionsMethods:
                         try:
                             # create the edge from `Username` vertex to mentioned `Chat` vertex
                             has_edge = Has.get_or_create_edge(
-                                username,
                                 mentioned_chat,
+                                username,
                             )
                             if not has_edge:
                                 logger.error(
-                                    f"could not create `has` edge from `username` to `chat` vertex. [username:{username.username}]"
+                                    f"could not create `has` edge from `username` to `chat` vertex. [username:`{username.username}`]"
                                 )
 
                             # create the edge from `Chat` vertex to mentioned `Chat` vertex
