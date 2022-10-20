@@ -35,7 +35,9 @@ class IndexAudiosTask(BaseTask):
             self.task_failed(db)
             return
 
-        if not telegram_client.peer_exists(chat.chat_id) or get_now_timestamp() - chat.audio_indexer_metadata.last_run_at > 8 * 60 * 60 * 1000:
+        extra_check = get_now_timestamp() - chat.audio_indexer_metadata.last_run_at > 8 * 60 * 60 * 1000 if chat.audio_indexer_metadata is not None else True
+
+        if not telegram_client.peer_exists(chat.chat_id) or extra_check:
             # update the chat
             try:
                 tg_chat = telegram_client.get_chat(chat.username if chat.username else chat.invite_link)
