@@ -31,8 +31,8 @@ class CheckBotStatusCommand(BaseCommand):
         data = BotStatusData(
             new_users=f"{handler.db.graph.get_new_joined_users_count():,}",
             total_users=f"{handler.db.graph.get_total_users_count():,}",
-            new_audios=f"{2360256:,}",
-            total_audios=f"{56253146:,}",
+            new_audios=f"{handler.db.graph.get_new_indexed_audio_files_count():,}",
+            total_audios=f"{handler.db.graph.get_total_indexed_audio_files_count():,}",
             new_queries=f"{7356:,}",
             total_queries=f"{700000:,}",
         )
