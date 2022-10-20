@@ -156,7 +156,12 @@ class User(BaseVertex):
 
 
 class UserMethods:
-    _get_admin_and_owners_query = "for user in @users" "   filter user.role in @roles_list" "   sort user.role desc" "   return user"
+    _get_admin_and_owners_query = (
+        "for user in @users"
+        "   filter user.role in @roles_list"
+        "   sort user.role desc"
+        "   return user"
+    )
 
     _get_new_joined_users_count_query = (
         "for user in @users"
