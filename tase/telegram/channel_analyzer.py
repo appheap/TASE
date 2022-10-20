@@ -16,7 +16,8 @@ class ChannelAnalyzer(BaseModel):
     @staticmethod
     def calculate_score(
         telegram_client: TelegramClient,
-        telegram_chat: pyrogram.types.Chat,
+        telegram_chat_id: int,
+        chat_members_count: int,
     ) -> float:
         """
         Calculate score for a channel
@@ -25,26 +26,28 @@ class ChannelAnalyzer(BaseModel):
         ----------
         telegram_client : tase.telegram.TelegramClient
             Telegram client being used to get statistics about the channel
-        telegram_chat : pyrogram.types.Chat
-            Channel that the score is being calculated for
+        telegram_chat_id : int
+            Channel ID that the score is being calculated for
+        chat_members_count : int
+            Total number of chat's members
 
         Returns
         -------
         Calculated score for the channel
         """
-        all_messages_count = telegram_client._client.get_chat_history_count(telegram_chat.id)
-        audio_count = telegram_client._client.search_messages_count(telegram_chat.id, filter=MessagesFilter.AUDIO)
-        photo_video_count = telegram_client._client.search_messages_count(telegram_chat.id, filter=MessagesFilter.PHOTO_VIDEO)
-        document_count = telegram_client._client.search_messages_count(telegram_chat.id, filter=MessagesFilter.DOCUMENT)
-        audio_video_note_count = telegram_client._client.search_messages_count(telegram_chat.id, filter=MessagesFilter.AUDIO_VIDEO_NOTE)
-        gif_count = telegram_client._client.search_messages_count(telegram_chat.id, filter=MessagesFilter.ANIMATION)
-        link_count = telegram_client._client.search_messages_count(telegram_chat.id, filter=MessagesFilter.URL)
-        location_count = telegram_client._client.search_messages_count(telegram_chat.id, filter=MessagesFilter.LOCATION)
+        all_messages_count = telegram_client._client.get_chat_history_count(telegram_chat_id)
+        audio_count = telegram_client._client.search_messages_count(telegram_chat_id, filter=MessagesFilter.AUDIO)
+        photo_video_count = telegram_client._client.search_messages_count(telegram_chat_id, filter=MessagesFilter.PHOTO_VIDEO)
+        document_count = telegram_client._client.search_messages_count(telegram_chat_id, filter=MessagesFilter.DOCUMENT)
+        audio_video_note_count = telegram_client._client.search_messages_count(telegram_chat_id, filter=MessagesFilter.AUDIO_VIDEO_NOTE)
+        gif_count = telegram_client._client.search_messages_count(telegram_chat_id, filter=MessagesFilter.ANIMATION)
+        link_count = telegram_client._client.search_messages_count(telegram_chat_id, filter=MessagesFilter.URL)
+        location_count = telegram_client._client.search_messages_count(telegram_chat_id, filter=MessagesFilter.LOCATION)
         # phone_call_count = telegram_client._client.search_messages_count(
         #     chat.id, filter=MessagesFilter.PHONE_CALL
         # )
-        chat_photo_count = telegram_client._client.search_messages_count(telegram_chat.id, filter=MessagesFilter.CHAT_PHOTO)
-        contact_count = telegram_client._client.search_messages_count(telegram_chat.id, filter=MessagesFilter.CONTACT)
+        chat_photo_count = telegram_client._client.search_messages_count(telegram_chat_id, filter=MessagesFilter.CHAT_PHOTO)
+        contact_count = telegram_client._client.search_messages_count(telegram_chat_id, filter=MessagesFilter.CONTACT)
 
         media_count = (
             audio_count
@@ -66,7 +69,7 @@ class ChannelAnalyzer(BaseModel):
         except ZeroDivisionError:
             audio_density = 0.0
 
-        member_density = math.log(telegram_chat.members_count, 10_000_000_000)
+        member_density = math.log(chat_members_count, 10_000_000_000)
 
         logger.debug(f"audio_density: {audio_density}")
         logger.debug(f"member_density: {member_density}")

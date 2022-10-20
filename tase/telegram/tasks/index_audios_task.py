@@ -7,12 +7,13 @@ from pyrogram.errors import FloodWait
 from tase.common.utils import datetime_to_timestamp, prettify, get_now_timestamp
 from tase.db import DatabaseClient
 from tase.db.arangodb import graph as graph_models
-from tase.db.arangodb.enums import RabbitMQTaskType, TelegramAudioType
+from tase.db.arangodb.enums import RabbitMQTaskType, TelegramAudioType, ChatType
 from tase.db.arangodb.graph.vertices import Chat
 from tase.db.arangodb.helpers import AudioIndexerMetadata, AudioDocIndexerMetadata
 from tase.db.db_utils import get_telegram_message_media_type
 from tase.my_logger import logger
 from tase.task_distribution import BaseTask, TargetWorkerType
+from tase.telegram.channel_analyzer import ChannelAnalyzer
 from tase.telegram.client import TelegramClient
 
 
@@ -100,11 +101,13 @@ class IndexAudiosTask(BaseTask):
         chat: graph_models.vertices.Chat,
         index_audio: bool = True,
     ):
+        calculate_score = False
         if index_audio:
             if chat.audio_indexer_metadata is not None:
                 metadata: AudioIndexerMetadata = chat.audio_indexer_metadata.copy()
             else:
                 metadata: AudioIndexerMetadata = AudioIndexerMetadata()
+                calculate_score = True
         else:
             if chat.audio_doc_indexer_metadata is not None:
                 metadata: AudioDocIndexerMetadata = chat.audio_doc_indexer_metadata.copy()
@@ -141,6 +144,18 @@ class IndexAudiosTask(BaseTask):
 
         if index_audio:
             chat.update_audio_indexer_metadata(metadata)
+
+            if calculate_score and chat.chat_type == ChatType.CHANNEL and chat.is_public:
+                # sleep for a while
+                self.wait(5)
+
+                score = ChannelAnalyzer.calculate_score(
+                    telegram_client,
+                    chat.chat_id,
+                    chat.members_count,
+                )
+                updated = chat.update_audio_indexer_score(score)
+                logger.debug(f"Channel {chat.username} score: {score}")
         else:
             chat.update_audio_doc_indexer_metadata(metadata)
 

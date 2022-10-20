@@ -31,10 +31,11 @@ class AddChannelTask(BaseTask):
             # check if the chat is valid based on current policies of the bot
             if tg_chat.type == ChatType.CHANNEL:
                 chat = db.graph.update_or_create_chat(tg_chat)
-                if chat is not None:
+                if chat is not None and chat.is_public:
                     score = ChannelAnalyzer.calculate_score(
                         telegram_client,
-                        tg_chat,
+                        chat.chat_id,
+                        chat.members_count,
                     )
                     logger.debug(f"Channel {chat.username} score: {score}")
                     updated = chat.update_audio_indexer_score(score)
@@ -59,7 +60,7 @@ class AddChannelTask(BaseTask):
             self.task_failed(db)
             logger.exception(e)
 
-            sleep_time = e.value + random.randint(1, 10)
+            sleep_time = e.value + random.randint(5, 15)
             logger.info(f"Sleeping for {sleep_time} seconds...")
             time.sleep(sleep_time)
             logger.info(f"Waking up after sleeping for {sleep_time} seconds...")
@@ -70,4 +71,4 @@ class AddChannelTask(BaseTask):
             self.task_failed(db)
         finally:
             # sleep for a while before adding another channel
-            time.sleep(random.randint(5, 15))
+            time.sleep(random.randint(15, 25))
