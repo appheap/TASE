@@ -5,6 +5,7 @@ from typing import Optional, Union, List, Tuple, Generator, TYPE_CHECKING
 
 import pyrogram
 
+from tase.common.utils import get_now_timestamp
 from tase.db.helpers import SearchMetaData
 from tase.errors import InvalidToVertex, InvalidFromVertex, EdgeCreationFailed
 from tase.my_logger import logger
@@ -85,6 +86,42 @@ class QueryMethods:
         "for v,e in 1..1 outbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@has'], vertexCollections:['@hits']}"
         "   sort v.created_at asc"
         "   return v"
+    )
+
+    _get_total_queries_count = (
+        "let non_inline_count = ("
+        "   for query in @queries"
+        "       filter query.inline_metadata == null"
+        "       collect with count into count_"
+        "       return count_"
+        ")"
+        ""
+        "let inline_count = ("
+        "   for query in @queries"
+        "       filter query.inline_metadata != null and query.inline_metadata.type == 1 and query.inline_metadata.offset == ''"
+        "       collect with count into count_"
+        "       return count_"
+        ")"
+        ""
+        "return non_inline_count + inline_count"
+    )
+
+    _get_new_queries_count = (
+        "let non_inline_count = ("
+        "   for query in @queries"
+        "       filter query.inline_metadata == null and query.created_at >= @checkpoint"
+        "       collect with count into count_"
+        "       return count_"
+        ")"
+        ""
+        "let inline_count = ("
+        "   for query in @queries"
+        "       filter query.inline_metadata != null and query.inline_metadata.type == 1 and query.inline_metadata.offset == '' and query.created_at >= @checkpoint"
+        "       collect with count into count_"
+        "       return count_"
+        ")"
+        ""
+        "return non_inline_count + inline_count"
     )
 
     def create_query(
@@ -331,3 +368,50 @@ class QueryMethods:
         if cursor is not None and len(cursor):
             for doc in cursor:
                 yield Hit.from_collection(doc)
+
+    def get_new_queries_count(self) -> int:
+        """
+        Get the total number of queries made in the last 24 hours
+
+        Returns
+        -------
+        int
+            Total number of queries made in the last 24 hours
+
+        """
+        checkpoint = get_now_timestamp() - 86400000
+
+        cursor = Query.execute_query(
+            self._get_new_queries_count,
+            bind_vars={
+                "queries": Query._collection_name,
+                "checkpoint": checkpoint,
+            },
+        )
+
+        if cursor is not None and len(cursor):
+            return int(cursor.pop())
+
+        return 0
+
+    def get_total_queries_count(self) -> int:
+        """
+        Get the total number of queries made
+
+        Returns
+        -------
+        int
+            Total number of queries
+
+        """
+        cursor = Query.execute_query(
+            self._get_total_queries_count,
+            bind_vars={
+                "queries": Query._collection_name,
+            },
+        )
+
+        if cursor is not None and len(cursor):
+            return int(cursor.pop())
+
+        return 0

@@ -33,8 +33,8 @@ class CheckBotStatusCommand(BaseCommand):
             total_users=f"{handler.db.graph.get_total_users_count():,}",
             new_audios=f"{handler.db.graph.get_new_indexed_audio_files_count():,}",
             total_audios=f"{handler.db.graph.get_total_indexed_audio_files_count():,}",
-            new_queries=f"{7356:,}",
-            total_queries=f"{700000:,}",
+            new_queries=f"{handler.db.graph.get_new_queries_count():,}",
+            total_queries=f"{handler.db.graph.get_total_queries_count():,}",
         )
         message.reply_text(
             BaseTemplate.registry.bot_status_template.render(data),
