@@ -314,6 +314,19 @@ class AudioMethods:
 
     _get_audios_by_keys = "return document(@audios, @audio_keys)"
 
+    _get_new_indexed_audios_count_query = (
+        "for audio in @audios"
+        "   filter audio.created_at >= @checkpoint"
+        "   collect with count into new_indexed_audios_count"
+        "   return new_indexed_audios_count"
+    )
+
+    _get_total_indexed_audios_count_query = (
+        "for audio in @audios"
+        "   collect with count into total_indexed_audios_count"
+        "   return total_indexed_audios_count"
+    )
+
     def create_audio(
         self: ArangoGraphMethods,
         telegram_message: pyrogram.types.Message,
@@ -742,3 +755,50 @@ class AudioMethods:
             else:
                 for doc in audios_raw:
                     yield Audio.from_collection(doc)
+
+    def get_new_indexed_audio_files_count(self) -> int:
+        """
+        Get the total number of indexed audio files in the last 24 hours
+
+        Returns
+        -------
+        int
+            Total number of indexed audio files in the last 24 hours
+
+        """
+        checkpoint = get_now_timestamp() - 86400000
+
+        cursor = Audio.execute_query(
+            self._get_new_indexed_audios_count_query,
+            bind_vars={
+                "audios": Audio._collection_name,
+                "checkpoint": checkpoint,
+            },
+        )
+
+        if cursor is not None and len(cursor):
+            return int(cursor.pop())
+
+        return 0
+
+    def get_total_indexed_audio_files_count(self) -> int:
+        """
+        Get the total number of indexed audio files
+
+        Returns
+        -------
+        int
+            Total number of indexed audio files
+
+        """
+        cursor = Audio.execute_query(
+            self._get_total_indexed_audios_count_query,
+            bind_vars={
+                "audios": Audio._collection_name,
+            },
+        )
+
+        if cursor is not None and len(cursor):
+            return int(cursor.pop())
+
+        return 0
