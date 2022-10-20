@@ -48,11 +48,7 @@ class ClientManager(mp.Process):
 
         self.telegram_client.start()
 
-        self.telegram_client.set_bot_commands(
-            self.db.graph.get_bot_commands_list_for_telegram(
-                self.db.graph.get_admins_and_owners()
-            )
-        )
+        self.telegram_client.set_bot_commands(self.db.graph.get_bot_commands_list_for_telegram(self.db.graph.get_admins_and_owners()))
 
         me = self.telegram_client.get_me()
         if me:

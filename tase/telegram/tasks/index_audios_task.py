@@ -90,9 +90,7 @@ class IndexAudiosTask(BaseTask):
                 metadata: AudioIndexerMetadata = AudioIndexerMetadata()
         else:
             if chat.audio_doc_indexer_metadata is not None:
-                metadata: AudioDocIndexerMetadata = (
-                    chat.audio_doc_indexer_metadata.copy()
-                )
+                metadata: AudioDocIndexerMetadata = chat.audio_doc_indexer_metadata.copy()
             else:
                 metadata: AudioDocIndexerMetadata = AudioDocIndexerMetadata()
 

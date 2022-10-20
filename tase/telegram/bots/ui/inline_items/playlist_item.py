@@ -25,9 +25,7 @@ class PlaylistItem(BaseInlineItem):
 
         data = PlaylistData(
             title=playlist.title,
-            description=playlist.description
-            if playlist.description is not None
-            else " ",
+            description=playlist.description if playlist.description is not None else " ",
             lang_code=user.chosen_language_code,
         )
 
@@ -39,9 +37,7 @@ class PlaylistItem(BaseInlineItem):
             title=playlist.title,
             description=f"{playlist.description if playlist.description is not None else ' '}",
             id=f"{telegram_inline_query.id}->{playlist.key}",
-            thumb_url="https://telegra.ph/file/ac2d210b9b0e5741470a1.jpg"
-            if not playlist.is_favorite
-            else "https://telegra.ph/file/07d5ca30dba31b5241bcf.jpg",
+            thumb_url="https://telegra.ph/file/ac2d210b9b0e5741470a1.jpg" if not playlist.is_favorite else "https://telegra.ph/file/07d5ca30dba31b5241bcf.jpg",
             input_message_content=InputTextMessageContent(
                 message_text=BaseTemplate.registry.playlist_template.render(data),
                 parse_mode=ParseMode.HTML,

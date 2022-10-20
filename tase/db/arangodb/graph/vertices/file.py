@@ -46,9 +46,7 @@ class File(BaseVertex):
 
         audio, audio_type = get_telegram_message_media_type(telegram_message)
         if audio is None or audio_type == TelegramAudioType.NON_AUDIO:
-            raise TelegramMessageWithNoAudio(
-                telegram_message.id, telegram_message.chat.id
-            )
+            raise TelegramMessageWithNoAudio(telegram_message.id, telegram_message.chat.id)
 
         return audio.file_unique_id
 

@@ -26,12 +26,7 @@ class InteractionCount(BaseModel):
         count = db_object.get("count_", None)
         is_active = db_object.get("is_active", None)
 
-        if (
-            audio_key is not None
-            and interaction_type is not None
-            and count is not None
-            and is_active is not None
-        ):
+        if audio_key is not None and interaction_type is not None and count is not None and is_active is not None:
             return InteractionCount(
                 audio_key=audio_key,
                 interaction_type=interaction_type,

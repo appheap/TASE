@@ -143,12 +143,7 @@ class AudioInlineMessageMethods:
         user_id: int,
         inline_message_id: str,
     ) -> Optional[AudioInlineMessage]:
-        if (
-            bot_id is None
-            or user_id is None
-            or inline_message_id is None
-            or not len(inline_message_id)
-        ):
+        if bot_id is None or user_id is None or inline_message_id is None or not len(inline_message_id):
             return None
 
         return AudioInlineMessage.find_one(

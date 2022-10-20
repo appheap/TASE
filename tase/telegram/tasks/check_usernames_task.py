@@ -26,14 +26,8 @@ class CheckUsernameTask(BaseTask):
         self.task_in_worker(db)
 
         username_key = self.kwargs.get("username_key", None)
-        username_vertex: graph_models.vertices.Username = db.graph.get_username_by_key(
-            username_key
-        )
-        if (
-            username_vertex is None
-            or username_vertex.username is None
-            or username_vertex.is_checked
-        ):
+        username_vertex: graph_models.vertices.Username = db.graph.get_username_by_key(username_key)
+        if username_vertex is None or username_vertex.username is None or username_vertex.is_checked:
             self.task_failed(db)
             return
 

@@ -263,9 +263,7 @@ class UsernameMethods:
                         from_message_id,
                     )
                 except (InvalidFromVertex, InvalidToVertex):
-                    logger.error(
-                        "ValueError: could not create the `Mentions`edge from `Chat` vertex to `Username` vertex"
-                    )
+                    logger.error("ValueError: could not create the `Mentions`edge from `Chat` vertex to `Username` vertex")
 
         return db_username
 
@@ -329,7 +327,5 @@ class UsernameMethods:
                 count = int(doc.get("count_", None))
                 if count > 0:
                     username = Username.from_collection(doc.get("username_", None))
-                    mentioned_chat = Chat.from_collection(
-                        doc.get("mentioned_chat_", None)
-                    )
+                    mentioned_chat = Chat.from_collection(doc.get("mentioned_chat_", None))
                     yield username, mentioned_chat

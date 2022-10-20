@@ -48,14 +48,7 @@ class Mentions(BaseEdge):
         mention_start_index: int,
         from_message_id: int,
     ) -> Optional[str]:
-        if (
-            from_vertex is None
-            or to_vertex is None
-            or mentioned_at is None
-            or mention_source is None
-            or mention_start_index is None
-            or from_message_id is None
-        ):
+        if from_vertex is None or to_vertex is None or mentioned_at is None or mention_source is None or mention_start_index is None or from_message_id is None:
             return None
 
         return f"{from_vertex.key}:{to_vertex.key}:{mentioned_at}:{from_message_id}:{mention_source.value}:{mention_start_index}"
@@ -164,11 +157,7 @@ class MentionsMethods:
                 source_chat: Chat = Chat.from_collection(doc_dict["chat"])
 
                 if mentions_edge and source_chat:
-                    if (
-                        source_chat.username is not None
-                        and mentioned_chat.username is not None
-                        and mentioned_chat.username != source_chat.username
-                    ):
+                    if source_chat.username is not None and mentioned_chat.username is not None and mentioned_chat.username != source_chat.username:
                         # self-mentions and private chats are excluded
 
                         try:
@@ -178,9 +167,7 @@ class MentionsMethods:
                                 username,
                             )
                             if not has_edge:
-                                logger.error(
-                                    f"could not create `has` edge from `username` to `chat` vertex. [username:`{username.username}`]"
-                                )
+                                logger.error(f"could not create `has` edge from `username` to `chat` vertex. [username:`{username.username}`]")
 
                             # create the edge from `Chat` vertex to mentioned `Chat` vertex
                             Mentions.get_or_create_edge(
@@ -223,9 +210,7 @@ class MentionsMethods:
                             elif mentioned_chat.chat_type == ChatType.CHANNEL:
                                 metadata.indirect_valid_channel_mention_count += 1
 
-                        successful = source_chat.update_username_extractor_metadata(
-                            metadata
-                        )
+                        successful = source_chat.update_username_extractor_metadata(metadata)
                         if not successful:
                             # todo: the update wasn't successful, uncheck the edge so it could be updated later
                             mentions_edge.check(False, None)

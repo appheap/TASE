@@ -76,8 +76,6 @@ class AudioCaptionData(BaseTemplateData):
             include_source=include_source,
             bot_url=bot_url,
             plant=random.choice(emoji.plants_list),
-            quality_string=es_audio_doc.estimated_bit_rate_type.get_bit_rate_string(
-                True
-            ),
+            quality_string=es_audio_doc.estimated_bit_rate_type.get_bit_rate_string(True),
             lang_code=user.chosen_language_code,
         )

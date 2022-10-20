@@ -107,15 +107,11 @@ class Chat(BaseVertex):
             # it's useful for searching by username
             first_name=telegram_chat.first_name,
             last_name=telegram_chat.last_name,
-            description=telegram_chat.description
-            if telegram_chat.description
-            else telegram_chat.bio,
+            description=telegram_chat.description if telegram_chat.description else telegram_chat.bio,
             dc_id=telegram_chat.dc_id,
             has_protected_content=telegram_chat.has_protected_content,
             invite_link=telegram_chat.invite_link,
-            restrictions=Restriction.parse_from_restrictions(
-                telegram_chat.restrictions
-            ),
+            restrictions=Restriction.parse_from_restrictions(telegram_chat.restrictions),
             distance=telegram_chat.distance,
             members_count=telegram_chat.members_count,
         )
@@ -176,9 +172,7 @@ class Chat(BaseVertex):
         self_copy: Chat = self.copy(deep=True)
         if self_copy.username_extractor_metadata is None:
             self_copy.username_extractor_metadata = UsernameExtractorMetadata()
-        updated_metadata = self_copy.username_extractor_metadata.update_metadata(
-            metadata
-        )
+        updated_metadata = self_copy.username_extractor_metadata.update_metadata(metadata)
         updated_metadata.update_score()
 
         return self.update(
@@ -244,9 +238,7 @@ class Chat(BaseVertex):
         self_copy: Chat = self.copy(deep=True)
         if self_copy.audio_doc_indexer_metadata is None:
             self_copy.audio_doc_indexer_metadata = AudioDocIndexerMetadata()
-        updated_metadata = self_copy.audio_doc_indexer_metadata.update_metadata(
-            metadata
-        )
+        updated_metadata = self_copy.audio_doc_indexer_metadata.update_metadata(metadata)
         updated_metadata.update_score()
 
         return self.update(
@@ -351,7 +343,7 @@ class Chat(BaseVertex):
 
 class ChatMethods:
     _get_chat_linked_chat_with_edge_query = (
-        "for v,e in 1..1 outbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@linked_chat'],vertexCollections:['@chat']}"
+        "for v,e in 1..1 outbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@linked_chat'], vertexCollections:['@chat']}"
         "   return {linked_chat:v, edge:e}"
     )
 
@@ -432,9 +424,7 @@ class ChatMethods:
                         pass
                 else:
                     # todo: could not create linked_chat
-                    logger.error(
-                        f"Could not create linked_chat: {prettify(telegram_chat.linked_chat)}"
-                    )
+                    logger.error(f"Could not create linked_chat: {prettify(telegram_chat.linked_chat)}")
 
             if chat.username:
                 self._create_chat_linked_username(chat)
@@ -520,14 +510,10 @@ class ChatMethods:
 
             has_edge = Has.get_or_create_edge(chat, usernames_vertex)
             if not has_edge:
-                logger.error(
-                    f"could not create `has` edge from `chat` with key `{chat.key}` to `username` with key `{usernames_vertex.key}`"
-                )
+                logger.error(f"could not create `has` edge from `chat` with key `{chat.key}` to `username` with key `{usernames_vertex.key}`")
                 return False
         else:
-            logger.error(
-                f"could not create the username vertex for chat with key `{chat.key}`"
-            )
+            logger.error(f"could not create the username vertex for chat with key `{chat.key}`")
             return False
 
         return True
@@ -543,14 +529,10 @@ class ChatMethods:
         def remove_old_links(username_vertex_, has_edge_):
             deleted = has_edge_.delete()
             if not deleted:
-                logger.error(
-                    f"could not delete the `has` edge from chat with key `{chat.key}` to username with key `{username_vertex_.key}`"
-                )
+                logger.error(f"could not delete the `has` edge from chat with key `{chat.key}` to username with key `{username_vertex_.key}`")
             else:
                 if not username_vertex_.check(False, get_now_timestamp(), False):
-                    logger.error(
-                        f"could not check username with key `{username_vertex_.key}`"
-                    )
+                    logger.error(f"could not check username with key `{username_vertex_.key}`")
 
         if telegram_chat.username:
             try:
@@ -607,21 +589,16 @@ class ChatMethods:
                 from tase.db.arangodb.graph.edges import LinkedChat
 
                 if linked_chat and linked_chat_edge:
-                    # chat has linked chat already, check if it needs to create/update the existing one or delete
-                    # the old one and add a new one.
+                    # chat has linked chat already, check if it needs to create/update the existing one or delete the old one and add a new one.
                     if linked_chat.chat_id == telegram_chat.linked_chat.id:
                         # update the linked chat
-                        updated = linked_chat.update(
-                            Chat.parse(telegram_chat.linked_chat)
-                        )
+                        updated = linked_chat.update(Chat.parse(telegram_chat.linked_chat))
                     else:
                         # delete the old link
                         linked_chat_edge.delete()
 
                         # create the new link and new chat
-                        linked_chat = self.update_or_create_chat(
-                            telegram_chat.linked_chat
-                        )
+                        linked_chat = self.update_or_create_chat(telegram_chat.linked_chat)
                         try:
                             LinkedChat.get_or_create_edge(chat, linked_chat)
                         except (InvalidFromVertex, InvalidToVertex):
@@ -686,9 +663,7 @@ class ChatMethods:
         )
         if cursor is not None and len(cursor):
             if len(cursor) > 1:
-                raise ValueError(
-                    f"Chat with id `{chat.id}` have more than one linked chats."
-                )
+                raise ValueError(f"Chat with id `{chat.id}` have more than one linked chats.")
             else:
                 try:
                     doc = cursor.pop()
@@ -706,9 +681,7 @@ class ChatMethods:
     def get_chat_username_with_edge(
         self,
         chat: Chat,
-    ) -> Tuple[
-        Optional[graph_models.vertices.Username], Optional[graph_models.edges.Has]
-    ]:
+    ) -> Tuple[Optional[graph_models.vertices.Username], Optional[graph_models.edges.Has]]:
         """
         Get `Username` vertex with `has` edge for the given `Chat`.
 
@@ -744,9 +717,7 @@ class ChatMethods:
         )
         if cursor is not None and len(cursor):
             if len(cursor) > 1:
-                raise ValueError(
-                    f"Chat with id `{chat.id}` have more than one usernames."
-                )
+                raise ValueError(f"Chat with id `{chat.id}` have more than one usernames.")
             else:
                 try:
                     doc = cursor.pop()
@@ -815,9 +786,7 @@ class ChatMethods:
         chat_type = ChatType.CHANNEL.value
 
         cursor = Chat.execute_query(
-            self._get_chats_sorted_by_audio_indexer_score_query
-            if filter_by_indexed_chats
-            else self._get_not_indexed_chats_sorted_by_members_count_query,
+            self._get_chats_sorted_by_audio_indexer_score_query if filter_by_indexed_chats else self._get_not_indexed_chats_sorted_by_members_count_query,
             bind_vars={
                 "chats": Chat._collection_name,
                 "chat_type": chat_type,

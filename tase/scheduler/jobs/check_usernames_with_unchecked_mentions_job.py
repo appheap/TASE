@@ -25,9 +25,7 @@ class CheckUsernamesWithUncheckedMentionsJob(BaseJob):
         telegram_client: TelegramClient = None,
     ) -> None:
         self.task_in_worker(db)
-        for idx, (username, mentioned_chat) in enumerate(
-            db.graph.get_checked_usernames_with_unchecked_mentions()
-        ):
+        for idx, (username, mentioned_chat) in enumerate(db.graph.get_checked_usernames_with_unchecked_mentions()):
             if username.is_checked:
                 logger.info(f"Rechecking: {username.username}")
                 if username.is_valid:

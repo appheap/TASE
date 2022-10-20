@@ -27,11 +27,7 @@ class BaseTask(BaseModel):
         target_queue: kombu.Queue = None,
         priority: int = 1,
     ) -> Tuple[Optional[RabbitMQTaskStatus], bool]:
-        if (
-            db is None
-            or self.target_worker_type == TargetWorkerType.UNKNOWN
-            or self.type == RabbitMQTaskType.UNKNOWN
-        ):
+        if db is None or self.target_worker_type == TargetWorkerType.UNKNOWN or self.type == RabbitMQTaskType.UNKNOWN:
             return None, False
 
         state_dict = self.kwargs if len(self.kwargs) else None
@@ -52,28 +48,19 @@ class BaseTask(BaseModel):
                 raise Exception("could not create `RabbitMQTask` document")
 
             try:
-                if (
-                    self.target_worker_type
-                    == TargetWorkerType.ANY_TELEGRAM_CLIENTS_CONSUMER_WORK
-                ):
+                if self.target_worker_type == TargetWorkerType.ANY_TELEGRAM_CLIENTS_CONSUMER_WORK:
                     self._publish_task(
                         task_globals.telegram_workers_general_task_queue,
                         task_globals.telegram_client_worker_exchange,
                         priority,
                     )
-                elif (
-                    self.target_worker_type
-                    == TargetWorkerType.ONE_TELEGRAM_CLIENT_CONSUMER_WORK
-                ):
+                elif self.target_worker_type == TargetWorkerType.ONE_TELEGRAM_CLIENT_CONSUMER_WORK:
                     self._publish_task(
                         target_queue,
                         task_globals.telegram_client_worker_exchange,
                         priority,
                     )
-                elif (
-                    self.target_worker_type
-                    == TargetWorkerType.RABBITMQ_CONSUMER_COMMAND
-                ):
+                elif self.target_worker_type == TargetWorkerType.RABBITMQ_CONSUMER_COMMAND:
                     self._publish_task(
                         None,
                         task_globals.rabbitmq_worker_command_exchange,

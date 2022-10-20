@@ -7,9 +7,7 @@ from tase.db.arangodb.enums import TelegramAudioType
 
 def get_telegram_message_media_type(
     telegram_message: pyrogram.types.Message,
-) -> Tuple[
-    Optional[Union[pyrogram.types.Audio, pyrogram.types.Document]], TelegramAudioType
-]:
+) -> Tuple[Optional[Union[pyrogram.types.Audio, pyrogram.types.Document]], TelegramAudioType]:
     if telegram_message.media is None:
         audio = None
         audio_type = TelegramAudioType.NON_AUDIO
@@ -86,10 +84,7 @@ def is_audio_valid_for_inline(
         return False
     if audio.mime_type is None:
         return False
-    if (
-        audio.mime_type in forbidden_mime_types
-        or audio.mime_type not in valid_mime_types_for_for_inline_search
-    ):
+    if audio.mime_type in forbidden_mime_types or audio.mime_type not in valid_mime_types_for_for_inline_search:
         return False
 
     return True

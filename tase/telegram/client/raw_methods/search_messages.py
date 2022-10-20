@@ -49,11 +49,7 @@ async def get_chunk(
     try:
         filter = Filters.__dict__[filter.upper()]
     except KeyError:
-        raise ValueError(
-            'Invalid filter "{}". Possible values are: {}'.format(
-                filter, ", ".join(f'"{v}"' for v in POSSIBLE_VALUES)
-            )
-        ) from None
+        raise ValueError('Invalid filter "{}". Possible values are: {}'.format(filter, ", ".join(f'"{v}"' for v in POSSIBLE_VALUES))) from None
 
     if with_id:
         add_offset = -limit if only_newer_messages else 0

@@ -37,12 +37,8 @@ class IndexChannelCommand(BaseCommand):
         chat = handler.db.graph.get_chat_by_username(channel_username)
         if chat:
             if not chat.audio_indexer_metadata:
-                AddChannelTask(kwargs={"channel_username": channel_username}).publish(
-                    handler.db
-                )
-            status, created = IndexAudiosTask(kwargs={"chat_key": chat.key}).publish(
-                handler.db
-            )
+                AddChannelTask(kwargs={"channel_username": channel_username}).publish(handler.db)
+            status, created = IndexAudiosTask(kwargs={"chat_key": chat.key}).publish(handler.db)
             if status is None:
                 message.reply_text("internal error")
             else:
@@ -51,33 +47,21 @@ class IndexChannelCommand(BaseCommand):
                         message.reply_text(f"Started indexing `{chat.title}` channel")
                 else:
                     if status.is_active():
-                        message.reply_text(
-                            f"Task for indexing `{chat.title}` channel is already being processed"
-                        )
+                        message.reply_text(f"Task for indexing `{chat.title}` channel is already being processed")
                     else:
-                        message.reply_text(
-                            f"The task for indexing `{chat.title}` channel is already finished"
-                        )
+                        message.reply_text(f"The task for indexing `{chat.title}` channel is already finished")
 
         else:
             message.reply_text("This channel does not exist in the Database!")
-            status, created = AddChannelTask(
-                kwargs={"channel_username": channel_username}
-            ).publish(handler.db)
+            status, created = AddChannelTask(kwargs={"channel_username": channel_username}).publish(handler.db)
             if status is None:
                 message.reply_text("internal error")
             else:
                 if created:
                     if status.is_active():
-                        message.reply_text(
-                            f"Added channel `{channel_username}` to the Database for indexing."
-                        )
+                        message.reply_text(f"Added channel `{channel_username}` to the Database for indexing.")
                 else:
                     if status.is_active():
-                        message.reply_text(
-                            f"Channel with username `{channel_username}` is already being processed"
-                        )
+                        message.reply_text(f"Channel with username `{channel_username}` is already being processed")
                     else:
-                        message.reply_text(
-                            f"The task for adding channel with username `{channel_username}` is already finished"
-                        )
+                        message.reply_text(f"The task for adding channel with username `{channel_username}` is already finished")

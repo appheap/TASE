@@ -61,9 +61,7 @@ class HelpCatalogInlineButton(InlineButton):
                 description="You can easily send your audio file and get indexed by Telegram Audio Search Engine bot",
                 thumb_url="https://telegra.ph/file/d15b185d0154fc8a92210.jpg",
                 input_message_content=InputTextMessageContent(
-                    f"Read searching tutorial on this page: \n"
-                    f"<a href='https://github.com/appheap/TASE/'>"
-                    f"<b>Optimal Search</b></a>",
+                    f"Read searching tutorial on this page: \n<a href='https://github.com/appheap/TASE/'><b>Optimal Search</b></a>",
                     parse_mode=ParseMode.HTML,
                 ),
             ),

@@ -21,7 +21,10 @@ class BaseIndexerMetadata(BaseCollectionAttributes):
     def update_score(self):
         raise NotImplementedError
 
-    def update_metadata(self, metadata: BaseIndexerMetadata) -> BaseIndexerMetadata:
+    def update_metadata(
+        self,
+        metadata: BaseIndexerMetadata,
+    ) -> BaseIndexerMetadata:
         if metadata is None or not isinstance(metadata, BaseIndexerMetadata):
             return self
 

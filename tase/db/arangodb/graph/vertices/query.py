@@ -233,9 +233,7 @@ class QueryMethods:
             if search_metadata_list is None or not len(search_metadata_list):
                 search_metadata_list = [None for _ in range(len(audio_vertices))]
 
-            for audio_vertex, search_metadata in zip(
-                audio_vertices, search_metadata_list
-            ):
+            for audio_vertex, search_metadata in zip(audio_vertices, search_metadata_list):
                 if audio_vertex is None:
                     # todo: what now?
                     continue

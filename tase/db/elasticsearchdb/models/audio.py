@@ -178,29 +178,19 @@ class Audio(BaseDocument):
 
         audio, audio_type = get_telegram_message_media_type(telegram_message)
         if audio_type == TelegramAudioType.NON_AUDIO:
-            raise TelegramMessageWithNoAudio(
-                telegram_message.id, telegram_message.chat.id
-            )
+            raise TelegramMessageWithNoAudio(telegram_message.id, telegram_message.chat.id)
 
         title = getattr(audio, "title", None)
 
         valid_for_inline = is_audio_valid_for_inline(audio, audio_type)
 
         raw_title = copy.copy(title)
-        raw_caption = copy.copy(
-            telegram_message.caption
-            if telegram_message.caption
-            else telegram_message.text
-        )
+        raw_caption = copy.copy(telegram_message.caption if telegram_message.caption else telegram_message.text)
         raw_performer = copy.copy(getattr(audio, "performer", None))
         raw_file_name = copy.copy(audio.file_name)
 
         title = clean_text(title)
-        caption = clean_text(
-            telegram_message.caption
-            if telegram_message.caption
-            else telegram_message.text
-        )
+        caption = clean_text(telegram_message.caption if telegram_message.caption else telegram_message.text)
         performer = clean_text(getattr(audio, "performer", None))
         file_name = clean_text(audio.file_name)
 

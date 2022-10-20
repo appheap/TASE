@@ -117,9 +117,7 @@ class User(BaseVertex):
             language_code=language_code,
             dc_id=telegram_user.dc_id,
             phone_number=phone_number,
-            restrictions=Restriction.parse_from_restrictions(
-                telegram_user.restrictions
-            ),
+            restrictions=Restriction.parse_from_restrictions(telegram_user.restrictions),
             created_from_telegram_chat=created_from_telegram_chat,
         )
 
@@ -158,12 +156,7 @@ class User(BaseVertex):
 
 
 class UserMethods:
-    _get_admin_and_owners_query = (
-        "for user in @users"
-        "   filter user.role in @roles_list"
-        "   sort user.role desc"
-        "   return user"
-    )
+    _get_admin_and_owners_query = "for user in @users" "   filter user.role in @roles_list" "   sort user.role desc" "   return user"
 
     _get_new_joined_users_count_query = (
         "for user in @users"
@@ -187,9 +180,7 @@ class UserMethods:
             fav_playlist = self.get_or_create_favorite_playlist(user)
             if not fav_playlist:
                 # fixme: could not create/get favorite playlist.
-                logger.error(
-                    f"could not create/get favorite playlist for user: {prettify(user)}"
-                )
+                logger.error(f"could not create/get favorite playlist for user: {prettify(user)}")
 
     def create_user(
         self: ArangoGraphMethods,
@@ -246,9 +237,7 @@ class UserMethods:
         else:
             # check if the user vertex was created from a telegram chat object, if that is the case, then update the
             # user with the new object before returning
-            if user.created_from_telegram_chat and isinstance(
-                telegram_user, pyrogram.types.User
-            ):
+            if user.created_from_telegram_chat and isinstance(telegram_user, pyrogram.types.User):
                 self.update_or_create_user(telegram_user)
 
         return user
@@ -278,11 +267,7 @@ class UserMethods:
         if telegram_user is None:
             return None
 
-        user = (
-            self.update_or_create_user(telegram_user)
-            if update
-            else self.get_or_create_user(telegram_user)
-        )
+        user = self.update_or_create_user(telegram_user) if update else self.get_or_create_user(telegram_user)
         if user and not user.has_interacted_with_bot:
             user.update_has_interacted_with_bot(True)
 
@@ -367,9 +352,7 @@ class UserMethods:
 
         return {
             "scope": BotCommandScopeChat(user.user_id),
-            "commands": BaseCommand.populate_commands(
-                user.role if role is None else role
-            ),
+            "commands": BaseCommand.populate_commands(user.role if role is None else role),
         }
 
     @classmethod

@@ -12,9 +12,7 @@ class RabbitMQTaskType(Enum):
     SHUTDOWN_TASK = "shutdown_task"
 
     CHECK_USERNAMES_JOB = "check_usernames_job"
-    CHECK_USERNAMES_WITH_UNCHECKED_MENTIONS_JOB = (
-        "check_usernames_with_unchecked_mentions_job"
-    )
+    CHECK_USERNAMES_WITH_UNCHECKED_MENTIONS_JOB = "check_usernames_with_unchecked_mentions_job"
     DUMMY_JOB = "dummy_job"
     EXTRACT_USERNAMES_JOB = "extract_usernames_job"
     INDEX_AUDIOS_JOB = "index_audios_job"

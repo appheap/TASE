@@ -45,18 +45,14 @@ class ToggleDisLikeAudioInlineButton(InlineButton):
                 InteractionType.DISLIKE,
             )
         except PlaylistDoesNotExists as e:
-            telegram_callback_query.answer(
-                "You do not have the playlist you have chosen"
-            )
+            telegram_callback_query.answer("You do not have the playlist you have chosen")
         except HitDoesNotExists as e:
             telegram_callback_query.answer("Given download url is not valid anymore")
         except HitNoLinkedAudio as e:
             telegram_callback_query.answer("Audio does not exist anymore")
         except Exception as e:
             logger.exception(e)
-            telegram_callback_query.answer(
-                "Could not add the audio to the playlist due to internal error"
-            )
+            telegram_callback_query.answer("Could not add the audio to the playlist due to internal error")
         else:
             # todo: update these messages
             if successful:
@@ -76,23 +72,15 @@ class ToggleDisLikeAudioInlineButton(InlineButton):
                     )
                     update_like_button = True
 
-                telegram_callback_query.answer(
-                    f"You {'Un-disliked' if has_disliked else 'Disliked'} this song"
-                )
+                telegram_callback_query.answer(f"You {'Un-disliked' if has_disliked else 'Disliked'} this song")
 
                 if telegram_callback_query.message is not None:
                     reply_markup = telegram_callback_query.message.reply_markup
-                    like_dislike_index = (
-                        1 if len(reply_markup.inline_keyboard) == 3 else 0
-                    )
-                    reply_markup.inline_keyboard[like_dislike_index][
-                        0
-                    ].text = self.new_text(not has_disliked)
+                    like_dislike_index = 1 if len(reply_markup.inline_keyboard) == 3 else 0
+                    reply_markup.inline_keyboard[like_dislike_index][0].text = self.new_text(not has_disliked)
 
                     if update_like_button:
-                        reply_markup.inline_keyboard[like_dislike_index][
-                            1
-                        ].text = self.new_text(
+                        reply_markup.inline_keyboard[like_dislike_index][1].text = self.new_text(
                             not is_liked,
                             thumbs_down=False,
                         )
@@ -121,17 +109,11 @@ class ToggleDisLikeAudioInlineButton(InlineButton):
                             status,
                         )
                         if reply_markup:
-                            like_dislike_index = (
-                                1 if len(reply_markup.inline_keyboard) == 3 else 0
-                            )
-                            reply_markup.inline_keyboard[like_dislike_index][
-                                0
-                            ].text = self.new_text(not has_disliked)
+                            like_dislike_index = 1 if len(reply_markup.inline_keyboard) == 3 else 0
+                            reply_markup.inline_keyboard[like_dislike_index][0].text = self.new_text(not has_disliked)
 
                             if update_like_button:
-                                reply_markup.inline_keyboard[like_dislike_index][
-                                    1
-                                ].text = self.new_text(
+                                reply_markup.inline_keyboard[like_dislike_index][1].text = self.new_text(
                                     not is_liked,
                                     thumbs_down=False,
                                 )

@@ -113,9 +113,7 @@ class BotMessageHandler(BaseHandler):
 
         from_user = self.db.graph.get_interacted_user(message.from_user)
 
-        if from_user.chosen_language_code is None or not len(
-            from_user.chosen_language_code
-        ):
+        if from_user.chosen_language_code is None or not len(from_user.chosen_language_code):
             BaseCommand.run_command(client, message, self, BotCommandType.LANGUAGE)
             return
 
@@ -143,21 +141,11 @@ class BotMessageHandler(BaseHandler):
                     size=10,
                     filter_by_valid_for_inline_search=False,  # todo: is this a good idea?
                 )
-                if (
-                    not es_audio_docs
-                    or not len(es_audio_docs)
-                    or query_metadata is None
-                ):
+                if not es_audio_docs or not len(es_audio_docs) or query_metadata is None:
                     found_any = False
 
-                audio_vertices = list(
-                    self.db.graph.get_audios_from_keys(
-                        [doc.id for doc in es_audio_docs]
-                    )
-                )
-                search_metadata_lst = [
-                    es_audio_doc.search_metadata for es_audio_doc in es_audio_docs
-                ]
+                audio_vertices = list(self.db.graph.get_audios_from_keys([doc.id for doc in es_audio_docs]))
+                search_metadata_lst = [es_audio_doc.search_metadata for es_audio_doc in es_audio_docs]
 
                 db_query, hits = self.db.graph.get_or_create_query(
                     self.telegram_client.telegram_id,
@@ -211,12 +199,7 @@ class BotMessageHandler(BaseHandler):
             # messages that are from this bot are not considered as a contribution
             return
 
-        if (
-            message.from_user.is_bot
-            or message.from_user.is_fake
-            or message.from_user.is_scam
-            or message.from_user.is_restricted
-        ):
+        if message.from_user.is_bot or message.from_user.is_fake or message.from_user.is_scam or message.from_user.is_restricted:
             return
 
         # fixme: translate this string
@@ -262,10 +245,7 @@ class BotMessageHandler(BaseHandler):
                     texts_to_check.add(inline_keyboard_button.text)
                     texts_to_check.add(inline_keyboard_button.url)
 
-        texts_to_check = {
-            item.lower()
-            for item in filter(lambda item: item is not None, texts_to_check)
-        }
+        texts_to_check = {item.lower() for item in filter(lambda item: item is not None, texts_to_check)}
 
         found_any = False
 

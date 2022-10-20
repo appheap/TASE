@@ -150,9 +150,7 @@ class ExtractUsernamesTask(BaseTask):
 
                     if message.id > self.metadata.last_message_offset_id:
                         self.metadata.last_message_offset_id = message.id
-                        self.metadata.last_message_offset_date = datetime_to_timestamp(
-                            message.date
-                        )
+                        self.metadata.last_message_offset_date = datetime_to_timestamp(message.date)
 
                 logger.info(f"Finished extracting usernames from chat: {title}")
 
@@ -191,10 +189,7 @@ class ExtractUsernamesTask(BaseTask):
         if not isinstance(text, str) and isinstance(text, List):
             if isinstance(mention_source, List):
                 if len(mention_source) != len(text):
-                    raise Exception(
-                        f"mention_source and text must of the the same size: {len(mention_source)} != "
-                        f"{len(text)}"
-                    )
+                    raise Exception(f"mention_source and text must of the the same size: {len(mention_source)} != " f"{len(text)}")
                 for text__, mention_source_ in zip(text, mention_source):
                     if text__ is not None and mention_source_ is not None:
                         find(text__, mention_source_)
@@ -215,14 +210,7 @@ class ExtractUsernamesTask(BaseTask):
         mention_source: MentionSource,
         mention_start_index: int,
     ) -> None:
-        if (
-            username is None
-            or not len(username)
-            or is_direct_mention is None
-            or message is None
-            or mention_source is None
-            or mention_start_index is None
-        ):
+        if username is None or not len(username) or is_direct_mention is None or message is None or mention_source is None or mention_start_index is None:
             return
 
         username = username.lower()

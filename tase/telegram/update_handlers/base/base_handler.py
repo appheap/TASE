@@ -33,9 +33,7 @@ class BaseHandler(BaseModel):
 
     def update_audio_cache(
         self,
-        db_audios: Union[
-            List[graph_models.vertices.Audio], List[elasticsearch_models.Audio]
-        ],
+        db_audios: Union[List[graph_models.vertices.Audio], List[elasticsearch_models.Audio]],
     ) -> Dict[int, graph_models.vertices.Chat]:
         """
         Update Audio file caches that are not been cached by this telegram client
@@ -51,14 +49,8 @@ class BaseHandler(BaseModel):
         chat_msg = defaultdict(list)
         chats_dict = {}
         for db_audio in db_audios:
-            key = (
-                db_audio.key
-                if isinstance(db_audio, graph_models.vertices.Audio)
-                else db_audio.id
-            )
-            if not self.db.document.has_audio_by_key(
-                self.telegram_client.telegram_id, key
-            ):
+            key = db_audio.key if isinstance(db_audio, graph_models.vertices.Audio) else db_audio.id
+            if not self.db.document.has_audio_by_key(self.telegram_client.telegram_id, key):
                 chat_msg[db_audio.chat_id].append(db_audio.message_id)
 
             if not chats_dict.get(db_audio.chat_id, None):
@@ -70,9 +62,7 @@ class BaseHandler(BaseModel):
             db_chat = chats_dict[chat_id]
 
             # todo: this approach is only for public channels, what about private channels?
-            messages = self.telegram_client.get_messages(
-                chat_id=db_chat.username, message_ids=message_ids
-            )
+            messages = self.telegram_client.get_messages(chat_id=db_chat.username, message_ids=message_ids)
 
             for message in messages:
                 self.db.update_or_create_audio(
@@ -88,13 +78,7 @@ class BaseHandler(BaseModel):
         text: str,
         message: pyrogram.types.Message,
     ):
-        if (
-            client is None
-            or from_user is None
-            or text is None
-            or not len(text)
-            or message is None
-        ):
+        if client is None or from_user is None or text is None or not len(text) or message is None:
             return
 
         valid = False
@@ -106,31 +90,21 @@ class BaseHandler(BaseModel):
             if audio_vertex is not None:
                 es_audio_doc = self.db.index.get_audio_by_id(audio_vertex.key)
                 if es_audio_doc:
-                    audio_doc = self.db.document.get_audio_by_key(
-                        self.telegram_client.telegram_id, es_audio_doc.id
-                    )
-                    chat = self.db.graph.get_chat_by_telegram_chat_id(
-                        es_audio_doc.chat_id
-                    )
+                    audio_doc = self.db.document.get_audio_by_key(self.telegram_client.telegram_id, es_audio_doc.id)
+                    chat = self.db.graph.get_chat_by_telegram_chat_id(es_audio_doc.chat_id)
                     if not audio_doc:
                         # fixme: find a better way of getting messages that have not been cached yet
-                        messages = client.get_messages(
-                            chat.username, [es_audio_doc.message_id]
-                        )
+                        messages = client.get_messages(chat.username, [es_audio_doc.message_id])
                         if not messages or not len(messages):
                             # todo: could not get the audio from telegram servers, what to do now?
-                            logger.error(
-                                "could not get the audio from telegram servers, what to do now?"
-                            )
+                            logger.error("could not get the audio from telegram servers, what to do now?")
                             return
 
                         audio, audio_type = get_telegram_message_media_type(messages[0])
                         if audio is None or audio_type == TelegramAudioType.NON_AUDIO:
                             # fixme: instead of raising an exception, it is better to mark the audio file in the
                             #  database as invalid and update related edges and vertices accordingly
-                            raise TelegramMessageWithNoAudio(
-                                messages[0].id, messages[0].chat.id
-                            )
+                            raise TelegramMessageWithNoAudio(messages[0].id, messages[0].chat.id)
                         else:
                             file_id = audio.file_id
                     else:
@@ -193,9 +167,7 @@ class BaseHandler(BaseModel):
                     valid = True
         if not valid:
             # todo: An Error occurred while processing this audio download url, why?
-            logger.error(
-                f"An error occurred while processing the download URL for this audio: {hit_download_url}"
-            )
+            logger.error(f"An error occurred while processing the download URL for this audio: {hit_download_url}")
             message.reply_text(
                 _trans(
                     "An error occurred while processing the download URL for this audio",

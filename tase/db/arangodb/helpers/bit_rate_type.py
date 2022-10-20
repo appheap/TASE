@@ -91,12 +91,8 @@ class BitRateType(Enum):
 
 
 if __name__ == "__main__":
-    print(
-        BitRateType.estimate(249573313, 15571)
-    )  # it must be `AudioQualityType.B_128K`
-    print(
-        BitRateType.estimate(1450467, 56)
-    )  # it must be `AudioQualityType.B_128K`, but it `AudioQualityType.B_192K`
+    print(BitRateType.estimate(249573313, 15571))  # it must be `AudioQualityType.B_128K`
+    print(BitRateType.estimate(1450467, 56))  # it must be `AudioQualityType.B_128K`, but it `AudioQualityType.B_192K`
     print(BitRateType.estimate(6501646, 136))  # it must be `AudioQualityType.B_320K`
     print(BitRateType.estimate(5063869, 312))  # it must be `AudioQualityType.B_128K`
 

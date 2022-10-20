@@ -23,12 +23,8 @@ from tase.common.utils import get_now_timestamp
 from tase.errors import NotSoftDeletableSubclass, NotBaseCollectionDocumentInstance
 from tase.my_logger import logger
 
-TBaseCollectionDocument = typing.TypeVar(
-    "TBaseCollectionDocument", bound="BaseCollectionDocument"
-)
-TBaseCollectionAttributes = typing.TypeVar(
-    "TBaseCollectionAttributes", bound="BaseCollectionAttributes"
-)
+TBaseCollectionDocument = typing.TypeVar("TBaseCollectionDocument", bound="BaseCollectionDocument")
+TBaseCollectionAttributes = typing.TypeVar("TBaseCollectionAttributes", bound="BaseCollectionAttributes")
 
 
 class ToGraphBaseProcessor(BaseModel):
@@ -187,9 +183,7 @@ class BaseCollectionAttributes(BaseModel):
     )
     _to_graph_db_extra_processors: Optional[Tuple[ToGraphBaseProcessor]] = None
 
-    _from_graph_db_base_processors: Optional[Tuple[FromGraphBaseProcessor]] = (
-        FromGraphAttributeMapper,
-    )
+    _from_graph_db_base_processors: Optional[Tuple[FromGraphBaseProcessor]] = (FromGraphAttributeMapper,)
     _from_graph_db_extra_processors: Optional[Tuple[FromGraphBaseProcessor]] = None
 
     _base_do_not_update_fields: Optional[Tuple[str]] = ("created_at",)
@@ -546,9 +540,7 @@ class BaseCollectionDocument(BaseCollectionAttributes):
                 self_copy = self.copy(deep=True)
                 self_copy.is_soft_deleted = True
                 self_copy.is_soft_deleted_time_precise = is_exact_date
-                self_copy.soft_deleted_at = (
-                    get_now_timestamp() if deleted_at is None else deleted_at
-                )
+                self_copy.soft_deleted_at = get_now_timestamp() if deleted_at is None else deleted_at
                 return self.update(self_copy, reserve_non_updatable_fields=False)
             else:
                 raise NotSoftDeletableSubclass(self.__class__.__name__)
@@ -633,20 +625,14 @@ class BaseCollectionDocument(BaseCollectionAttributes):
             return False
 
         if retry_on_failure and run_depth > 10:
-            logger.error(
-                f"{self.__class__.__name__}: `{self.key}` : failed after 10 retries"
-            )
+            logger.error(f"{self.__class__.__name__}: `{self.key}` : failed after 10 retries")
             # stop if the update is retried for 10 times
             return False
 
         successful = False
         try:
             if reserve_non_updatable_fields:
-                graph_doc = (
-                    doc._update_metadata_from_old_document(self)
-                    ._update_non_updatable_fields(self)
-                    .to_collection()
-                )
+                graph_doc = doc._update_metadata_from_old_document(self)._update_non_updatable_fields(self).to_collection()
             else:
                 graph_doc = doc._update_metadata_from_old_document(self).to_collection()
             if graph_doc is None:
@@ -671,9 +657,7 @@ class BaseCollectionDocument(BaseCollectionAttributes):
             # logger.exception(f"{self.__class__.__name__} : {e}")
             pass
         except DocumentRevisionError as e:
-            logger.error(
-                f"{self.__class__.__name__}: `{self.key}` : DocumentRevisionError"
-            )
+            logger.error(f"{self.__class__.__name__}: `{self.key}` : DocumentRevisionError")
             # The expected and actual document revisions mismatched.
             if retry_on_failure:
                 logger.error(f"Retry #{run_depth}")
@@ -735,11 +719,7 @@ class BaseCollectionDocument(BaseCollectionAttributes):
 
         successful = False
         try:
-            graph_doc = (
-                doc._update_metadata_from_old_document(old_doc)
-                ._update_non_updatable_fields(old_doc)
-                .to_collection()
-            )
+            graph_doc = doc._update_metadata_from_old_document(old_doc)._update_non_updatable_fields(old_doc).to_collection()
             if graph_doc is None:
                 return None, False
 

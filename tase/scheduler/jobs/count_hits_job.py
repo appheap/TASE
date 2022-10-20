@@ -43,9 +43,7 @@ class CountHitsJob(BaseJob):
 
                     updated = es_audio_doc.update_by_hit_count(hit_count)
                     if not updated:
-                        logger.error(
-                            f"Could not update hit count count for audio with key : `{hit_count.audio_key}`"
-                        )
+                        logger.error(f"Could not update hit count count for audio with key : `{hit_count.audio_key}`")
 
                 updated = job.update_last_run(now)
                 if not updated:

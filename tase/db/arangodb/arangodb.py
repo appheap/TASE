@@ -60,9 +60,7 @@ class ArangoDB(
 
         for v_class in vertex_classes:
             if not self.graph.has_vertex_collection(v_class._collection_name):
-                _collection = self.graph.create_vertex_collection(
-                    v_class._collection_name
-                )
+                _collection = self.graph.create_vertex_collection(v_class._collection_name)
             else:
                 _collection = self.graph.vertex_collection(v_class._collection_name)
             v_class._graph_name = arangodb_config.graph_name

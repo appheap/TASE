@@ -34,20 +34,14 @@ german = Language(code="de", flag=emoji._germany_flag, name="Deutsch (German)")
 
 dutch = Language(code="nl", flag=emoji._netherlands_flag, name="Dutch (Nederlands)")
 
-portugues = Language(
-    code="pt_BR", flag=emoji._portugal_flag, name="Português (Portuguese)"
-)
+portugues = Language(code="pt_BR", flag=emoji._portugal_flag, name="Português (Portuguese)")
 
 persian = Language(code="fa", flag=emoji._iran_flag, name="فارسی (Persian)")
 arabic = Language(code="ar", flag=emoji._saudi_arabia_flag, name="العربية (Arabic)")
 
-kurdish_sorani = Language(
-    code="ku", flag=emoji._tajikistan_flag, name="کوردی سۆرانی (Sorani Kurdish)"
-)
+kurdish_sorani = Language(code="ku", flag=emoji._tajikistan_flag, name="کوردی سۆرانی (Sorani Kurdish)")
 
-kurdish_kurmanji = Language(
-    code="ku_TR", flag=emoji._lithuania_flag, name="(Kurmanji Kurdish) Kurdî Kurmancî"
-)
+kurdish_kurmanji = Language(code="ku_TR", flag=emoji._lithuania_flag, name="(Kurmanji Kurdish) Kurdî Kurmancî")
 
 italian = Language(code="it", flag=emoji._italy_flag, name="Italiana (Italian)")
 
@@ -71,9 +65,7 @@ language_mapping: Dict[str, Language] = {
 if not len(languages):
     for lang_code in language_mapping.keys():
         logger.debug(f"lang_code: {lang_code}")
-        lang = gettext.translation(
-            "tase", localedir="../locales", languages=[lang_code]
-        )
+        lang = gettext.translation("tase", localedir="../locales", languages=[lang_code])
         lang.install()
         languages[lang_code] = lang.gettext
 
@@ -139,11 +131,7 @@ def default(obj: object):
         OrderedDict(
             {
                 "_": obj.__class__.__name__,
-                **{
-                    attr: getattr(obj, attr)
-                    for attr in filter(lambda x: not x.startswith("_"), obj.__dict__)
-                    if getattr(obj, attr) is not None
-                },
+                **{attr: getattr(obj, attr) for attr in filter(lambda x: not x.startswith("_"), obj.__dict__) if getattr(obj, attr) is not None},
             }
         )
         if hasattr(obj, "__dict__")
@@ -162,15 +150,7 @@ def default_no_class_name(obj: object):
     if isinstance(obj, Match):
         return repr(obj)
     return (
-        OrderedDict(
-            {
-                **{
-                    attr: getattr(obj, attr)
-                    for attr in filter(lambda x: not x.startswith("_"), obj.__dict__)
-                    if getattr(obj, attr) is not None
-                }
-            }
-        )
+        OrderedDict({**{attr: getattr(obj, attr) for attr in filter(lambda x: not x.startswith("_"), obj.__dict__) if getattr(obj, attr) is not None}})
         if hasattr(obj, "__dict__")
         else None
     )
@@ -370,10 +350,7 @@ def find_hashtags_in_text(
     if not isinstance(text, str) and isinstance(text, List):
         if isinstance(mention_source, List):
             if len(mention_source) != len(text):
-                raise Exception(
-                    f"mention_source and text must of the the same size: {len(mention_source)} != "
-                    f"{len(text)}"
-                )
+                raise Exception(f"mention_source and text must of the the same size: {len(mention_source)} != " f"{len(text)}")
             for text__, mention_source_ in zip(text, mention_source):
                 if text__ is not None and mention_source_ is not None:
                     hashtags.extend(find_hashtags(text__, mention_source_))

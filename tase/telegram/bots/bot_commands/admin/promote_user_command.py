@@ -59,11 +59,9 @@ class PromoteUserCommand(BaseCommand):
                                 parse_mode=ParseMode.MARKDOWN,
                                 disable_web_page_preview=True,
                             )
-                            telegram_command_dict = (
-                                handler.db.graph.get_bot_command_for_telegram_user(
-                                    user,
-                                    UserRole.ADMIN,
-                                )
+                            telegram_command_dict = handler.db.graph.get_bot_command_for_telegram_user(
+                                user,
+                                UserRole.ADMIN,
                             )
                             try:
                                 client.set_bot_commands(

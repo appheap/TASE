@@ -32,12 +32,7 @@ class HasHashtag(BaseEdge):
         *args,
         **kwargs,
     ) -> Optional[str]:
-        if (
-            from_vertex is None
-            or to_vertex is None
-            or mention_source is None
-            or mention_start_index is None
-        ):
+        if from_vertex is None or to_vertex is None or mention_source is None or mention_start_index is None:
             return None
 
         return f"{from_vertex.key}:{to_vertex.key}:{mention_source.value}:{mention_start_index}"
