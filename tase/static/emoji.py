@@ -81,6 +81,7 @@ class Emoji(BaseModel):
     _floppy_emoji = emoji.emojize(":floppy_disk:", language="alias")
     _url = emoji.emojize(":link:", language="alias")
     _clock_emoji = emoji.emojize(":hourglass_flowing_sand:", language="alias")
+    _information = emoji.emojize(":information:", language="alias")
 
     # -------------Books--------------------------
     _books = emoji.emojize(":books:", language="alias")

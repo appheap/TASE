@@ -1,11 +1,13 @@
 import pyrogram
 from pydantic import Field
+from pyrogram.enums import ParseMode
 
 from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.graph.vertices.user import UserRole
 from tase.telegram.update_handlers.base import BaseHandler
 from ..base_command import BaseCommand
 from ..bot_command_type import BotCommandType
+from ...ui.templates import BaseTemplate, BotStatusData
 
 
 class CheckBotStatusCommand(BaseCommand):
@@ -26,4 +28,16 @@ class CheckBotStatusCommand(BaseCommand):
         from_user: graph_models.vertices.User,
         from_callback_query: bool,
     ) -> None:
-        pass
+        data = BotStatusData(
+            new_users=f"{123:,}",
+            total_users=f"{123000:,}",
+            new_audios=f"{2360256:,}",
+            total_audios=f"{56253146:,}",
+            new_queries=f"{7356:,}",
+            total_queries=f"{700000:,}",
+        )
+        message.reply_text(
+            BaseTemplate.registry.bot_status_template.render(data),
+            quote=True,
+            parse_mode=ParseMode.HTML,
+        )
