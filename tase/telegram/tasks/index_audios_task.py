@@ -4,7 +4,7 @@ import time
 from kombu.mixins import ConsumerProducerMixin
 from pyrogram.errors import FloodWait
 
-from tase.common.utils import datetime_to_timestamp, prettify
+from tase.common.utils import datetime_to_timestamp, prettify, get_now_timestamp
 from tase.db import DatabaseClient
 from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.enums import RabbitMQTaskType, TelegramAudioType
@@ -35,46 +35,61 @@ class IndexAudiosTask(BaseTask):
             self.task_failed(db)
             return
 
-        chat_id = chat.username if chat.username else chat.invite_link
-        title = chat.title
-
-        try:
-            tg_chat = telegram_client.get_chat(chat_id)
-        except ValueError as e:
-            # In case the chat invite link points to a chat that this telegram client hasn't joined yet.
-            # todo: fix this
-            logger.exception(e)
-            self.task_failed(db)
-        except KeyError as e:
-            logger.exception(e)
-            self.task_failed(db)
-        except FloodWait as e:
-            self.task_failed(db)
-            logger.exception(e)
-
-            sleep_time = e.value + random.randint(1, 10)
-            logger.info(f"Sleeping for {sleep_time} seconds...")
-            time.sleep(sleep_time)
-            logger.info(f"Waking up after sleeping for {sleep_time} seconds...")
-
-        except Exception as e:
-            logger.exception(e)
-            self.task_failed(db)
-        else:
-            chat = db.graph.update_or_create_chat(tg_chat)
-
-            if chat:
-                self.index_audios(db, telegram_client, chat, index_audio=True)
-                self.index_audios(db, telegram_client, chat, index_audio=False)
-
-                logger.debug(f"Finished {title}")
-                self.task_done(db)
-            else:
-                logger.debug(f"Error occurred: {title}")
+        if not telegram_client.peer_exists(chat.chat_id) or get_now_timestamp() - chat.audio_indexer_metadata.last_run_at > 8 * 60 * 60 * 1000:
+            # update the chat
+            try:
+                tg_chat = telegram_client.get_chat(chat.username if chat.username else chat.invite_link)
+            except ValueError as e:
+                # In case the chat invite link points to a chat that this telegram client hasn't joined yet.
+                # todo: fix this
                 self.task_failed(db)
-        finally:
-            # wait for a while before starting to index a new channel
-            time.sleep(random.randint(10, 20))
+                logger.exception(e)
+                self.wait()
+                return
+            except KeyError as e:
+                self.task_failed(db)
+                logger.exception(e)
+                self.wait()
+                return
+            except FloodWait as e:
+                self.task_failed(db)
+                logger.exception(e)
+                self.wait(e.value + random.randint(5, 15))
+                return
+
+            except Exception as e:
+                self.task_failed(db)
+                logger.exception(e)
+                self.wait()
+                return
+            else:
+                chat = db.graph.update_or_create_chat(tg_chat)
+                if not chat:
+                    self.task_failed(db)
+                    self.wait()
+                    return
+
+        if chat:
+            self.index_audios(db, telegram_client, chat, index_audio=True)
+            self.index_audios(db, telegram_client, chat, index_audio=False)
+
+            logger.debug(f"Finished {chat.title}")
+            self.task_done(db)
+        else:
+            logger.debug(f"Error occurred: {chat.title}")
+            self.task_failed(db)
+
+        self.wait()
+
+    @classmethod
+    def wait(
+        cls,
+        sleep_time: int = random.randint(15, 25),
+    ):
+        # wait for a while before starting to index a new channel
+        logger.info(f"Sleeping for {sleep_time} seconds...")
+        time.sleep(sleep_time)
+        logger.info(f"Waking up after sleeping for {sleep_time} seconds...")
 
     def index_audios(
         self,
