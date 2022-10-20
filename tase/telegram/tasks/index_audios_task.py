@@ -1,5 +1,6 @@
 import random
 import time
+from typing import Optional
 
 from kombu.mixins import ConsumerProducerMixin
 from pyrogram.errors import FloodWait
@@ -36,50 +37,18 @@ class IndexAudiosTask(BaseTask):
             self.task_failed(db)
             return
 
-        extra_check = get_now_timestamp() - chat.audio_indexer_metadata.last_run_at > 8 * 60 * 60 * 1000 if chat.audio_indexer_metadata is not None else True
+        if get_now_timestamp() - chat.audio_indexer_metadata.last_run_at > 24 * 60 * 60 * 1000 if chat.audio_indexer_metadata is not None else True:
+            chat = self.get_updated_chat(telegram_client, db, chat)
+            if chat:
+                logger.debug(f"Started indexing audio files from  `{chat.title}`")
 
-        if not telegram_client.peer_exists(chat.chat_id) or extra_check:
-            # update the chat
-            try:
-                tg_chat = telegram_client.get_chat(chat.username if chat.username else chat.invite_link)
-            except ValueError as e:
-                # In case the chat invite link points to a chat that this telegram client hasn't joined yet.
-                # todo: fix this
-                self.task_failed(db)
-                logger.exception(e)
-                self.wait()
-                return
-            except KeyError as e:
-                self.task_failed(db)
-                logger.exception(e)
-                self.wait()
-                return
-            except FloodWait as e:
-                self.task_failed(db)
-                logger.exception(e)
-                self.wait(e.value + random.randint(5, 15))
-                return
+                self.index_audios(db, telegram_client, chat, index_audio=True)
+                self.index_audios(db, telegram_client, chat, index_audio=False)
 
-            except Exception as e:
-                self.task_failed(db)
-                logger.exception(e)
-                self.wait()
-                return
-            else:
-                chat = db.graph.update_or_create_chat(tg_chat)
-                if not chat:
-                    self.task_failed(db)
-                    self.wait()
-                    return
-
-        if chat:
-            self.index_audios(db, telegram_client, chat, index_audio=True)
-            self.index_audios(db, telegram_client, chat, index_audio=False)
-
-            logger.debug(f"Finished {chat.title}")
-            self.task_done(db)
+                logger.debug(f"Finished indexing audio files from `{chat.title}`")
+                self.task_done(db)
         else:
-            logger.debug(f"Error occurred: {chat.title}")
+            logger.debug(f"Postponed indexing of {chat.title}")
             self.task_failed(db)
 
         self.wait()
@@ -93,6 +62,48 @@ class IndexAudiosTask(BaseTask):
         logger.info(f"Sleeping for {sleep_time} seconds...")
         time.sleep(sleep_time)
         logger.info(f"Waking up after sleeping for {sleep_time} seconds...")
+
+    def get_updated_chat(
+        self,
+        telegram_client: TelegramClient,
+        db: DatabaseClient,
+        chat: Chat,
+    ) -> Optional[Chat]:
+        extra_check = get_now_timestamp() - chat.audio_indexer_metadata.last_run_at > 8 * 60 * 60 * 1000 if chat.audio_indexer_metadata is not None else True
+        successful = False
+        new_chat = None
+
+        if not telegram_client.peer_exists(chat.chat_id) or extra_check:
+            # update the chat
+            try:
+                tg_chat = telegram_client.get_chat(chat.username if chat.username else chat.invite_link)
+            except ValueError as e:
+                # In case the chat invite link points to a chat that this telegram client hasn't joined yet.
+                self.task_failed(db)
+                logger.exception(e)
+            except KeyError as e:
+                self.task_failed(db)
+                logger.exception(e)
+            except FloodWait as e:
+                self.task_failed(db)
+                logger.exception(e)
+                self.wait(e.value + random.randint(5, 15))
+            except Exception as e:
+                self.task_failed(db)
+                logger.exception(e)
+            else:
+                new_chat = db.graph.update_or_create_chat(tg_chat)
+                if not new_chat:
+                    self.task_failed(db)
+                else:
+                    successful = True
+
+            if successful:
+                return new_chat
+            else:
+                return None
+        else:
+            return chat
 
     def index_audios(
         self,
