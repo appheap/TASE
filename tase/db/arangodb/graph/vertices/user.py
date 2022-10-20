@@ -8,7 +8,7 @@ import pyrogram
 from pydantic import Field
 from pyrogram.types import BotCommandScopeChat, BotCommandScopeDefault
 
-from tase.common.utils import prettify
+from tase.common.utils import prettify, get_now_timestamp
 from tase.my_logger import logger
 from .base_vertex import BaseVertex
 
@@ -163,6 +163,20 @@ class UserMethods:
         "   filter user.role in @roles_list"
         "   sort user.role desc"
         "   return user"
+    )
+
+    _get_new_joined_users_count_query = (
+        "for user in @users"
+        "   filter user.has_interacted_with_bot == true and user.created_at >= @checkpoint"
+        "   collect with count into new_joined_users_count"
+        "   return new_joined_users_count"
+    )
+
+    _get_total_interacted_users_count = (
+        "for user in @users"
+        "   filter user.has_interacted_with_bot == true"
+        "   collect with count into total_users_count"
+        "   return total_users_count"
     )
 
     def _get_or_create_favorite_playlist(
@@ -424,3 +438,50 @@ class UserMethods:
             return None
 
         return User.find_one({"username": username.lower()})
+
+    def get_new_joined_users_count(self) -> int:
+        """
+        Get the total number of joined users in the last 24 hours
+
+        Returns
+        -------
+        int
+            Total number joined users in the last 24 hours
+
+        """
+        checkpoint = get_now_timestamp() - 86400000
+
+        cursor = User.execute_query(
+            self._get_new_joined_users_count_query,
+            bind_vars={
+                "users": User._collection_name,
+                "checkpoint": checkpoint,
+            },
+        )
+
+        if cursor is not None and len(cursor):
+            return int(cursor.pop())
+
+        return 0
+
+    def get_total_users_count(self) -> int:
+        """
+        Get the total number of users who have interacted with the bot
+
+        Returns
+        -------
+        int
+            Total number of users who have interacted with the bot
+
+        """
+        cursor = User.execute_query(
+            self._get_total_interacted_users_count,
+            bind_vars={
+                "users": User._collection_name,
+            },
+        )
+
+        if cursor is not None and len(cursor):
+            return int(cursor.pop())
+
+        return 0
