@@ -6,7 +6,7 @@ from typing import Optional, List, Generator, TYPE_CHECKING
 import pyrogram
 from arango import CursorEmptyError
 
-from tase.common.preprocessing import clean_text
+from tase.common.preprocessing import clean_text, empty_to_null
 from tase.common.utils import (
     datetime_to_timestamp,
     get_now_timestamp,
@@ -203,11 +203,11 @@ class Audio(BaseVertex):
             file_unique_id=audio.file_unique_id,
             duration=duration,
             performer=performer,
-            raw_performer=raw_performer,
+            raw_performer=empty_to_null(raw_performer),
             title=title,
-            raw_title=raw_title,
+            raw_title=empty_to_null(raw_title),
             file_name=file_name,
-            raw_file_name=raw_file_name,
+            raw_file_name=empty_to_null(raw_file_name),
             mime_type=audio.mime_type,
             file_size=audio.file_size,
             date=datetime_to_timestamp(audio.date),

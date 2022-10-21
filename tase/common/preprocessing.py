@@ -40,6 +40,13 @@ NLTK_EN = DEFAULT
 SPACY_EN = spacy_en_stopwords.STOP_WORDS
 
 
+def empty_to_null(text: str) -> Optional[str]:
+    if text is None or not len(text):
+        return None
+
+    return text
+
+
 def replace_telegram_urls(
     text: str,
     symbol: str,
@@ -334,6 +341,7 @@ def get_default_pipeline() -> List[Callable[[str], str]]:
      8. :meth:`tase.common.preprocessing.remove_whitespace`
      9. :meth:`tase.common.preprocessing.remove_lines`
      10. :meth:`tase.common.preprocessing.remove_extra_spaces`
+     11. :meth:`tase.common.preprocessing.empty_to_null`
     """
     return [
         # lowercase,
@@ -347,6 +355,7 @@ def get_default_pipeline() -> List[Callable[[str], str]]:
         remove_whitespace,
         remove_lines,
         remove_extra_spaces,
+        empty_to_null,
     ]
 
 

@@ -7,7 +7,7 @@ import pyrogram
 from elastic_transport import ObjectApiResponse
 from pydantic import Field
 
-from tase.common.preprocessing import clean_text
+from tase.common.preprocessing import clean_text, empty_to_null
 from tase.common.utils import datetime_to_timestamp
 from tase.errors import TelegramMessageWithNoAudio
 from tase.my_logger import logger
@@ -206,11 +206,11 @@ class Audio(BaseDocument):
             file_unique_id=audio.file_unique_id,
             duration=duration,
             performer=performer,
-            raw_performer=raw_performer,
+            raw_performer=empty_to_null(raw_performer),
             title=title,
-            raw_title=raw_title,
+            raw_title=empty_to_null(raw_title),
             file_name=file_name,
-            raw_file_name=raw_file_name,
+            raw_file_name=empty_to_null(raw_file_name),
             mime_type=audio.mime_type,
             file_size=audio.file_size,
             date=datetime_to_timestamp(audio.date),
