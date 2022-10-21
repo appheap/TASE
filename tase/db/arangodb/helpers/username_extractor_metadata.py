@@ -63,6 +63,8 @@ class UsernameExtractorMetadata(BaseIndexerMetadata):
         except ZeroDivisionError:
             indirect_raw_mention_ratio = 0.0
 
+        weighted_sum_raw_mention_ratio = 2 * direct_raw_mention_ratio + 1 * indirect_raw_mention_ratio
+
         #####################################################
 
         try:
@@ -75,6 +77,8 @@ class UsernameExtractorMetadata(BaseIndexerMetadata):
         except ZeroDivisionError:
             indirect_valid_mention_ratio = 0.0
 
+        weighted_sum_valid_mention_ratio = 4 * direct_valid_mention_ratio + 3 * indirect_valid_mention_ratio
+
         #####################################################
         try:
             direct_valid_channel_mention_ratio = self.direct_valid_channel_mention_count / self.direct_valid_mention_count
@@ -86,17 +90,7 @@ class UsernameExtractorMetadata(BaseIndexerMetadata):
         except ZeroDivisionError:
             indirect_valid_channel_mention_ratio = 0.0
 
-        #####################################################
-
-        try:
-            direct_valid_supergroup_mention_ratio = self.direct_valid_supergroup_mention_count / self.direct_valid_mention_count
-        except ZeroDivisionError:
-            direct_valid_supergroup_mention_ratio = 0.0
-
-        try:
-            indirect_valid_channel_mention_ratio = self.indirect_valid_channel_mention_count / self.indirect_valid_mention_count
-        except ZeroDivisionError:
-            indirect_valid_channel_mention_ratio = 0.0
+        weighted_sum_valid_channel_mention_ratio = 6 * direct_valid_channel_mention_ratio + 5 * indirect_valid_channel_mention_ratio
 
         #####################################################
 
@@ -110,6 +104,8 @@ class UsernameExtractorMetadata(BaseIndexerMetadata):
         except ZeroDivisionError:
             indirect_valid_supergroup_mention_ratio = 0.0
 
+        weighted_sum_valid_supergroup_mention_ratio = 1 * direct_valid_supergroup_mention_ratio + 1 * indirect_valid_supergroup_mention_ratio
+
         #####################################################
 
         try:
@@ -121,6 +117,8 @@ class UsernameExtractorMetadata(BaseIndexerMetadata):
             indirect_valid_bot_mention_ratio = self.indirect_valid_bot_mention_count / self.indirect_valid_mention_count
         except ZeroDivisionError:
             indirect_valid_bot_mention_ratio = 0.0
+
+        weighted_sum_valid_bot_mention_ratio = 1 * direct_valid_bot_mention_ratio + 1 * indirect_valid_bot_mention_ratio
 
         #####################################################
 
@@ -134,11 +132,22 @@ class UsernameExtractorMetadata(BaseIndexerMetadata):
         except ZeroDivisionError:
             indirect_valid_user_mention_ratio = 0.0
 
+        weighted_sum_valid_user_mention_ratio = 1 * direct_valid_user_mention_ratio + 1 * indirect_valid_user_mention_ratio
+
         #####################################################
+        score = (
+            weighted_sum_raw_mention_ratio
+            + weighted_sum_valid_mention_ratio
+            + weighted_sum_valid_channel_mention_ratio
+            + weighted_sum_valid_supergroup_mention_ratio
+            + weighted_sum_valid_bot_mention_ratio
+            + weighted_sum_valid_user_mention_ratio
+        ) / ((2 + 1) + (4 + 3) + (6 + 5) + (1 + 1) + (1 + 1) + (1 + 1))
 
-        ratio = self.log(self.direct_raw_mention_count)
+        ratio1 = self.log(self.direct_raw_mention_count + self.indirect_raw_mention_count)
+        ratio2 = self.log(self.direct_valid_mention_count + self.indirect_valid_mention_count)
 
-        # self.score = (ratio * 2 + direct_raw_mention_ratio) / 3
+        self.score = (3 * ratio2 + 2 * ratio1 + score) / 6
 
     def update_metadata(
         self,
