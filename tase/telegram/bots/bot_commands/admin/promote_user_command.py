@@ -34,9 +34,9 @@ class PromoteUserCommand(BaseCommand):
     ) -> None:
         username = message.command[1]
 
-        username_list = find_telegram_usernames(username)
+        username_list = find_telegram_usernames(username, return_start_index=False)
         if len(username_list):
-            username = username_list[0][0]
+            username = username_list[0]
 
         user = handler.db.graph.get_user_by_username(username)
 

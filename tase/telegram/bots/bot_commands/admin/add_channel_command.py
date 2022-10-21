@@ -30,9 +30,9 @@ class AddChannelCommand(BaseCommand):
     ) -> None:
         channel_username = message.command[1]
 
-        username_list = find_telegram_usernames(channel_username)
+        username_list = find_telegram_usernames(channel_username, return_start_index=False)
         if len(username_list):
-            channel_username = username_list[0][0]
+            channel_username = username_list[0]
 
         db_chat = handler.db.graph.get_chat_by_username(channel_username)
         if db_chat and db_chat.audio_indexer_metadata:

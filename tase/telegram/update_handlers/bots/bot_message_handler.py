@@ -245,22 +245,19 @@ class BotMessageHandler(BaseHandler):
                     texts_to_check.add(inline_keyboard_button.text)
                     texts_to_check.add(inline_keyboard_button.url)
 
-        texts_to_check = {item.lower() for item in filter(lambda item: item is not None, texts_to_check)}
+        texts_to_check = {item.lower() for item in filter(lambda item: item is not None and len(item), texts_to_check)}
+        texts_to_check = " ".join(texts_to_check)
 
         found_any = False
 
-        for text in texts_to_check:
-            if text is None or not len(text):
-                continue
-
-            for username, idx in find_telegram_usernames(text):
-                logger.debug(f"username `{username}` was found")
-                username_vertex = self.db.graph.get_or_create_username(
-                    username,
-                    create_mention_edge=False,
-                )
-                if username_vertex and not found_any:
-                    found_any = True
+        for username in find_telegram_usernames(texts_to_check, return_start_index=False):
+            logger.debug(f"username `{username}` was found")
+            username_vertex = self.db.graph.get_or_create_username(
+                username,
+                create_mention_edge=False,
+            )
+            if username_vertex and not found_any:
+                found_any = True
 
         if not found_any:
             logger.debug("No usernames found in this message")
