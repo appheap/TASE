@@ -677,8 +677,6 @@ class BaseCollectionDocument(BaseCollectionAttributes):
                     if successful:
                         self.__dict__.update(latest_doc.__dict__)
             # logger.exception(f"{self.__class__.__name__} : {e}")
-        except KeyError as e:
-            logger.exception(f"{self.__class__.__name__} : {e}")
         except Exception as e:
             logger.exception(f"{self.__class__.__name__} : {e}")
         else:

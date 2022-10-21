@@ -66,15 +66,14 @@ class ExtractUsernamesTask(BaseTask):
             title = chat.title
             is_chat = True
 
-        if is_chat:
-            if (
-                not get_now_timestamp() - chat.username_extractor_metadata.last_run_at > 24 * 60 * 60 * 1000
-                if chat.username_extractor_metadata is not None
-                else True
-            ):
-                self.task_failed(db)
-                logger.debug(f"Postponed extracting usernames from chat `{chat.title}`")
-                return
+        if (
+            is_chat
+            and chat.username_extractor_metadata is not None
+            and not get_now_timestamp() - chat.username_extractor_metadata.last_run_at > 24 * 60 * 60 * 1000
+        ):
+            self.task_failed(db)
+            logger.debug(f"Postponed extracting usernames from chat `{chat.title}`")
+            return
 
         chat = self.get_updated_chat(telegram_client, db, is_chat, chat_id, chat if is_chat else None)
         if chat:
@@ -189,6 +188,40 @@ class ExtractUsernamesTask(BaseTask):
                 message,
                 MentionSource.MESSAGE_TEXT,
             )
+
+            if message.entities:
+                for entity in message.entities:
+                    self.find_usernames_in_text(
+                        entity.url,
+                        True,
+                        message,
+                        MentionSource.MESSAGE_TEXT,
+                    )
+
+            if message.caption_entities:
+                for entity in message.caption_entities:
+                    self.find_usernames_in_text(
+                        entity.url,
+                        True,
+                        message,
+                        MentionSource.MESSAGE_TEXT,
+                    )
+
+            if message.reply_markup and message.reply_markup.inline_keyboard:
+                for inline_keyboard_button_lst in message.reply_markup.inline_keyboard:
+                    for inline_keyboard_button in inline_keyboard_button_lst:
+                        self.find_usernames_in_text(
+                            inline_keyboard_button.text,
+                            True,
+                            message,
+                            MentionSource.INLINE_KEYBOARD_TEXT,
+                        )
+                        self.find_usernames_in_text(
+                            inline_keyboard_button.url,
+                            True,
+                            message,
+                            MentionSource.INLINE_KEYBOARD_TEXT_LINK,
+                        )
 
             if message.forward_from_chat and message.forward_from_chat.username:
                 # fixme: it's a public channel or a public supergroup or a user or a bot

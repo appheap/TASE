@@ -31,6 +31,12 @@ class MentionSource(Enum):
     DOCUMENT_FILE_NAME = 7
     "mention source is document file name"
 
+    INLINE_KEYBOARD_TEXT = 8
+    "mention source is in the message inline keyboard button text"
+
+    INLINE_KEYBOARD_TEXT_LINK = 9
+    "mention source is in the message inline keyboard button text link"
+
     @classmethod
     def is_direct_mention(
         cls,
