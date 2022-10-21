@@ -84,7 +84,14 @@ class UsernameMethods:
     _get_unchecked_usernames_query = (
         "for username in @usernames"
         "   filter username.is_checked == false and username.modified_at < @now"
-        "   sort username.created_at desc"
+        "   sort username.created_at asc"
+        "   let mention_count = ("
+        "       for v,e in 1..1 inbound username graph '@graph_name' options {order: 'dfs', edgeCollections: ['@mentions'], vertexCollections: ['@chats']}"
+        "           filter e.is_checked == false"
+        "           collect with count into count_"
+        "           return count_"
+        "   )"
+        "   sort mention_count[0] desc, username.created_at asc"
         "   return username"
     )
 
@@ -95,10 +102,10 @@ class UsernameMethods:
         "   let unchecked_mentions_count = ("
         "       for chat, mention_e in 1..1 inbound username graph '@graph_name' options {order: 'dfs', edgeCollections: ['@mentions'], vertexCollections: ['@chats']}"
         "           filter mention_e.modified_at < @now and mention_e.is_checked == false"
-        "           collect with count into len"
-        "           return len"
+        "           collect with count into count_"
+        "           return count_"
         "           )"
-        "   sort unchecked_mentions_count desc"
+        "   sort unchecked_mentions_count[0] desc"
         "   let mentioned_chat = ("
         "       for chat, e in 1..1 inbound username graph '@graph_name' options {order: 'dfs', edgeCollections: ['@has'], vertexCollections: ['@chats']}"
         "           return chat"
@@ -280,10 +287,14 @@ class UsernameMethods:
         # only get those username that have been modified more than 15 minutes ago
         now = get_now_timestamp() - 15 * 60 * 1000
 
+        from tase.db.arangodb.graph.edges import Mentions
+
         cursor = Username.execute_query(
             self._get_unchecked_usernames_query,
             bind_vars={
                 "usernames": Username._collection_name,
+                "mentions": Mentions._collection_name,
+                "chats": Chat._collection_name,
                 "now": now,
             },
         )
