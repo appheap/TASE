@@ -37,21 +37,20 @@ class IndexAudiosTask(BaseTask):
             self.task_failed(db)
             return
 
-        if get_now_timestamp() - chat.audio_indexer_metadata.last_run_at > 24 * 60 * 60 * 1000 if chat.audio_indexer_metadata is not None else True:
+        if chat.audio_indexer_metadata is None or get_now_timestamp() - chat.audio_indexer_metadata.last_run_at > 24 * 60 * 60 * 1000:
             chat = self.get_updated_chat(telegram_client, db, chat)
             if chat:
-                logger.debug(f"Started indexing audio files from  `{chat.title}`")
+                logger.info(f"Started indexing audio files from  `{chat.title}`")
 
                 self.index_audios(db, telegram_client, chat, index_audio=True)
                 self.index_audios(db, telegram_client, chat, index_audio=False)
 
-                logger.debug(f"Finished indexing audio files from `{chat.title}`")
+                logger.info(f"Finished indexing audio files from `{chat.title}`")
+                self.wait()
                 self.task_done(db)
         else:
-            logger.debug(f"Postponed indexing of {chat.title}")
+            logger.info(f"Cancelled indexing of {chat.title}")
             self.task_failed(db)
-
-        self.wait()
 
     @classmethod
     def wait(
@@ -69,7 +68,7 @@ class IndexAudiosTask(BaseTask):
         db: DatabaseClient,
         chat: Chat,
     ) -> Optional[Chat]:
-        extra_check = get_now_timestamp() - chat.audio_indexer_metadata.last_run_at > 8 * 60 * 60 * 1000 if chat.audio_indexer_metadata is not None else True
+        extra_check = True if chat.audio_indexer_metadata is None else get_now_timestamp() - chat.audio_indexer_metadata.last_run_at > 8 * 60 * 60 * 1000
         successful = False
         new_chat = None
 

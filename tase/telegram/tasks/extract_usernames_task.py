@@ -62,7 +62,7 @@ class ExtractUsernamesTask(BaseTask):
                 return
 
             self.chat_username = chat.username.lower() if chat.username else None
-            chat_id = chat.chat_id
+            chat_id = chat.chat_id if telegram_client.peer_exists(chat.chat_id) else chat.username
             title = chat.title
             is_chat = True
 
@@ -71,8 +71,8 @@ class ExtractUsernamesTask(BaseTask):
             and chat.username_extractor_metadata is not None
             and not get_now_timestamp() - chat.username_extractor_metadata.last_run_at > 24 * 60 * 60 * 1000
         ):
+            logger.info(f"Cancelled extracting usernames from chat `{chat.title}`")
             self.task_failed(db)
-            logger.debug(f"Postponed extracting usernames from chat `{chat.title}`")
             return
 
         chat = self.get_updated_chat(telegram_client, db, is_chat, chat_id, chat if is_chat else None)
@@ -83,6 +83,7 @@ class ExtractUsernamesTask(BaseTask):
                 self.metadata = chat.username_extractor_metadata.copy()
 
             if self.metadata is None:
+                self.wait()
                 self.task_failed(db)
                 return
 
@@ -99,12 +100,12 @@ class ExtractUsernamesTask(BaseTask):
             logger.info(f"Metadata: {prettify(self.metadata)}")
             self.chat.update_username_extractor_metadata(self.metadata)
 
+            self.wait()
             self.task_done(db)
         else:
-            self.task_failed(db)
             logger.error(f"Error occurred: `{title}`")
-
-        self.wait()
+            self.wait()
+            self.task_failed(db)
 
     @classmethod
     def wait(
