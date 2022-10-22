@@ -59,7 +59,7 @@ class DownloadHistoryInlineButton(InlineButton):
             audio_vertices,
             telegram_inline_query=telegram_inline_query,
             inline_query_type=InlineQueryType.COMMAND,
-            next_offset=result.get_next_offset(),
+            next_offset=result.get_next_offset(only_countable=True),
         )
 
     def on_chosen_inline_query(

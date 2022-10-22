@@ -124,6 +124,6 @@ class InlineSearch(OnInlineQuery):
                 search_metadata_lst,
                 telegram_inline_query,
                 InlineQueryType.SEARCH,
-                result.get_next_offset(),
+                result.get_next_offset(only_countable=True),
                 hit_download_urls=hit_download_urls,
             )

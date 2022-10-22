@@ -50,8 +50,11 @@ class CustomInlineQueryResult(BaseModel):
         if count:
             self.countable_items_length += 1
 
-    def get_next_offset(self) -> str:
-        return f"{len(self.results)}:{self.from_ + self.countable_items_length}"
+    def get_next_offset(
+        self,
+        only_countable: bool = False,
+    ) -> str:
+        return f"{self.from_ + self.countable_items_length}" if only_countable else f"{len(self.results)}:{self.from_ + self.countable_items_length}"
 
     def is_first_page(self) -> bool:
         return self.last_result_total_item_count == 0
