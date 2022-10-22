@@ -1,10 +1,9 @@
-from typing import Any, List
+from typing import Any, List, Optional
 
 import pyrogram
 from pydantic import BaseModel, Field
 from pyrogram.errors import QueryIdInvalid, BadRequest
 
-from tase.errors import NullTelegramInlineQuery
 from tase.my_logger import logger
 
 
@@ -15,6 +14,8 @@ class CustomInlineQueryResult(BaseModel):
     last_result_total_item_count: int = Field(default=0)
     countable_items_length: int = Field(default=0)
 
+    telegram_inline_query: Optional[pyrogram.types.InlineQuery]
+
     class Config:
         arbitrary_types_allowed = True
 
@@ -24,6 +25,8 @@ class CustomInlineQueryResult(BaseModel):
         **data: Any,
     ):
         super().__init__(**data)
+
+        self.telegram_inline_query = inline_query
 
         if inline_query is None:
             self.from_ = 0
@@ -65,27 +68,22 @@ class CustomInlineQueryResult(BaseModel):
 
     def answer_query(
         self,
-        telegram_inline_query: pyrogram.types.InlineQuery,
     ) -> None:
         """
         Answer the telegram inline query
-
-        Parameters
-        ----------
-        telegram_inline_query : pyrogram.types.InlineQuery
-            Telegram InlineQuery object to answer
 
         Raises
         ------
         NullTelegramInlineQuery
             When the telegram inline query object is None
         """
-        if telegram_inline_query is None:
-            raise NullTelegramInlineQuery()
+        if self.telegram_inline_query is None:
+            # raise NullTelegramInlineQuery()
+            return
         # if not len(self.results) or self.results is None:
         #     raise Exception("results cannot be empty")
         try:
-            telegram_inline_query.answer(
+            self.telegram_inline_query.answer(
                 self.results,
                 cache_time=self.cache_time,
                 next_offset=self.get_next_offset(),

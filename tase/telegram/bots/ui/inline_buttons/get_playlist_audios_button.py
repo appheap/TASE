@@ -82,6 +82,8 @@ class GetPlaylistAudioInlineButton(InlineButton):
         if not len(result) and not playlist_is_valid and result.is_first_page():
             result.set_results([NoDownloadItem.get_item(from_user)])
 
+        result.answer_query()
+
     def on_chosen_inline_query(
         self,
         handler: BaseHandler,

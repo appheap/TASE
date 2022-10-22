@@ -77,10 +77,10 @@ class HitMethods:
 
     def generate_hit_download_urls(
         self,
-        count: int = 10,
+        size: int = 10,
     ) -> List[str]:
         hits = collections.deque()
-        for i in range(count):
+        for i in range(size):
             while True:
                 url = generate_token_urlsafe()
                 if url in hits or self.find_hit_by_download_url(url) or not len(url):

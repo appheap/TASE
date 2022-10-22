@@ -11,6 +11,7 @@ from tase.errors import (
     InvalidToVertex,
     HitDoesNotExists,
     HitNoLinkedAudio,
+    AudioVertexDoesNotExist,
 )
 from tase.my_logger import logger
 from .base_vertex import BaseVertex
@@ -246,8 +247,10 @@ class InteractionMethods:
     def audio_is_interacted_by_user(
         self: ArangoGraphMethods,
         user: User,
-        hit_download_url: str,
         interaction_type: InteractionType,
+        *,
+        hit_download_url: str = None,
+        audio_vertex_key: str = None,
     ) -> Optional[bool]:
         """
         Check whether an `Audio` is interacted by a user or not.
@@ -256,10 +259,12 @@ class InteractionMethods:
         ----------
         user : User
             User to run the query on
-        hit_download_url : str
-            Hit download_url to get the audio from
         interaction_type : InteractionType
             Type of the interaction to check
+        hit_download_url : str, default : None
+            Hit download_url to get the audio from
+        audio_vertex_key : str, default : None
+            Key of the audio vertex in the ArangoDB
 
         Returns
         -------
@@ -272,19 +277,26 @@ class InteractionMethods:
             If `Hit` vertex does not exist with the `hit_download_url` parameter
         HitNoLinkedAudio
             If `Hit` vertex does not have any linked `Audio` vertex with it
+        AudioVertexDoesNotExist
+            If `Audio` vertex does not exist with the given `key`
         ValueError
             If the given `Hit` vertex has more than one linked `Audio` vertices.
         """
-        if user is None or hit_download_url is None:
+        if user is None or (hit_download_url is None and audio_vertex_key is None):
             return None
 
-        hit = self.find_hit_by_download_url(hit_download_url)
-        if hit is None:
-            raise HitDoesNotExists(hit_download_url)
+        if hit_download_url is not None:
+            hit = self.find_hit_by_download_url(hit_download_url)
+            if hit is None:
+                raise HitDoesNotExists(hit_download_url)
 
-        audio = self.get_audio_from_hit(hit)
-        if audio is None:
-            raise HitNoLinkedAudio(hit_download_url)
+            audio = self.get_audio_from_hit(hit)
+            if audio is None:
+                raise HitNoLinkedAudio(hit_download_url)
+        else:
+            audio = self.get_audio_by_key(audio_vertex_key)
+            if audio is None:
+                raise AudioVertexDoesNotExist(audio_vertex_key)
 
         from tase.db.arangodb.graph.edges import Has
 

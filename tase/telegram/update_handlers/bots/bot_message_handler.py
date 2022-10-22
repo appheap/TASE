@@ -148,7 +148,7 @@ class BotMessageHandler(BaseHandler):
                 if not es_audio_docs or not len(es_audio_docs) or query_metadata is None:
                     found_any = False
                 else:
-                    hit_download_urls = self.db.graph.generate_hit_download_urls(count=10)
+                    hit_download_urls = self.db.graph.generate_hit_download_urls(size=10)
                     found_any = True
 
         if found_any:

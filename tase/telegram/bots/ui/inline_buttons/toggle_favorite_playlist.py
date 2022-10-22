@@ -74,7 +74,7 @@ class ToggleFavoritePlaylistInlineButton(InlineButton):
                             status = AudioKeyboardStatus.get_status(
                                 handler.db,
                                 from_user,
-                                hit_download_url,
+                                hit_download_url=hit_download_url,
                             )
                             reply_markup = get_audio_markup_keyboard(
                                 handler.telegram_client.get_me().username,

@@ -16,6 +16,7 @@ from tase.telegram.bots.ui.inline_items import (
 )
 from tase.telegram.update_handlers.base import BaseHandler
 
+
 @timing
 def populate_playlist_list(
     from_user: graph_models.vertices.User,
@@ -73,6 +74,7 @@ def populate_playlist_list(
                 telegram_inline_query,
             )
         )
+
 
 @timing
 def populate_audio_items(
@@ -134,7 +136,7 @@ def populate_audio_items(
             status = AudioKeyboardStatus.get_status(
                 handler.db,
                 from_user,
-                hit.download_url,
+                hit_download_url=hit.download_url,
             )
 
             result.add_item(
@@ -145,14 +147,14 @@ def populate_audio_items(
                     es_audio_doc,
                     telegram_inline_query,
                     chats_dict,
-                    hit,
+                    hit.download_url,
                     status,
                 )
             )
     else:
         pass
 
-@timing
+
 def get_audio_markup_keyboard(
     bot_username: str,
     chat_type: ChatType,

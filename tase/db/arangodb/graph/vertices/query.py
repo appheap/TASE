@@ -235,7 +235,10 @@ class QueryMethods:
             hits = collections.deque()
 
             if search_metadata_list is None or not len(search_metadata_list):
-                search_metadata_list = [None for _ in range(len(audio_vertices))]
+                search_metadata_list = (None for _ in range(len(audio_vertices)))
+
+            if hit_download_urls is None or not len(hit_download_urls):
+                hit_download_urls = (None for _ in range(len(audio_vertices)))
 
             for audio_vertex, search_metadata, hit_download_url in zip(audio_vertices, search_metadata_list, hit_download_urls):
                 if audio_vertex is None:

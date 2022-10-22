@@ -345,7 +345,7 @@ class BaseCollectionDocument(BaseCollectionAttributes):
             Document matching the specified `Key` if it exists in the collection, otherwise return `None`
 
         """
-        if doc_key is None:
+        if doc_key is None or not len(doc_key):
             return None
 
         try:

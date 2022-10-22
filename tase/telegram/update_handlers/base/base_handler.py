@@ -131,7 +131,7 @@ class BaseHandler(BaseModel):
                     status = AudioKeyboardStatus.get_status(
                         self.db,
                         from_user,
-                        hit_download_url,
+                        hit_download_url=hit_download_url,
                     )
 
                     markup_keyboard = get_audio_markup_keyboard(

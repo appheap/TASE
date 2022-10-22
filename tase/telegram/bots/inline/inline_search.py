@@ -7,6 +7,7 @@ from tase.db.arangodb.enums import InlineQueryType
 from tase.db.arangodb.graph.vertices import User
 from tase.db.arangodb.helpers import AudioKeyboardStatus
 from tase.db.elasticsearchdb import models as elasticsearch_models
+from tase.my_logger import logger
 from tase.telegram.bots.ui.inline_items import AudioItem, NoResultItem
 from tase.telegram.update_handlers.base import BaseHandler
 from tase.telegram.update_interfaces import OnInlineQuery
@@ -36,10 +37,12 @@ class InlineSearch(OnInlineQuery):
             if len(telegram_inline_query.query) <= 2:
                 found_any = False
             else:
+                size = 15
+
                 es_audio_docs, query_metadata = handler.db.index.search_audio(
                     telegram_inline_query.query,
                     from_=result.from_,
-                    size=15,  # todo: update?
+                    size=size,  # todo: update?
                     filter_by_valid_for_inline_search=True,
                 )
 
@@ -68,29 +71,18 @@ class InlineSearch(OnInlineQuery):
                             es_audio_doc,
                         )
                     )
+                if len(temp_res):
+                    hit_download_urls = handler.db.graph.generate_hit_download_urls(size=size)
 
-                audio_vertices = list(handler.db.graph.get_audios_from_keys(audio_keys))
-
-                db_query, hits = handler.db.graph.get_or_create_query(
-                    handler.telegram_client.telegram_id,
-                    from_user,
-                    telegram_inline_query.query,
-                    query_date,
-                    audio_vertices,
-                    query_metadata,
-                    search_metadata_lst,
-                    telegram_inline_query,
-                    InlineQueryType.SEARCH,
-                    result.get_next_offset(),
-                )
-
-                if db_query and hits:
-                    for (audio_doc, es_audio_doc), hit in zip(temp_res, hits):
+                    for (audio_doc, es_audio_doc), hit_download_url in zip(temp_res, hit_download_urls):
                         status = AudioKeyboardStatus.get_status(
                             handler.db,
                             from_user,
-                            hit.download_url,
+                            audio_vertex_key=es_audio_doc.id,
                         )
+                        if status is None:
+                            logger.error(f"Unexpected error: `status` is None")
+                            continue
 
                         handler.db.document.get_or_create_audio_inline_message(
                             handler.telegram_client.telegram_id,
@@ -106,11 +98,32 @@ class InlineSearch(OnInlineQuery):
                                 es_audio_doc,
                                 telegram_inline_query,
                                 chats_dict,
-                                hit,
+                                hit_download_url,
                                 status,
                             )
                         )
+                else:
+                    found_any = False
 
         if not found_any and not len(result) and result.is_first_page():
             # todo: No results matching the query found, what now?
             result.set_results([NoResultItem.get_item(from_user)])
+
+        result.answer_query()
+
+        if found_any:
+            # fixme
+            audio_vertices = list(handler.db.graph.get_audios_from_keys(audio_keys))
+            handler.db.graph.get_or_create_query(
+                handler.telegram_client.telegram_id,
+                from_user,
+                telegram_inline_query.query,
+                query_date,
+                audio_vertices,
+                query_metadata,
+                search_metadata_lst,
+                telegram_inline_query,
+                InlineQueryType.SEARCH,
+                result.get_next_offset(),
+                hit_download_urls=hit_download_urls,
+            )

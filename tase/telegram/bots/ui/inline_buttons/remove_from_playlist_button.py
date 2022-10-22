@@ -65,6 +65,8 @@ class RemoveFromPlaylistInlineButton(InlineButton):
             # what to show when user doesn't have any playlists yet or hasn't added this audio to any playlist
             result.set_results([AudioInNoPlaylistItem.get_item(from_user)])
 
+        result.answer_query()
+
     def on_chosen_inline_query(
         self,
         handler: BaseHandler,

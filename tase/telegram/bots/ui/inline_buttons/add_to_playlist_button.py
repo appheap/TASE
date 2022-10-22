@@ -44,6 +44,8 @@ class AddToPlaylistInlineButton(InlineButton):
             filter_by_capacity=True,
         )
 
+        result.answer_query()
+
     def on_chosen_inline_query(
         self,
         handler: BaseHandler,
