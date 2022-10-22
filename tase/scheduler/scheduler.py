@@ -150,6 +150,10 @@ class SchedulerJobConsumer(ConsumerProducerMixin):
         job: BaseJob = body
         logger.info(f"scheduler_task_consumer_on_job : {job.type.value}")
 
+        if self.should_stop and self.scheduler.running():
+            self.scheduler.shutdown()
+            return
+
         if job.type != RabbitMQTaskType.UNKNOWN:
             self.scheduler.add_job(
                 self.job_runner,
