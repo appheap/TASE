@@ -6,7 +6,7 @@ import pyrogram
 from pydantic import BaseModel
 from pyrogram.enums import ParseMode
 
-from tase.common.utils import _trans
+from tase.common.utils import _trans, timing
 from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.enums import TelegramAudioType, InteractionType, ChatType
 from tase.db.arangodb.helpers import AudioKeyboardStatus
@@ -71,6 +71,7 @@ class BaseHandler(BaseModel):
                 )
         return chats_dict
 
+    @timing
     def download_audio(
         self,
         client: pyrogram.Client,

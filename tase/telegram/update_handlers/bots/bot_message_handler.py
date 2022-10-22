@@ -13,6 +13,7 @@ from tase.common.utils import (
     exception_handler,
     find_telegram_usernames,
     emoji,
+    timing,
 )
 from tase.my_logger import logger
 from tase.telegram.bots.bot_commands import BaseCommand, BotCommandType
@@ -66,6 +67,7 @@ class BotMessageHandler(BaseHandler):
         return handlers_list
 
     @exception_handler
+    @timing
     def commands_handler(
         self,
         client: pyrogram.Client,
@@ -76,6 +78,7 @@ class BotMessageHandler(BaseHandler):
         BaseCommand.run_command(client, message, self)
 
     @exception_handler
+    @timing
     def downloads_handler(
         self,
         client: pyrogram.Client,
@@ -103,6 +106,7 @@ class BotMessageHandler(BaseHandler):
         )
 
     @exception_handler
+    @timing
     def search_query_handler(
         self,
         client: pyrogram.Client,
@@ -143,30 +147,16 @@ class BotMessageHandler(BaseHandler):
                 )
                 if not es_audio_docs or not len(es_audio_docs) or query_metadata is None:
                     found_any = False
-
-                audio_vertices = list(self.db.graph.get_audios_from_keys([doc.id for doc in es_audio_docs]))
-                search_metadata_lst = [es_audio_doc.search_metadata for es_audio_doc in es_audio_docs]
-
-                db_query, hits = self.db.graph.get_or_create_query(
-                    self.telegram_client.telegram_id,
-                    from_user,
-                    query,
-                    datetime_to_timestamp(message.date),
-                    audio_vertices,
-                    query_metadata,
-                    search_metadata_lst,
-                )
-                if db_query and hits:
-                    found_any = True
                 else:
-                    found_any = False
+                    hit_download_urls = self.db.graph.generate_hit_download_urls(count=10)
+                    found_any = True
 
         if found_any:
             data = QueryResultsData.parse_from_query(
                 query=query,
                 lang_code=from_user.chosen_language_code,
                 es_audio_docs=es_audio_docs,
-                hits=hits,
+                hit_download_urls=hit_download_urls,
             )
 
             text = BaseTemplate.registry.query_results_template.render(data)
@@ -185,7 +175,23 @@ class BotMessageHandler(BaseHandler):
             disable_web_page_preview=True,
         )
 
+        if found_any:
+            audio_vertices = list(self.db.graph.get_audios_from_keys([doc.id for doc in es_audio_docs]))
+            search_metadata_lst = [es_audio_doc.search_metadata for es_audio_doc in es_audio_docs]
+
+            db_query, hits = self.db.graph.get_or_create_query(
+                self.telegram_client.telegram_id,
+                from_user,
+                query,
+                datetime_to_timestamp(message.date),
+                audio_vertices,
+                query_metadata,
+                search_metadata_lst,
+                hit_download_urls=hit_download_urls,
+            )
+
     @exception_handler
+    @timing
     def bot_message_handler(
         self,
         client: "pyrogram.Client",
