@@ -14,10 +14,11 @@ from ...telegram.client import TelegramClient
 
 class IndexAudiosJob(BaseJob):
     type = RabbitMQTaskType.INDEX_AUDIOS_JOB
+    priority = 3
 
     trigger = apscheduler.triggers.interval.IntervalTrigger(
         hours=1,
-        start_date=arrow.now().shift(seconds=+10).datetime,
+        start_date=arrow.now().shift(minutes=+10).datetime,
     )
 
     def run(

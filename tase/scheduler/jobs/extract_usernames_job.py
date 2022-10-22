@@ -14,10 +14,11 @@ from ...telegram.client import TelegramClient
 
 class ExtractUsernamesJob(BaseJob):
     type = RabbitMQTaskType.EXTRACT_USERNAMES_JOB
+    priority = 1
 
     trigger = apscheduler.triggers.interval.IntervalTrigger(
-        hours=1,
-        start_date=arrow.now().shift(seconds=+20).datetime,
+        hours=4,
+        start_date=arrow.now().shift(minutes=+30).datetime,
     )
 
     def run(

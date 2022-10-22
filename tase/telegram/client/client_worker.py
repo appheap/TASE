@@ -103,6 +103,9 @@ class ClientTaskConsumer(ConsumerProducerMixin):
     ):
         message.ack()
 
+        if self.should_stop:
+            return
+
         from tase.task_distribution import BaseTask
 
         if isinstance(body, BaseTask):

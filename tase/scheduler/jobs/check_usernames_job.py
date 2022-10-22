@@ -14,10 +14,11 @@ from ...telegram.tasks import CheckUsernameTask
 
 class CheckUsernamesJob(BaseJob):
     type = RabbitMQTaskType.CHECK_USERNAMES_JOB
+    priority = 1
 
     trigger = IntervalTrigger(
-        hours=1,
-        start_date=arrow.now().shift(seconds=+20).datetime,
+        hours=3,
+        start_date=arrow.now().shift(hours=+1).datetime,
     )
 
     def run(

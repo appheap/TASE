@@ -11,9 +11,10 @@ from ...telegram.client import TelegramClient
 
 class CheckUsernamesWithUncheckedMentionsJob(BaseJob):
     type = RabbitMQTaskType.CHECK_USERNAMES_WITH_UNCHECKED_MENTIONS_JOB
+    priority = 1
 
     trigger = IntervalTrigger(
-        hours=1,
+        hours=3,
         minutes=30,
         start_date=arrow.now().shift(minutes=+10).datetime,
     )

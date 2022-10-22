@@ -20,6 +20,7 @@ from tase.telegram.client import TelegramClient
 class ExtractUsernamesTask(BaseTask):
     target_worker_type = TargetWorkerType.ANY_TELEGRAM_CLIENTS_CONSUMER_WORK
     type = RabbitMQTaskType.EXTRACT_USERNAMES_TASK
+    priority = 1
 
     db: Optional[DatabaseClient] = Field(default=None)
     chat: Optional[Chat] = Field(default=None)
@@ -69,7 +70,7 @@ class ExtractUsernamesTask(BaseTask):
         if (
             is_chat
             and chat.username_extractor_metadata is not None
-            and not get_now_timestamp() - chat.username_extractor_metadata.last_run_at > 24 * 60 * 60 * 1000
+            and not get_now_timestamp() - chat.username_extractor_metadata.last_run_at > 3 * 24 * 60 * 60 * 1000
         ):
             logger.info(f"Cancelled extracting usernames from chat `{chat.title}`")
             self.task_failed(db)
@@ -174,10 +175,12 @@ class ExtractUsernamesTask(BaseTask):
         chat_id: Union[str, int],
         telegram_client: TelegramClient,
     ):
-        for message in telegram_client.iter_messages(
-            chat_id=chat_id,
-            offset_id=self.metadata.last_message_offset_id,
-            only_newer_messages=True,
+        for idx, message in enumerate(
+            telegram_client.iter_messages(
+                chat_id=chat_id,
+                offset_id=self.metadata.last_message_offset_id,
+                only_newer_messages=True,
+            )
         ):
             message: pyrogram.types.Message = message
 
@@ -263,6 +266,9 @@ class ExtractUsernamesTask(BaseTask):
             if message.id > self.metadata.last_message_offset_id:
                 self.metadata.last_message_offset_id = message.id
                 self.metadata.last_message_offset_date = datetime_to_timestamp(message.date)
+
+            if idx % 200 == 0:
+                self.wait(random.randint(5, 15))
 
     def find_usernames_in_text(
         self,

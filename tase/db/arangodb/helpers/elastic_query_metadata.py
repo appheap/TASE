@@ -16,7 +16,7 @@ class ElasticQueryMetadata(BaseCollectionAttributes):
 
         return ElasticQueryMetadata(
             duration=query_metadata.get("duration"),
-            max_score=query_metadata.get("max_score") or 0,
+            max_score=query_metadata.get("max_score", None),
             total_hits=query_metadata.get("total_hits"),
             total_rel=query_metadata.get("total_rel"),
         )

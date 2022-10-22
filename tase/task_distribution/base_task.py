@@ -20,12 +20,13 @@ class BaseTask(BaseModel):
     kwargs: dict = Field(default_factory=dict)
 
     task_key: Optional[str]
+    priority: int = Field(default=1)
 
     def publish(
         self,
         db: DatabaseClient,
         target_queue: kombu.Queue = None,
-        priority: int = 1,
+        priority: int = None,
     ) -> Tuple[Optional[RabbitMQTaskStatus], bool]:
         if db is None or self.target_worker_type == TargetWorkerType.UNKNOWN or self.type == RabbitMQTaskType.UNKNOWN:
             return None, False
@@ -46,6 +47,8 @@ class BaseTask(BaseModel):
                 self.task_key = new_task.key
             else:
                 raise Exception("could not create `RabbitMQTask` document")
+
+            priority = priority if priority is not None else self.priority
 
             try:
                 if self.target_worker_type == TargetWorkerType.ANY_TELEGRAM_CLIENTS_CONSUMER_WORK:

@@ -10,6 +10,7 @@ from ...db.arangodb.enums import RabbitMQTaskType
 
 class CountInteractionsJob(BaseJob):
     type = RabbitMQTaskType.COUNT_INTERACTIONS_JOB
+    priority = 2
 
     trigger = IntervalTrigger(
         hours=1,

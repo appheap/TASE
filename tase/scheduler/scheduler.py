@@ -95,6 +95,9 @@ class SchedulerJobConsumer(ConsumerProducerMixin):
     ):
         message.ack()
 
+        if self.should_stop:
+            return
+
         if isinstance(body, (BaseJob, BaseTask)):
             logger.info(f"Scheduler got a new task: {body.type}")
             if body.type != RabbitMQTaskType.UNKNOWN:
@@ -149,6 +152,10 @@ class SchedulerJobConsumer(ConsumerProducerMixin):
 
         job: BaseJob = body
         logger.info(f"scheduler_task_consumer_on_job : {job.type.value}")
+
+        if self.should_stop and self.scheduler.running():
+            self.scheduler.shutdown()
+            return
 
         if job.type != RabbitMQTaskType.UNKNOWN:
             self.scheduler.add_job(
