@@ -14,6 +14,7 @@ from ...telegram.client import TelegramClient
 
 class IndexAudiosJob(BaseJob):
     type = RabbitMQTaskType.INDEX_AUDIOS_JOB
+    priority = 3
 
     trigger = apscheduler.triggers.interval.IntervalTrigger(
         hours=1,

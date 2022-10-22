@@ -20,6 +20,7 @@ from tase.telegram.client import TelegramClient
 class ExtractUsernamesTask(BaseTask):
     target_worker_type = TargetWorkerType.ANY_TELEGRAM_CLIENTS_CONSUMER_WORK
     type = RabbitMQTaskType.EXTRACT_USERNAMES_TASK
+    priority = 1
 
     db: Optional[DatabaseClient] = Field(default=None)
     chat: Optional[Chat] = Field(default=None)

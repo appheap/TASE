@@ -21,6 +21,7 @@ from tase.telegram.client import TelegramClient
 class IndexAudiosTask(BaseTask):
     target_worker_type = TargetWorkerType.ANY_TELEGRAM_CLIENTS_CONSUMER_WORK
     type = RabbitMQTaskType.INDEX_AUDIOS_TASK
+    priority = 3
 
     def run(
         self,

@@ -17,6 +17,7 @@ from tase.telegram.client import TelegramClient
 class CheckUsernameTask(BaseTask):
     target_worker_type = TargetWorkerType.ANY_TELEGRAM_CLIENTS_CONSUMER_WORK
     type = RabbitMQTaskType.CHECK_USERNAME_TASK
+    priority = 1
 
     def run(
         self,

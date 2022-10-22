@@ -14,6 +14,7 @@ from ...telegram.tasks import CheckUsernameTask
 
 class CheckUsernamesJob(BaseJob):
     type = RabbitMQTaskType.CHECK_USERNAMES_JOB
+    priority = 1
 
     trigger = IntervalTrigger(
         hours=1,

@@ -16,6 +16,7 @@ from tase.telegram.client import TelegramClient
 class AddChannelTask(BaseTask):
     target_worker_type = TargetWorkerType.ANY_TELEGRAM_CLIENTS_CONSUMER_WORK
     type = RabbitMQTaskType.ADD_CHANNEL_TASK
+    priority = 9
 
     def run(
         self,

@@ -10,6 +10,7 @@ from ..db.arangodb.enums import RabbitMQTaskType
 class ShutdownTask(BaseTask):
     target_worker_type = TargetWorkerType.RABBITMQ_CONSUMER_COMMAND
     type = RabbitMQTaskType.SHUTDOWN_TASK
+    priority = 10
 
     def run(
         self,

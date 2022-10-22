@@ -10,6 +10,7 @@ from ...db.arangodb.enums import RabbitMQTaskType
 
 class DummyJob(BaseJob):
     type = RabbitMQTaskType.DUMMY_JOB
+    priority = 1
 
     trigger = IntervalTrigger(
         seconds=5,
