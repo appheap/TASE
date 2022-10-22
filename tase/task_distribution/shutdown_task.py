@@ -19,6 +19,13 @@ class ShutdownTask(BaseTask):
     ) -> None:
         self.task_in_worker(db)
         consumer_producer.should_stop = True
+
+        from tase.scheduler.scheduler import SchedulerJobConsumer
+
+        if isinstance(consumer_producer, SchedulerJobConsumer):
+            if consumer_producer.scheduler.running:
+                consumer_producer.scheduler.shutdown()
+
         # todo: add more functionality to this command. for instance, wrap the tasks in queue in a job and schedule
         #  them for the next consumer start/restart.
         self.task_done(db)
