@@ -119,3 +119,5 @@ class HelpCatalogInlineButton(InlineButton):
             count=True,
         )
         result.cache_time = 300  # todo: fix me
+
+        result.answer_query()

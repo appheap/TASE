@@ -14,6 +14,7 @@ from tase.errors import (
     InvalidFromVertex,
     InvalidToVertex,
     EdgeDeletionFailed,
+    AudioVertexDoesNotExist,
 )
 from tase.my_logger import logger
 from . import Audio
@@ -948,7 +949,9 @@ class PlaylistMethods:
     def audio_in_favorite_playlist(
         self: ArangoGraphMethods,
         user: User,
-        hit_download_url: str,
+        *,
+        hit_download_url: str = None,
+        audio_vertex_key: str = None,
     ) -> Optional[bool]:
         """
         Whether an `Audio` exists in the user's favorite `Playlist`
@@ -957,8 +960,10 @@ class PlaylistMethods:
         ----------
         user : User
             User to run the query on
-        hit_download_url : str
+        hit_download_url : str, default : None
             Hit download_url to get the audio from
+        audio_vertex_key : str, default : None
+            Key of the audio vertex in the ArangoDB
 
         Returns
         -------
@@ -971,21 +976,29 @@ class PlaylistMethods:
             If `Hit` vertex does not exist with the `hit_download_url` parameter
         HitNoLinkedAudio
             If `Hit` vertex does not have any linked `Audio` vertex with it
+        AudioVertexDoesNotExist
+            If `Audio` vertex does not exist with the given `key`
         InvalidAudioForInlineMode
             If `Audio` vertex is not valid for inline mode
         ValueError
             If the given `Hit` vertex has more than one linked `Audio` vertices.
         """
-        if user is None or hit_download_url is None:
+        if user is None or (hit_download_url is None and audio_vertex_key is None):
             return None
 
-        hit = self.find_hit_by_download_url(hit_download_url)
-        if hit is None:
-            raise HitDoesNotExists(hit_download_url)
+        if hit_download_url is not None:
+            hit = self.find_hit_by_download_url(hit_download_url)
+            if hit is None:
+                raise HitDoesNotExists(hit_download_url)
 
-        audio = self.get_audio_from_hit(hit)
-        if audio is None:
-            raise HitNoLinkedAudio(hit_download_url)
+            audio = self.get_audio_from_hit(hit)
+            if audio is None:
+                raise HitNoLinkedAudio(hit_download_url)
+        else:
+            audio = self.get_audio_by_key(audio_vertex_key)
+            if audio is None:
+                raise AudioVertexDoesNotExist(audio_vertex_key)
+
         if audio.audio_type != TelegramAudioType.AUDIO_FILE:
             raise InvalidAudioForInlineMode(audio.key)
 
@@ -1032,7 +1045,10 @@ class PlaylistMethods:
         if fav_playlist is None:
             return (True, False), False
 
-        in_fav_playlist = self.audio_in_favorite_playlist(user, hit_download_url)
+        in_fav_playlist = self.audio_in_favorite_playlist(
+            user,
+            hit_download_url=hit_download_url,
+        )
         if in_fav_playlist is None:
             return (False, False), False
 

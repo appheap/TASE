@@ -47,6 +47,8 @@ class BackToPlaylistsInlineButton(MyPlaylistsInlineButton):
                 reg,
             )
 
+        result.answer_query()
+
     def on_chosen_inline_query(
         self,
         handler: BaseHandler,

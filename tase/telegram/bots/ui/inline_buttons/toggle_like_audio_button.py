@@ -58,8 +58,8 @@ class ToggleLikeAudioInlineButton(InlineButton):
             if successful:
                 is_disliked = handler.db.graph.audio_is_interacted_by_user(
                     from_user,
-                    hit_download_url,
                     InteractionType.DISLIKE,
+                    hit_download_url=hit_download_url,
                 )
                 update_dislike_button = False
                 if not has_liked and is_disliked:
@@ -98,7 +98,7 @@ class ToggleLikeAudioInlineButton(InlineButton):
                         status = AudioKeyboardStatus.get_status(
                             handler.db,
                             from_user,
-                            hit_download_url,
+                            hit_download_url=hit_download_url,
                         )
 
                         reply_markup = get_audio_markup_keyboard(

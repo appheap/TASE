@@ -5,7 +5,7 @@ from typing import Optional, Union, List, Tuple, Generator, TYPE_CHECKING
 
 import pyrogram
 
-from tase.common.utils import get_now_timestamp
+from tase.common.utils import get_now_timestamp, timing
 from tase.db.helpers import SearchMetaData
 from tase.errors import InvalidToVertex, InvalidFromVertex, EdgeCreationFailed
 from tase.my_logger import logger
@@ -124,6 +124,7 @@ class QueryMethods:
         "return non_inline_count + inline_count"
     )
 
+    @timing
     def create_query(
         self: ArangoGraphMethods,
         bot_id: int,
@@ -137,6 +138,7 @@ class QueryMethods:
         telegram_inline_query: Optional[pyrogram.types.InlineQuery] = None,
         inline_query_type: Optional[InlineQueryType] = None,
         next_offset: Optional[str] = None,
+        hit_download_urls: List[str] = None,
     ) -> Tuple[Optional[Query], Optional[List[Hit]]]:
         """
         Create a Query along with necessary vertices and edges.
@@ -163,6 +165,8 @@ class QueryMethods:
             Type of the inline query if the query is inline
         next_offset : str, default : None
             Next offset of query if the query is inline and has more results that will be paginated
+        hit_download_urls : list of str, default : None
+            List of hit download URLs to initialize hits with
 
         Returns
         -------
@@ -231,9 +235,12 @@ class QueryMethods:
             hits = collections.deque()
 
             if search_metadata_list is None or not len(search_metadata_list):
-                search_metadata_list = [None for _ in range(len(audio_vertices))]
+                search_metadata_list = (None for _ in range(len(audio_vertices)))
 
-            for audio_vertex, search_metadata in zip(audio_vertices, search_metadata_list):
+            if hit_download_urls is None or not len(hit_download_urls):
+                hit_download_urls = (None for _ in range(len(audio_vertices)))
+
+            for audio_vertex, search_metadata, hit_download_url in zip(audio_vertices, search_metadata_list, hit_download_urls):
                 if audio_vertex is None:
                     # todo: what now?
                     continue
@@ -242,6 +249,7 @@ class QueryMethods:
                     db_query,
                     audio_vertex,
                     hit_type,
+                    hit_download_url,
                     search_metadata,
                 )
                 if hit is None:
@@ -261,6 +269,7 @@ class QueryMethods:
 
         return None, None
 
+    @timing
     def get_or_create_query(
         self,
         bot_id: int,
@@ -274,6 +283,7 @@ class QueryMethods:
         telegram_inline_query: Optional[pyrogram.types.InlineQuery] = None,
         inline_query_type: Optional[InlineQueryType] = None,
         next_offset: Optional[str] = None,
+        hit_download_urls: List[str] = None,
     ) -> Tuple[Optional[Query], Optional[List[Hit]]]:
         """
         Get Query if it exists in the database, otherwise, create a Query along with necessary vertices and
@@ -301,6 +311,8 @@ class QueryMethods:
             Type of the inline query if the query is inline
         next_offset : str, default : None
             Next offset of query if the query is inline and has more results that will be paginated
+        hit_download_urls : list of str, default : None
+            List of hit download URLs to initialize hits with
 
         Returns
         -------
@@ -328,6 +340,7 @@ class QueryMethods:
                 telegram_inline_query,
                 inline_query_type,
                 next_offset,
+                hit_download_urls,
             )
             return db_query, hits
         else:

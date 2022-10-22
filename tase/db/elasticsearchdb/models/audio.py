@@ -8,7 +8,7 @@ from elastic_transport import ObjectApiResponse
 from pydantic import Field
 
 from tase.common.preprocessing import clean_text, empty_to_null
-from tase.common.utils import datetime_to_timestamp
+from tase.common.utils import datetime_to_timestamp, timing
 from tase.errors import TelegramMessageWithNoAudio
 from tase.my_logger import logger
 from .base_document import BaseDocument
@@ -506,6 +506,7 @@ class AudioMethods:
         """
         return Audio.get(id)
 
+    @timing
     def search_audio(
         self,
         query: str,
@@ -534,7 +535,7 @@ class AudioMethods:
             List of audio files matching the query alongside the query metadata
 
         """
-        if query is None or from_ is None or size is None:
+        if query is None or not len(query) or from_ is None or size is None:
             return None, None
 
         audios, query_metadata = Audio.search(

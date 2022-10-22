@@ -58,8 +58,8 @@ class ToggleDisLikeAudioInlineButton(InlineButton):
             if successful:
                 is_liked = handler.db.graph.audio_is_interacted_by_user(
                     from_user,
-                    hit_download_url,
                     InteractionType.LIKE,
+                    hit_download_url=hit_download_url,
                 )
                 update_like_button = False
                 if not has_disliked and is_liked:
@@ -98,7 +98,7 @@ class ToggleDisLikeAudioInlineButton(InlineButton):
                         status = AudioKeyboardStatus.get_status(
                             handler.db,
                             from_user,
-                            hit_download_url,
+                            hit_download_url=hit_download_url,
                         )
                         reply_markup = get_audio_markup_keyboard(
                             handler.telegram_client.get_me().username,

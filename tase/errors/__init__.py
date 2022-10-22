@@ -1,3 +1,4 @@
+from .audio_vertex_does_not_exists import AudioVertexDoesNotExist
 from .edge_creation_failed import EdgeCreationFailed
 from .edge_deletion_failed import EdgeDeletionFailed
 from .hit_does_not_exists import HitDoesNotExists
@@ -16,6 +17,7 @@ from .telegram_message_with_no_audio import TelegramMessageWithNoAudio
 from .update_retry_count_failed import UpdateRetryCountFailed
 
 __all__ = [
+    "AudioVertexDoesNotExist",
     "EdgeCreationFailed",
     "EdgeDeletionFailed",
     "HitDoesNotExists",

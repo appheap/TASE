@@ -730,6 +730,12 @@ class AudioMethods:
                 for doc in audios_raw:
                     yield Audio.from_collection(doc)
 
+    def get_audio_by_key(
+        self,
+        key: str,
+    ) -> Optional[Audio]:
+        return Audio.get(key)
+
     def get_new_indexed_audio_files_count(self) -> int:
         """
         Get the total number of indexed audio files in the last 24 hours

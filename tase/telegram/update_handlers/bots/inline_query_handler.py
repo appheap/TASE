@@ -7,8 +7,7 @@ import pyrogram
 from pyrogram import filters, handlers
 
 from tase.common.preprocessing import telegram_url_regex, url_regex
-from tase.common.utils import exception_handler, get_now_timestamp
-from tase.errors import NullTelegramInlineQuery
+from tase.common.utils import exception_handler, get_now_timestamp, timing
 from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult, InlineSearch
 from tase.telegram.bots.ui.inline_buttons.base import InlineButton
@@ -33,6 +32,7 @@ class InlineQueryHandler(BaseHandler):
         ]
 
     @exception_handler
+    @timing
     def on_inline_query(
         self,
         client: pyrogram.Client,
@@ -43,23 +43,17 @@ class InlineQueryHandler(BaseHandler):
 
         from_user = self.db.graph.get_interacted_user(inline_query.from_user)
 
-        result = CustomInlineQueryResult(inline_query)
         InlineSearch.on_inline_query(
             self,
-            result,
+            CustomInlineQueryResult(inline_query),
             from_user,
             client,
             inline_query,
             query_date,
         )
-        try:
-            result.answer_query(inline_query)
-        except NullTelegramInlineQuery:
-            pass
-        except Exception as e:
-            logger.exception(e)
 
     @exception_handler
+    @timing
     def custom_commands_handler(
         self,
         client: pyrogram.Client,
@@ -76,21 +70,14 @@ class InlineQueryHandler(BaseHandler):
         )
         button = InlineButton.find_button_by_type_value(reg.group("command"))
         if button:
-            result = CustomInlineQueryResult(inline_query)
             button.on_inline_query(
                 self,
-                result,
+                CustomInlineQueryResult(inline_query),
                 user,
                 client,
                 inline_query,
                 query_date,
                 reg,
             )
-            try:
-                result.answer_query(inline_query)
-            except NullTelegramInlineQuery:
-                pass
-            except Exception as e:
-                logger.exception(e)
         else:
             pass

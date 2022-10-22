@@ -17,12 +17,12 @@ class AudioItem(BaseInlineItem):
     def parse_id(
         cls,
         telegram_inline_query: pyrogram.types.InlineQuery,
-        hit: graph_models.vertices.Hit,
+        hit_download_url: str,
         chat_type: Optional[ChatType] = None,
     ) -> Optional[str]:
         if chat_type is None:
             chat_type = ChatType.parse_from_pyrogram(telegram_inline_query.chat_type)
-        return f"{telegram_inline_query.id}->{hit.download_url}->{chat_type.value}->{random.randint(1, 1_000_000)}"
+        return f"{telegram_inline_query.id}->{hit_download_url}->{chat_type.value}->{random.randint(1, 1_000_000)}"
 
     @classmethod
     def get_item(
@@ -33,7 +33,7 @@ class AudioItem(BaseInlineItem):
         es_audio_doc: elasticsearch_models.Audio,
         telegram_inline_query: pyrogram.types.InlineQuery,
         chats_dict: dict,
-        hit: graph_models.vertices.Hit,
+        hit_download_url: str,
         status: AudioKeyboardStatus,
     ) -> Optional[pyrogram.types.InlineQueryResult]:
         if telegram_file_id is None or from_user is None:
@@ -47,7 +47,7 @@ class AudioItem(BaseInlineItem):
 
         result_id = cls.parse_id(
             telegram_inline_query,
-            hit,
+            hit_download_url,
             chat_type,
         )
 
@@ -59,7 +59,7 @@ class AudioItem(BaseInlineItem):
                     es_audio_doc,
                     from_user,
                     chats_dict[es_audio_doc.chat_id],
-                    bot_url=f"https://t.me/{bot_username}?start=dl_{hit.download_url}",
+                    bot_url=f"https://t.me/{bot_username}?start=dl_{hit_download_url}",
                     include_source=True,
                 )
             ),
@@ -67,7 +67,7 @@ class AudioItem(BaseInlineItem):
                 bot_username,
                 chat_type,
                 from_user.chosen_language_code,
-                hit.download_url,
+                hit_download_url,
                 es_audio_doc.valid_for_inline_search,
                 status,
             ),

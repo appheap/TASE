@@ -6,7 +6,6 @@ from jinja2 import Template
 
 from tase.common.preprocessing import clean_audio_item_text
 from tase.common.utils import _trans
-from tase.db.arangodb import graph as graph_models
 from tase.db.elasticsearchdb import models as elasticsearch_models
 from .base_template import BaseTemplate, BaseTemplateData
 
@@ -49,7 +48,7 @@ class QueryResultsData(BaseTemplateData):
         cls,
         index: int,
         es_audio_doc: elasticsearch_models.Audio,
-        hit: graph_models.vertices.Hit,
+        hit_download_url: str,
     ) -> Dict[str, str]:
         duration = timedelta(seconds=es_audio_doc.duration if es_audio_doc.duration else 0)
         d = datetime(1, 1, 1) + duration
@@ -81,7 +80,7 @@ class QueryResultsData(BaseTemplateData):
             "name": textwrap.shorten(name, width=35, placeholder="..."),
             "file_size": round(es_audio_doc.file_size / 1_048_576, 1),
             "time": f"{str(d.hour) + ':' if d.hour > 0 else ''}{d.minute:02}:{d.second:02}" if duration else "",
-            "url": hit.download_url,
+            "url": hit_download_url,
             "sep": f"{40 * '-' if index != 0 else ''}",
             "quality_string": es_audio_doc.estimated_bit_rate_type.get_bit_rate_string(),
         }
@@ -92,18 +91,18 @@ class QueryResultsData(BaseTemplateData):
         query: str,
         lang_code: str,
         es_audio_docs: List[elasticsearch_models.Audio],
-        hits: List[graph_models.vertices.Hit],
+        hit_download_urls: List[str],
     ):
         items = [
-            cls.process_item(index, es_audio_doc, db_hit)
-            for index, (es_audio_doc, db_hit) in reversed(
+            cls.process_item(index, es_audio_doc, hit_download_url)
+            for index, (es_audio_doc, hit_download_url) in reversed(
                 list(
                     enumerate(
                         # filter(
                         #     lambda args: args[0].title is not None,
                         #     zip(db_audio_docs, hits),
                         # )
-                        zip(es_audio_docs, hits),
+                        zip(es_audio_docs, hit_download_urls),
                     )
                 )
             )

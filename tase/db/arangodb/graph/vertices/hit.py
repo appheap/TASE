@@ -75,11 +75,28 @@ class HitMethods:
         "   return {audio_key, hit_type, count_}"
     )
 
+    def generate_hit_download_urls(
+        self,
+        size: int = 10,
+    ) -> List[str]:
+        hits = collections.deque()
+        for i in range(size):
+            while True:
+                url = generate_token_urlsafe()
+                if url in hits or self.find_hit_by_download_url(url) or not len(url):
+                    continue
+                else:
+                    hits.append(url)
+                    break
+
+        return list(hits)
+
     def create_hit(
         self: ArangoGraphMethods,
         query: Query,
         audio: Audio,
         hit_type: HitType,
+        hit_download_url: str = None,
         search_metadata: Optional[SearchMetaData] = None,
     ) -> Optional[Hit]:
         """
@@ -93,6 +110,8 @@ class HitMethods:
             Audio this Hit has hit
         hit_type: HitType
             Type of `Hit` vertex
+        hit_download_url : str, default : None
+            Hit download URL to initialize the object with
         search_metadata : SearchMetaData, default : None
             Search metadata related to the given Audio returned from ElasticSearch
 
@@ -110,11 +129,14 @@ class HitMethods:
             return None
 
         hit = Hit.parse(query, audio, hit_type, search_metadata)
-        while True:
-            if not self.find_hit_by_download_url(hit.download_url):
-                break
+        if hit_download_url is None or not len(hit_download_url):
+            while True:
+                if not self.find_hit_by_download_url(hit.download_url):
+                    break
 
-            hit.download_url = generate_token_urlsafe()
+                hit.download_url = generate_token_urlsafe()
+        else:
+            hit.download_url = hit_download_url
 
         hit, successful = Hit.insert(hit)
         if hit and successful:
@@ -136,6 +158,7 @@ class HitMethods:
         query: Query,
         audio: Audio,
         hit_type: HitType,
+        hit_download_url: str = None,
         search_metadata: Optional[SearchMetaData] = None,
     ) -> Optional[Hit]:
         """
@@ -149,6 +172,8 @@ class HitMethods:
             Audio this Hit has hit
         hit_type: HitType
             Type of `Hit` vertex
+        hit_download_url : str, default : None
+            Hit download URL to initialize the object with
         search_metadata : SearchMetaData, default : None
             Search metadata related to the given Audio returned from ElasticSearch
 
@@ -167,7 +192,7 @@ class HitMethods:
 
         hit = Hit.get(Hit.parse_key(query, audio))
         if hit is None:
-            hit = self.create_hit(query, audio, hit_type, search_metadata)
+            hit = self.create_hit(query, audio, hit_type, hit_download_url, search_metadata)
 
         return hit
 

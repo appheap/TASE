@@ -7,12 +7,13 @@ from pyrogram import filters, handlers
 from pyrogram.enums import ParseMode
 
 from tase.common.bot_tasks_checker import BotTaskChecker
-from tase.common.preprocessing import telegram_url_regex, url_regex
+from tase.common.preprocessing import telegram_url_regex, url_regex, clean_text
 from tase.common.utils import (
     datetime_to_timestamp,
     exception_handler,
     find_telegram_usernames,
     emoji,
+    timing,
 )
 from tase.my_logger import logger
 from tase.telegram.bots.bot_commands import BaseCommand, BotCommandType
@@ -66,6 +67,7 @@ class BotMessageHandler(BaseHandler):
         return handlers_list
 
     @exception_handler
+    @timing
     def commands_handler(
         self,
         client: pyrogram.Client,
@@ -76,6 +78,7 @@ class BotMessageHandler(BaseHandler):
         BaseCommand.run_command(client, message, self)
 
     @exception_handler
+    @timing
     def downloads_handler(
         self,
         client: pyrogram.Client,
@@ -103,6 +106,7 @@ class BotMessageHandler(BaseHandler):
         )
 
     @exception_handler
+    @timing
     def search_query_handler(
         self,
         client: pyrogram.Client,
@@ -137,36 +141,22 @@ class BotMessageHandler(BaseHandler):
                 found_any = False
             else:
                 es_audio_docs, query_metadata = self.db.index.search_audio(
-                    query,
+                    clean_text(query),
                     size=10,
                     filter_by_valid_for_inline_search=False,  # todo: is this a good idea?
                 )
                 if not es_audio_docs or not len(es_audio_docs) or query_metadata is None:
                     found_any = False
-
-                audio_vertices = list(self.db.graph.get_audios_from_keys([doc.id for doc in es_audio_docs]))
-                search_metadata_lst = [es_audio_doc.search_metadata for es_audio_doc in es_audio_docs]
-
-                db_query, hits = self.db.graph.get_or_create_query(
-                    self.telegram_client.telegram_id,
-                    from_user,
-                    query,
-                    datetime_to_timestamp(message.date),
-                    audio_vertices,
-                    query_metadata,
-                    search_metadata_lst,
-                )
-                if db_query and hits:
-                    found_any = True
                 else:
-                    found_any = False
+                    hit_download_urls = self.db.graph.generate_hit_download_urls(size=10)
+                    found_any = True
 
         if found_any:
             data = QueryResultsData.parse_from_query(
                 query=query,
                 lang_code=from_user.chosen_language_code,
                 es_audio_docs=es_audio_docs,
-                hits=hits,
+                hit_download_urls=hit_download_urls,
             )
 
             text = BaseTemplate.registry.query_results_template.render(data)
@@ -185,7 +175,23 @@ class BotMessageHandler(BaseHandler):
             disable_web_page_preview=True,
         )
 
+        if found_any:
+            audio_vertices = list(self.db.graph.get_audios_from_keys([doc.id for doc in es_audio_docs]))
+            search_metadata_lst = [es_audio_doc.search_metadata for es_audio_doc in es_audio_docs]
+
+            db_query, hits = self.db.graph.get_or_create_query(
+                self.telegram_client.telegram_id,
+                from_user,
+                query,
+                datetime_to_timestamp(message.date),
+                audio_vertices,
+                query_metadata,
+                search_metadata_lst,
+                hit_download_urls=hit_download_urls,
+            )
+
     @exception_handler
+    @timing
     def bot_message_handler(
         self,
         client: "pyrogram.Client",
@@ -201,11 +207,6 @@ class BotMessageHandler(BaseHandler):
 
         if message.from_user.is_bot or message.from_user.is_fake or message.from_user.is_scam or message.from_user.is_restricted:
             return
-
-        # fixme: translate this string
-        message.reply_text(
-            f"Special thanks for your contribution <b>{message.from_user.first_name or message.from_user.last_name}</b>. {random.choice(emoji.plants_list)}{random.choice(emoji.heart_list)}"
-        )
 
         texts_to_check = set()
 
@@ -261,6 +262,11 @@ class BotMessageHandler(BaseHandler):
 
         if not found_any:
             logger.debug("No usernames found in this message")
+        else:
+            # fixme: translate this string
+            message.reply_text(
+                f"Special thanks for your contribution <b>{message.from_user.first_name or message.from_user.last_name}</b>. {random.choice(emoji.plants_list)}{random.choice(emoji.heart_list)}"
+            )
 
         if message.forward_from:
             self.db.graph.update_or_create_user(message.forward_from)

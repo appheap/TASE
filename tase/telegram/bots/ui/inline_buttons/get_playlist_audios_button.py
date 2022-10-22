@@ -4,7 +4,7 @@ import pyrogram
 
 from tase.common.utils import _trans, emoji
 from tase.db.arangodb import graph as graph_models
-from tase.db.arangodb.enums import InteractionType, ChatType
+from tase.db.arangodb.enums import InteractionType, ChatType, InlineQueryType
 from tase.errors import PlaylistDoesNotExists
 from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
@@ -74,13 +74,26 @@ class GetPlaylistAudioInlineButton(InlineButton):
                     audio_vertices,
                     from_user,
                     handler,
-                    query_date,
                     result,
                     telegram_inline_query,
                 )
 
         if not len(result) and not playlist_is_valid and result.is_first_page():
             result.set_results([NoDownloadItem.get_item(from_user)])
+
+        result.answer_query()
+
+        if playlist_is_valid:
+            handler.db.graph.get_or_create_query(
+                handler.telegram_client.telegram_id,
+                from_user,
+                telegram_inline_query.query,
+                query_date,
+                audio_vertices,
+                telegram_inline_query=telegram_inline_query,
+                inline_query_type=InlineQueryType.COMMAND,
+                next_offset=result.get_next_offset(only_countable=True),
+            )
 
     def on_chosen_inline_query(
         self,

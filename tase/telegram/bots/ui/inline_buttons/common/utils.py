@@ -3,8 +3,9 @@ from typing import List
 import pyrogram
 from pyrogram.types import InlineKeyboardMarkup
 
+from tase.common.utils import timing
 from tase.db.arangodb import graph as graph_models
-from tase.db.arangodb.enums import InlineQueryType, ChatType
+from tase.db.arangodb.enums import ChatType
 from tase.db.arangodb.helpers import AudioKeyboardStatus
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.bots.ui.inline_buttons.base import InlineButton, InlineButtonType
@@ -16,6 +17,7 @@ from tase.telegram.bots.ui.inline_items import (
 from tase.telegram.update_handlers.base import BaseHandler
 
 
+@timing
 def populate_playlist_list(
     from_user: graph_models.vertices.User,
     handler: BaseHandler,
@@ -74,11 +76,11 @@ def populate_playlist_list(
         )
 
 
+@timing
 def populate_audio_items(
     audio_vertices: List[graph_models.vertices.Audio],
     from_user: graph_models.vertices.User,
     handler: BaseHandler,
-    query_date: int,
     result: CustomInlineQueryResult,
     telegram_inline_query: pyrogram.types.InlineQuery,
 ) -> None:
@@ -93,8 +95,6 @@ def populate_audio_items(
         `User` to create the query for
     handler : BaseHandler
         Handler which got this update at the first place
-    query_date : int
-        Timestamp which this query happened
     result : CustomInlineQueryResult
         Result object to used for populating playlists
     telegram_inline_query : pyrogram.types.InlineQuery
@@ -103,53 +103,42 @@ def populate_audio_items(
     # todo: fix this
     chats_dict = handler.update_audio_cache(audio_vertices)
 
-    db_query, hits = handler.db.graph.get_or_create_query(
-        handler.telegram_client.telegram_id,
-        from_user,
-        telegram_inline_query.query,
-        query_date,
-        audio_vertices,
-        telegram_inline_query=telegram_inline_query,
-        inline_query_type=InlineQueryType.COMMAND,
-        next_offset=result.get_next_offset(),  # fixme: the result is not correct
-    )
-    if db_query and hits:
-        for audio_vertex, hit in zip(audio_vertices, hits):
-            audio_doc = handler.db.document.get_audio_by_key(
-                handler.telegram_client.telegram_id,
-                audio_vertex.key,
-            )
-            es_audio_doc = handler.db.index.get_audio_by_id(audio_vertex.key)
+    hit_download_urls = handler.db.graph.generate_hit_download_urls(size=len(audio_vertices))
 
-            if not audio_doc:
-                continue
+    for audio_vertex, hit_download_url in zip(audio_vertices, hit_download_urls):
+        audio_doc = handler.db.document.get_audio_by_key(
+            handler.telegram_client.telegram_id,
+            audio_vertex.key,
+        )
+        es_audio_doc = handler.db.index.get_audio_by_id(audio_vertex.key)
 
-            handler.db.document.get_or_create_audio_inline_message(
-                handler.telegram_client.telegram_id,
-                from_user.user_id,
-                telegram_inline_query.id,
-            )
+        if not audio_doc:
+            continue
 
-            status = AudioKeyboardStatus.get_status(
-                handler.db,
+        handler.db.document.get_or_create_audio_inline_message(
+            handler.telegram_client.telegram_id,
+            from_user.user_id,
+            telegram_inline_query.id,
+        )
+
+        status = AudioKeyboardStatus.get_status(
+            handler.db,
+            from_user,
+            audio_vertex_key=audio_vertex.key,
+        )
+
+        result.add_item(
+            AudioItem.get_item(
+                handler.telegram_client.get_me().username,
+                audio_doc.file_id,
                 from_user,
-                hit.download_url,
+                es_audio_doc,
+                telegram_inline_query,
+                chats_dict,
+                hit_download_url,
+                status,
             )
-
-            result.add_item(
-                AudioItem.get_item(
-                    handler.telegram_client.get_me().username,
-                    audio_doc.file_id,
-                    from_user,
-                    es_audio_doc,
-                    telegram_inline_query,
-                    chats_dict,
-                    hit,
-                    status,
-                )
-            )
-    else:
-        pass
+        )
 
 
 def get_audio_markup_keyboard(
