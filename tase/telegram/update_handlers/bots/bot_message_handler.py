@@ -208,11 +208,6 @@ class BotMessageHandler(BaseHandler):
         if message.from_user.is_bot or message.from_user.is_fake or message.from_user.is_scam or message.from_user.is_restricted:
             return
 
-        # fixme: translate this string
-        message.reply_text(
-            f"Special thanks for your contribution <b>{message.from_user.first_name or message.from_user.last_name}</b>. {random.choice(emoji.plants_list)}{random.choice(emoji.heart_list)}"
-        )
-
         texts_to_check = set()
 
         texts_to_check.add(message.caption)
@@ -267,6 +262,11 @@ class BotMessageHandler(BaseHandler):
 
         if not found_any:
             logger.debug("No usernames found in this message")
+        else:
+            # fixme: translate this string
+            message.reply_text(
+                f"Special thanks for your contribution <b>{message.from_user.first_name or message.from_user.last_name}</b>. {random.choice(emoji.plants_list)}{random.choice(emoji.heart_list)}"
+            )
 
         if message.forward_from:
             self.db.graph.update_or_create_user(message.forward_from)

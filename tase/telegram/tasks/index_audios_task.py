@@ -155,8 +155,8 @@ class IndexAudiosTask(BaseTask):
                 metadata.last_message_offset_id = message.id
                 metadata.last_message_offset_date = datetime_to_timestamp(message.date)
 
-            if idx % 200 == 0:
-                self.wait(random.randint(5, 15))
+            if idx % 400 == 0:
+                self.wait(random.randint(3, 10))
 
         if index_audio:
             chat.update_audio_indexer_metadata(metadata)
