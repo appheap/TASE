@@ -14,7 +14,7 @@ class CheckUsernamesWithUncheckedMentionsJob(BaseJob):
     priority = 1
 
     trigger = IntervalTrigger(
-        hours=1,
+        hours=3,
         minutes=30,
         start_date=arrow.now().shift(minutes=+10).datetime,
     )

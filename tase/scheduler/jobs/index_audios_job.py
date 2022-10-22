@@ -18,7 +18,7 @@ class IndexAudiosJob(BaseJob):
 
     trigger = apscheduler.triggers.interval.IntervalTrigger(
         hours=1,
-        start_date=arrow.now().shift(seconds=+10).datetime,
+        start_date=arrow.now().shift(minutes=+10).datetime,
     )
 
     def run(

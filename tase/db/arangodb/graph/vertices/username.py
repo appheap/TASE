@@ -92,6 +92,7 @@ class UsernameMethods:
         "           return count_"
         "   )"
         "   sort mention_count[0] desc, username.created_at asc"
+        "   limit @limit_"
         "   return username"
     )
 
@@ -106,6 +107,7 @@ class UsernameMethods:
         "           return count_"
         "           )"
         "   sort unchecked_mentions_count[0] desc"
+        "   limit @limit_"
         "   let mentioned_chat = ("
         "       for chat, e in 1..1 inbound username graph '@graph_name' options {order: 'dfs', edgeCollections: ['@has'], vertexCollections: ['@chats']}"
         "           return chat"
@@ -274,9 +276,17 @@ class UsernameMethods:
 
         return db_username
 
-    def get_unchecked_usernames(self) -> Generator[Username, None, None]:
+    def get_unchecked_usernames(
+        self,
+        limit: int = 200,
+    ) -> Generator[Username, None, None]:
         """
         Get list of Usernames that have not been checked yet, sorted by their creation date in a ascending order
+
+        Parameters
+        ----------
+        limit : int, default : 200
+            Limit the number of username vertices to get
 
         Yields
         -------
@@ -296,6 +306,7 @@ class UsernameMethods:
                 "mentions": Mentions._collection_name,
                 "chats": Chat._collection_name,
                 "now": now,
+                "limit_": limit,
             },
         )
 
@@ -305,10 +316,16 @@ class UsernameMethods:
 
     def get_checked_usernames_with_unchecked_mentions(
         self,
+        limit: int = 100,
     ) -> Generator[Tuple[Username, Chat], None, None]:
         """
         Get list of Usernames that have been checked, but they have mentions that have not been checked,
         sorted by the number of unchecked `mentions` edges in a descending order
+
+        Parameters
+        ----------
+        limit : int, default : 100
+            Limit the number of username vertices to get
 
         Yields
         -------
@@ -330,6 +347,7 @@ class UsernameMethods:
                 "chats": Chat._collection_name,
                 "has": Has._collection_name,
                 "now": now,
+                "limit_": limit,
             },
         )
 
