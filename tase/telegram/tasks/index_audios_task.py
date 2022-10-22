@@ -131,11 +131,13 @@ class IndexAudiosTask(BaseTask):
 
         metadata.reset_counters()
 
-        for message in telegram_client.iter_messages(
-            chat_id=chat.chat_id,
-            offset_id=metadata.last_message_offset_id,
-            only_newer_messages=True,
-            filter="audio" if index_audio else "document",
+        for idx, message in enumerate(
+            telegram_client.iter_messages(
+                chat_id=chat.chat_id,
+                offset_id=metadata.last_message_offset_id,
+                only_newer_messages=True,
+                filter="audio" if index_audio else "document",
+            )
         ):
             if not index_audio:
                 audio, audio_type = get_telegram_message_media_type(message)
@@ -152,6 +154,9 @@ class IndexAudiosTask(BaseTask):
             if message.id > metadata.last_message_offset_id:
                 metadata.last_message_offset_id = message.id
                 metadata.last_message_offset_date = datetime_to_timestamp(message.date)
+
+            if idx % 200 == 0:
+                self.wait(random.randint(5, 15))
 
         if index_audio:
             chat.update_audio_indexer_metadata(metadata)

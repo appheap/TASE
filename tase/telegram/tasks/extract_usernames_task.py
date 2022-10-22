@@ -175,10 +175,12 @@ class ExtractUsernamesTask(BaseTask):
         chat_id: Union[str, int],
         telegram_client: TelegramClient,
     ):
-        for message in telegram_client.iter_messages(
-            chat_id=chat_id,
-            offset_id=self.metadata.last_message_offset_id,
-            only_newer_messages=True,
+        for idx, message in enumerate(
+            telegram_client.iter_messages(
+                chat_id=chat_id,
+                offset_id=self.metadata.last_message_offset_id,
+                only_newer_messages=True,
+            )
         ):
             message: pyrogram.types.Message = message
 
@@ -264,6 +266,9 @@ class ExtractUsernamesTask(BaseTask):
             if message.id > self.metadata.last_message_offset_id:
                 self.metadata.last_message_offset_id = message.id
                 self.metadata.last_message_offset_date = datetime_to_timestamp(message.date)
+
+            if idx % 200 == 0:
+                self.wait(random.randint(5, 15))
 
     def find_usernames_in_text(
         self,
