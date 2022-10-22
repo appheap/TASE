@@ -7,7 +7,7 @@ from pyrogram import filters, handlers
 from pyrogram.enums import ParseMode
 
 from tase.common.bot_tasks_checker import BotTaskChecker
-from tase.common.preprocessing import telegram_url_regex, url_regex
+from tase.common.preprocessing import telegram_url_regex, url_regex, clean_text
 from tase.common.utils import (
     datetime_to_timestamp,
     exception_handler,
@@ -141,7 +141,7 @@ class BotMessageHandler(BaseHandler):
                 found_any = False
             else:
                 es_audio_docs, query_metadata = self.db.index.search_audio(
-                    query,
+                    clean_text(query),
                     size=10,
                     filter_by_valid_for_inline_search=False,  # todo: is this a good idea?
                 )

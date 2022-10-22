@@ -535,7 +535,7 @@ class AudioMethods:
             List of audio files matching the query alongside the query metadata
 
         """
-        if query is None or from_ is None or size is None:
+        if query is None or not len(query) or from_ is None or size is None:
             return None, None
 
         audios, query_metadata = Audio.search(
