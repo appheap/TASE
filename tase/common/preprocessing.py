@@ -1,8 +1,9 @@
+import collections
 import mimetypes
 import re
 import string
 import unicodedata
-from typing import Set, Callable, Optional, List, Tuple
+from typing import Set, Callable, Optional, List, Tuple, Union
 
 import emoji
 import nltk
@@ -71,6 +72,23 @@ def remove_telegram_urls(text: str) -> Optional[str]:
         return None
 
     return replace_telegram_urls(text, "")
+
+
+def replace_telegram_usernames(
+    text: str,
+    symbol: str = " ",
+) -> Optional[str]:
+    if text is None:
+        return None
+
+    for username in find_telegram_usernames(text, return_start_index=False):
+        text = text.replace(f"@{username}", symbol)
+
+    return text
+
+
+def remove_telegram_usernames(text: str) -> Optional[str]:
+    return replace_telegram_usernames(text, "")
 
 
 def lowercase(text: str) -> Optional[str]:
@@ -340,13 +358,14 @@ def get_default_pipeline() -> List[Callable[[str], str]]:
      2. :meth:`tase.common.preprocessing.remove_file_extension`
      3. :meth:`tase.common.preprocessing.remove_html_tags`
      4. :meth:`tase.common.preprocessing.remove_telegram_urls`
-     5. :meth:`tase.common.preprocessing.remove_urls`
-     6. :meth:`tase.common.preprocessing.replace_punctuation`
-     7. :meth:`tase.common.preprocessing.remove_emojis`
-     8. :meth:`tase.common.preprocessing.remove_whitespace`
-     9. :meth:`tase.common.preprocessing.remove_lines`
-     10. :meth:`tase.common.preprocessing.remove_extra_spaces`
-     11. :meth:`tase.common.preprocessing.empty_to_null`
+     5. :meth:`tase.common.preprocessing.remove_telegram_usernames`
+     6. :meth:`tase.common.preprocessing.remove_urls`
+     7. :meth:`tase.common.preprocessing.replace_punctuation`
+     8. :meth:`tase.common.preprocessing.remove_emojis`
+     9. :meth:`tase.common.preprocessing.remove_whitespace`
+     10. :meth:`tase.common.preprocessing.remove_lines`
+     11. :meth:`tase.common.preprocessing.remove_extra_spaces`
+     12. :meth:`tase.common.preprocessing.empty_to_null`
     """
     return [
         # lowercase,
@@ -354,6 +373,7 @@ def get_default_pipeline() -> List[Callable[[str], str]]:
         remove_audio_file_extension,
         remove_html_tags,
         remove_telegram_urls,
+        remove_telegram_usernames,
         remove_urls,
         replace_punctuation,
         remove_emojis,
@@ -381,6 +401,7 @@ def get_audio_item_pipeline() -> List[Callable[[str], str]]:
         # remove_diacritics,  # this one needs to come first to prevent decoding error
         remove_html_tags,
         remove_telegram_urls,
+        remove_telegram_usernames,
         remove_urls,
         remove_hashtags,
         # remove_punctuation_without_dot,
@@ -460,6 +481,60 @@ def clean_text(
             logger.error(f"UnicodeDecodeError: {text}")
 
     return text
+
+
+###########################################################################################3
+def find_telegram_usernames(
+    text: str,
+    return_start_index: bool = True,
+) -> Optional[Union[List[Tuple[str, int]], List[str]]]:
+    """
+    Find telegram usernames in the given text
+
+    Parameters
+    ----------
+    text : str
+        Text to extract the usernames from
+    return_start_index : bool, default : True
+        Whether to return the starting index of the match or not. If this parameter is set to False, the returned usernames will be converted to lowercase
+
+    Returns
+    -------
+    list[tuple[str, int]], optional
+        List of tuple of username and starting index of the regex match if successful, otherwise, return an empty list
+
+    """
+    if text is None or not len(text):
+        return []
+
+    usernames = collections.deque()
+    for match in re.finditer(telegram_url_regex, text):
+        username0 = match.group("username0")
+        username1 = match.group("username1")
+
+        if username0 is not None:
+            username = username0
+        elif username1 is not None:
+            username = username1
+        else:
+            continue
+
+        if not return_start_index:
+            username = username.lower()
+
+        usernames.append((username, match.start()) if return_start_index else username)
+
+    text = remove_urls(re.sub(telegram_url_regex, "", text))
+    if text is not None and len(text):
+        for match in re.finditer(telegram_username_regex, text):
+            username = match.group("username")
+            if username is not None and len(username):
+                if not return_start_index:
+                    username = username.lower()
+
+                usernames.append((username, match.start()) if return_start_index else username)
+
+    return list(usernames) if return_start_index else list(set(usernames))
 
 
 if __name__ == "__main__":
