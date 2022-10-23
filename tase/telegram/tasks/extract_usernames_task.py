@@ -7,7 +7,8 @@ from kombu.mixins import ConsumerProducerMixin
 from pydantic import Field
 from pyrogram.errors import FloodWait
 
-from tase.common.utils import datetime_to_timestamp, prettify, find_telegram_usernames, get_now_timestamp
+from tase.common.preprocessing import find_telegram_usernames
+from tase.common.utils import datetime_to_timestamp, prettify, get_now_timestamp
 from tase.db import DatabaseClient
 from tase.db.arangodb.enums import MentionSource, RabbitMQTaskType
 from tase.db.arangodb.graph.vertices import Chat
