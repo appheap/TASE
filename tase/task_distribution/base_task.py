@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 from tase.db import DatabaseClient
 from .target_worker_type import TargetWorkerType
 from .. import task_globals
+from ..common.utils import check_ram_usage
 from ..db.arangodb.enums import RabbitMQTaskType, RabbitMQTaskStatus
 from ..my_logger import logger
 
@@ -107,9 +108,18 @@ class BaseTask(BaseModel):
             Exchange to send the body to
         priority : int, default : 1
             Priority of this task on the queue
+
+        Raises
+        ------
+        ValueError
+            In case the `exchange` parameter is None
+        NotEnoughRamError
+            In case the RAM usage is greater than given threshold
         """
         if exchange is None:
-            raise Exception("Parameter `exchange` cannot be `None`")
+            raise ValueError("Parameter `exchange` cannot be `None`")
+
+        check_ram_usage()
 
         routing_key = ""
         if exchange and target_queue:
