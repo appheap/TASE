@@ -37,6 +37,8 @@ class IndexAudiosJob(BaseJob):
             filter_by_indexed_chats=False,
         )
 
+        failed = False
+
         # todo: blocking or non-blocking? which one is better suited for this case?
         for chat in chain(chats, not_indexed_chats):
             logger.debug(f"published task for indexing: {chat.username}")
@@ -48,5 +50,10 @@ class IndexAudiosJob(BaseJob):
                 ).publish(db)
             except NotEnoughRamError:
                 logger.debug(f"indexing audio files from chat `{chat.username}` was cancelled due to high memory usage")
+                failed = True
+                break
 
-        self.task_done(db)
+        if failed:
+            self.task_failed(db)
+        else:
+            self.task_done(db)
