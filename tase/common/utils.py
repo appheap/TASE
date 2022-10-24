@@ -10,6 +10,7 @@ from time import time
 from typing import Optional, List, Tuple, Dict, Match, Union
 
 import arrow
+import psutil
 import tomli
 from pydantic import BaseModel
 
@@ -18,6 +19,7 @@ from tase.my_logger import logger
 from tase.static import Emoji
 from .preprocessing import hashtags_regex, clean_hashtag
 from ..db.arangodb.enums import MentionSource
+from ..errors import NotEnoughRamError
 
 # todo: it's not a good practice to hardcode like this, fix it
 languages = dict()
@@ -203,6 +205,24 @@ def get_now_timestamp() -> int:
 
     """
     return int(arrow.utcnow().timestamp() * 1000)
+
+
+def check_ram_usage(threshold: int = 90) -> None:
+    """
+    Check if the RAM usage is below the given threshold
+
+    Parameters
+    ----------
+    threshold : int
+        RAM usage threshold
+
+    Raises
+    ------
+    NotEnoughRamError
+        In case the RAM usage is greater than given threshold
+    """
+    if psutil.virtual_memory().percent > threshold:
+        raise NotEnoughRamError(threshold)
 
 
 def timing(f):

@@ -1,8 +1,10 @@
 import pyrogram
 from pydantic import Field
+from pyrogram.enums import ParseMode
 
 from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.graph.vertices.user import UserRole
+from tase.errors import NotEnoughRamError
 from tase.task_distribution import ShutdownTask
 from tase.telegram.update_handlers.base import BaseHandler
 from ..base_command import BaseCommand
@@ -29,8 +31,27 @@ class ShutdownCommand(BaseCommand):
     ) -> None:
         # todo: translate me
         message.reply_text("Starting to shutdown the system...")
-        published = ShutdownTask().publish(handler.db)
-        if published:
-            message.reply_text("Shutdown command completed successfully.")
+        try:
+            published = ShutdownTask().publish(
+                handler.db,
+                check_memory_usage=False,
+            )
+        except NotEnoughRamError:
+            message.reply_text(
+                f"Bot shutdown was cancelled due to high memory usage",
+                quote=True,
+                parse_mode=ParseMode.HTML,
+            )
         else:
-            message.reply_text("Could not shutdown the system.")
+            if published:
+                message.reply_text(
+                    "Shutdown command completed successfully.",
+                    quote=True,
+                    parse_mode=ParseMode.HTML,
+                )
+            else:
+                message.reply_text(
+                    "Could not shutdown the system.",
+                    quote=True,
+                    parse_mode=ParseMode.HTML,
+                )
