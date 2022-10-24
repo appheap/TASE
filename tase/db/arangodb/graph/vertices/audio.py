@@ -721,14 +721,16 @@ class AudioMethods:
         )
         if cursor is not None and len(cursor):
             try:
-                for doc in cursor:
-                    yield Audio.from_collection(doc)
+                audios_lst = cursor.pop()
             except CursorEmptyError:
                 pass
             except CursorNextError:
                 pass
             except Exception as e:
                 logger.exception(e)
+            else:
+                for doc in audios_lst:
+                    yield Audio.from_collection(doc)
 
     def iter_audios(
         self,
