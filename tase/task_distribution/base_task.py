@@ -29,6 +29,32 @@ class BaseTask(BaseModel):
         target_queue: kombu.Queue = None,
         priority: int = None,
     ) -> Tuple[Optional[RabbitMQTaskStatus], bool]:
+        """
+        Publish this task on a queue to be processed
+
+        Parameters
+        ----------
+        db : DatabaseClient
+            Database Client
+        target_queue : kombu.Queue
+            Queue to send the body to
+        priority : int, default : None
+            Priority of this task on the queue
+
+        Returns
+        -------
+        tuple of RabbitMQTaskStatus and bool
+            Status of the published task and whether the task was created or not. If there was any error in creating the task on the DB, the returned status
+            will be None.
+
+        Raises
+        ------
+        ValueError
+            In case the `exchange` parameter is None
+        NotEnoughRamError
+            In case the there is not enough RAM to execute this task
+
+        """
         if db is None or self.target_worker_type == TargetWorkerType.UNKNOWN or self.type == RabbitMQTaskType.UNKNOWN:
             return None, False
 
