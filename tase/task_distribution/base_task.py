@@ -28,6 +28,7 @@ class BaseTask(BaseModel):
         db: DatabaseClient,
         target_queue: kombu.Queue = None,
         priority: int = None,
+        check_memory_usage: bool = True,
     ) -> Tuple[Optional[RabbitMQTaskStatus], bool]:
         """
         Publish this task on a queue to be processed
@@ -40,6 +41,8 @@ class BaseTask(BaseModel):
             Queue to send the body to
         priority : int, default : None
             Priority of this task on the queue
+        check_memory_usage : bool, default : True
+            Whether to check for memory usage before publishing the task or not
 
         Returns
         -------
@@ -83,24 +86,28 @@ class BaseTask(BaseModel):
                         task_globals.telegram_workers_general_task_queue,
                         task_globals.telegram_client_worker_exchange,
                         priority,
+                        check_memory_usage,
                     )
                 elif self.target_worker_type == TargetWorkerType.ONE_TELEGRAM_CLIENT_CONSUMER_WORK:
                     self._publish_task(
                         target_queue,
                         task_globals.telegram_client_worker_exchange,
                         priority,
+                        check_memory_usage,
                     )
                 elif self.target_worker_type == TargetWorkerType.RABBITMQ_CONSUMER_COMMAND:
                     self._publish_task(
                         None,
                         task_globals.rabbitmq_worker_command_exchange,
                         priority,
+                        check_memory_usage,
                     )
                 elif self.target_worker_type == TargetWorkerType.SCHEDULER_JOB:
                     self._publish_task(
                         task_globals.scheduler_queue,
                         task_globals.scheduler_exchange,
                         priority,
+                        check_memory_usage,
                     )
             except Exception as e:
                 logger.exception(e)
@@ -122,6 +129,7 @@ class BaseTask(BaseModel):
         target_queue: kombu.Queue = None,
         exchange: kombu.Exchange = None,
         priority: int = 1,
+        check_memory_usage: bool = True,
     ):
         """
         Publishes an object on a queue to be processed
@@ -134,6 +142,8 @@ class BaseTask(BaseModel):
             Exchange to send the body to
         priority : int, default : 1
             Priority of this task on the queue
+        check_memory_usage: bool, default : True
+            Whether to check for memory usage before publishing the task or not
 
         Raises
         ------
@@ -145,7 +155,8 @@ class BaseTask(BaseModel):
         if exchange is None:
             raise ValueError("Parameter `exchange` cannot be `None`")
 
-        check_ram_usage()
+        if check_memory_usage:
+            check_ram_usage()
 
         routing_key = ""
         if exchange and target_queue:

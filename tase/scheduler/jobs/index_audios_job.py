@@ -8,6 +8,7 @@ import tase
 from tase.telegram.tasks import IndexAudiosTask
 from .base_job import BaseJob
 from ...db.arangodb.enums import RabbitMQTaskType
+from ...errors import NotEnoughRamError
 from ...my_logger import logger
 from ...telegram.client import TelegramClient
 
@@ -39,10 +40,13 @@ class IndexAudiosJob(BaseJob):
         # todo: blocking or non-blocking? which one is better suited for this case?
         for chat in chain(chats, not_indexed_chats):
             logger.debug(f"published task for indexing: {chat.username}")
-            IndexAudiosTask(
-                kwargs={
-                    "chat_key": chat.key,
-                }
-            ).publish(db)
+            try:
+                IndexAudiosTask(
+                    kwargs={
+                        "chat_key": chat.key,
+                    }
+                ).publish(db)
+            except NotEnoughRamError:
+                logger.debug(f"indexing audio files from chat `{chat.username}` was cancelled due to high memory usage")
 
         self.task_done(db)

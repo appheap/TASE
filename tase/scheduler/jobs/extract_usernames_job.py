@@ -9,6 +9,7 @@ from tase.my_logger import logger
 from tase.telegram.tasks import ExtractUsernamesTask
 from .base_job import BaseJob
 from ...db.arangodb.enums import RabbitMQTaskType
+from ...errors import NotEnoughRamError
 from ...telegram.client import TelegramClient
 
 
@@ -31,13 +32,23 @@ class ExtractUsernamesJob(BaseJob):
         db_chats = db.graph.get_chats_sorted_by_username_extractor_score()
         not_extracted_db_chats = db.graph.get_chats_sorted_by_username_extractor_score(filter_by_indexed_chats=False)
 
+        failed = False
+
         for chat in chain(db_chats, not_extracted_db_chats):
             logger.debug(chat.username)
             # todo: blocking or non-blocking? which one is better suited for this case?
-            ExtractUsernamesTask(
-                kwargs={
-                    "chat_key": chat.key,
-                }
-            ).publish(db)
+            try:
+                ExtractUsernamesTask(
+                    kwargs={
+                        "chat_key": chat.key,
+                    }
+                ).publish(db)
+            except NotEnoughRamError:
+                logger.debug(f"Extracting usernames from chat `{chat.username}` was cancelled due to high memory usage")
+                failed = True
+                break
 
-        self.task_done(db)
+        if failed:
+            self.task_failed(db)
+        else:
+            self.task_done(db)

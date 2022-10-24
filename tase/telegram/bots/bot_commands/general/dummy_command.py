@@ -1,8 +1,10 @@
 import pyrogram
 from pydantic import Field
+from pyrogram.enums import ParseMode
 
 from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.graph.vertices.user import UserRole
+from tase.errors import NotEnoughRamError
 from tase.telegram.bots.bot_commands.base_command import BaseCommand
 from tase.telegram.bots.bot_commands.bot_command_type import BotCommandType
 from tase.telegram.tasks import DummyTask
@@ -30,15 +32,23 @@ class DummyCommand(BaseCommand):
         if message.command and len(message.command) > 1:
             kwargs = {f"key_{i}": arg for i, arg in enumerate(message.command[1:])}
 
-        status, created = DummyTask(kwargs=kwargs).publish(handler.db)
-        if status is None:
-            message.reply_text("internal error")
+        try:
+            status, created = DummyTask(kwargs=kwargs).publish(handler.db)
+        except NotEnoughRamError:
+            message.reply_text(
+                f"`DummyTask` was cancelled due to high memory usage",
+                quote=True,
+                parse_mode=ParseMode.HTML,
+            )
         else:
-            if created:
-                if status.is_active():
-                    message.reply_text("Added the task to be processed!")
+            if status is None:
+                message.reply_text("internal error")
             else:
-                if status.is_active():
-                    message.reply_text("This task already being processed")
+                if created:
+                    if status.is_active():
+                        message.reply_text("Added the task to be processed!")
                 else:
-                    message.reply_text("The task is already finished")
+                    if status.is_active():
+                        message.reply_text("This task already being processed")
+                    else:
+                        message.reply_text("The task is already finished")

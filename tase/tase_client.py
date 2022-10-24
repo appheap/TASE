@@ -6,6 +6,7 @@ from decouple import config
 
 from tase.configs import TASEConfig
 from tase.db import DatabaseClient
+from tase.errors import NotEnoughRamError
 from tase.scheduler import SchedulerWorkerProcess
 from tase.scheduler.jobs import (
     CountInteractionsJob,
@@ -75,15 +76,17 @@ class TASE:
 
                 # cancel active task from the last run
                 self.database_client.document.cancel_all_active_tasks()
+                try:
+                    # todo: do initial job scheduling in a proper way
+                    CountInteractionsJob().publish(self.database_client)
+                    CountHitsJob().publish(self.database_client)
 
-                # todo: do initial job scheduling in a proper way
-                CountInteractionsJob().publish(self.database_client)
-                CountHitsJob().publish(self.database_client)
-
-                IndexAudiosJob().publish(self.database_client)
-                ExtractUsernamesJob().publish(self.database_client)
-                CheckUsernamesJob().publish(self.database_client)
-                CheckUsernamesWithUncheckedMentionsJob().publish(self.database_client)
+                    IndexAudiosJob().publish(self.database_client)
+                    ExtractUsernamesJob().publish(self.database_client)
+                    CheckUsernamesJob().publish(self.database_client)
+                    CheckUsernamesWithUncheckedMentionsJob().publish(self.database_client)
+                except NotEnoughRamError as e:
+                    raise e
 
             else:
                 # todo: raise error (config file is invalid)
