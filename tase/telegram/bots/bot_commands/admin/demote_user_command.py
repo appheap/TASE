@@ -6,7 +6,7 @@ from pyrogram.errors import (
 )
 from pyrogram.types import BotCommandScopeChat
 
-from tase.common.utils import find_telegram_usernames
+from tase.common.preprocessing import find_telegram_usernames
 from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.graph.vertices.user import UserRole
 from tase.my_logger import logger

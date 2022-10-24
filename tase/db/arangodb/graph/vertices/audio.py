@@ -4,7 +4,7 @@ import copy
 from typing import Optional, List, Generator, TYPE_CHECKING
 
 import pyrogram
-from arango import CursorEmptyError
+from arango import CursorEmptyError, CursorNextError
 
 from tase.common.preprocessing import clean_text, empty_to_null
 from tase.common.utils import (
@@ -304,6 +304,8 @@ class AudioMethods:
 
     _get_audios_by_keys = "return document(@audios, @audio_keys)"
 
+    _iter_audios_query = "for audio in @audios" "   filter audio.modified_at <= @now" "   sort audio.created_at asc" "   return audio"
+
     _get_new_indexed_audios_count_query = (
         "for audio in @audios"
         "   filter audio.created_at >= @checkpoint"
@@ -312,9 +314,7 @@ class AudioMethods:
     )
 
     _get_total_indexed_audios_count_query = (
-        "for audio in @audios"
-        "   collect with count into total_indexed_audios_count"
-        "   return total_indexed_audios_count"
+        "for audio in @audios" "   collect with count into total_indexed_audios_count" "   return total_indexed_audios_count"
     )
 
     def create_audio(
@@ -721,14 +721,41 @@ class AudioMethods:
         )
         if cursor is not None and len(cursor):
             try:
-                audios_raw = cursor.pop()
+                audios_lst = cursor.pop()
             except CursorEmptyError:
+                pass
+            except CursorNextError:
                 pass
             except Exception as e:
                 logger.exception(e)
             else:
-                for doc in audios_raw:
+                for doc in audios_lst:
                     yield Audio.from_collection(doc)
+
+    def iter_audios(
+        self,
+        now: int,
+    ) -> Generator[Audio, None, None]:
+        if now is None:
+            return
+
+        cursor = Audio.execute_query(
+            self._iter_audios_query,
+            bind_vars={
+                "audios": Audio._collection_name,
+                "now": now,
+            },
+        )
+        if cursor is not None and len(cursor):
+            try:
+                for doc in cursor:
+                    yield Audio.from_collection(doc)
+            except CursorEmptyError:
+                pass
+            except CursorNextError:
+                pass
+            except Exception as e:
+                logger.exception(e)
 
     def get_audio_by_key(
         self,

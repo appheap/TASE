@@ -654,33 +654,63 @@ class BaseCollectionDocument(BaseCollectionAttributes):
             # copy_attrs_from_new_document(self, doc)
         except DocumentUpdateError as e:
             # Failed to update document.
-            # logger.exception(f"{self.__class__.__name__} : {e}")
-            pass
+            logger.error(f"{self.__class__.__name__}: `{self.key}` : DocumentUpdateError")
+            # The expected and actual document revisions mismatched.
+            successful = self._retry_update(
+                check_rev,
+                doc,
+                reserve_non_updatable_fields,
+                retry_on_failure,
+                run_depth,
+                successful,
+                sync,
+            )
         except DocumentRevisionError as e:
             logger.error(f"{self.__class__.__name__}: `{self.key}` : DocumentRevisionError")
             # The expected and actual document revisions mismatched.
-            if retry_on_failure:
-                logger.error(f"Retry #{run_depth}")
-                # todo: sleep for a while before retrying
-                time.sleep(run_depth * 20 / 1000)
-
-                latest_doc = self.get(self.key)
-                if latest_doc is not None:
-                    successful = latest_doc.update(
-                        doc,
-                        reserve_non_updatable_fields=reserve_non_updatable_fields,
-                        check_rev=check_rev,
-                        sync=sync,
-                        retry_on_failure=retry_on_failure,
-                        run_depth=run_depth + 1,
-                    )
-                    if successful:
-                        self.__dict__.update(latest_doc.__dict__)
-            # logger.exception(f"{self.__class__.__name__} : {e}")
+            successful = self._retry_update(
+                check_rev,
+                doc,
+                reserve_non_updatable_fields,
+                retry_on_failure,
+                run_depth,
+                successful,
+                sync,
+            )
         except Exception as e:
             logger.exception(f"{self.__class__.__name__} : {e}")
         else:
             successful = True
+        return successful
+
+    def _retry_update(
+        self,
+        check_rev: bool,
+        doc: TBaseCollectionDocument,
+        reserve_non_updatable_fields: bool,
+        retry_on_failure: bool,
+        run_depth: int,
+        successful: bool,
+        sync: bool,
+    ):
+        if retry_on_failure:
+            logger.error(f"Retry #{run_depth}")
+            # todo: sleep for a while before retrying
+            time.sleep(run_depth * 20 / 1000)
+
+            latest_doc = self.get(self.key)
+            if latest_doc is not None:
+                successful = latest_doc.update(
+                    doc,
+                    reserve_non_updatable_fields=reserve_non_updatable_fields,
+                    check_rev=check_rev,
+                    sync=sync,
+                    retry_on_failure=retry_on_failure,
+                    run_depth=run_depth + 1,
+                )
+                if successful:
+                    logger.error(f"Success after retry #{run_depth}")
+                    self.__dict__.update(latest_doc.__dict__)
         return successful
 
     @classmethod

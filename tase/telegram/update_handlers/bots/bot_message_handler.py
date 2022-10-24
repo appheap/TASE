@@ -7,11 +7,10 @@ from pyrogram import filters, handlers
 from pyrogram.enums import ParseMode
 
 from tase.common.bot_tasks_checker import BotTaskChecker
-from tase.common.preprocessing import telegram_url_regex, url_regex, clean_text
+from tase.common.preprocessing import telegram_url_regex, url_regex, clean_text, find_telegram_usernames
 from tase.common.utils import (
     datetime_to_timestamp,
     exception_handler,
-    find_telegram_usernames,
     emoji,
     timing,
 )

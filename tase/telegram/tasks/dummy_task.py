@@ -22,7 +22,11 @@ class DummyTask(BaseTask):
         self.task_in_worker(db)
 
         logger.info(f"Running Dummy Task with client: {telegram_client.name}")
-        time.sleep(10)
+        logger.info(f"{self.type.value} : {self.kwargs}")
+        logger.info("")
+        time.sleep(30)
         logger.info(f"Finished Dummy Task with client: {telegram_client.name}")
+        logger.info(f"{self.type.value} : {self.kwargs}")
+        logger.info("")
 
         self.task_done(db)

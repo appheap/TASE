@@ -16,7 +16,7 @@ from pydantic import BaseModel
 from tase.languages import Language, Languages
 from tase.my_logger import logger
 from tase.static import Emoji
-from .preprocessing import telegram_url_regex, hashtags_regex, clean_hashtag, remove_urls, telegram_username_regex
+from .preprocessing import hashtags_regex, clean_hashtag
 from ..db.arangodb.enums import MentionSource
 
 # todo: it's not a good practice to hardcode like this, fix it
@@ -214,7 +214,7 @@ def timing(f):
 
         # fixme
         # logger.info("func:%r args:[%r, %r] took: %2.4f sec" % (f.__name__, args, kw, te - ts))
-        logger.error("func:%r  took: %2.4f sec" % (f.__name__, te - ts))
+        logger.error(f"func:{f.__name__}  took: {round((te - ts) * 1000):} ms")
         return result
 
     return wrap
@@ -284,52 +284,6 @@ def generate_token_urlsafe(
         if download_url.find("-") == -1:
             break
     return download_url
-
-
-def find_telegram_usernames(
-    text: str,
-    return_start_index: bool = True,
-) -> Optional[Union[List[Tuple[str, int]], List[str]]]:
-    """
-    Find telegram usernames in the given text
-
-    Parameters
-    ----------
-    text : str
-        Text to extract the usernames from
-    return_start_index : bool, default : True
-        Whether to return the starting index of the match or not
-
-    Returns
-    -------
-    list[tuple[str, int]], optional
-        List of tuple of username and starting index of the regex match if successful, otherwise, return an empty list
-
-    """
-    usernames = collections.deque()
-    for match in re.finditer(telegram_url_regex, text):
-        username0 = match.group("username0")
-        username1 = match.group("username1")
-
-        if username0 is not None:
-            username = username0
-        elif username1 is not None:
-            username = username1
-        else:
-            continue
-
-        username = username.lower()
-        usernames.append((username, match.start()) if return_start_index else username)
-
-    text = remove_urls(re.sub(telegram_url_regex, "", text))
-    if text is not None and len(text):
-        for match in re.finditer(telegram_username_regex, text):
-            username = match.group("username")
-            if username is not None and len(username):
-                username = username.lower()
-                usernames.append((username, match.start()) if return_start_index else username)
-
-    return list(usernames) if return_start_index else list(set(usernames))
 
 
 def find_hashtags(
