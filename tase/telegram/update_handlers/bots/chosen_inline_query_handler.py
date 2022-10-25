@@ -66,6 +66,7 @@ class ChosenInlineQueryHandler(BaseHandler):
                     self.telegram_client.telegram_id,
                     from_user.user_id,
                     inline_query_id,
+                    hit_download_url,
                     chosen_inline_result.inline_message_id,
                 )
                 if not updated:

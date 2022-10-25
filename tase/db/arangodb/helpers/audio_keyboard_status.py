@@ -28,7 +28,10 @@ class AudioKeyboardStatus(BaseModel):
 
         from tase.db.arangodb.enums import InteractionType
 
-        valid_for_inline = db.graph.is_audio_valid_for_inline_mode(hit_download_url)
+        valid_for_inline = db.graph.is_audio_valid_for_inline_mode(
+            hit_download_url=hit_download_url,
+            audio_vertex_key=audio_vertex_key,
+        )
 
         return AudioKeyboardStatus(
             is_liked=db.graph.audio_is_interacted_by_user(

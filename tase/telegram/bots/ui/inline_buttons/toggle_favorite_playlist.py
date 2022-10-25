@@ -69,6 +69,7 @@ class ToggleFavoritePlaylistInlineButton(InlineButton):
                             handler.telegram_client.telegram_id,
                             from_user.user_id,
                             telegram_callback_query.inline_message_id,
+                            hit_download_url,
                         )
                         if audio_inline_message:
                             status = AudioKeyboardStatus.get_status(

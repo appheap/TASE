@@ -275,7 +275,7 @@ class AudioMethods:
         "   return v"
     )
 
-    _check_audio_validity_for_inline_mode = (
+    _check_audio_validity_for_inline_mode_by_hit_download_url = (
         "for hit in @hits"
         "   filter hit.download_url == '@hit_download_url'"
         "   for v,e in 1..1 outbound hit graph '@graph_name' options {order:'dfs', edgeCollections:['@has'], vertexCollections:['@audios']}"
@@ -601,7 +601,9 @@ class AudioMethods:
 
     def is_audio_valid_for_inline_mode(
         self,
-        hit_download_url: str,
+        *,
+        hit_download_url: str = None,
+        audio_vertex_key: str = None,
     ) -> Optional[bool]:
         """
         Check for inline validity of an `Audio` vertex from a `Hit` vertex `download_url`
@@ -610,6 +612,8 @@ class AudioMethods:
         ----------
         hit_download_url : str
             Download URL of a hit vertex connected to the audio vertex
+        audio_vertex_key : str
+            Audio vertex key
 
         Returns
         -------
@@ -617,29 +621,33 @@ class AudioMethods:
             Whether the audio vertex is valid for inline search if it exists in the database, otherwise return None
 
         """
-        if hit_download_url is None or not len(hit_download_url):
+        if audio_vertex_key is None and (hit_download_url is None or not len(hit_download_url)):
             return False
 
         from tase.db.arangodb.graph.edges import Has
 
-        cursor = Audio.execute_query(
-            self._check_audio_validity_for_inline_mode,
-            bind_vars={
-                "hits": Hit._collection_name,
-                "hit_download_url": hit_download_url,
-                "audios": Audio._collection_name,
-                "has": Has._collection_name,
-            },
-        )
-        if cursor is not None and len(cursor):
-            try:
-                is_valid: bool = cursor.pop()
-            except CursorEmptyError:
-                pass
-            except Exception as e:
-                logger.exception(e)
-            else:
-                return is_valid
+        if hit_download_url is not None:
+            cursor = Audio.execute_query(
+                self._check_audio_validity_for_inline_mode_by_hit_download_url,
+                bind_vars={
+                    "hits": Hit._collection_name,
+                    "hit_download_url": hit_download_url,
+                    "audios": Audio._collection_name,
+                    "has": Has._collection_name,
+                },
+            )
+            if cursor is not None and len(cursor):
+                try:
+                    is_valid: bool = cursor.pop()
+                except CursorEmptyError:
+                    pass
+                except Exception as e:
+                    logger.exception(e)
+                else:
+                    return is_valid
+        else:
+            audio: Audio = Audio.get(audio_vertex_key)
+            return audio.valid_for_inline_search if audio is not None else False
 
         return False
 

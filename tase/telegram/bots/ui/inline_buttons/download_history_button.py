@@ -38,7 +38,7 @@ class DownloadHistoryInlineButton(InlineButton):
 
         audio_vertices = list(audio_vertices)
 
-        populate_audio_items(
+        hit_download_urls = populate_audio_items(
             audio_vertices,
             from_user,
             handler,
@@ -60,6 +60,7 @@ class DownloadHistoryInlineButton(InlineButton):
             telegram_inline_query=telegram_inline_query,
             inline_query_type=InlineQueryType.COMMAND,
             next_offset=result.get_next_offset(only_countable=True),
+            hit_download_urls=hit_download_urls,
         )
 
     def on_chosen_inline_query(
@@ -82,6 +83,7 @@ class DownloadHistoryInlineButton(InlineButton):
                 handler.telegram_client.telegram_id,
                 from_user.user_id,
                 inline_query_id,
+                hit_download_url,
                 telegram_chosen_inline_result.inline_message_id,
             )
             if not updated:

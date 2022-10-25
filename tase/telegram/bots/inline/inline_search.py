@@ -84,12 +84,6 @@ class InlineSearch(OnInlineQuery):
                             logger.error(f"Unexpected error: `status` is None")
                             continue
 
-                        handler.db.document.get_or_create_audio_inline_message(
-                            handler.telegram_client.telegram_id,
-                            from_user.user_id,
-                            telegram_inline_query.id,
-                        )
-
                         result.add_item(
                             AudioItem.get_item(
                                 handler.telegram_client.get_me().username,

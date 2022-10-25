@@ -83,7 +83,7 @@ def populate_audio_items(
     handler: BaseHandler,
     result: CustomInlineQueryResult,
     telegram_inline_query: pyrogram.types.InlineQuery,
-) -> None:
+) -> List[str]:
     """
     Populate a list of `AudioItem` objects
 
@@ -115,12 +115,6 @@ def populate_audio_items(
         if not audio_doc:
             continue
 
-        handler.db.document.get_or_create_audio_inline_message(
-            handler.telegram_client.telegram_id,
-            from_user.user_id,
-            telegram_inline_query.id,
-        )
-
         status = AudioKeyboardStatus.get_status(
             handler.db,
             from_user,
@@ -139,6 +133,8 @@ def populate_audio_items(
                 status,
             )
         )
+
+    return hit_download_urls
 
 
 def get_audio_markup_keyboard(

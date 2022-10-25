@@ -141,10 +141,12 @@ class InteractionMethods:
             chat_type,
         )
         if interaction is None:
+            logger.error(f"could not parse interaction : {key} : {type_} : {chat_type}")
             return None
 
         interaction, created = Interaction.insert(interaction)
         if not interaction or not created:
+            logger.error(f"could not create interaction : {key} : {type_} : {chat_type}")
             return None
 
         from tase.db.arangodb.graph.edges import Has

@@ -15,17 +15,20 @@ class AudioInlineMessage(BaseDocument):
     inline_query_id: str
     inline_message_id: Optional[str]
 
+    hit_download_url: str
+
     @classmethod
     def parse_key(
         cls,
         bot_id: int,
         user_id: int,
         inline_query_id: str,
+        hit_download_url: str,
     ) -> Optional[str]:
         if bot_id is None or user_id is None or inline_query_id is None:
             return None
 
-        return sha1(f"{bot_id}#{user_id}#{inline_query_id}".encode("utf-8")).hexdigest()
+        return sha1(f"{bot_id}#{user_id}#{inline_query_id}#{hit_download_url}".encode("utf-8")).hexdigest()
 
     @classmethod
     def parse(
@@ -33,8 +36,15 @@ class AudioInlineMessage(BaseDocument):
         bot_id: int,
         user_id: int,
         inline_query_id: str,
+        hit_download_url: str,
+        inline_message_id: str = None,
     ) -> Optional[AudioInlineMessage]:
-        key = cls.parse_key(bot_id, user_id, inline_query_id)
+        key = cls.parse_key(
+            bot_id,
+            user_id,
+            inline_query_id,
+            hit_download_url,
+        )
         if key is None:
             return None
 
@@ -43,6 +53,8 @@ class AudioInlineMessage(BaseDocument):
             bot_id=bot_id,
             user_id=user_id,
             inline_query_id=inline_query_id,
+            hit_download_url=hit_download_url,
+            inline_message_id=inline_message_id,
         )
 
     def set_inline_message_id(
@@ -67,12 +79,16 @@ class AudioInlineMessageMethods:
         bot_id: int,
         user_id: int,
         inline_query_id: str,
+        hit_download_url: str,
+        inline_message_id: str = None,
     ) -> Optional[AudioInlineMessage]:
         doc, successful = AudioInlineMessage.insert(
             AudioInlineMessage.parse(
                 bot_id,
                 user_id,
                 inline_query_id,
+                hit_download_url,
+                inline_message_id,
             )
         )
         if doc and successful:
@@ -85,12 +101,15 @@ class AudioInlineMessageMethods:
         bot_id: int,
         user_id: int,
         inline_query_id: str,
+        hit_download_url: str,
+        inline_message_id: str = None,
     ) -> Optional[AudioInlineMessage]:
         audio_inline_message = AudioInlineMessage.get(
             AudioInlineMessage.parse_key(
                 bot_id,
                 user_id,
                 inline_query_id,
+                hit_download_url,
             )
         )
         if audio_inline_message is None:
@@ -98,6 +117,8 @@ class AudioInlineMessageMethods:
                 bot_id,
                 user_id,
                 inline_query_id,
+                hit_download_url,
+                inline_message_id,
             )
 
         return audio_inline_message
@@ -107,30 +128,36 @@ class AudioInlineMessageMethods:
         bot_id: int,
         user_id: int,
         inline_query_id: str,
+        hit_download_url: str,
     ) -> Optional[AudioInlineMessage]:
         if bot_id is None or user_id is None or inline_query_id is None:
             return None
 
-        key = AudioInlineMessage.parse_key(
-            bot_id,
-            user_id,
-            inline_query_id,
+        return AudioInlineMessage.get(
+            AudioInlineMessage.parse_key(
+                bot_id,
+                user_id,
+                inline_query_id,
+                hit_download_url,
+            )
         )
-        return AudioInlineMessage.get(key)
 
     def set_audio_inline_message_id(
         self,
         bot_id: int,
         user_id: int,
         inline_query_id: str,
+        hit_download_url: str,
         inline_message_id: str,
     ) -> bool:
         if bot_id is None or user_id is None or inline_query_id is None:
             return False
-        audio_inline_message = self.find_audio_inline_message(
+        audio_inline_message = self.get_or_create_audio_inline_message(
             bot_id,
             user_id,
             inline_query_id,
+            hit_download_url,
+            inline_message_id,
         )
         if audio_inline_message:
             return audio_inline_message.set_inline_message_id(inline_message_id)
@@ -142,6 +169,7 @@ class AudioInlineMessageMethods:
         bot_id: int,
         user_id: int,
         inline_message_id: str,
+        hit_download_url: str,
     ) -> Optional[AudioInlineMessage]:
         if bot_id is None or user_id is None or inline_message_id is None or not len(inline_message_id):
             return None
@@ -151,5 +179,6 @@ class AudioInlineMessageMethods:
                 "bot_id": bot_id,
                 "user_id": user_id,
                 "inline_message_id": inline_message_id,
+                "hit_download_url": hit_download_url,
             }
         )
