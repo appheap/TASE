@@ -38,7 +38,7 @@ class IndexAudiosTask(BaseTask):
             self.task_failed(db)
             return
 
-        if chat.audio_indexer_metadata is None or get_now_timestamp() - chat.audio_indexer_metadata.last_run_at > 24 * 60 * 60 * 1000:
+        if chat.audio_indexer_metadata is None or get_now_timestamp() - chat.audio_indexer_metadata.last_run_at > 3 * 24 * 60 * 60 * 1000:
             chat = self.get_updated_chat(telegram_client, db, chat)
             if chat:
                 logger.info(f"Started indexing audio files from  `{chat.title}`")

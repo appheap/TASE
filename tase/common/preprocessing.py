@@ -81,7 +81,11 @@ def replace_telegram_usernames(
     if text is None:
         return None
 
-    for username in find_telegram_usernames(text, return_start_index=False):
+    for username in find_telegram_usernames(
+        text,
+        return_start_index=False,
+        convert_to_lowercase=False,
+    ):
         text = text.replace(f"@{username}", symbol)
 
     return text
@@ -487,6 +491,7 @@ def clean_text(
 def find_telegram_usernames(
     text: str,
     return_start_index: bool = True,
+    convert_to_lowercase: bool = False,
 ) -> Optional[Union[List[Tuple[str, int]], List[str]]]:
     """
     Find telegram usernames in the given text
@@ -497,6 +502,8 @@ def find_telegram_usernames(
         Text to extract the usernames from
     return_start_index : bool, default : True
         Whether to return the starting index of the match or not. If this parameter is set to False, the returned usernames will be converted to lowercase
+    convert_to_lowercase : bool, default : False
+        Whether to convert the usernames to lowercase or not
 
     Returns
     -------
@@ -519,7 +526,7 @@ def find_telegram_usernames(
         else:
             continue
 
-        if not return_start_index:
+        if convert_to_lowercase:
             username = username.lower()
 
         usernames.append((username, match.start()) if return_start_index else username)
@@ -529,7 +536,7 @@ def find_telegram_usernames(
         for match in re.finditer(telegram_username_regex, text):
             username = match.group("username")
             if username is not None and len(username):
-                if not return_start_index:
+                if convert_to_lowercase:
                     username = username.lower()
 
                 usernames.append((username, match.start()) if return_start_index else username)
