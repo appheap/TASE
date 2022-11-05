@@ -4,6 +4,7 @@ from typing import Optional, Union
 
 from .base_edge import BaseEdge, EdgeEndsValidator
 from ..vertices import Audio, Chat, User
+from ...base.index import PersistentIndex
 
 
 class ForwardedFrom(BaseEdge):
@@ -11,6 +12,15 @@ class ForwardedFrom(BaseEdge):
 
     _collection_name = "forwarded_from"
     schema_version = 1
+    _extra_indexes = [
+        PersistentIndex(
+            version=1,
+            name="date",
+            fields=[
+                "date",
+            ],
+        ),
+    ]
 
     _from_vertex_collections = (Audio,)
     _to_vertex_collections = (User, Chat, Audio)

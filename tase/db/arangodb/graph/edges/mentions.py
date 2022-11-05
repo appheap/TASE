@@ -7,6 +7,7 @@ from tase.my_logger import logger
 from . import Has
 from .base_edge import BaseEdge, EdgeEndsValidator
 from ..vertices import Chat, Username
+from ...base.index import PersistentIndex
 from ...enums import MentionSource, ChatType
 
 
@@ -17,6 +18,43 @@ class Mentions(BaseEdge):
 
     _collection_name = "mentions"
     schema_version = 1
+    _extra_indexes = [
+        PersistentIndex(
+            version=1,
+            name="is_direct_mention",
+            fields=[
+                "is_direct_mention",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="mentioned_at",
+            fields=[
+                "mentioned_at",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="mention_source",
+            fields=[
+                "mention_source",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="checked_at",
+            fields=[
+                "checked_at",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="is_checked",
+            fields=[
+                "is_checked",
+            ],
+        ),
+    ]
 
     _from_vertex_collections = (Chat,)
     _to_vertex_collections = (

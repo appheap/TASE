@@ -11,11 +11,35 @@ from ..vertices import (
     User,
     Keyword,
 )
+from ...base.index import PersistentIndex
 
 
 class Had(BaseEdge):
     _collection_name = "had"
     schema_version = 1
+    _extra_indexes = [
+        PersistentIndex(
+            version=1,
+            name="deleted_at",
+            fields=[
+                "deleted_at",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="metadata_created_at",
+            fields=[
+                "metadata_created_at",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="metadata_modified_at",
+            fields=[
+                "metadata_modified_at",
+            ],
+        ),
+    ]
 
     deleted_at: int
     metadata_created_at: int
