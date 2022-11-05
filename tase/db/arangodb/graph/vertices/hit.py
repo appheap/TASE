@@ -58,6 +58,7 @@ class Hit(BaseVertex):
             fields=[
                 "download_url",
             ],
+            unique=True,
         ),
     ]
 

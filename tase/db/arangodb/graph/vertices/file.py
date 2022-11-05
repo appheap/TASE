@@ -8,12 +8,23 @@ from tase.db.db_utils import get_telegram_message_media_type
 from tase.errors import TelegramMessageWithNoAudio
 from tase.my_logger import logger
 from .base_vertex import BaseVertex
+from ...base.index import PersistentIndex
 from ...enums import TelegramAudioType
 
 
 class File(BaseVertex):
     _collection_name = "files"
     schema_version = 1
+    _extra_indexes = [
+        PersistentIndex(
+            version=1,
+            name="file_unique_id",
+            fields=[
+                "file_unique_id",
+            ],
+            unique=True,
+        ),
+    ]
 
     file_unique_id: str
 
