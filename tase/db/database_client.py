@@ -21,9 +21,13 @@ class DatabaseClient:
         self,
         elasticsearch_config: ElasticConfig,
         arangodb_config: ArangoDBConfig,
+        update_arango_indexes: bool = False,
     ):
         self.es_db = ElasticsearchDatabase(elasticsearch_config=elasticsearch_config)
-        self.arangodb = ArangoDB(arangodb_config=arangodb_config)
+        self.arangodb = ArangoDB(
+            arangodb_config=arangodb_config,
+            update_indexes=update_arango_indexes,
+        )
 
     def get_or_create_audio(
         self,
