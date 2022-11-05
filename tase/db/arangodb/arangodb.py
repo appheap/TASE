@@ -39,6 +39,7 @@ class ArangoDB(
             auth_method="basic",
         )
 
+
         if not sys_db.has_database(arangodb_config.db_name):
             sys_db.create_database(
                 arangodb_config.db_name,

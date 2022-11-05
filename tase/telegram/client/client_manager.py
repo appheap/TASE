@@ -7,7 +7,7 @@ from typing import Dict, Optional
 import kombu
 from pyrogram import idle
 
-from tase.configs import ClientTypes
+from tase.configs import ClientTypes, TASEConfig
 from tase.db import DatabaseClient
 from tase.my_logger import logger
 from tase.telegram.client import TelegramClient
@@ -34,17 +34,22 @@ class ClientManager(mp.Process):
         telegram_client_name: str,
         telegram_client: TelegramClient,
         client_worker_queues: Dict[str, kombu.Queue],
-        database_client: DatabaseClient,
+        config: TASEConfig,
     ):
         super().__init__()
         self.name = telegram_client_name
         self.telegram_client: Optional[TelegramClient] = telegram_client
         self.client_worker_queues = client_worker_queues
-        self.db: DatabaseClient = database_client
+        self.config: TASEConfig = config
+        self.db: Optional[DatabaseClient] = None
 
     def run(self) -> None:
         logger.info(mp.current_process().name)
         logger.info(threading.current_thread())
+        self.db = DatabaseClient(
+            self.config.elastic_config,
+            self.config.arango_db_config,
+        )
 
         self.telegram_client.start()
 

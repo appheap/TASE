@@ -38,13 +38,15 @@ class IndexAudiosTask(BaseTask):
             self.task_failed(db)
             return
 
-        if chat.audio_indexer_metadata is None or get_now_timestamp() - chat.audio_indexer_metadata.last_run_at > 3 * 24 * 60 * 60 * 1000:
+        if chat.audio_indexer_metadata is None or get_now_timestamp() - chat.audio_indexer_metadata.last_run_at > 14 * 24 * 60 * 60 * 1000:
             chat = self.get_updated_chat(telegram_client, db, chat)
             if chat:
                 logger.info(f"Started indexing audio files from  `{chat.title}`")
 
-                self.index_audios(db, telegram_client, chat, index_audio=True)
-                self.index_audios(db, telegram_client, chat, index_audio=False)
+                success = self.index_audios(db, telegram_client, chat, index_audio=True)
+                if success:
+                    self.wait()
+                    self.index_audios(db, telegram_client, chat, index_audio=False)
 
                 logger.info(f"Finished indexing audio files from `{chat.title}`")
                 self.wait()
@@ -69,7 +71,7 @@ class IndexAudiosTask(BaseTask):
         db: DatabaseClient,
         chat: Chat,
     ) -> Optional[Chat]:
-        extra_check = True if chat.audio_indexer_metadata is None else get_now_timestamp() - chat.audio_indexer_metadata.last_run_at > 8 * 60 * 60 * 1000
+        extra_check = True if chat.audio_indexer_metadata is None else get_now_timestamp() - chat.audio_indexer_metadata.last_run_at > 14 * 24 * 60 * 60 * 1000
         successful = False
         new_chat = None
 
@@ -93,6 +95,7 @@ class IndexAudiosTask(BaseTask):
                 logger.exception(e)
             else:
                 new_chat = db.graph.update_or_create_chat(tg_chat)
+                self.wait()
                 if not new_chat:
                     self.task_failed(db)
                 else:
@@ -111,7 +114,7 @@ class IndexAudiosTask(BaseTask):
         telegram_client: TelegramClient,
         chat: graph_models.vertices.Chat,
         index_audio: bool = True,
-    ):
+    ) -> bool:
         calculate_score = False
         if index_audio:
             if chat.audio_indexer_metadata is not None:
@@ -127,52 +130,61 @@ class IndexAudiosTask(BaseTask):
 
         if metadata is None:
             self.task_failed(db)
-            return
+            return False
 
         metadata.reset_counters()
 
-        for idx, message in enumerate(
-            telegram_client.iter_messages(
-                chat_id=chat.chat_id,
-                offset_id=metadata.last_message_offset_id,
-                only_newer_messages=True,
-                filter="audio" if index_audio else "document",
-            )
-        ):
-            if not index_audio:
-                audio, audio_type = get_telegram_message_media_type(message)
-                if audio is None or audio_type == TelegramAudioType.NON_AUDIO:
-                    continue
-
-            successful = db.update_or_create_audio(
-                message,
-                telegram_client.telegram_id,
-            )
-            if successful:
-                metadata.message_count += 1
-
-            if message.id > metadata.last_message_offset_id:
-                metadata.last_message_offset_id = message.id
-                metadata.last_message_offset_date = datetime_to_timestamp(message.date)
-
-            if idx % 400 == 0:
-                self.wait(random.randint(3, 10))
-
-        if index_audio:
-            chat.update_audio_indexer_metadata(metadata)
-
-            if calculate_score and chat.chat_type == ChatType.CHANNEL and chat.is_public:
-                # sleep for a while
-                self.wait(5)
-
-                score = ChannelAnalyzer.calculate_score(
-                    telegram_client,
-                    chat.chat_id,
-                    chat.members_count,
+        try:
+            for idx, message in enumerate(
+                telegram_client.iter_messages(
+                    chat_id=chat.chat_id,
+                    offset_id=metadata.last_message_offset_id,
+                    only_newer_messages=True,
+                    filter="audio" if index_audio else "document",
                 )
-                updated = chat.update_audio_indexer_score(score)
-                logger.debug(f"Channel {chat.username} score: {score}")
-        else:
-            chat.update_audio_doc_indexer_metadata(metadata)
+            ):
+                if not index_audio:
+                    audio, audio_type = get_telegram_message_media_type(message)
+                    if audio is None or audio_type == TelegramAudioType.NON_AUDIO:
+                        continue
 
-        logger.info(f"{prettify(metadata)}")
+                successful = db.update_or_create_audio(
+                    message,
+                    telegram_client.telegram_id,
+                )
+                if successful:
+                    metadata.message_count += 1
+
+                if message.id > metadata.last_message_offset_id:
+                    metadata.last_message_offset_id = message.id
+                    metadata.last_message_offset_date = datetime_to_timestamp(message.date)
+
+                if idx + 1 % 500 == 0:
+                    self.wait(random.randint(3, 10))
+
+            if index_audio:
+                chat.update_audio_indexer_metadata(metadata)
+
+                if calculate_score and chat.chat_type == ChatType.CHANNEL and chat.is_public:
+                    # sleep for a while
+                    self.wait(5)
+
+                    score = ChannelAnalyzer.calculate_score(
+                        telegram_client,
+                        chat.chat_id,
+                        chat.members_count,
+                    )
+                    updated = chat.update_audio_indexer_score(score)
+                    logger.debug(f"Channel {chat.username} score: {score}")
+            else:
+                chat.update_audio_doc_indexer_metadata(metadata)
+
+            logger.info(f"{prettify(metadata)}")
+        except Exception as e:
+            self.task_failed(db)
+            logger.error("Got an exception")
+            logger.debug(e)
+
+            return False
+
+        return True

@@ -51,11 +51,6 @@ class TASE:
 
             self.tase_config = tase_config
             if tase_config is not None:
-                self.database_client = DatabaseClient(
-                    elasticsearch_config=tase_config.elastic_config,
-                    arangodb_config=tase_config.arango_db_config,
-                )
-
                 for client_config in tase_config.clients_config:
                     tg_client = TelegramClient._parse(
                         client_config,
@@ -65,13 +60,18 @@ class TASE:
                         telegram_client_name=tg_client.name,
                         telegram_client=tg_client,
                         client_worker_queues=client_worker_queues,
-                        database_client=self.database_client,
+                        config=tase_config,
                     )
                     client_manager.start()
                     self.clients.append(tg_client)
                     self.client_managers.append(client_manager)
 
-                scheduler = SchedulerWorkerProcess(self.database_client)
+                self.database_client = DatabaseClient(
+                    elasticsearch_config=tase_config.elastic_config,
+                    arangodb_config=tase_config.arango_db_config,
+                )
+
+                scheduler = SchedulerWorkerProcess(tase_config)
                 scheduler.start()
 
                 # cancel active task from the last run

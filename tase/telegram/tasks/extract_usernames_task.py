@@ -71,7 +71,7 @@ class ExtractUsernamesTask(BaseTask):
         if (
             is_chat
             and chat.username_extractor_metadata is not None
-            and not get_now_timestamp() - chat.username_extractor_metadata.last_run_at > 3 * 24 * 60 * 60 * 1000
+            and not get_now_timestamp() - chat.username_extractor_metadata.last_run_at > 7 * 24 * 60 * 60 * 1000
         ):
             logger.info(f"Cancelled extracting usernames from chat `{chat.title}`")
             self.task_failed(db)

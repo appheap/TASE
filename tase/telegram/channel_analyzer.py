@@ -68,7 +68,7 @@ class ChannelAnalyzer(BaseModel):
         except ZeroDivisionError:
             audio_density = 0.0
 
-        member_density = math.log(chat_members_count if chat_members_count > 0 else 1, 10_000_000_000)
+        member_density = math.log(chat_members_count if chat_members_count is not None and chat_members_count > 0 else 1, 10_000_000_000)
 
         logger.debug(f"audio_density: {audio_density}")
         logger.debug(f"member_density: {member_density}")

@@ -52,6 +52,10 @@ class IndexAudiosJob(BaseJob):
                 logger.debug(f"indexing audio files from chat `{chat.username}` was cancelled due to high memory usage")
                 failed = True
                 break
+            except Exception as e:
+                logger.exception(e)
+                failed = True
+                break
 
         if failed:
             self.task_failed(db)

@@ -1,5 +1,5 @@
 from multiprocessing import Process
-from typing import List
+from typing import List, Optional
 
 import kombu
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -10,6 +10,7 @@ from kombu.transport import pyamqp
 
 from tase import task_globals
 from tase.common.utils import exception_handler
+from tase.configs import TASEConfig
 from tase.db import DatabaseClient
 from tase.db.arangodb.enums import RabbitMQTaskType
 from tase.my_logger import logger
@@ -20,17 +21,24 @@ from tase.task_distribution import BaseTask
 class SchedulerWorkerProcess(Process):
     def __init__(
         self,
-        db: DatabaseClient,
+        config: TASEConfig,
     ):
         super().__init__()
 
         self.daemon = True
         self.name = "SchedulerWorkerProcess"
-        self.db = db
+        self.config = config
+        self.db: Optional[DatabaseClient] = None
         self.consumer = None
 
     def run(self) -> None:
         logger.info("SchedulerWorkerProcess started ....")
+
+        self.db = DatabaseClient(
+            self.config.elastic_config,
+            self.config.arango_db_config,
+        )
+
         self.consumer = SchedulerJobConsumer(
             connection=Connection(
                 config("RABBITMQ_URL"),
