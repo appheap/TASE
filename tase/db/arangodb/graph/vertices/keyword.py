@@ -4,11 +4,21 @@ from hashlib import sha1
 from typing import Optional
 
 from .base_vertex import BaseVertex
+from ...base.index import PersistentIndex
 
 
 class Keyword(BaseVertex):
     _collection_name = "keywords"
     schema_version = 1
+    _extra_indexes = [
+        PersistentIndex(
+            version=1,
+            name="keyword",
+            fields=[
+                "keyword",
+            ],
+        ),
+    ]
 
     keyword: str
 

@@ -20,6 +20,7 @@ from tase.my_logger import logger
 from . import Audio
 from .base_vertex import BaseVertex
 from .user import User
+from ...base.index import PersistentIndex
 
 if TYPE_CHECKING:
     from .. import ArangoGraphMethods
@@ -30,6 +31,23 @@ from ...enums import TelegramAudioType
 class Playlist(BaseVertex, BaseSoftDeletableDocument):
     _collection_name = "playlists"
     schema_version = 1
+    _extra_indexes = [
+        PersistentIndex(
+            version=1,
+            name="rank",
+            fields=[
+                "rank",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="is_favorite",
+            fields=[
+                "is_favorite",
+            ],
+        ),
+    ]
+
     _extra_do_not_update_fields = ("is_favorite",)
 
     title: str

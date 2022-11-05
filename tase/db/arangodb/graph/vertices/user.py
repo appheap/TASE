@@ -11,6 +11,7 @@ from pyrogram.types import BotCommandScopeChat, BotCommandScopeDefault
 from tase.common.utils import prettify, get_now_timestamp
 from tase.my_logger import logger
 from .base_vertex import BaseVertex
+from ...base.index import PersistentIndex
 
 if TYPE_CHECKING:
     from .. import ArangoGraphMethods
@@ -27,6 +28,114 @@ class UserRole(Enum):
 class User(BaseVertex):
     _collection_name = "users"
     schema_version = 1
+    _extra_indexes = [
+        PersistentIndex(
+            version=1,
+            name="user_id",
+            fields=[
+                "user_id",
+            ],
+            unique=True,
+        ),
+        PersistentIndex(
+            version=1,
+            name="is_deleted",
+            fields=[
+                "is_deleted",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="is_bot",
+            fields=[
+                "is_bot",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="is_verified",
+            fields=[
+                "is_verified",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="is_restricted",
+            fields=[
+                "is_restricted",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="is_scam",
+            fields=[
+                "is_scam",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="is_fake",
+            fields=[
+                "is_fake",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="is_support",
+            fields=[
+                "is_support",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="is_premium",
+            fields=[
+                "is_premium",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="username",
+            fields=[
+                "username",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="language_code",
+            fields=[
+                "language_code",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="dc_id",
+            fields=[
+                "dc_id",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="chosen_language_code",
+            fields=[
+                "chosen_language_code",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="role",
+            fields=[
+                "role",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="has_interacted_with_bot",
+            fields=[
+                "has_interacted_with_bot",
+            ],
+        ),
+    ]
 
     _extra_do_not_update_fields = [
         "chosen_language_code",

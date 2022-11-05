@@ -16,6 +16,7 @@ from tase.errors import (
 from tase.my_logger import logger
 from .base_vertex import BaseVertex
 from .user import User
+from ...base.index import PersistentIndex
 from ...enums import ChatType, InteractionType
 from ...helpers import InteractionCount
 
@@ -26,6 +27,29 @@ if TYPE_CHECKING:
 class Interaction(BaseVertex):
     _collection_name = "interactions"
     schema_version = 1
+    _extra_indexes = [
+        PersistentIndex(
+            version=1,
+            name="type",
+            fields=[
+                "type",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="chat_type",
+            fields=[
+                "chat_type",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="is_active",
+            fields=[
+                "is_active",
+            ],
+        ),
+    ]
 
     _extra_do_not_update_fields = ("is_active",)
 

@@ -13,6 +13,7 @@ from . import Audio, Hit
 from .base_vertex import BaseVertex
 from .chat import ChatType
 from .user import User
+from ...base.index import PersistentIndex
 
 if TYPE_CHECKING:
     from .. import ArangoGraphMethods
@@ -23,6 +24,22 @@ from ...helpers import ElasticQueryMetadata, InlineQueryMetadata
 class Query(BaseVertex):
     _collection_name = "queries"
     schema_version = 1
+    _extra_indexes = [
+        PersistentIndex(
+            version=1,
+            name="query",
+            fields=[
+                "query",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="query_date",
+            fields=[
+                "query_date",
+            ],
+        ),
+    ]
 
     query: str
     query_date: int
