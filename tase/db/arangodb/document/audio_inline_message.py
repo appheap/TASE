@@ -4,11 +4,49 @@ from hashlib import sha1
 from typing import Optional
 
 from .base_document import BaseDocument
+from ..base.index import PersistentIndex
 
 
 class AudioInlineMessage(BaseDocument):
     _collection_name = "doc_audio_inline_messages"
     schema_version = 1
+    _extra_indexes = [
+        PersistentIndex(
+            version=1,
+            name="bot_id",
+            fields=[
+                "bot_id",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="user_id",
+            fields=[
+                "user_id",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="inline_query_id",
+            fields=[
+                "inline_query_id",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="inline_message_id",
+            fields=[
+                "inline_message_id",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="hit_download_url",
+            fields=[
+                "hit_download_url",
+            ],
+        ),
+    ]
 
     bot_id: int
     user_id: int

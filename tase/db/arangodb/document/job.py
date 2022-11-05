@@ -5,12 +5,36 @@ from typing import Optional
 from pydantic import Field
 
 from .base_document import BaseDocument
+from ..base.index import PersistentIndex
 from ..enums import JobType
 
 
 class Job(BaseDocument):
     _collection_name = "doc_jobs"
     schema_version = 1
+    _extra_indexes = [
+        PersistentIndex(
+            version=1,
+            name="is_active",
+            fields=[
+                "is_active",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="job_type",
+            fields=[
+                "job_type",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="last_run_at",
+            fields=[
+                "last_run_at",
+            ],
+        ),
+    ]
 
     is_active: bool = Field(default=True)
 

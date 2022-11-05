@@ -6,6 +6,7 @@ import pyrogram
 
 from tase.errors import TelegramMessageWithNoAudio
 from .base_document import BaseDocument
+from ..base.index import PersistentIndex
 from ..enums import TelegramAudioType
 from ...db_utils import get_telegram_message_media_type
 
@@ -13,6 +14,36 @@ from ...db_utils import get_telegram_message_media_type
 class Audio(BaseDocument):
     _collection_name = "doc_audios"
     schema_version = 1
+    _extra_indexes = [
+        PersistentIndex(
+            version=1,
+            name="file_id",
+            fields=[
+                "file_id",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="file_unique_id",
+            fields=[
+                "file_unique_id",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="chat_id",
+            fields=[
+                "chat_id",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="message_id",
+            fields=[
+                "message_id",
+            ],
+        ),
+    ]
 
     chat_id: int
     message_id: int

@@ -6,12 +6,29 @@ from typing import Optional
 from pydantic import Field
 
 from .base_document import BaseDocument
+from ..base.index import PersistentIndex
 from ..enums import RabbitMQTaskStatus, RabbitMQTaskType
 
 
 class RabbitMQTask(BaseDocument):
     _collection_name = "doc_rabbitmq_tasks"
     schema_version = 1
+    _extra_indexes = [
+        PersistentIndex(
+            version=1,
+            name="type",
+            fields=[
+                "type",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="status",
+            fields=[
+                "status",
+            ],
+        ),
+    ]
 
     type: RabbitMQTaskType
     status: RabbitMQTaskStatus = Field(default=RabbitMQTaskStatus.CREATED)
