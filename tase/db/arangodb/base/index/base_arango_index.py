@@ -82,10 +82,10 @@ class BaseArangoIndex(BaseModel):
                 else:
                     raise ValueError("Invalid value for `type`")
 
-                if ":" in index.name:
+                if "__" in index.name:
                     name, version = index.name.split("__")
                     index.name = name
-                    index.version = version
+                    index.version = int(version)
 
                 return index
 

@@ -319,23 +319,34 @@ class BaseCollectionDocument(BaseCollectionAttributes):
         current_index_mapping = {}
         for obj in cls._collection.indexes():
             index = BaseArangoIndex.from_db(obj)
-            if index.type == ArangoIndexType.PRIMARY:
+            if index.type in (ArangoIndexType.PRIMARY, ArangoIndexType.EDGE):
                 continue
 
             current_index_mapping[index.name] = index
 
+        new_index_names = []
         for index in chain(cls._base_indexes, cls._extra_indexes if cls._extra_indexes is not None else []):
             try:
                 if index.name not in current_index_mapping:
+                    logger.info(f"Adding index `{index.name}` to collection `{cls._collection.name}`")
                     cls._collection._add_index(index.to_db())
                 else:
                     if current_index_mapping[index.name].version != index.version:
+                        logger.info(f"Updating index `{index.name}` in collection `{cls._collection.name}`")
                         cls._collection.delete_index(current_index_mapping[index.name].id)
                         cls._collection._add_index(index.to_db())
+
+                new_index_names.append(index.name)
+
             except Exception as e:
                 temp = index.to_db()
                 logger.exception(temp)
                 logger.exception(e)
+
+        for old_index in current_index_mapping.values():
+            if old_index.name not in new_index_names:
+                logger.info(f"Deleting index `{old_index.name}` from collection `{cls._collection.name}`")
+                cls._collection.delete_index(old_index.id)
 
     @classmethod
     def insert(
