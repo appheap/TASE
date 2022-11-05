@@ -7,6 +7,7 @@ from tase.common.utils import generate_token_urlsafe, timing
 from tase.db.helpers import SearchMetaData
 from tase.errors import InvalidFromVertex, InvalidToVertex, EdgeCreationFailed
 from tase.my_logger import logger
+from ...base.index import PersistentIndex
 from ...helpers import HitCount
 
 if TYPE_CHECKING:
@@ -22,6 +23,44 @@ from ...enums import HitType
 class Hit(BaseVertex):
     _collection_name = "hits"
     schema_version = 1
+    _extra_indexes = [
+        PersistentIndex(
+            version=1,
+            name="rank",
+            fields=[
+                "rank",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="score",
+            fields=[
+                "score",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="query_date",
+            fields=[
+                "query_date",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="hit_type",
+            fields=[
+                "hit_type",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="download_url",
+            fields=[
+                "download_url",
+            ],
+            unique=True,
+        ),
+    ]
 
     hit_type: HitType
 

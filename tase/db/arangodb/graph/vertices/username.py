@@ -9,6 +9,7 @@ from tase.errors import InvalidFromVertex, InvalidToVertex
 from tase.my_logger import logger
 from . import Chat
 from .base_vertex import BaseVertex
+from ...base.index import PersistentIndex
 from ...enums import MentionSource
 
 
@@ -20,6 +21,37 @@ class Username(BaseVertex):
 
     _collection_name = "usernames"
     schema_version = 1
+    _extra_indexes = [
+        PersistentIndex(
+            version=1,
+            name="username",
+            fields=[
+                "username",
+            ],
+            unique=True,
+        ),
+        PersistentIndex(
+            version=1,
+            name="is_checked",
+            fields=[
+                "is_checked",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="checked_at",
+            fields=[
+                "checked_at",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="is_valid",
+            fields=[
+                "is_valid",
+            ],
+        ),
+    ]
 
     username: Optional[str]
     is_checked: bool = Field(default=False)

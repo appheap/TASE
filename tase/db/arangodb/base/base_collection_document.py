@@ -1,8 +1,9 @@
 import time
-import typing
 from enum import Enum
-from typing import Dict, Optional, Any, Type, Union, Tuple
+from itertools import chain
+from typing import Dict, Optional, Any, Type, Union, Tuple, TypeVar, List, Generator
 
+import arango
 from arango import (
     DocumentInsertError,
     DocumentRevisionError,
@@ -20,11 +21,13 @@ from arango.result import Result
 from pydantic import BaseModel, Field, ValidationError
 
 from tase.common.utils import get_now_timestamp
+from tase.db.arangodb.base.index import BaseArangoIndex, PersistentIndex
+from tase.db.arangodb.enums import ArangoIndexType
 from tase.errors import NotSoftDeletableSubclass, NotBaseCollectionDocumentInstance
 from tase.my_logger import logger
 
-TBaseCollectionDocument = typing.TypeVar("TBaseCollectionDocument", bound="BaseCollectionDocument")
-TBaseCollectionAttributes = typing.TypeVar("TBaseCollectionAttributes", bound="BaseCollectionAttributes")
+TBaseCollectionDocument = TypeVar("TBaseCollectionDocument", bound="BaseCollectionDocument")
+TBaseCollectionAttributes = TypeVar("TBaseCollectionAttributes", bound="BaseCollectionAttributes")
 
 
 class ToGraphBaseProcessor(BaseModel):
@@ -189,6 +192,25 @@ class BaseCollectionAttributes(BaseModel):
     _base_do_not_update_fields: Optional[Tuple[str]] = ("created_at",)
     _extra_do_not_update_fields: Optional[Tuple[str]] = None
 
+    _base_indexes: List[BaseArangoIndex] = [
+        PersistentIndex(
+            version=1,
+            name="created_at",
+            fields=[
+                "created_at",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="modified_at",
+            fields=[
+                "modified_at",
+            ],
+        ),
+    ]
+
+    _extra_indexes: Optional[List[BaseArangoIndex]] = []
+
     def to_collection(self) -> Optional[Dict[str, Any]]:
         """
         Convert the object to a dictionary to be saved into the ArangoDB.
@@ -284,6 +306,50 @@ class BaseCollectionDocument(BaseCollectionAttributes):
 
     class Config:
         arbitrary_types_allowed = True
+
+    @classmethod
+    def update_indexes(cls):
+        """
+        Update the indexes of a collection in the database
+
+        Raises
+        ------
+        arango.exceptions.IndexCreateError
+            If the index creation fails
+        """
+        current_index_mapping = {}
+        for obj in cls._collection.indexes():
+            index = BaseArangoIndex.from_db(obj)
+            if index.type in (ArangoIndexType.PRIMARY, ArangoIndexType.EDGE):
+                continue
+
+            current_index_mapping[index.name] = index
+
+        new_index_names = [index.name for index in chain(cls._base_indexes, cls._extra_indexes if cls._extra_indexes is not None else [])]
+        for old_index in current_index_mapping.values():
+            if old_index.name not in new_index_names:
+                try:
+                    logger.info(f"Deleting index `{old_index.name}` from `{cls._collection.name}` collection")
+                    cls._collection.delete_index(old_index.id)
+                except arango.exceptions.IndexDeleteError as e:
+                    logger.info(f"Deleting index `{old_index.name}` from `{cls._collection.name}` collection failed")
+                    logger.exception(e)
+
+        for index in chain(cls._base_indexes, cls._extra_indexes if cls._extra_indexes is not None else []):
+            try:
+                if index.name not in current_index_mapping:
+                    logger.info(f"Adding index `{index.name}` to `{cls._collection.name}` collection")
+                    cls._collection._add_index(index.to_db())
+                else:
+                    if current_index_mapping[index.name].version != index.version:
+                        logger.info(f"Updating index `{index.name}` in `{cls._collection.name}` collection")
+                        cls._collection.delete_index(current_index_mapping[index.name].id)
+                        cls._collection._add_index(index.to_db())
+
+            except Exception as e:
+                temp = index.to_db()
+                logger.exception(temp)
+                logger.exception(e)
 
     @classmethod
     def insert(
@@ -410,7 +476,7 @@ class BaseCollectionDocument(BaseCollectionAttributes):
         offset: Optional[int] = 0,
         limit: Optional[int] = None,
         filter_out_soft_deleted: Optional[bool] = None,
-    ) -> typing.Generator[TBaseCollectionDocument, None, None]:
+    ) -> Generator[TBaseCollectionDocument, None, None]:
         """
         Find all documents that match the given filters.
 

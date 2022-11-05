@@ -69,6 +69,7 @@ class TASE:
                 self.database_client = DatabaseClient(
                     elasticsearch_config=tase_config.elastic_config,
                     arangodb_config=tase_config.arango_db_config,
+                    update_arango_indexes=True,
                 )
 
                 scheduler = SchedulerWorkerProcess(tase_config)

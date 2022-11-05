@@ -1,3 +1,4 @@
+from .arango_index_type import ArangoIndexType
 from .bot_task_status import BotTaskStatus
 from .bot_task_type import BotTaskType
 from .chat_type import ChatType

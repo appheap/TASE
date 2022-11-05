@@ -4,11 +4,21 @@ from hashlib import sha1
 from typing import Optional
 
 from .base_vertex import BaseVertex
+from ...base.index import PersistentIndex
 
 
 class Hashtag(BaseVertex):
     schema_version = 1
     _collection_name = "hashtags"
+    _extra_indexes = [
+        PersistentIndex(
+            version=1,
+            name="hashtag",
+            fields=[
+                "hashtag",
+            ],
+        ),
+    ]
 
     hashtag: str
 

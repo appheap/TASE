@@ -10,6 +10,7 @@ from tase.db.arangodb import graph as graph_models
 from tase.errors import InvalidFromVertex, InvalidToVertex
 from tase.my_logger import logger
 from .base_vertex import BaseVertex
+from ...base.index import PersistentIndex
 
 if TYPE_CHECKING:
     from .. import ArangoGraphMethods
@@ -26,6 +27,114 @@ from ...helpers import (
 class Chat(BaseVertex):
     _collection_name = "chats"
     schema_version = 1
+    _extra_indexes = [
+        PersistentIndex(
+            version=1,
+            name="chat_id",
+            fields=[
+                "chat_id",
+            ],
+            unique=True,
+        ),
+        PersistentIndex(
+            version=1,
+            name="is_public",
+            fields=[
+                "is_public",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="chat_type",
+            fields=[
+                "chat_type",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="is_verified",
+            fields=[
+                "is_verified",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="is_restricted",
+            fields=[
+                "is_restricted",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="is_scam",
+            fields=[
+                "is_scam",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="is_fake",
+            fields=[
+                "is_fake",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="is_support",
+            fields=[
+                "is_support",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="username",
+            fields=[
+                "username",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="dc_id",
+            fields=[
+                "dc_id",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="has_protected_content",
+            fields=[
+                "has_protected_content",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="members_count",
+            fields=[
+                "members_count",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="audio_indexer_metadata_last_run_at",
+            fields=[
+                "audio_indexer_metadata.last_run_at",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="audio_doc_indexer_metadata_last_run_at",
+            fields=[
+                "audio_doc_indexer_metadata.last_run_at",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="username_extractor_metadata_last_run_at",
+            fields=[
+                "username_extractor_metadata.last_run_at",
+            ],
+        ),
+    ]
 
     _extra_do_not_update_fields = (
         "audio_indexer_metadata",

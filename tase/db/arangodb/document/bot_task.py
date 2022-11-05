@@ -9,12 +9,43 @@ from pydantic import Field
 from tase.errors import UpdateRetryCountFailed
 from tase.my_logger import logger
 from .base_document import BaseDocument
+from ..base.index import PersistentIndex
 from ..enums import BotTaskType, BotTaskStatus
 
 
 class BotTask(BaseDocument):
     _collection_name = "doc_bot_tasks"
     schema_version = 1
+    _extra_indexes = [
+        PersistentIndex(
+            version=1,
+            name="user_id",
+            fields=[
+                "user_id",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="bot_id",
+            fields=[
+                "bot_id",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="type",
+            fields=[
+                "type",
+            ],
+        ),
+        PersistentIndex(
+            version=1,
+            name="status",
+            fields=[
+                "status",
+            ],
+        ),
+    ]
 
     user_id: int
     bot_id: int

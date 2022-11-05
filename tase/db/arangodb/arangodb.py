@@ -26,6 +26,7 @@ class ArangoDB(
     def __init__(
         self,
         arangodb_config: ArangoDBConfig,
+        update_indexes: bool = False,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -38,7 +39,6 @@ class ArangoDB(
             password=arangodb_config.db_password,
             auth_method="basic",
         )
-
 
         if not sys_db.has_database(arangodb_config.db_name):
             sys_db.create_database(
@@ -67,6 +67,8 @@ class ArangoDB(
             v_class._graph_name = arangodb_config.graph_name
             v_class._collection = _collection
             v_class._aql = self.aql
+            if update_indexes:
+                v_class.update_indexes()
 
         for e_class in edge_classes:
             if not self.graph.has_edge_definition(e_class._collection_name):
@@ -81,6 +83,9 @@ class ArangoDB(
             e_class._collection = _collection
             e_class._aql = self.aql
 
+            if update_indexes:
+                e_class.update_indexes()
+
         for doc in document_classes:
             if not self.db.has_collection(doc._collection_name):
                 _collection = self.db.create_collection(doc._collection_name)
@@ -89,3 +94,6 @@ class ArangoDB(
             doc._graph_name = arangodb_config.graph_name
             doc._collection = _collection
             doc._aql = self.aql
+
+            if update_indexes:
+                doc.update_indexes()
