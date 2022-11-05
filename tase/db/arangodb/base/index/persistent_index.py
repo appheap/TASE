@@ -13,7 +13,7 @@ class PersistentIndex(BaseArangoIndex):
     sparse: Optional[bool]
     estimates: Optional[bool]
     in_background: bool = True
-    deduplicate: bool = True
+    deduplicate: Optional[bool]
     stored_values: Optional[List[str]]
     cache_enabled: bool = False
 

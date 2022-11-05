@@ -3,6 +3,7 @@ from enum import Enum
 from itertools import chain
 from typing import Dict, Optional, Any, Type, Union, Tuple, TypeVar, List, Generator
 
+import arango
 from arango import (
     DocumentInsertError,
     DocumentRevisionError,
@@ -324,29 +325,31 @@ class BaseCollectionDocument(BaseCollectionAttributes):
 
             current_index_mapping[index.name] = index
 
-        new_index_names = []
+        new_index_names = [index.name for index in chain(cls._base_indexes, cls._extra_indexes if cls._extra_indexes is not None else [])]
+        for old_index in current_index_mapping.values():
+            if old_index.name not in new_index_names:
+                try:
+                    logger.info(f"Deleting index `{old_index.name}` from `{cls._collection.name}` collection")
+                    cls._collection.delete_index(old_index.id)
+                except arango.exceptions.IndexDeleteError as e:
+                    logger.info(f"Deleting index `{old_index.name}` from `{cls._collection.name}` collection failed")
+                    logger.exception(e)
+
         for index in chain(cls._base_indexes, cls._extra_indexes if cls._extra_indexes is not None else []):
             try:
                 if index.name not in current_index_mapping:
-                    logger.info(f"Adding index `{index.name}` to collection `{cls._collection.name}`")
+                    logger.info(f"Adding index `{index.name}` to `{cls._collection.name}` collection")
                     cls._collection._add_index(index.to_db())
                 else:
                     if current_index_mapping[index.name].version != index.version:
-                        logger.info(f"Updating index `{index.name}` in collection `{cls._collection.name}`")
+                        logger.info(f"Updating index `{index.name}` in `{cls._collection.name}` collection")
                         cls._collection.delete_index(current_index_mapping[index.name].id)
                         cls._collection._add_index(index.to_db())
-
-                new_index_names.append(index.name)
 
             except Exception as e:
                 temp = index.to_db()
                 logger.exception(temp)
                 logger.exception(e)
-
-        for old_index in current_index_mapping.values():
-            if old_index.name not in new_index_names:
-                logger.info(f"Deleting index `{old_index.name}` from collection `{cls._collection.name}`")
-                cls._collection.delete_index(old_index.id)
 
     @classmethod
     def insert(
