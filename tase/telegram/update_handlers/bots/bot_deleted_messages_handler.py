@@ -6,7 +6,7 @@ import arrow
 import pyrogram
 from pyrogram import handlers
 
-from tase.common.utils import exception_handler
+from tase.common.utils import async_exception_handler
 from tase.my_logger import logger
 from tase.telegram.update_handlers.base import BaseHandler, HandlerMetadata
 
@@ -22,9 +22,9 @@ class BotDeletedMessagesHandler(BaseHandler):
             )
         ]
 
-    @exception_handler
+    @async_exception_handler()
     # todo: not working, why?
-    def deleted_messages_handler(
+    async def deleted_messages_handler(
         self,
         client: pyrogram.Client,
         messages: List[pyrogram.types.Message],

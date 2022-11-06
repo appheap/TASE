@@ -17,7 +17,7 @@ from tase.scheduler.jobs import (
     IndexAudiosJob,
 )
 from tase.telegram.client import TelegramClient
-from tase.telegram.client.client_manager import ClientManager
+from tase.telegram.client.telegram_client_manager import TelegramClientManager
 
 
 class TASE:
@@ -28,9 +28,9 @@ class TASE:
         self,
     ):
         self.clients = []
-        self.client_managers: List[ClientManager] = []
         self.tase_config = None
         self.database_client = None
+        self.telegram_manager: Optional[TelegramClientManager] = None
 
     def init_telegram_clients(self):
         mgr = mp.Manager()
@@ -51,20 +51,8 @@ class TASE:
 
             self.tase_config = tase_config
             if tase_config is not None:
-                for client_config in tase_config.clients_config:
-                    tg_client = TelegramClient._parse(
-                        client_config,
-                        tase_config.pyrogram_config.workdir,
-                    )
-                    client_manager = ClientManager(
-                        telegram_client_name=tg_client.name,
-                        telegram_client=tg_client,
-                        client_worker_queues=client_worker_queues,
-                        config=tase_config,
-                    )
-                    client_manager.start()
-                    self.clients.append(tg_client)
-                    self.client_managers.append(client_manager)
+                self.telegram_manager = TelegramClientManager(tase_config)
+                self.telegram_manager.start()
 
                 self.database_client = DatabaseClient(
                     elasticsearch_config=tase_config.elastic_config,
@@ -97,8 +85,8 @@ class TASE:
             # todo: raise error (empty config file path)
             pass
 
-        for client_mgr in self.client_managers:
-            client_mgr.join()
+        if self.telegram_manager:
+            self.telegram_manager.join()
 
         if scheduler:
             scheduler.join()

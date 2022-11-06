@@ -23,7 +23,7 @@ class CheckUsernamesCommand(BaseCommand):
     required_role_level: UserRole = UserRole.OWNER
     number_of_required_arguments = 0
 
-    def command_function(
+    async def command_function(
         self,
         client: pyrogram.Client,
         message: pyrogram.types.Message,
@@ -42,7 +42,7 @@ class CheckUsernamesCommand(BaseCommand):
                     }
                 ).publish(handler.db)
             except NotEnoughRamError:
-                message.reply_text(
+                await message.reply_text(
                     f"Checking usernames was cancelled due to high memory usage",
                     quote=True,
                     parse_mode=ParseMode.HTML,

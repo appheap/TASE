@@ -7,7 +7,7 @@ import pyrogram
 from pyrogram import filters, handlers
 
 from tase.common.preprocessing import telegram_url_regex, url_regex
-from tase.common.utils import exception_handler, get_now_timestamp, timing
+from tase.common.utils import get_now_timestamp, async_timed, async_exception_handler
 from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult, InlineSearch
 from tase.telegram.bots.ui.inline_buttons.base import InlineButton
@@ -31,9 +31,9 @@ class InlineQueryHandler(BaseHandler):
             ),
         ]
 
-    @exception_handler
-    @timing
-    def on_inline_query(
+    @async_exception_handler()
+    @async_timed()
+    async def on_inline_query(
         self,
         client: pyrogram.Client,
         inline_query: pyrogram.types.InlineQuery,
@@ -43,7 +43,7 @@ class InlineQueryHandler(BaseHandler):
 
         from_user = self.db.graph.get_interacted_user(inline_query.from_user)
 
-        InlineSearch.on_inline_query(
+        await InlineSearch.on_inline_query(
             self,
             CustomInlineQueryResult(inline_query),
             from_user,
@@ -52,9 +52,9 @@ class InlineQueryHandler(BaseHandler):
             query_date,
         )
 
-    @exception_handler
-    @timing
-    def custom_commands_handler(
+    @async_exception_handler()
+    @async_timed()
+    async def custom_commands_handler(
         self,
         client: pyrogram.Client,
         inline_query: pyrogram.types.InlineQuery,
@@ -70,7 +70,7 @@ class InlineQueryHandler(BaseHandler):
         )
         button = InlineButton.find_button_by_type_value(reg.group("command"))
         if button:
-            button.on_inline_query(
+            await button.on_inline_query(
                 self,
                 CustomInlineQueryResult(inline_query),
                 user,

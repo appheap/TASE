@@ -3,7 +3,7 @@ from __future__ import annotations
 import collections
 from typing import Optional, TYPE_CHECKING, List
 
-from tase.common.utils import generate_token_urlsafe, timing
+from tase.common.utils import generate_token_urlsafe, sync_timed
 from tase.db.helpers import SearchMetaData
 from tase.errors import InvalidFromVertex, InvalidToVertex, EdgeCreationFailed
 from tase.my_logger import logger
@@ -114,7 +114,7 @@ class HitMethods:
         "   return {audio_key, hit_type, count_}"
     )
 
-    @timing
+    @sync_timed
     def generate_hit_download_urls(
         self,
         size: int = 10,

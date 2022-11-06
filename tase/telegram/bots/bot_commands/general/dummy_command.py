@@ -20,7 +20,7 @@ class DummyCommand(BaseCommand):
     command_description = "This is command for testing purposes"
     required_role_level: UserRole = UserRole.OWNER
 
-    def command_function(
+    async def command_function(
         self,
         client: pyrogram.Client,
         message: pyrogram.types.Message,
@@ -35,20 +35,20 @@ class DummyCommand(BaseCommand):
         try:
             status, created = DummyTask(kwargs=kwargs).publish(handler.db)
         except NotEnoughRamError:
-            message.reply_text(
+            await message.reply_text(
                 f"`DummyTask` was cancelled due to high memory usage",
                 quote=True,
                 parse_mode=ParseMode.HTML,
             )
         else:
             if status is None:
-                message.reply_text("internal error")
+                await message.reply_text("internal error")
             else:
                 if created:
                     if status.is_active():
-                        message.reply_text("Added the task to be processed!")
+                        await message.reply_text("Added the task to be processed!")
                 else:
                     if status.is_active():
-                        message.reply_text("This task already being processed")
+                        await message.reply_text("This task already being processed")
                     else:
-                        message.reply_text("The task is already finished")
+                        await message.reply_text("The task is already finished")

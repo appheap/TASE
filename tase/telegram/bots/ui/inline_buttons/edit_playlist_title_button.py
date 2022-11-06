@@ -15,14 +15,14 @@ class EditPlaylistTitleInlineButton(InlineButton):
     text = f"{s_edit} | {emoji._gear}"
     is_inline = False
 
-    def on_callback_query(
+    async def on_callback_query(
         self,
         handler: BaseHandler,
         from_user: graph_models.vertices.User,
         client: pyrogram.Client,
         telegram_callback_query: pyrogram.types.CallbackQuery,
     ):
-        telegram_callback_query.answer("")
+        await telegram_callback_query.answer("")
 
         handler.db.document.create_bot_task(
             from_user.user_id,
@@ -34,7 +34,7 @@ class EditPlaylistTitleInlineButton(InlineButton):
         )
 
         # todo: make it translatable
-        client.send_message(
+        await client.send_message(
             from_user.user_id,
             "Enter the new Title:\nYou can cancel anytime by sending /cancel",
         )

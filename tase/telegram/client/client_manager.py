@@ -126,7 +126,6 @@ class ClientManager(mp.Process):
             ),
             InlineQueryHandler(
                 db=self.db,
-                task_queues=self.client_worker_queues,
                 telegram_client=self.telegram_client,
             ),
         ]

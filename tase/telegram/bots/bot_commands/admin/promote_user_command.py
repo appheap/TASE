@@ -24,7 +24,7 @@ class PromoteUserCommand(BaseCommand):
     required_role_level: UserRole = UserRole.OWNER
     number_of_required_arguments = 1
 
-    def command_function(
+    async def command_function(
         self,
         client: pyrogram.Client,
         message: pyrogram.types.Message,
@@ -43,7 +43,7 @@ class PromoteUserCommand(BaseCommand):
         if user:
             if user.has_interacted_with_bot:
                 if user.user_id == from_user.user_id:
-                    message.reply_text(
+                    await message.reply_text(
                         "You cannot promote yourself!",
                         quote=True,
                         parse_mode=ParseMode.MARKDOWN,
@@ -53,7 +53,7 @@ class PromoteUserCommand(BaseCommand):
                     if user.role == UserRole.SEARCHER:
                         updated = user.update_role(UserRole.ADMIN)
                         if updated:
-                            message.reply_text(
+                            await message.reply_text(
                                 "The user promoted successfully",
                                 quote=True,
                                 parse_mode=ParseMode.MARKDOWN,
@@ -64,7 +64,7 @@ class PromoteUserCommand(BaseCommand):
                                 UserRole.ADMIN,
                             )
                             try:
-                                client.set_bot_commands(
+                                await client.set_bot_commands(
                                     commands=telegram_command_dict["commands"],
                                     scope=telegram_command_dict["scope"],
                                 )
@@ -74,35 +74,35 @@ class PromoteUserCommand(BaseCommand):
                             except Exception as e:
                                 logger.exception(e)
                         else:
-                            message.reply_text(
+                            await message.reply_text(
                                 "The user could not be promoted, please try again",
                                 quote=True,
                                 parse_mode=ParseMode.MARKDOWN,
                                 disable_web_page_preview=True,
                             )
                     elif user.role == UserRole.ADMIN:
-                        message.reply_text(
+                        await message.reply_text(
                             "The user is already promoted",
                             quote=True,
                             parse_mode=ParseMode.MARKDOWN,
                             disable_web_page_preview=True,
                         )
                     elif user.role == UserRole.OWNER:
-                        message.reply_text(
+                        await message.reply_text(
                             "User's role is `owner`",
                             quote=True,
                             parse_mode=ParseMode.MARKDOWN,
                             disable_web_page_preview=True,
                         )
             else:
-                message.reply_text(
+                await message.reply_text(
                     "This User is in the database but hasn't interacted with the bot yet",
                     quote=True,
                     parse_mode=ParseMode.MARKDOWN,
                     disable_web_page_preview=True,
                 )
         else:
-            message.reply_text(
+            await message.reply_text(
                 "User hasn't interacted with the bot yet",
                 quote=True,
                 parse_mode=ParseMode.MARKDOWN,

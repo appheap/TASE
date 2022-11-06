@@ -15,17 +15,17 @@ class ShowLanguageMenuInlineButton(InlineButton):
     text = f"{s_language} | {emoji._globe_showing_Americas}"
     is_inline = False
 
-    def on_callback_query(
+    async def on_callback_query(
         self,
         handler: BaseHandler,
         from_user: graph_models.vertices.User,
         client: pyrogram.Client,
         telegram_callback_query: pyrogram.types.CallbackQuery,
     ):
-        telegram_callback_query.answer("", show_alert=False)
-        telegram_callback_query.message.delete()
+        await telegram_callback_query.answer("", show_alert=False)
+        await telegram_callback_query.message.delete()
 
-        bot_commands.BaseCommand.run_command_from_callback_query(
+        await bot_commands.BaseCommand.run_command_from_callback_query(
             client,
             telegram_callback_query,
             handler,

@@ -14,7 +14,7 @@ class BackInlineButton(InlineButton):
     text = f"{s_back} | {emoji._BACK_arrow}"
     is_inline = False
 
-    def on_callback_query(
+    async def on_callback_query(
         self,
         handler: BaseHandler,
         from_user: graph_models.vertices.User,
@@ -23,6 +23,6 @@ class BackInlineButton(InlineButton):
     ):
         # todo: what to do when the `callback_query.message` is None?
         if telegram_callback_query.message:
-            telegram_callback_query.message.delete()
+            await telegram_callback_query.message.delete()
         else:
-            telegram_callback_query.answer("")
+            await telegram_callback_query.answer("")

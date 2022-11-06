@@ -22,7 +22,7 @@ class AddChannelCommand(BaseCommand):
     required_role_level: UserRole = UserRole.ADMIN
     number_of_required_arguments = 1
 
-    def command_function(
+    async def command_function(
         self,
         client: pyrogram.Client,
         message: pyrogram.types.Message,
@@ -39,25 +39,25 @@ class AddChannelCommand(BaseCommand):
         db_chat = handler.db.graph.get_chat_by_username(channel_username)
         if db_chat and db_chat.audio_indexer_metadata:
             # todo: translate me
-            message.reply_text(f"This channel `{db_chat.title}` already exists in the Database!")
+            await message.reply_text(f"This channel `{db_chat.title}` already exists in the Database!")
         else:
             try:
                 status, created = AddChannelTask(kwargs={"channel_username": channel_username.lower()}).publish(handler.db)
             except NotEnoughRamError:
-                message.reply_text(
+                await message.reply_text(
                     f"adding chat `{db_chat.title}` was cancelled due to high memory usage",
                     quote=True,
                     parse_mode=ParseMode.HTML,
                 )
             else:
                 if status is None:
-                    message.reply_text("internal error")
+                    await message.reply_text("internal error")
                 else:
                     if created:
                         if status.is_active():
-                            message.reply_text(f"Added channel `{channel_username}` to the Database for indexing.")
+                            await message.reply_text(f"Added channel `{channel_username}` to the Database for indexing.")
                     else:
                         if status.is_active():
-                            message.reply_text(f"Channel with username `{channel_username}` is already being processed")
+                            await message.reply_text(f"Channel with username `{channel_username}` is already being processed")
                         else:
-                            message.reply_text(f"The task for adding channel with username `{channel_username}` is already finished")
+                            await message.reply_text(f"The task for adding channel with username `{channel_username}` is already finished")

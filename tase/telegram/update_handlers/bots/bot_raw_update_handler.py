@@ -3,7 +3,7 @@ from typing import List, Union
 import pyrogram
 from pyrogram import handlers, raw
 
-from tase.common.utils import exception_handler
+from tase.common.utils import sync_exception_handler
 from tase.my_logger import logger
 from tase.telegram.update_handlers.base import BaseHandler, HandlerMetadata
 
@@ -19,7 +19,7 @@ class BotRawUpdateHandler(BaseHandler):
             )
         ]
 
-    @exception_handler
+    @sync_exception_handler
     def raw_update_handler(
         self,
         client: pyrogram.Client,

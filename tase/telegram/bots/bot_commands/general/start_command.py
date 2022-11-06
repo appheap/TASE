@@ -17,7 +17,7 @@ class StartCommand(BaseCommand):
     command_type: BotCommandType = Field(default=BotCommandType.START)
     command_description = "Start the bot"
 
-    def command_function(
+    async def command_function(
         self,
         client: pyrogram.Client,
         message: pyrogram.types.Message,
@@ -31,7 +31,7 @@ class StartCommand(BaseCommand):
                 lang_code=from_user.chosen_language_code,
             )
 
-            client.send_message(
+            await client.send_message(
                 chat_id=message.from_user.id,
                 text=BaseTemplate.registry.welcome_template.render(data),
                 parse_mode=ParseMode.HTML,
@@ -40,7 +40,7 @@ class StartCommand(BaseCommand):
             arg = message.command[1]
             from_user = handler.db.graph.get_interacted_user(message.from_user)
             if "dl_" in arg:
-                handler.download_audio(
+                await handler.download_audio(
                     client,
                     from_user,
                     arg,
@@ -51,4 +51,4 @@ class StartCommand(BaseCommand):
 
         # show language choosing menu if user hasn't chosen one yet
         if from_user.chosen_language_code is None:
-            BaseCommand.run_command(client, message, handler, BotCommandType.LANGUAGE)
+            await BaseCommand.run_command(client, message, handler, BotCommandType.LANGUAGE)

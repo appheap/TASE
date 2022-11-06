@@ -8,7 +8,7 @@ from kombu.mixins import ConsumerProducerMixin
 from kombu.transport import pyamqp
 
 from tase import task_globals
-from tase.common.utils import exception_handler
+from tase.common.utils import sync_exception_handler
 from tase.configs import ClientTypes
 from tase.db import DatabaseClient
 from tase.db.arangodb.enums import RabbitMQTaskType
@@ -95,7 +95,7 @@ class ClientTaskConsumer(ConsumerProducerMixin):
                 ),
             ]
 
-    @exception_handler
+    @sync_exception_handler
     def on_task(
         self,
         body: object,

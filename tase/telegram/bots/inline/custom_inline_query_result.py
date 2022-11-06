@@ -69,7 +69,7 @@ class CustomInlineQueryResult(BaseModel):
         if count:
             self.countable_items_length += len(self.results)
 
-    def answer_query(
+    async def answer_query(
         self,
     ) -> None:
         """
@@ -86,7 +86,7 @@ class CustomInlineQueryResult(BaseModel):
         # if not len(self.results) or self.results is None:
         #     raise Exception("results cannot be empty")
         try:
-            self.telegram_inline_query.answer(
+            await self.telegram_inline_query.answer(
                 self.results,
                 cache_time=self.cache_time,
                 next_offset=self.get_next_offset(),

@@ -3,7 +3,7 @@ from typing import List
 import pyrogram
 from pyrogram.types import InlineKeyboardMarkup
 
-from tase.common.utils import timing
+from tase.common.utils import sync_timed
 from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.enums import ChatType
 from tase.db.arangodb.helpers import AudioKeyboardStatus
@@ -17,7 +17,7 @@ from tase.telegram.bots.ui.inline_items import (
 from tase.telegram.update_handlers.base import BaseHandler
 
 
-@timing
+@sync_timed
 def populate_playlist_list(
     from_user: graph_models.vertices.User,
     handler: BaseHandler,
@@ -76,8 +76,8 @@ def populate_playlist_list(
         )
 
 
-@timing
-def populate_audio_items(
+@sync_timed
+async def populate_audio_items(
     audio_vertices: List[graph_models.vertices.Audio],
     from_user: graph_models.vertices.User,
     handler: BaseHandler,
@@ -123,7 +123,7 @@ def populate_audio_items(
 
         result.add_item(
             AudioItem.get_item(
-                handler.telegram_client.get_me().username,
+                (await handler.telegram_client.get_me()).username,
                 audio_doc.file_id,
                 from_user,
                 es_audio_doc,

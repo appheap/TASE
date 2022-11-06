@@ -3,7 +3,7 @@ from typing import List
 import pyrogram
 from pyrogram import handlers
 
-from tase.common.utils import exception_handler
+from tase.common.utils import async_exception_handler
 from tase.my_logger import logger
 from tase.telegram.update_handlers.base import BaseHandler, HandlerMetadata
 
@@ -17,8 +17,8 @@ class UserMessageHandler(BaseHandler):
             )
         ]
 
-    @exception_handler
-    def user_message_handler(
+    @async_exception_handler()
+    async def user_message_handler(
         self,
         client: pyrogram.Client,
         message: pyrogram.types.Message,

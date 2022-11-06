@@ -22,7 +22,7 @@ class ExtractUsernamesCommand(BaseCommand):
     required_role_level: UserRole = UserRole.OWNER
     number_of_required_arguments = 1
 
-    def command_function(
+    async def command_function(
         self,
         client: pyrogram.Client,
         message: pyrogram.types.Message,
@@ -39,7 +39,7 @@ class ExtractUsernamesCommand(BaseCommand):
         db_chat = handler.db.graph.get_chat_by_username(channel_username)
         if not db_chat:
             # todo: translate me
-            message.reply_text(f"This channel `{channel_username}` does not exist in the Database!")
+            await message.reply_text(f"This channel `{channel_username}` does not exist in the Database!")
             kwargs = {"channel_username": channel_username}
         else:
             kwargs = {"chat_key": db_chat.key}
@@ -47,20 +47,20 @@ class ExtractUsernamesCommand(BaseCommand):
         try:
             status, created = ExtractUsernamesTask(kwargs=kwargs).publish(handler.db)
         except NotEnoughRamError:
-            message.reply_text(
+            await message.reply_text(
                 f"Extracting usernames from chat `{db_chat.title}` was cancelled due to high memory usage",
                 quote=True,
                 parse_mode=ParseMode.HTML,
             )
         else:
             if status is None:
-                message.reply_text("internal error")
+                await message.reply_text("internal error")
             else:
                 if created:
                     if status.is_active():
-                        message.reply_text(f"Added channel `{channel_username}` to the Database for username extraction.")
+                        await message.reply_text(f"Added channel `{channel_username}` to the Database for username extraction.")
                 else:
                     if status.is_active():
-                        message.reply_text(f"Channel with username `{channel_username}` is already being processed")
+                        await message.reply_text(f"Channel with username `{channel_username}` is already being processed")
                     else:
-                        message.reply_text(f"The task for extracting usernames from channel with username `{channel_username}` is already finished")
+                        await message.reply_text(f"The task for extracting usernames from channel with username `{channel_username}` is already finished")

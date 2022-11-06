@@ -57,7 +57,7 @@ class BaseCommand(BaseModel):
         return cls._registry.get(str(bot_command_type.value), None)
 
     @classmethod
-    def run_command_from_callback_query(
+    async def run_command_from_callback_query(
         cls,
         client: pyrogram.Client,
         callback_query: pyrogram.types.CallbackQuery,
@@ -70,7 +70,7 @@ class BaseCommand(BaseModel):
 
         command = BaseCommand.get_command(bot_command_type)
         if command:
-            cls._authorize_and_execute(
+            await cls._authorize_and_execute(
                 client,
                 command,
                 from_user,
@@ -80,7 +80,7 @@ class BaseCommand(BaseModel):
             )
 
     @classmethod
-    def run_command(
+    async def run_command(
         cls,
         client: pyrogram.Client,
         message: pyrogram.types.Message,
@@ -97,7 +97,7 @@ class BaseCommand(BaseModel):
             command = BaseCommand.get_command(bot_command_type)
             if message.command is not None and len(message.command) - 1 < command.number_of_required_arguments:
                 # todo: translate me
-                message.reply_text(
+                await message.reply_text(
                     "Not enough arguments are provided to run this command",
                     quote=True,
                     disable_web_page_preview=True,
@@ -108,7 +108,7 @@ class BaseCommand(BaseModel):
             if user is None:
                 raise Exception(f"Could not get/create user vertex from: {message.from_user}")
 
-            cls._authorize_and_execute(
+            await cls._authorize_and_execute(
                 client,
                 command,
                 user,
@@ -118,7 +118,7 @@ class BaseCommand(BaseModel):
             )
 
     @classmethod
-    def _authorize_and_execute(
+    async def _authorize_and_execute(
         cls,
         client: pyrogram.Client,
         command: BaseCommand,
@@ -158,14 +158,14 @@ class BaseCommand(BaseModel):
             # check if the user has permission to execute this command
         if from_user.role.value >= command.required_role_level.value:
             try:
-                command.command_function(client, message, handler, from_user, from_callback_query)
+                await command.command_function(client, message, handler, from_user, from_callback_query)
             except NotImplementedError:
                 pass
             except Exception as e:
                 logger.exception(e)
         else:
             # todo: log users who query these commands without having permission
-            message.reply_text(
+            await message.reply_text(
                 _trans(
                     "You don't have the required permission to execute this command!",
                     from_user.chosen_language_code,
@@ -174,7 +174,7 @@ class BaseCommand(BaseModel):
                 disable_web_page_preview=True,
             )
 
-    def command_function(
+    async def command_function(
         self,
         client: pyrogram.Client,
         message: pyrogram.types.Message,

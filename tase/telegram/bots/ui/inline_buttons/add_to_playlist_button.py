@@ -26,7 +26,7 @@ class AddToPlaylistInlineButton(InlineButton):
     text = f"{emoji._plus}"
     is_inline = True
 
-    def on_inline_query(
+    async def on_inline_query(
         self,
         handler: BaseHandler,
         result: CustomInlineQueryResult,
@@ -44,9 +44,9 @@ class AddToPlaylistInlineButton(InlineButton):
             filter_by_capacity=True,
         )
 
-        result.answer_query()
+        await result.answer_query()
 
-    def on_chosen_inline_query(
+    async def on_chosen_inline_query(
         self,
         handler: BaseHandler,
         client: pyrogram.Client,
@@ -72,7 +72,7 @@ class AddToPlaylistInlineButton(InlineButton):
                 },
             )
 
-            client.send_message(
+            await client.send_message(
                 from_user.user_id,
                 text="Enter your playlist title. Enter your playlist description in the next line\nYou can cancel anytime by sending /cancel",
             )
@@ -85,28 +85,28 @@ class AddToPlaylistInlineButton(InlineButton):
                     hit_download_url,
                 )
             except PlaylistDoesNotExists as e:
-                client.send_message(
+                await client.send_message(
                     from_user.user_id,
                     "You do not have the playlist you have chosen",
                 )
             except HitDoesNotExists as e:
-                client.send_message(
+                await client.send_message(
                     from_user.user_id,
                     "Given download url is not valid anymore",
                 )
             except HitNoLinkedAudio as e:
-                client.send_message(
+                await client.send_message(
                     from_user.user_id,
                     "Audio does not exist anymore",
                 )
             except InvalidAudioForInlineMode as e:
-                client.send_message(
+                await client.send_message(
                     from_user.user_id,
                     "This audio cannot be used in inline mode",
                 )
             except Exception as e:
                 logger.exception(e)
-                client.send_message(
+                await client.send_message(
                     from_user.user_id,
                     "Could not add the audio to the playlist due to internal error",
                 )
@@ -114,17 +114,17 @@ class AddToPlaylistInlineButton(InlineButton):
                 # todo: update these messages
                 if successful:
                     if created:
-                        client.send_message(
+                        await client.send_message(
                             from_user.user_id,
                             "Added to the playlist",
                         )
                     else:
-                        client.send_message(
+                        await client.send_message(
                             from_user.user_id,
                             "It's already on the playlist",
                         )
                 else:
-                    client.send_message(
+                    await client.send_message(
                         from_user.user_id,
                         "Did not add to the playlist",
                     )

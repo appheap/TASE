@@ -11,7 +11,7 @@ class ChooseLanguageInlineButton(InlineButton):
     type = InlineButtonType.CHOOSE_LANGUAGE
     is_inline = False
 
-    def on_callback_query(
+    async def on_callback_query(
         self,
         handler: BaseHandler,
         from_user: graph_models.vertices.User,
@@ -24,8 +24,8 @@ class ChooseLanguageInlineButton(InlineButton):
             "Language change has been saved",
             lang_code=lang_code,
         )
-        telegram_callback_query.answer(
+        await telegram_callback_query.answer(
             text,
             show_alert=False,
         )
-        telegram_callback_query.message.delete()
+        await telegram_callback_query.message.delete()

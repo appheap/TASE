@@ -4,7 +4,7 @@ from typing import List
 import pyrogram
 from pyrogram import handlers
 
-from tase.common.utils import exception_handler
+from tase.common.utils import async_exception_handler
 from tase.db.arangodb.enums import InteractionType, ChatType
 from tase.my_logger import logger
 from tase.telegram.bots.ui.inline_buttons.base import InlineButton
@@ -21,8 +21,8 @@ class ChosenInlineQueryHandler(BaseHandler):
             )
         ]
 
-    @exception_handler
-    def on_chosen_inline_query(
+    @async_exception_handler()
+    async def on_chosen_inline_query(
         self,
         client: pyrogram.Client,
         chosen_inline_result: pyrogram.types.ChosenInlineResult,
@@ -42,7 +42,7 @@ class ChosenInlineQueryHandler(BaseHandler):
 
             button = InlineButton.find_button_by_type_value(reg.group("command"))
             if button:
-                button.on_chosen_inline_query(
+                await button.on_chosen_inline_query(
                     self,
                     client,
                     from_user,

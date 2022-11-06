@@ -16,7 +16,7 @@ from . import CustomInlineQueryResult
 
 class InlineSearch(OnInlineQuery):
     @classmethod
-    def on_inline_query(
+    async def on_inline_query(
         cls,
         handler: BaseHandler,
         result: CustomInlineQueryResult,
@@ -86,7 +86,7 @@ class InlineSearch(OnInlineQuery):
 
                         result.add_item(
                             AudioItem.get_item(
-                                handler.telegram_client.get_me().username,
+                                (await handler.telegram_client.get_me()).username,
                                 audio_doc.file_id,
                                 from_user,
                                 es_audio_doc,

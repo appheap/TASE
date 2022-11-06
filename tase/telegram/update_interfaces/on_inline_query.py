@@ -9,7 +9,7 @@ from tase.telegram.update_handlers.base import BaseHandler
 
 
 class OnInlineQuery:
-    def on_inline_query(
+    async def on_inline_query(
         self,
         handler: BaseHandler,
         result: CustomInlineQueryResult,

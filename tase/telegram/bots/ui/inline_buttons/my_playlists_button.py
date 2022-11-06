@@ -20,7 +20,7 @@ class MyPlaylistsInlineButton(InlineButton):
     text = f"{s_my_playlists} | {emoji._headphone}"
     is_inline = True
 
-    def on_inline_query(
+    async def on_inline_query(
         self,
         handler: BaseHandler,
         result: CustomInlineQueryResult,
@@ -47,9 +47,9 @@ class MyPlaylistsInlineButton(InlineButton):
             if not len(result) and result.is_first_page():
                 result.set_results([NoPlaylistItem.get_item(from_user)])
 
-        result.answer_query()
+        await result.answer_query()
 
-    def on_chosen_inline_query(
+    async def on_chosen_inline_query(
         self,
         handler: BaseHandler,
         client: pyrogram.Client,
@@ -70,7 +70,7 @@ class MyPlaylistsInlineButton(InlineButton):
                 BotTaskType.CREATE_NEW_PLAYLIST,
             )
 
-            client.send_message(
-                from_user.user_id,
-                text="Enter your playlist title. Enter your playlist description in the next line\nYou can cancel anytime by sending /cancel",
-            )
+        await client.send_message(
+            from_user.user_id,
+            text="Enter your playlist title. Enter your playlist description in the next line\nYou can cancel anytime by sending /cancel",
+        )

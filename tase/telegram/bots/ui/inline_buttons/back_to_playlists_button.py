@@ -19,7 +19,7 @@ class BackToPlaylistsInlineButton(MyPlaylistsInlineButton):
     text = f"{s_back} | {emoji._BACK_arrow}"
     is_inline = True
 
-    def on_inline_query(
+    async def on_inline_query(
         self,
         handler: BaseHandler,
         result: CustomInlineQueryResult,
@@ -36,7 +36,7 @@ class BackToPlaylistsInlineButton(MyPlaylistsInlineButton):
                 count=True,
             )
         else:
-            MyPlaylistsInlineButton.on_inline_query(
+            await MyPlaylistsInlineButton.on_inline_query(
                 self,
                 handler,
                 result,
@@ -47,9 +47,9 @@ class BackToPlaylistsInlineButton(MyPlaylistsInlineButton):
                 reg,
             )
 
-        result.answer_query()
+        await result.answer_query()
 
-    def on_chosen_inline_query(
+    async def on_chosen_inline_query(
         self,
         handler: BaseHandler,
         client: pyrogram.Client,
@@ -57,7 +57,7 @@ class BackToPlaylistsInlineButton(MyPlaylistsInlineButton):
         telegram_chosen_inline_result: pyrogram.types.ChosenInlineResult,
         reg: Match,
     ):
-        MyPlaylistsInlineButton.on_chosen_inline_query(
+        await MyPlaylistsInlineButton.on_chosen_inline_query(
             self,
             handler,
             client,

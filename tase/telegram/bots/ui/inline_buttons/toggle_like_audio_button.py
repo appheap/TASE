@@ -24,7 +24,7 @@ class ToggleLikeAudioInlineButton(InlineButton):
     text = f"{emoji._light_thumbs_up}"
     is_inline = False
 
-    def on_callback_query(
+    async def on_callback_query(
         self,
         handler: BaseHandler,
         from_user: graph_models.vertices.User,
@@ -45,14 +45,14 @@ class ToggleLikeAudioInlineButton(InlineButton):
                 InteractionType.LIKE,
             )
         except PlaylistDoesNotExists as e:
-            telegram_callback_query.answer("You do not have the playlist you have chosen")
+            await telegram_callback_query.answer("You do not have the playlist you have chosen")
         except HitDoesNotExists as e:
-            telegram_callback_query.answer("Given download url is not valid anymore")
+            await telegram_callback_query.answer("Given download url is not valid anymore")
         except HitNoLinkedAudio as e:
-            telegram_callback_query.answer("Audio does not exist anymore")
+            await telegram_callback_query.answer("Audio does not exist anymore")
         except Exception as e:
             logger.exception(e)
-            telegram_callback_query.answer("Could not add the audio to the playlist due to internal error")
+            await telegram_callback_query.answer("Could not add the audio to the playlist due to internal error")
         else:
             # todo: update these messages
             if successful:
@@ -72,7 +72,7 @@ class ToggleLikeAudioInlineButton(InlineButton):
                     )
                     update_dislike_button = True
 
-                telegram_callback_query.answer(f"You {'Unliked' if has_liked else 'Liked'} this song")
+                await telegram_callback_query.answer(f"You {'Unliked' if has_liked else 'Liked'} this song")
 
                 if telegram_callback_query.message is not None:
                     reply_markup = telegram_callback_query.message.reply_markup
@@ -85,7 +85,7 @@ class ToggleLikeAudioInlineButton(InlineButton):
                             thumbs_up=False,
                         )
                     try:
-                        telegram_callback_query.edit_message_reply_markup(reply_markup)
+                        await telegram_callback_query.edit_message_reply_markup(reply_markup)
                     except Exception as e:
                         pass
                 elif telegram_callback_query.inline_message_id:
@@ -103,7 +103,7 @@ class ToggleLikeAudioInlineButton(InlineButton):
                         )
 
                         reply_markup = get_audio_markup_keyboard(
-                            handler.telegram_client.get_me().username,
+                            (await handler.telegram_client.get_me()).username,
                             chat_type,
                             from_user.chosen_language_code,
                             hit_download_url,
@@ -121,14 +121,14 @@ class ToggleLikeAudioInlineButton(InlineButton):
                                 )
 
                             try:
-                                client.edit_inline_reply_markup(
+                                await client.edit_inline_reply_markup(
                                     telegram_callback_query.inline_message_id,
                                     reply_markup,
                                 )
                             except Exception as e:
                                 logger.exception(e)
             else:
-                telegram_callback_query.answer("Internal error")
+                await telegram_callback_query.answer("Internal error")
 
     def new_text(
         self,

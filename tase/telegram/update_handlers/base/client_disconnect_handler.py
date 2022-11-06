@@ -4,7 +4,7 @@ import arrow
 import pyrogram
 from pyrogram import handlers
 
-from tase.common.utils import exception_handler
+from tase.common.utils import async_exception_handler
 from tase.my_logger import logger
 from .base_handler import BaseHandler
 from .handler_metadata import HandlerMetadata
@@ -20,8 +20,8 @@ class ClientDisconnectHandler(BaseHandler):
             )
         ]
 
-    @exception_handler
-    def on_disconnect(
+    @async_exception_handler()
+    async def on_disconnect(
         self,
         client: pyrogram.Client,
     ):

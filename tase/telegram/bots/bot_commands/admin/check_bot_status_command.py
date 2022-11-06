@@ -20,7 +20,7 @@ class CheckBotStatusCommand(BaseCommand):
     command_description = "Check the bot status information"
     required_role_level: UserRole = UserRole.ADMIN
 
-    def command_function(
+    async def command_function(
         self,
         client: pyrogram.Client,
         message: pyrogram.types.Message,
@@ -36,7 +36,7 @@ class CheckBotStatusCommand(BaseCommand):
             new_queries=f"{handler.db.graph.get_new_queries_count():,}",
             total_queries=f"{handler.db.graph.get_total_queries_count():,}",
         )
-        message.reply_text(
+        await message.reply_text(
             BaseTemplate.registry.bot_status_template.render(data),
             quote=True,
             parse_mode=ParseMode.HTML,

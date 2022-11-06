@@ -19,7 +19,7 @@ class HelpCommand(BaseCommand):
     command_type: BotCommandType = Field(default=BotCommandType.HELP)
     command_description = "Show help menu"
 
-    def command_function(
+    async def command_function(
         self,
         client: pyrogram.Client,
         message: pyrogram.types.Message,
@@ -48,7 +48,7 @@ class HelpCommand(BaseCommand):
             ],
         ]
 
-        client.send_message(
+        await client.send_message(
             chat_id=message.from_user.id,
             text=BaseTemplate.registry.help_template.render(data),
             parse_mode=ParseMode.HTML,

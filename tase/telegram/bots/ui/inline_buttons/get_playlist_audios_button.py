@@ -22,7 +22,7 @@ class GetPlaylistAudioInlineButton(InlineButton):
     text = f"{s_audios} | {emoji._headphone}"
     is_inline = True
 
-    def on_inline_query(
+    async def on_inline_query(
         self,
         handler: BaseHandler,
         result: CustomInlineQueryResult,
@@ -70,7 +70,7 @@ class GetPlaylistAudioInlineButton(InlineButton):
             else:
                 audio_vertices = list(audio_vertices)
 
-                hit_download_urls = populate_audio_items(
+                hit_download_urls = await populate_audio_items(
                     audio_vertices,
                     from_user,
                     handler,
@@ -81,7 +81,7 @@ class GetPlaylistAudioInlineButton(InlineButton):
         if not len(result) and not playlist_is_valid and result.is_first_page():
             result.set_results([NoDownloadItem.get_item(from_user)])
 
-        result.answer_query()
+        await result.answer_query()
 
         if playlist_is_valid:
             handler.db.graph.get_or_create_query(
@@ -96,7 +96,7 @@ class GetPlaylistAudioInlineButton(InlineButton):
                 hit_download_urls=hit_download_urls,
             )
 
-    def on_chosen_inline_query(
+    async def on_chosen_inline_query(
         self,
         handler: BaseHandler,
         client: pyrogram.Client,

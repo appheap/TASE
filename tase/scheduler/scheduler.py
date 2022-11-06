@@ -9,7 +9,7 @@ from kombu.mixins import ConsumerProducerMixin
 from kombu.transport import pyamqp
 
 from tase import task_globals
-from tase.common.utils import exception_handler
+from tase.common.utils import sync_exception_handler
 from tase.configs import TASEConfig
 from tase.db import DatabaseClient
 from tase.db.arangodb.enums import RabbitMQTaskType
@@ -95,7 +95,7 @@ class SchedulerJobConsumer(ConsumerProducerMixin):
             ),
         ]
 
-    @exception_handler
+    @sync_exception_handler
     def on_job(
         self,
         body: object,
@@ -114,7 +114,7 @@ class SchedulerJobConsumer(ConsumerProducerMixin):
             # todo: unknown type for body detected, what now?
             raise TypeError(f"Unknown type for `body`: {type(body)}")
 
-    @exception_handler
+    @sync_exception_handler
     def job_runner(
         self,
         *args,
@@ -137,7 +137,7 @@ class SchedulerJobConsumer(ConsumerProducerMixin):
         """
         args[0].run(self, self.db)
 
-    @exception_handler
+    @sync_exception_handler
     def on_job_scheduled(
         self,
         body: object,
