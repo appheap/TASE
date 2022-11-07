@@ -1,36 +1,40 @@
-import kombu
+from aio_pika import ExchangeType
+from pydantic import BaseModel
 
-kombu.enable_insecure_serializers()
 
-telegram_client_worker_exchange = kombu.Exchange(
-    "telegram_client_worker_exchange",
-    "direct",
-    durable=False,
-)
+class MyExchange(BaseModel):
+    name: str
+    type: ExchangeType
+    durable: bool
+    auto_delete: bool
 
-scheduler_exchange = kombu.Exchange(
-    "scheduler_exchange",
-    "direct",
-    durable=False,
-)
 
-rabbitmq_worker_command_exchange = kombu.Exchange(
-    "rabbitmq_worker_command_exchange",
-    "fanout",
-    durable=False,
-)
+class TelegramClientWorkerExchange(MyExchange):
+    name = "telegram_client_worker_exchange"
+    type = ExchangeType.DIRECT
+    durable = False
+    auto_delete = True
+
+
+class SchedulerExchange(MyExchange):
+    name = "scheduler_exchange"
+    type = ExchangeType.DIRECT
+    durable = False
+    auto_delete = True
+
+
+class RabbitMQWorkerCommandExchange(MyExchange):
+    name = "rabbitmq_worker_command_exchange"
+    type = ExchangeType.FANOUT
+    durable = False
+    auto_delete = True
+
+
+telegram_client_worker_exchange = TelegramClientWorkerExchange()
+scheduler_exchange = SchedulerExchange()
+rabbitmq_worker_command_exchange = RabbitMQWorkerCommandExchange()
 
 # this queue is for distributing general tasks among all client workers
-telegram_workers_general_task_queue = kombu.Queue(
-    "telegram_workers_general_task_queue",
-    exchange=telegram_client_worker_exchange,
-    routing_key="tase_telegram_queue",
-    auto_delete=True,
-)
+telegram_workers_general_task_queue_name = "telegram_workers_general_task_queue"
 
-scheduler_queue = kombu.Queue(
-    f"scheduler_queue",
-    exchange=scheduler_exchange,
-    routing_key="scheduler_queue",
-    auto_delete=True,
-)
+scheduler_queue_name = "scheduler_queue"

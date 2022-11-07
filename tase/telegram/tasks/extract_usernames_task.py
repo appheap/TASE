@@ -1,9 +1,8 @@
+import asyncio
 import random
-import time
 from typing import List, Optional, Union
 
 import pyrogram
-from kombu.mixins import ConsumerProducerMixin
 from pydantic import Field
 from pyrogram.errors import FloodWait
 
@@ -16,6 +15,7 @@ from tase.db.arangodb.helpers import UsernameExtractorMetadata
 from tase.my_logger import logger
 from tase.task_distribution import BaseTask, TargetWorkerType
 from tase.telegram.client import TelegramClient
+from tase.telegram.client.client_worker import RabbitMQConsumer
 
 
 class ExtractUsernamesTask(BaseTask):
@@ -29,9 +29,9 @@ class ExtractUsernamesTask(BaseTask):
     chat_username: Optional[str]
     metadata: Optional[UsernameExtractorMetadata]
 
-    def run(
+    async def run(
         self,
-        consumer_producer: ConsumerProducerMixin,
+        consumer: RabbitMQConsumer,
         db: DatabaseClient,
         telegram_client: TelegramClient = None,
     ):
@@ -85,7 +85,7 @@ class ExtractUsernamesTask(BaseTask):
                 self.metadata = chat.username_extractor_metadata.copy()
 
             if self.metadata is None:
-                self.wait()
+                await self.wait()
                 self.task_failed(db)
                 return
 
@@ -102,21 +102,21 @@ class ExtractUsernamesTask(BaseTask):
             logger.info(f"Metadata: {prettify(self.metadata)}")
             self.chat.update_username_extractor_metadata(self.metadata)
 
-            self.wait()
+            await self.wait()
             self.task_done(db)
         else:
             logger.error(f"Error occurred: `{title}`")
-            self.wait()
+            await self.wait()
             self.task_failed(db)
 
     @classmethod
-    def wait(
+    async def wait(
         cls,
         sleep_time: int = random.randint(15, 25),
     ):
         # wait for a while before starting to index a new channel
         logger.info(f"Sleeping for {sleep_time} seconds...")
-        time.sleep(sleep_time)
+        await asyncio.sleep(sleep_time)
         logger.info(f"Waking up after sleeping for {sleep_time} seconds...")
 
     def get_updated_chat(

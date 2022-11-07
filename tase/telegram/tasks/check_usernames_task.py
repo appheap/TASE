@@ -1,7 +1,7 @@
+import asyncio
 import random
 import time
 
-from kombu.mixins import ConsumerProducerMixin
 from pyrogram.errors import UsernameNotOccupied, UsernameInvalid, FloodWait
 
 from tase.common.utils import get_now_timestamp
@@ -12,6 +12,7 @@ from tase.my_logger import logger
 from tase.task_distribution import BaseTask, TargetWorkerType
 from tase.telegram.channel_analyzer import ChannelAnalyzer
 from tase.telegram.client import TelegramClient
+from tase.telegram.client.client_worker import RabbitMQConsumer
 
 
 class CheckUsernameTask(BaseTask):
@@ -19,9 +20,9 @@ class CheckUsernameTask(BaseTask):
     type = RabbitMQTaskType.CHECK_USERNAME_TASK
     priority = 1
 
-    def run(
+    async def run(
         self,
-        consumer_producer: ConsumerProducerMixin,
+        consumer: RabbitMQConsumer,
         db: DatabaseClient,
         telegram_client: TelegramClient = None,
     ):
@@ -103,4 +104,4 @@ class CheckUsernameTask(BaseTask):
         finally:
             # this is necessary to avoid flood errors
             # todo: is this one good enough?
-            time.sleep(random.randint(20, 30))
+            await asyncio.sleep(random.randint(20, 30))

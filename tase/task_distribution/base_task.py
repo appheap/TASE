@@ -1,9 +1,8 @@
+import pickle
 from typing import Optional, Tuple
 
-import kombu
+import aio_pika
 from decouple import config
-from kombu.entity import TRANSIENT_DELIVERY_MODE
-from kombu.mixins import ConsumerProducerMixin
 from pydantic import BaseModel, Field
 
 from tase.db import DatabaseClient
@@ -12,6 +11,8 @@ from .. import task_globals
 from ..common.utils import check_ram_usage
 from ..db.arangodb.enums import RabbitMQTaskType, RabbitMQTaskStatus
 from ..my_logger import logger
+from ..task_globals import MyExchange
+from ..telegram.client.client_worker import RabbitMQConsumer
 
 
 class BaseTask(BaseModel):
@@ -23,10 +24,10 @@ class BaseTask(BaseModel):
     task_key: Optional[str]
     priority: int = Field(default=1)
 
-    def publish(
+    async def publish(
         self,
         db: DatabaseClient,
-        target_queue: kombu.Queue = None,
+        target_queue_routing_key: str = None,
         priority: int = None,
         check_memory_usage: bool = True,
     ) -> Tuple[Optional[RabbitMQTaskStatus], bool]:
@@ -37,8 +38,8 @@ class BaseTask(BaseModel):
         ----------
         db : DatabaseClient
             Database Client
-        target_queue : kombu.Queue
-            Queue to send the body to
+        target_queue_routing_key : str
+            Queue routing key to send the body to
         priority : int, default : None
             Priority of this task on the queue
         check_memory_usage : bool, default : True
@@ -82,29 +83,29 @@ class BaseTask(BaseModel):
 
             try:
                 if self.target_worker_type == TargetWorkerType.ANY_TELEGRAM_CLIENTS_CONSUMER_WORK:
-                    self._publish_task(
-                        task_globals.telegram_workers_general_task_queue,
+                    await self._publish_task(
+                        task_globals.telegram_workers_general_task_queue_name,
                         task_globals.telegram_client_worker_exchange,
                         priority,
                         check_memory_usage,
                     )
                 elif self.target_worker_type == TargetWorkerType.ONE_TELEGRAM_CLIENT_CONSUMER_WORK:
-                    self._publish_task(
-                        target_queue,
+                    await self._publish_task(
+                        target_queue_routing_key,
                         task_globals.telegram_client_worker_exchange,
                         priority,
                         check_memory_usage,
                     )
                 elif self.target_worker_type == TargetWorkerType.RABBITMQ_CONSUMER_COMMAND:
-                    self._publish_task(
+                    await self._publish_task(
                         None,
                         task_globals.rabbitmq_worker_command_exchange,
                         priority,
                         check_memory_usage,
                     )
                 elif self.target_worker_type == TargetWorkerType.SCHEDULER_JOB:
-                    self._publish_task(
-                        task_globals.scheduler_queue,
+                    await self._publish_task(
+                        task_globals.scheduler_queue_name,
                         task_globals.scheduler_exchange,
                         priority,
                         check_memory_usage,
@@ -124,10 +125,10 @@ class BaseTask(BaseModel):
 
         return status, created
 
-    def _publish_task(
+    async def _publish_task(
         self,
-        target_queue: kombu.Queue = None,
-        exchange: kombu.Exchange = None,
+        target_queue_name: str = None,
+        exchange: MyExchange = None,
         priority: int = 1,
         check_memory_usage: bool = True,
     ):
@@ -136,9 +137,9 @@ class BaseTask(BaseModel):
 
         Parameters
         ----------
-        target_queue : kombu.Queue
-            Queue to send the body to
-        exchange : kombu.Exchange
+        target_queue_name : str
+            Queue name to send the body to
+        exchange : MyExchange
             Exchange to send the body to
         priority : int, default : 1
             Priority of this task on the queue
@@ -159,36 +160,35 @@ class BaseTask(BaseModel):
             check_ram_usage()
 
         routing_key = ""
-        if exchange and target_queue:
-            routing_key = target_queue.routing_key
+        if exchange and target_queue_name:
+            routing_key = target_queue_name
 
-        declare = [target_queue] if target_queue else []
-
-        with kombu.Connection(
-            config("RABBITMQ_URL"),
-            userid=config("RABBITMQ_DEFAULT_USER"),
+        connection = await aio_pika.connect_robust(
+            login=config("RABBITMQ_DEFAULT_USER"),
             password=config("RABBITMQ_DEFAULT_PASS"),
-        ) as conn:
-            producer = conn.Producer(serializer="pickle")
-            producer.publish(
-                body=self,
-                delivery_mode=TRANSIENT_DELIVERY_MODE,
-                exchange=exchange,
-                routing_key=routing_key,
-                declare=declare,
-                retry=True,
-                priority=priority,
-                retry_policy={
-                    "interval_start": 0,
-                    "interval_step": 2,
-                    "interval_max": 30,
-                    "max_retries": 30,
-                },
+        )
+
+        async with connection:
+            channel = await connection.channel()
+            exchange = await channel.declare_exchange(
+                exchange.name,
+                exchange.type,
+                durable=exchange.durable,
+                auto_delete=exchange.auto_delete,
+                passive=True,
             )
 
-    def run(
+            await exchange.publish(
+                aio_pika.Message(
+                    body=pickle.dumps(self),
+                    priority=priority,
+                ),
+                routing_key=routing_key,
+            )
+
+    async def run(
         self,
-        consumer: ConsumerProducerMixin,
+        consumer: RabbitMQConsumer,
         db: DatabaseClient,
         telegram_client: "TelegramClient" = None,
     ):

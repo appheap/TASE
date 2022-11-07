@@ -1,8 +1,7 @@
+import asyncio
 import random
-import time
 from typing import Optional
 
-from kombu.mixins import ConsumerProducerMixin
 from pyrogram.errors import FloodWait
 
 from tase.common.utils import datetime_to_timestamp, prettify, get_now_timestamp
@@ -16,6 +15,7 @@ from tase.my_logger import logger
 from tase.task_distribution import BaseTask, TargetWorkerType
 from tase.telegram.channel_analyzer import ChannelAnalyzer
 from tase.telegram.client import TelegramClient
+from tase.telegram.client.client_worker import RabbitMQConsumer
 
 
 class IndexAudiosTask(BaseTask):
@@ -23,9 +23,9 @@ class IndexAudiosTask(BaseTask):
     type = RabbitMQTaskType.INDEX_AUDIOS_TASK
     priority = 3
 
-    def run(
+    async def run(
         self,
-        consumer_producer: ConsumerProducerMixin,
+        consumer: RabbitMQConsumer,
         db: DatabaseClient,
         telegram_client: TelegramClient = None,
     ):
@@ -45,24 +45,24 @@ class IndexAudiosTask(BaseTask):
 
                 success = self.index_audios(db, telegram_client, chat, index_audio=True)
                 if success:
-                    self.wait()
+                    await self.wait()
                     self.index_audios(db, telegram_client, chat, index_audio=False)
 
                 logger.info(f"Finished indexing audio files from `{chat.title}`")
-                self.wait()
+                await self.wait()
                 self.task_done(db)
         else:
             logger.info(f"Cancelled indexing of {chat.title}")
             self.task_failed(db)
 
     @classmethod
-    def wait(
+    async def wait(
         cls,
         sleep_time: int = random.randint(15, 25),
     ):
         # wait for a while before starting to index a new channel
         logger.info(f"Sleeping for {sleep_time} seconds...")
-        time.sleep(sleep_time)
+        await asyncio.sleep(sleep_time)
         logger.info(f"Waking up after sleeping for {sleep_time} seconds...")
 
     def get_updated_chat(
@@ -89,13 +89,14 @@ class IndexAudiosTask(BaseTask):
             except FloodWait as e:
                 self.task_failed(db)
                 logger.exception(e)
-                self.wait(e.value + random.randint(5, 15))
+                await self.wait()
+                # self.wait(e.value + random.randint(5, 15))
             except Exception as e:
                 self.task_failed(db)
                 logger.exception(e)
             else:
                 new_chat = db.graph.update_or_create_chat(tg_chat)
-                self.wait()
+                await self.wait()
                 if not new_chat:
                     self.task_failed(db)
                 else:

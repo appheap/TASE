@@ -1,11 +1,12 @@
 import arrow
 from apscheduler.triggers.interval import IntervalTrigger
-from kombu.mixins import ConsumerProducerMixin, logger
+from kombu.mixins import logger
 
 from tase.db import DatabaseClient
 from .base_job import BaseJob
 from ...common.utils import get_now_timestamp
 from ...db.arangodb.enums import RabbitMQTaskType
+from ...telegram.client.client_worker import RabbitMQConsumer
 
 
 class CountInteractionsJob(BaseJob):
@@ -17,9 +18,9 @@ class CountInteractionsJob(BaseJob):
         start_date=arrow.now().datetime,
     )
 
-    def run(
+    async def run(
         self,
-        consumer: ConsumerProducerMixin,
+        consumer: RabbitMQConsumer,
         db: DatabaseClient,
         telegram_client: "TelegramClient" = None,
     ):

@@ -1,14 +1,17 @@
 import asyncio
 import multiprocessing as mp
+import sys
 import threading
-from typing import List
+from typing import List, Optional
 
+import uvloop
 from pyrogram import idle
 
 from tase.configs import TASEConfig, ClientTypes
 from tase.db import DatabaseClient
 from tase.my_logger import logger
 from tase.telegram.client import TelegramClient
+from tase.telegram.client.client_worker import TelegramClientConsumer
 from tase.telegram.update_handlers.base import ClientDisconnectHandler
 from tase.telegram.update_handlers.bots import BotDeletedMessagesHandler, BotMessageHandler, CallbackQueryHandler, ChosenInlineQueryHandler, InlineQueryHandler
 from tase.telegram.update_handlers.users import UserChatMemberUpdatedHandler, UserDeletedMessagesHandler, UserMessageHandler
@@ -23,6 +26,8 @@ class TelegramClientManager(mp.Process):
 
         self.name = "TelegramClientManager"
         self.config: TASEConfig = config
+        self.db: Optional[DatabaseClient] = None
+        self.rabbitmq_consumer: Optional[TelegramClientConsumer] = None
 
         self.clients: List[TelegramClient] = []
 
@@ -34,8 +39,14 @@ class TelegramClientManager(mp.Process):
             self.config.elastic_config,
             self.config.arango_db_config,
         )
+        self.rabbitmq_consumer = TelegramClientConsumer(db=self.db)
 
-        asyncio.run(self.init_telegram_clients())
+        if sys.version_info >= (3, 11):
+            with asyncio.Runner(loop_factory=uvloop.new_event_loop) as runner:
+                runner.run(self.init_telegram_clients())
+        else:
+            uvloop.install()
+            asyncio.run(self.init_telegram_clients())
 
     async def init_telegram_clients(self):
         for client_config in self.config.clients_config:
@@ -57,9 +68,13 @@ class TelegramClientManager(mp.Process):
             self.init_handlers(telegram_client)
             self.register_update_handlers(telegram_client)
 
+        await self.rabbitmq_consumer.init_rabbitmq_consumer(self.clients)
+
         await idle()
         for client in self.clients:
             await client.stop()
+
+        await self.rabbitmq_consumer.shutdown()
 
     def init_handlers(
         self,

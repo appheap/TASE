@@ -6,6 +6,7 @@ from tase.db import DatabaseClient
 from tase.my_logger import logger
 from .base_job import BaseJob
 from ...db.arangodb.enums import RabbitMQTaskType
+from ...telegram.client.client_worker import RabbitMQConsumer
 
 
 class DummyJob(BaseJob):
@@ -17,9 +18,9 @@ class DummyJob(BaseJob):
         start_date=arrow.now().datetime,
     )
 
-    def run(
+    async def run(
         self,
-        consumer: ConsumerProducerMixin,
+        consumer: RabbitMQConsumer,
         db: DatabaseClient,
         telegram_client: "TelegramClient" = None,
     ):
