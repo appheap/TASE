@@ -1,6 +1,5 @@
 import asyncio
 import random
-import time
 
 from pyrogram.errors import UsernameNotOccupied, UsernameInvalid, FloodWait
 
@@ -55,10 +54,10 @@ class CheckUsernameTask(BaseTask):
             # fixme: find a solution for this
             self.task_failed(db)
 
-            sleep_time = e.value + random.randint(5, 15)
-            logger.info(f"Sleeping for {sleep_time} seconds...")
-            time.sleep(sleep_time)
-            logger.info(f"Waking up after sleeping for {sleep_time} seconds...")
+            # sleep_time = e.value + random.randint(5, 15)
+            # logger.info(f"Sleeping for {sleep_time} seconds...")
+            # await asyncio.sleep(sleep_time)
+            # logger.info(f"Waking up after sleeping for {sleep_time} seconds...")
 
         except Exception as e:
             logger.exception(e)
@@ -81,9 +80,9 @@ class CheckUsernameTask(BaseTask):
 
                     if mentioned_chat.chat_type == ChatType.CHANNEL and mentioned_chat.is_public:
                         # wait for a while
-                        time.sleep(5)
+                        await asyncio.sleep(5)
 
-                        score = ChannelAnalyzer.calculate_score(
+                        score = await ChannelAnalyzer.calculate_score(
                             telegram_client,
                             mentioned_chat.chat_id,
                             mentioned_chat.members_count,

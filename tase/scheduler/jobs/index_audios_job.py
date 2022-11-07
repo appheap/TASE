@@ -22,7 +22,7 @@ class IndexAudiosJob(BaseJob):
         start_date=arrow.now().shift(minutes=+10).datetime,
     )
 
-    def run(
+    async def run(
         self,
         consumer: ConsumerProducerMixin,
         db: tase.db.DatabaseClient,
@@ -43,7 +43,7 @@ class IndexAudiosJob(BaseJob):
         for chat in chain(chats, not_indexed_chats):
             logger.debug(f"published task for indexing: {chat.username}")
             try:
-                IndexAudiosTask(
+                await IndexAudiosTask(
                     kwargs={
                         "chat_key": chat.key,
                     }

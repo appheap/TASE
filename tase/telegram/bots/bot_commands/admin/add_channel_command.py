@@ -42,7 +42,7 @@ class AddChannelCommand(BaseCommand):
             await message.reply_text(f"This channel `{db_chat.title}` already exists in the Database!")
         else:
             try:
-                status, created = AddChannelTask(kwargs={"channel_username": channel_username.lower()}).publish(handler.db)
+                status, created = await AddChannelTask(kwargs={"channel_username": channel_username.lower()}).publish(handler.db)
             except NotEnoughRamError:
                 await message.reply_text(
                     f"adding chat `{db_chat.title}` was cancelled due to high memory usage",

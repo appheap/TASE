@@ -42,7 +42,10 @@ class SchedulerWorkerProcess(Process):
             db=self.db,
         )
 
-        asyncio.run(self.consumer.init_consumer())
+        asyncio.run(self.run_scheduler())
+
+    async def run_scheduler(self):
+        self.consumer.init_consumer()
         await asyncio.Future()
 
 

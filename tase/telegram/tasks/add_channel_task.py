@@ -1,5 +1,5 @@
+import asyncio
 import random
-import time
 
 from pyrogram.enums import ChatType
 from pyrogram.errors import UsernameNotOccupied, FloodWait
@@ -27,13 +27,13 @@ class AddChannelTask(BaseTask):
         self.task_in_worker(db)
 
         try:
-            tg_chat = telegram_client.get_chat(self.kwargs.get("channel_username"))
+            tg_chat = await telegram_client.get_chat(self.kwargs.get("channel_username"))
 
             # check if the chat is valid based on current policies of the bot
             if tg_chat.type == ChatType.CHANNEL:
                 chat = db.graph.update_or_create_chat(tg_chat)
                 if chat is not None and chat.is_public:
-                    score = ChannelAnalyzer.calculate_score(
+                    score = await ChannelAnalyzer.calculate_score(
                         telegram_client,
                         chat.chat_id,
                         chat.members_count,
@@ -63,7 +63,7 @@ class AddChannelTask(BaseTask):
 
             sleep_time = e.value + random.randint(5, 15)
             logger.info(f"Sleeping for {sleep_time} seconds...")
-            time.sleep(sleep_time)
+            await asyncio.sleep(sleep_time)
             logger.info(f"Waking up after sleeping for {sleep_time} seconds...")
 
         except Exception as e:
@@ -72,4 +72,4 @@ class AddChannelTask(BaseTask):
             self.task_failed(db)
         finally:
             # sleep for a while before adding another channel
-            time.sleep(random.randint(15, 25))
+            await asyncio.sleep(random.randint(15, 25))

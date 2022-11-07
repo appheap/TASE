@@ -39,7 +39,7 @@ class IndexChannelCommand(BaseCommand):
         chat = handler.db.graph.get_chat_by_username(channel_username)
         if chat:
             try:
-                status, created = IndexAudiosTask(kwargs={"chat_key": chat.key}).publish(handler.db)
+                status, created = await IndexAudiosTask(kwargs={"chat_key": chat.key}).publish(handler.db)
             except NotEnoughRamError:
                 await message.reply_text(
                     f"Indexing audio file from chat `{chat.title}` was cancelled due to high memory usage",
@@ -66,7 +66,7 @@ class IndexChannelCommand(BaseCommand):
                 parse_mode=ParseMode.HTML,
             )
             try:
-                status, created = AddChannelTask(kwargs={"channel_username": channel_username}).publish(handler.db)
+                status, created = await AddChannelTask(kwargs={"channel_username": channel_username}).publish(handler.db)
             except NotEnoughRamError:
                 await message.reply_text(
                     f"Adding chat `{channel_username}` was cancelled due to high memory usage",

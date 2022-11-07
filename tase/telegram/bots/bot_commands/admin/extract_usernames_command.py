@@ -45,7 +45,7 @@ class ExtractUsernamesCommand(BaseCommand):
             kwargs = {"chat_key": db_chat.key}
 
         try:
-            status, created = ExtractUsernamesTask(kwargs=kwargs).publish(handler.db)
+            status, created = await ExtractUsernamesTask(kwargs=kwargs).publish(handler.db)
         except NotEnoughRamError:
             await message.reply_text(
                 f"Extracting usernames from chat `{db_chat.title}` was cancelled due to high memory usage",

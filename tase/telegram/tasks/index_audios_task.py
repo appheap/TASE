@@ -39,14 +39,14 @@ class IndexAudiosTask(BaseTask):
             return
 
         if chat.audio_indexer_metadata is None or get_now_timestamp() - chat.audio_indexer_metadata.last_run_at > 14 * 24 * 60 * 60 * 1000:
-            chat = self.get_updated_chat(telegram_client, db, chat)
+            chat = await self.get_updated_chat(telegram_client, db, chat)
             if chat:
                 logger.info(f"Started indexing audio files from  `{chat.title}`")
 
-                success = self.index_audios(db, telegram_client, chat, index_audio=True)
+                success = await self.index_audios(db, telegram_client, chat, index_audio=True)
                 if success:
                     await self.wait()
-                    self.index_audios(db, telegram_client, chat, index_audio=False)
+                    await self.index_audios(db, telegram_client, chat, index_audio=False)
 
                 logger.info(f"Finished indexing audio files from `{chat.title}`")
                 await self.wait()
@@ -65,7 +65,7 @@ class IndexAudiosTask(BaseTask):
         await asyncio.sleep(sleep_time)
         logger.info(f"Waking up after sleeping for {sleep_time} seconds...")
 
-    def get_updated_chat(
+    async def get_updated_chat(
         self,
         telegram_client: TelegramClient,
         db: DatabaseClient,
@@ -78,7 +78,7 @@ class IndexAudiosTask(BaseTask):
         if not telegram_client.peer_exists(chat.chat_id) or extra_check:
             # update the chat
             try:
-                tg_chat = telegram_client.get_chat(chat.username if chat.username else chat.invite_link)
+                tg_chat = await telegram_client.get_chat(chat.username if chat.username else chat.invite_link)
             except ValueError as e:
                 # In case the chat invite link points to a chat that this telegram client hasn't joined yet.
                 self.task_failed(db)
@@ -109,7 +109,7 @@ class IndexAudiosTask(BaseTask):
         else:
             return chat
 
-    def index_audios(
+    async def index_audios(
         self,
         db: DatabaseClient,
         telegram_client: TelegramClient,
@@ -161,16 +161,16 @@ class IndexAudiosTask(BaseTask):
                     metadata.last_message_offset_date = datetime_to_timestamp(message.date)
 
                 if idx + 1 % 500 == 0:
-                    self.wait(random.randint(3, 10))
+                    await self.wait(random.randint(3, 10))
 
             if index_audio:
                 chat.update_audio_indexer_metadata(metadata)
 
                 if calculate_score and chat.chat_type == ChatType.CHANNEL and chat.is_public:
                     # sleep for a while
-                    self.wait(5)
+                    await self.wait(5)
 
-                    score = ChannelAnalyzer.calculate_score(
+                    score = await ChannelAnalyzer.calculate_score(
                         telegram_client,
                         chat.chat_id,
                         chat.members_count,

@@ -32,7 +32,7 @@ class ShutdownCommand(BaseCommand):
         # todo: translate me
         await message.reply_text("Starting to shutdown the system...")
         try:
-            published = ShutdownTask().publish(
+            published = await ShutdownTask().publish(
                 handler.db,
                 check_memory_usage=False,
             )

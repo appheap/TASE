@@ -1,5 +1,5 @@
+import asyncio
 import random
-import time
 
 import arrow
 from apscheduler.triggers.interval import IntervalTrigger
@@ -49,7 +49,7 @@ class CheckUsernamesJob(BaseJob):
             else:
                 if idx > 0 and idx % 10 == 0:
                     # fixme: sleep to avoid publishing many tasks while the others haven't been processed yet
-                    time.sleep(10 * random.randint(10, 15))
+                    await asyncio.sleep(10 * random.randint(10, 15))
 
         if failed:
             self.task_failed(db)

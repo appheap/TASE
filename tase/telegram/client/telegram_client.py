@@ -141,11 +141,11 @@ class TelegramClient:
             self._me = await self._client.get_me()
         return self._me
 
-    def get_chat(
+    async def get_chat(
         self,
         chat_id: Union[int, str],
     ) -> Union[pyrogram.types.Chat, pyrogram.types.ChatPreview]:
-        return self._client.get_chat(chat_id=chat_id)
+        return await self._client.get_chat(chat_id=chat_id)
 
     def get_session_name(self) -> str:
         return self._client.name

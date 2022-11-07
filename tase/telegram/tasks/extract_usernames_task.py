@@ -77,7 +77,7 @@ class ExtractUsernamesTask(BaseTask):
             self.task_failed(db)
             return
 
-        chat = self.get_updated_chat(telegram_client, db, is_chat, chat_id, chat if is_chat else None)
+        chat = await self.get_updated_chat(telegram_client, db, is_chat, chat_id, chat if is_chat else None)
         if chat:
             if chat.username_extractor_metadata is None:
                 self.metadata: UsernameExtractorMetadata = UsernameExtractorMetadata()
@@ -95,7 +95,7 @@ class ExtractUsernamesTask(BaseTask):
             self.db = db
 
             logger.info(f"Started extracting usernames from chat: `{title}`")
-            self.extract_usernames(chat_id, telegram_client)
+            await self.extract_usernames(chat_id, telegram_client)
             logger.info(f"Finished extracting usernames from chat: `{title}`")
 
             # check gathered usernames if they match the current policy of indexing and them to the Database
@@ -119,7 +119,7 @@ class ExtractUsernamesTask(BaseTask):
         await asyncio.sleep(sleep_time)
         logger.info(f"Waking up after sleeping for {sleep_time} seconds...")
 
-    def get_updated_chat(
+    async def get_updated_chat(
         self,
         telegram_client: TelegramClient,
         db: DatabaseClient,
@@ -142,7 +142,7 @@ class ExtractUsernamesTask(BaseTask):
         if not telegram_client.peer_exists(chat_id) or extra_check:
             # update the chat
             try:
-                tg_chat = telegram_client.get_chat(chat_id)
+                tg_chat = await telegram_client.get_chat(chat_id)
             except ValueError as e:
                 # In case the chat invite link points to a chat that this telegram client hasn't joined yet.
                 self.task_failed(db)
@@ -153,7 +153,7 @@ class ExtractUsernamesTask(BaseTask):
             except FloodWait as e:
                 self.task_failed(db)
                 logger.exception(e)
-                self.wait(e.value + random.randint(5, 15))
+                # self.wait(e.value + random.randint(5, 15))
             except Exception as e:
                 self.task_failed(db)
                 logger.exception(e)
@@ -171,7 +171,7 @@ class ExtractUsernamesTask(BaseTask):
         else:
             return chat
 
-    def extract_usernames(
+    async def extract_usernames(
         self,
         chat_id: Union[str, int],
         telegram_client: TelegramClient,
@@ -269,7 +269,7 @@ class ExtractUsernamesTask(BaseTask):
                 self.metadata.last_message_offset_date = datetime_to_timestamp(message.date)
 
             if idx % 400 == 0:
-                self.wait(random.randint(3, 10))
+                await self.wait(random.randint(3, 10))
 
     def find_usernames_in_text(
         self,
