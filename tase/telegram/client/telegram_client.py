@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-import asyncio
 import re
 from enum import Enum
-from typing import Coroutine, Iterable, List, Optional, Union, Dict, Any
+from typing import Coroutine, Iterable, List, Optional, Union, Dict, Any, AsyncGenerator
 
 import pyrogram
 from pyrogram.errors import PeerIdInvalid
@@ -75,7 +74,7 @@ class TelegramClient:
     def is_connected(self) -> bool:
         return self._client.is_connected
 
-    def peer_exists(
+    async def peer_exists(
         self,
         peer_id: Union[str, int],
     ) -> bool:
@@ -95,7 +94,7 @@ class TelegramClient:
         """
         try:
             # peer = self._client.resolve_peer(peer_id)
-            peer = asyncio.run(self._client.storage.get_peer_by_id(peer_id))
+            peer = await self._client.storage.get_peer_by_id(peer_id)
         except KeyError:
             # peer does not exist
 
@@ -109,7 +108,7 @@ class TelegramClient:
                     int(peer_id)
                 except ValueError:
                     try:
-                        peer = asyncio.run(self._client.storage.get_peer_by_username(peer_id))
+                        peer = await self._client.storage.get_peer_by_username(peer_id)
                     except KeyError:
                         pass
                     else:
@@ -117,7 +116,7 @@ class TelegramClient:
                             return True
                 else:
                     try:
-                        peer = asyncio.run(self._client.storage.get_peer_by_phone_number(peer_id))
+                        peer = await self._client.storage.get_peer_by_phone_number(peer_id)
                     except KeyError:
                         return False
                     else:
@@ -183,8 +182,8 @@ class TelegramClient:
         offset_id: int = 0,
         only_newer_messages: bool = True,
         filter: str = "empty",
-    ):
-        yield from search_messages(
+    ) -> Optional[AsyncGenerator[pyrogram.types.Message, None]]:
+        return search_messages(
             client=self._client,
             chat_id=chat_id,
             query=query,

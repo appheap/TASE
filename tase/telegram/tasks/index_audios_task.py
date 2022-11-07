@@ -75,7 +75,7 @@ class IndexAudiosTask(BaseTask):
         successful = False
         new_chat = None
 
-        if not telegram_client.peer_exists(chat.chat_id) or extra_check:
+        if not await telegram_client.peer_exists(chat.chat_id) or extra_check:
             # update the chat
             try:
                 tg_chat = await telegram_client.get_chat(chat.username if chat.username else chat.invite_link)
@@ -136,13 +136,12 @@ class IndexAudiosTask(BaseTask):
         metadata.reset_counters()
 
         try:
-            for idx, message in enumerate(
-                telegram_client.iter_messages(
-                    chat_id=chat.chat_id,
-                    offset_id=metadata.last_message_offset_id,
-                    only_newer_messages=True,
-                    filter="audio" if index_audio else "document",
-                )
+            idx = 0
+            async for message in telegram_client.iter_messages(
+                chat_id=chat.chat_id,
+                offset_id=metadata.last_message_offset_id,
+                only_newer_messages=True,
+                filter="audio" if index_audio else "document",
             ):
                 if not index_audio:
                     audio, audio_type = get_telegram_message_media_type(message)
@@ -162,6 +161,8 @@ class IndexAudiosTask(BaseTask):
 
                 if idx + 1 % 500 == 0:
                     await self.wait(random.randint(3, 10))
+
+                idx += 1
 
             if index_audio:
                 chat.update_audio_indexer_metadata(metadata)

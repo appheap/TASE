@@ -1,5 +1,4 @@
-import asyncio
-from typing import List, Union
+from typing import List, Union, AsyncGenerator, Optional
 
 import pyrogram
 from pyrogram import raw, types, utils
@@ -77,7 +76,7 @@ async def get_chunk(
     return await utils.parse_messages(client, r)
 
 
-def search_messages(
+async def search_messages(
     client: pyrogram.Client,
     chat_id: Union[int, str],
     query: str = "",
@@ -87,7 +86,7 @@ def search_messages(
     limit: int = 0,
     from_user: Union[int, str] = None,
     only_newer_messages: bool = True,
-):
+) -> Optional[AsyncGenerator[pyrogram.types.Message, None]]:
     """Search for text and media messages inside a specific chat.
     If you want to get the messages count only, see :meth:`~pyrogram.Client.search_messages_count`.
     Parameters:
@@ -152,19 +151,17 @@ def search_messages(
     last_offset_id = -1
 
     while True:
-        messages = asyncio.run(
-            get_chunk(
-                client=client,
-                chat_id=chat_id,
-                query=query,
-                filter=filter,
-                offset=offset,
-                offset_id=offset_id,
-                limit=limit,
-                from_user=from_user,
-                only_newer_messages=only_newer_messages,
-                with_id=with_id,
-            )
+        messages = await get_chunk(
+            client=client,
+            chat_id=chat_id,
+            query=query,
+            filter=filter,
+            offset=offset,
+            offset_id=offset_id,
+            limit=limit,
+            from_user=from_user,
+            only_newer_messages=only_newer_messages,
+            with_id=with_id,
         )
 
         if not messages:

@@ -35,7 +35,7 @@ class CheckUsernameTask(BaseTask):
 
         logger.info(f"Checking: {username_vertex.username}")
         try:
-            tg_mentioned_chat = telegram_client.get_chat(username_vertex.username)
+            tg_mentioned_chat = await telegram_client.get_chat(username_vertex.username)
         except (KeyError, ValueError, UsernameNotOccupied, UsernameInvalid) as e:
             # ValueError: In case the chat invite link points to a chat that this telegram client hasn't joined yet.
             # KeyError or UsernameNotOccupied: The username is not occupied by anyone, so update the username

@@ -100,7 +100,7 @@ class TelegramClientConsumer(RabbitMQConsumer):
                 logger.info(f"Worker got a new task: {body.type.value} @ {0}")
                 if body.type != RabbitMQTaskType.UNKNOWN:
                     # await body.run(self.db, None)
-                    asyncio.create_task(body.run(self, self.db, random.choice(self.telegram_clients)))
+                    asyncio.create_task(body.run(self, self.db, random.choice(self.telegram_clients[:-1])))
             else:
                 # todo: unknown type for body detected, what now?
                 raise TypeError(f"Unknown type for `body`: {type(body)}")

@@ -64,7 +64,7 @@ class ExtractUsernamesTask(BaseTask):
                 return
 
             self.chat_username = chat.username.lower() if chat.username else None
-            chat_id = chat.chat_id if telegram_client.peer_exists(chat.chat_id) else chat.username
+            chat_id = chat.chat_id if await telegram_client.peer_exists(chat.chat_id) else chat.username
             title = chat.title
             is_chat = True
 
@@ -139,7 +139,7 @@ class ExtractUsernamesTask(BaseTask):
         successful = False
         new_chat = None
 
-        if not telegram_client.peer_exists(chat_id) or extra_check:
+        if not await telegram_client.peer_exists(chat_id) or extra_check:
             # update the chat
             try:
                 tg_chat = await telegram_client.get_chat(chat_id)
@@ -176,12 +176,11 @@ class ExtractUsernamesTask(BaseTask):
         chat_id: Union[str, int],
         telegram_client: TelegramClient,
     ):
-        for idx, message in enumerate(
-            telegram_client.iter_messages(
-                chat_id=chat_id,
-                offset_id=self.metadata.last_message_offset_id,
-                only_newer_messages=True,
-            )
+        idx = 0
+        async for message in telegram_client.iter_messages(
+            chat_id=chat_id,
+            offset_id=self.metadata.last_message_offset_id,
+            only_newer_messages=True,
         ):
             message: pyrogram.types.Message = message
 
@@ -268,8 +267,10 @@ class ExtractUsernamesTask(BaseTask):
                 self.metadata.last_message_offset_id = message.id
                 self.metadata.last_message_offset_date = datetime_to_timestamp(message.date)
 
-            if idx % 400 == 0:
+            if idx % 500 == 0:
                 await self.wait(random.randint(3, 10))
+
+            idx += 1
 
     def find_usernames_in_text(
         self,
