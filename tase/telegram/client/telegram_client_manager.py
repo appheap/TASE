@@ -27,8 +27,7 @@ class TelegramClientManager(mp.Process):
         self.clients: List[TelegramClient] = []
 
     def run(self) -> None:
-        logger.info(mp.current_process().name)
-        logger.info(threading.current_thread())
+        logger.info(f"process: {mp.current_process().name}, thread: {threading.current_thread()}")
 
         # initialize database client for this process
         self.db = DatabaseClient(

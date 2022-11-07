@@ -107,7 +107,7 @@ languages_object = Languages(
 
 def _get_config_from_file(
     file_path: str,
-) -> Optional["dict"]:
+) -> Optional[Dict]:
     try:
         with open(file_path, "rb") as f:
             return tomli.load(f)
@@ -162,7 +162,7 @@ def prettify(
     obj: object,
     sort_keys=False,
     include_class_name=True,
-) -> "str":
+) -> str:
     return json.dumps(
         obj,
         indent=4,
@@ -232,7 +232,7 @@ def sync_timed(f):
         result = f(*args, **kw)
         te = time.time()
 
-        logger.info(f"sync func:{f.__name__}  took: {round((te - ts) * 1000):} ms")
+        logger.debug(f"sync func:{f.__name__}  took: {round((te - ts) * 1000):} ms")
         return result
 
     return wrap
@@ -247,7 +247,7 @@ def async_timed():
                 return await func(*args, **kwargs)
             finally:
                 end = time.time()
-                logger.info(f"async func:{func.__name__}  took: {round((end - start) * 1000):} ms")
+                logger.debug(f"async func:{func.__name__}  took: {round((end - start) * 1000):} ms")
 
         return wrapped
 
