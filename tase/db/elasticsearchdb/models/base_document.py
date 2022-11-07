@@ -535,6 +535,7 @@ class BaseDocument(BaseModel):
                 index=cls._index_name,
                 from_=from_,
                 size=size,
+                track_total_hits=False,
                 query=cls.get_query(query, filter_by_valid_for_inline_search),
                 sort=cls.get_sort(),
             )
@@ -542,8 +543,14 @@ class BaseDocument(BaseModel):
             hits = res.body["hits"]["hits"]
 
             duration = res.meta.duration
-            total_hits = res.body["hits"]["total"]["value"] or 0
-            total_rel = res.body["hits"]["total"]["relation"]
+            try:
+                total_hits = res.body["hits"]["total"]["value"] or 0
+            except KeyError:
+                total_hits = None
+            try:
+                total_rel = res.body["hits"]["total"]["relation"]
+            except KeyError:
+                total_rel = None
             max_score = res.body["hits"]["max_score"] or 0
 
             query_metadata = {
