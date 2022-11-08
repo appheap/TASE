@@ -110,7 +110,7 @@ async def populate_audio_items(
             handler.telegram_client.telegram_id,
             audio_vertex.key,
         )
-        es_audio_doc = handler.db.index.get_audio_by_id(audio_vertex.key)
+        es_audio_doc = await handler.db.index.get_audio_by_id(audio_vertex.key)
 
         if not audio_doc:
             continue

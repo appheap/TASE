@@ -34,21 +34,23 @@ class TelegramClientManager(mp.Process):
     def run(self) -> None:
         logger.info(f"process: {mp.current_process().name}, thread: {threading.current_thread()}")
 
+        if sys.version_info >= (3, 11):
+            with asyncio.Runner(loop_factory=uvloop.new_event_loop) as runner:
+                runner.run(self.run_telegram_client_manager())
+        else:
+            uvloop.install()
+            asyncio.run(self.run_telegram_client_manager())
+
+    async def run_telegram_client_manager(self):
         # initialize database client for this process
         self.db = DatabaseClient(
             self.config.elastic_config,
             self.config.arango_db_config,
         )
+        await self.db.init_databases()
+
         self.rabbitmq_consumer = TelegramClientConsumer(db=self.db)
 
-        if sys.version_info >= (3, 11):
-            with asyncio.Runner(loop_factory=uvloop.new_event_loop) as runner:
-                runner.run(self.init_telegram_clients())
-        else:
-            uvloop.install()
-            asyncio.run(self.init_telegram_clients())
-
-    async def init_telegram_clients(self):
         for client_config in self.config.clients_config:
             telegram_client = TelegramClient.parse(
                 client_config,

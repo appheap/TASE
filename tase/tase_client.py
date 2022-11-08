@@ -15,6 +15,7 @@ from tase.scheduler.jobs import (
     ExtractUsernamesJob,
     CheckUsernamesJob,
     CheckUsernamesWithUncheckedMentionsJob,
+    DummyJob,
 )
 from tase.telegram.client import TelegramClient
 from tase.telegram.client.telegram_client_manager import TelegramClientManager
@@ -56,6 +57,7 @@ class TASE:
                     arangodb_config=tase_config.arango_db_config,
                     update_arango_indexes=True,
                 )
+                await self.database_client.init_databases()
 
                 scheduler = SchedulerWorkerProcess(tase_config)
                 scheduler.start()
@@ -64,7 +66,9 @@ class TASE:
                 self.database_client.document.cancel_all_active_tasks()
 
                 try:
+                    await asyncio.sleep(30)
                     # todo: do initial job scheduling in a proper way
+                    # await DummyJob(kwargs={"key": 1}).publish(self.database_client)
                     await CountInteractionsJob().publish(self.database_client)
                     await CountHitsJob().publish(self.database_client)
 

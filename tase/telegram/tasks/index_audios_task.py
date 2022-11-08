@@ -148,7 +148,7 @@ class IndexAudiosTask(BaseTask):
                     if audio is None or audio_type == TelegramAudioType.NON_AUDIO:
                         continue
 
-                successful = db.update_or_create_audio(
+                successful = await db.update_or_create_audio(
                     message,
                     telegram_client.telegram_id,
                 )

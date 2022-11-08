@@ -29,7 +29,10 @@ class DatabaseClient:
             update_indexes=update_arango_indexes,
         )
 
-    def get_or_create_audio(
+    async def init_databases(self):
+        await self.es_db.init_database()
+
+    async def get_or_create_audio(
         self,
         message: pyrogram.types.Message,
         telegram_client_id: int,
@@ -40,7 +43,7 @@ class DatabaseClient:
         try:
             audio_vertex = self.graph.get_or_create_audio(message)
             audio_doc = self.document.get_or_create_audio(message, telegram_client_id)
-            es_audio_doc = self.index.get_or_create_audio(message)
+            es_audio_doc = await self.index.get_or_create_audio(message)
         except Exception as e:
             logger.exception(e)
         else:
@@ -49,7 +52,7 @@ class DatabaseClient:
 
         return False
 
-    def update_or_create_audio(
+    async def update_or_create_audio(
         self,
         telegram_message: pyrogram.types.Message,
         telegram_client_id: int,
@@ -60,7 +63,7 @@ class DatabaseClient:
         try:
             audio_vertex = self.graph.update_or_create_audio(telegram_message)
             audio_doc = self.document.update_or_create_audio(telegram_message, telegram_client_id)
-            es_audio_doc = self.index.update_or_create_audio(telegram_message)
+            es_audio_doc = await self.index.update_or_create_audio(telegram_message)
         except Exception as e:
             logger.exception(e)
         else:

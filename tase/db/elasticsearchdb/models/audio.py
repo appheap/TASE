@@ -8,7 +8,7 @@ from elastic_transport import ObjectApiResponse
 from pydantic import Field
 
 from tase.common.preprocessing import clean_text, empty_to_null
-from tase.common.utils import datetime_to_timestamp, sync_timed
+from tase.common.utils import datetime_to_timestamp, async_timed
 from tase.errors import TelegramMessageWithNoAudio
 from tase.my_logger import logger
 from .base_document import BaseDocument
@@ -228,7 +228,7 @@ class Audio(BaseDocument):
         )
 
     @classmethod
-    def search_by_download_url(
+    async def search_by_download_url(
         cls,
         download_url: str,
     ) -> Optional[Audio]:
@@ -237,7 +237,7 @@ class Audio(BaseDocument):
         db_docs = []
 
         try:
-            res: ObjectApiResponse = cls._es.search(
+            res: ObjectApiResponse = await cls._es.search(
                 index=cls._index_name,
                 query={
                     "match": {
@@ -316,7 +316,7 @@ class Audio(BaseDocument):
             "dislikes": {"order": "asc"},
         }
 
-    def update_by_interaction_count(
+    async def update_by_interaction_count(
         self,
         interaction_count: InteractionCount,
     ) -> bool:
@@ -355,13 +355,13 @@ class Audio(BaseDocument):
                 if self_copy.dislikes > 0:
                     self_copy.dislikes -= interaction_count.count
 
-        return self.update(
+        return await self.update(
             self_copy,
             reserve_non_updatable_fields=False,
             retry_on_failure=True,
         )
 
-    def update_by_hit_count(
+    async def update_by_hit_count(
         self,
         hit_count: HitCount,
     ) -> bool:
@@ -388,7 +388,7 @@ class Audio(BaseDocument):
         elif hit_count.hit_type == HitType.INLINE_COMMAND:
             self_copy.non_search_hits += hit_count.count
 
-        return self.update(
+        return await self.update(
             self_copy,
             reserve_non_updatable_fields=False,
             retry_on_failure=True,
@@ -396,7 +396,7 @@ class Audio(BaseDocument):
 
 
 class AudioMethods:
-    def create_audio(
+    async def create_audio(
         self,
         telegram_message: pyrogram.types.Message,
     ) -> Optional[Audio]:
@@ -415,7 +415,7 @@ class AudioMethods:
 
         """
         try:
-            audio, successful = Audio.create(Audio.parse(telegram_message))
+            audio, successful = await Audio.create(Audio.parse(telegram_message))
         except TelegramMessageWithNoAudio:
             # this message doesn't contain any valid audio file
             pass
@@ -425,7 +425,7 @@ class AudioMethods:
 
         return None
 
-    def get_or_create_audio(
+    async def get_or_create_audio(
         self,
         telegram_message: pyrogram.types.Message,
     ) -> Optional[Audio]:
@@ -446,14 +446,14 @@ class AudioMethods:
         if telegram_message is None:
             return None
 
-        audio = Audio.get(Audio.parse_id(telegram_message))
+        audio = await Audio.get(Audio.parse_id(telegram_message))
         if audio is None:
             # audio does not exist in the index, create it
-            audio = self.create_audio(telegram_message)
+            audio = await self.create_audio(telegram_message)
 
         return audio
 
-    def update_or_create_audio(
+    async def update_or_create_audio(
         self,
         telegram_message: pyrogram.types.Message,
     ) -> Optional[Audio]:
@@ -474,19 +474,19 @@ class AudioMethods:
         if telegram_message is None:
             return None
 
-        audio = Audio.get(Audio.parse_id(telegram_message))
+        audio = await Audio.get(Audio.parse_id(telegram_message))
         if audio is None:
             # audio does not exist in the index, create it
-            audio = self.create_audio(telegram_message)
+            audio = await self.create_audio(telegram_message)
         else:
             # audio exists in the index, update it
             try:
-                updated = audio.update(Audio.parse(telegram_message))
+                updated = await audio.update(Audio.parse(telegram_message))
             except TelegramMessageWithNoAudio:
                 updated = False
         return audio
 
-    def get_audio_by_id(
+    async def get_audio_by_id(
         self,
         id: str,
     ) -> Optional[Audio]:
@@ -504,10 +504,10 @@ class AudioMethods:
             Audio if it exists in ElasticSearch, otherwise, return None
 
         """
-        return Audio.get(id)
+        return await Audio.get(id)
 
-    @sync_timed
-    def search_audio(
+    @async_timed()
+    async def search_audio(
         self,
         query: str,
         from_: int = 0,
@@ -538,7 +538,7 @@ class AudioMethods:
         if query is None or not len(query) or from_ is None or size is None:
             return None, None
 
-        audios, query_metadata = Audio.search(
+        audios, query_metadata = await Audio.search(
             query,
             from_,
             size,

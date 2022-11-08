@@ -63,7 +63,7 @@ class BaseHandler(BaseModel):
             messages = await self.telegram_client.get_messages(chat_id=db_chat.username, message_ids=message_ids)
 
             for message in messages:
-                self.db.update_or_create_audio(
+                await self.db.update_or_create_audio(
                     message,
                     self.telegram_client.telegram_id,
                 )
@@ -87,7 +87,7 @@ class BaseHandler(BaseModel):
         if hit is not None:
             audio_vertex = self.db.graph.get_audio_from_hit(hit)
             if audio_vertex is not None:
-                es_audio_doc = self.db.index.get_audio_by_id(audio_vertex.key)
+                es_audio_doc = await self.db.index.get_audio_by_id(audio_vertex.key)
                 if es_audio_doc:
                     audio_doc = self.db.document.get_audio_by_key(self.telegram_client.telegram_id, es_audio_doc.id)
                     chat = self.db.graph.get_chat_by_telegram_chat_id(es_audio_doc.chat_id)

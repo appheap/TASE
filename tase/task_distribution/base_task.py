@@ -177,6 +177,7 @@ class BaseTask(BaseModel):
                 auto_delete=exchange.auto_delete,
                 passive=True,
             )
+            # exchange=await channel.get_exchange(exchange.name)
 
             await exchange.publish(
                 aio_pika.Message(

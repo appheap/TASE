@@ -42,7 +42,7 @@ keywords = [
 python = "^3.10"
 emoji = "^2.1.0"
 schedule = "^1.1.0"
-elasticsearch = "^8.4.2"
+elasticsearch = {extras = ["async"], version = "^8.5.0"}
 Pyrogram = "^2.0.55"
 TgCrypto = "^1.2.3"
 tomli = "^2.0.1"
@@ -62,7 +62,10 @@ Cython = "^0.29.32"
 nltk = "^3.7"
 spacy = "^3.4.2"
 numpy = "^1.23.3"
-psutil = "^5.9.3"
+psutil = "^5.9.4"
+loguru = "^0.6.0"
+uvloop = "^0.17.0"
+aio-pika = "^8.2.4"
 
 [tool.poetry.dev-dependencies]
 

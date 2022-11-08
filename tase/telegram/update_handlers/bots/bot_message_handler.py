@@ -139,7 +139,7 @@ class BotMessageHandler(BaseHandler):
             if len(query) <= 2:
                 found_any = False
             else:
-                es_audio_docs, query_metadata = self.db.index.search_audio(
+                es_audio_docs, query_metadata = await self.db.index.search_audio(
                     clean_text(query),
                     size=10,
                     filter_by_valid_for_inline_search=False,  # todo: is this a good idea?

@@ -39,11 +39,11 @@ class CountHitsJob(BaseJob):
                 )
 
                 for hit_count in hits_count:
-                    es_audio_doc = db.index.get_audio_by_id(hit_count.audio_key)
+                    es_audio_doc = await db.index.get_audio_by_id(hit_count.audio_key)
                     if not es_audio_doc:
                         continue
 
-                    updated = es_audio_doc.update_by_hit_count(hit_count)
+                    updated = await es_audio_doc.update_by_hit_count(hit_count)
                     if not updated:
                         logger.error(f"Could not update hit count count for audio with key : `{hit_count.audio_key}`")
 

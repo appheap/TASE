@@ -39,11 +39,11 @@ class CountInteractionsJob(BaseJob):
                 )
 
                 for interaction_count in interactions_count:
-                    es_audio_doc = db.index.get_audio_by_id(interaction_count.audio_key)
+                    es_audio_doc = await db.index.get_audio_by_id(interaction_count.audio_key)
                     if not es_audio_doc:
                         continue
 
-                    updated = es_audio_doc.update_by_interaction_count(interaction_count)
+                    updated = await es_audio_doc.update_by_interaction_count(interaction_count)
                     if not updated:
                         logger.error(f"Could not update interaction count for audio with key : `{interaction_count.audio_key}`")
 

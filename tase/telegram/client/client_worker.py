@@ -44,9 +44,15 @@ class TelegramClientConsumer(RabbitMQConsumer):
                 auto_delete=True,
                 exclusive=True,
             )
+            exchange = await channel.declare_exchange(
+                task_globals.telegram_client_worker_exchange.name,
+                task_globals.telegram_client_worker_exchange.type,
+                durable=task_globals.telegram_client_worker_exchange.durable,
+                auto_delete=task_globals.telegram_client_worker_exchange.auto_delete,
+            )
 
             await queue.bind(
-                task_globals.telegram_client_worker_exchange.name,
+                exchange,
                 routing_key=f"{telegram_client.name}_task_queue",
                 robust=True,
             )
@@ -59,9 +65,15 @@ class TelegramClientConsumer(RabbitMQConsumer):
             auto_delete=True,
             exclusive=True,
         )
+        exchange = await channel.declare_exchange(
+            task_globals.rabbitmq_worker_command_exchange.name,
+            task_globals.rabbitmq_worker_command_exchange.type,
+            durable=task_globals.rabbitmq_worker_command_exchange.durable,
+            auto_delete=task_globals.rabbitmq_worker_command_exchange.auto_delete,
+        )
 
         await queue.bind(
-            task_globals.rabbitmq_worker_command_exchange.name,
+            exchange,
             routing_key="telegram_client_manager_command_queue",
             robust=True,
         )
@@ -75,9 +87,15 @@ class TelegramClientConsumer(RabbitMQConsumer):
             auto_delete=True,
             exclusive=True,
         )
+        exchange = await channel.declare_exchange(
+            task_globals.telegram_client_worker_exchange.name,
+            task_globals.telegram_client_worker_exchange.type,
+            durable=task_globals.telegram_client_worker_exchange.durable,
+            auto_delete=task_globals.telegram_client_worker_exchange.auto_delete,
+        )
 
         await queue.bind(
-            task_globals.telegram_client_worker_exchange.name,
+            exchange,
             routing_key=task_globals.telegram_workers_general_task_queue_name,
             robust=True,
         )

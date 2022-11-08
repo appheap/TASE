@@ -6,7 +6,7 @@ from typing import Optional, Tuple, TypeVar, Dict, Any, Type, List
 
 import elasticsearch
 from elastic_transport import ObjectApiResponse
-from elasticsearch import ConflictError, Elasticsearch, NotFoundError
+from elasticsearch import ConflictError, Elasticsearch, NotFoundError, AsyncElasticsearch
 from pydantic import BaseModel, Field, ValidationError
 
 from tase.common.utils import get_now_timestamp
@@ -138,7 +138,7 @@ class FromDocumentAttributeMapper(FromDocumentBaseProcessor):
 class BaseDocument(BaseModel):
     schema_version: int = Field(default=1)
 
-    _es: Optional[Elasticsearch]
+    _es: Optional[AsyncElasticsearch]
 
     _index_name = "base_index_name"
     _mappings = {}
@@ -295,7 +295,7 @@ class BaseDocument(BaseModel):
         return self
 
     @classmethod
-    def has_index(
+    async def has_index(
         cls,
     ) -> bool:
         """
@@ -309,7 +309,7 @@ class BaseDocument(BaseModel):
         """
         index_exists = False
         try:
-            cls._es.indices.get(index=cls._index_name)
+            await cls._es.indices.get(index=cls._index_name)
             index_exists = True
         except NotFoundError as e:
             index_exists = False
@@ -319,7 +319,7 @@ class BaseDocument(BaseModel):
         return index_exists
 
     @classmethod
-    def create_index(
+    async def create_index(
         cls,
     ) -> bool:
         """
@@ -331,7 +331,7 @@ class BaseDocument(BaseModel):
             Whether the index was created or not
         """
         try:
-            cls._es.indices.create(
+            await cls._es.indices.create(
                 index=cls._index_name,
                 mappings=cls._mappings,
             )
@@ -341,7 +341,7 @@ class BaseDocument(BaseModel):
             return True
 
     @classmethod
-    def get(
+    async def get(
         cls,
         doc_id: str,
     ) -> Optional[TBaseDocument]:
@@ -361,7 +361,7 @@ class BaseDocument(BaseModel):
         """
         obj = None
         try:
-            response = cls._es.get(
+            response = await cls._es.get(
                 index=cls._index_name,
                 id=doc_id,
             )
@@ -377,7 +377,7 @@ class BaseDocument(BaseModel):
         return obj
 
     @classmethod
-    def create(
+    async def create(
         cls: Type[TBaseDocument],
         document: TBaseDocument,
     ) -> Tuple[Optional[TBaseDocument], bool]:
@@ -405,7 +405,7 @@ class BaseDocument(BaseModel):
         try:
             id, doc = document.to_index()
             if id and doc:
-                response = cls._es.create(
+                response = await cls._es.create(
                     index=cls._index_name,
                     id=id,
                     document=doc,
@@ -419,7 +419,7 @@ class BaseDocument(BaseModel):
 
         return document, successful
 
-    def update(
+    async def update(
         self,
         document: TBaseDocument,
         reserve_non_updatable_fields: bool = True,
@@ -467,7 +467,7 @@ class BaseDocument(BaseModel):
             if id and doc:
                 doc["modified_at"] = get_now_timestamp()
 
-                response = self._es.update(
+                response = await self._es.update(
                     index=self._index_name,
                     id=id,
                     doc=doc,
@@ -480,9 +480,9 @@ class BaseDocument(BaseModel):
                 # todo: sleep for a while before retrying
                 time.sleep(run_depth * 20 / 1000)
 
-                latest_doc = self.get(self.id)
+                latest_doc = await self.get(self.id)
                 if latest_doc is not None:
-                    successful = latest_doc.update(
+                    successful = await latest_doc.update(
                         document,
                         reserve_non_updatable_fields=reserve_non_updatable_fields,
                         retry_on_failure=retry_on_failure,
@@ -498,7 +498,7 @@ class BaseDocument(BaseModel):
         return successful
 
     @classmethod
-    def search(
+    async def search(
         cls,
         query: str,
         from_: int = 0,
@@ -514,7 +514,7 @@ class BaseDocument(BaseModel):
             Query string to search for
         from_ : int, default : 0
             Number of documents to skip in the query
-        size : int, default : 50
+        size : int, default : 10
             Number of documents to return
         filter_by_valid_for_inline_search : bool, default: True
             Whether to filter documents by the validity to be shown in inline search of telegram
@@ -531,7 +531,7 @@ class BaseDocument(BaseModel):
 
         db_docs = []
         try:
-            res: ObjectApiResponse = cls._es.search(
+            res: ObjectApiResponse = await cls._es.search(
                 index=cls._index_name,
                 from_=from_,
                 size=size,
