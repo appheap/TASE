@@ -1,9 +1,8 @@
+import asyncio
 import random
-import time
 from typing import List, Optional, Union
 
 import pyrogram
-from kombu.mixins import ConsumerProducerMixin
 from pydantic import Field
 from pyrogram.errors import FloodWait
 
@@ -16,6 +15,7 @@ from tase.db.arangodb.helpers import UsernameExtractorMetadata
 from tase.my_logger import logger
 from tase.task_distribution import BaseTask, TargetWorkerType
 from tase.telegram.client import TelegramClient
+from tase.telegram.client.client_worker import RabbitMQConsumer
 
 
 class ExtractUsernamesTask(BaseTask):
@@ -29,9 +29,9 @@ class ExtractUsernamesTask(BaseTask):
     chat_username: Optional[str]
     metadata: Optional[UsernameExtractorMetadata]
 
-    def run(
+    async def run(
         self,
-        consumer_producer: ConsumerProducerMixin,
+        consumer: RabbitMQConsumer,
         db: DatabaseClient,
         telegram_client: TelegramClient = None,
     ):
@@ -64,7 +64,7 @@ class ExtractUsernamesTask(BaseTask):
                 return
 
             self.chat_username = chat.username.lower() if chat.username else None
-            chat_id = chat.chat_id if telegram_client.peer_exists(chat.chat_id) else chat.username
+            chat_id = chat.chat_id if await telegram_client.peer_exists(chat.chat_id) else chat.username
             title = chat.title
             is_chat = True
 
@@ -77,7 +77,7 @@ class ExtractUsernamesTask(BaseTask):
             self.task_failed(db)
             return
 
-        chat = self.get_updated_chat(telegram_client, db, is_chat, chat_id, chat if is_chat else None)
+        chat = await self.get_updated_chat(telegram_client, db, is_chat, chat_id, chat if is_chat else None)
         if chat:
             if chat.username_extractor_metadata is None:
                 self.metadata: UsernameExtractorMetadata = UsernameExtractorMetadata()
@@ -85,7 +85,7 @@ class ExtractUsernamesTask(BaseTask):
                 self.metadata = chat.username_extractor_metadata.copy()
 
             if self.metadata is None:
-                self.wait()
+                await self.wait()
                 self.task_failed(db)
                 return
 
@@ -95,31 +95,31 @@ class ExtractUsernamesTask(BaseTask):
             self.db = db
 
             logger.info(f"Started extracting usernames from chat: `{title}`")
-            self.extract_usernames(chat_id, telegram_client)
+            await self.extract_usernames(chat_id, telegram_client)
             logger.info(f"Finished extracting usernames from chat: `{title}`")
 
             # check gathered usernames if they match the current policy of indexing and them to the Database
             logger.info(f"Metadata: {prettify(self.metadata)}")
             self.chat.update_username_extractor_metadata(self.metadata)
 
-            self.wait()
+            await self.wait()
             self.task_done(db)
         else:
             logger.error(f"Error occurred: `{title}`")
-            self.wait()
+            await self.wait()
             self.task_failed(db)
 
     @classmethod
-    def wait(
+    async def wait(
         cls,
         sleep_time: int = random.randint(15, 25),
     ):
         # wait for a while before starting to index a new channel
         logger.info(f"Sleeping for {sleep_time} seconds...")
-        time.sleep(sleep_time)
+        await asyncio.sleep(sleep_time)
         logger.info(f"Waking up after sleeping for {sleep_time} seconds...")
 
-    def get_updated_chat(
+    async def get_updated_chat(
         self,
         telegram_client: TelegramClient,
         db: DatabaseClient,
@@ -139,10 +139,10 @@ class ExtractUsernamesTask(BaseTask):
         successful = False
         new_chat = None
 
-        if not telegram_client.peer_exists(chat_id) or extra_check:
+        if not await telegram_client.peer_exists(chat_id) or extra_check:
             # update the chat
             try:
-                tg_chat = telegram_client.get_chat(chat_id)
+                tg_chat = await telegram_client.get_chat(chat_id)
             except ValueError as e:
                 # In case the chat invite link points to a chat that this telegram client hasn't joined yet.
                 self.task_failed(db)
@@ -153,7 +153,7 @@ class ExtractUsernamesTask(BaseTask):
             except FloodWait as e:
                 self.task_failed(db)
                 logger.exception(e)
-                self.wait(e.value + random.randint(5, 15))
+                # self.wait(e.value + random.randint(5, 15))
             except Exception as e:
                 self.task_failed(db)
                 logger.exception(e)
@@ -171,17 +171,16 @@ class ExtractUsernamesTask(BaseTask):
         else:
             return chat
 
-    def extract_usernames(
+    async def extract_usernames(
         self,
         chat_id: Union[str, int],
         telegram_client: TelegramClient,
     ):
-        for idx, message in enumerate(
-            telegram_client.iter_messages(
-                chat_id=chat_id,
-                offset_id=self.metadata.last_message_offset_id,
-                only_newer_messages=True,
-            )
+        idx = 0
+        async for message in telegram_client.iter_messages(
+            chat_id=chat_id,
+            offset_id=self.metadata.last_message_offset_id,
+            only_newer_messages=True,
         ):
             message: pyrogram.types.Message = message
 
@@ -231,7 +230,7 @@ class ExtractUsernamesTask(BaseTask):
             if message.forward_from_chat and message.forward_from_chat.username:
                 # fixme: it's a public channel or a public supergroup or a user or a bot
                 self.find_usernames_in_text(
-                    message.forward_from_chat.username,
+                    f"@{message.forward_from_chat.username}",
                     True,
                     message,
                     MentionSource.FORWARDED_CHAT_USERNAME,
@@ -263,13 +262,30 @@ class ExtractUsernamesTask(BaseTask):
                         MentionSource.AUDIO_FILE_NAME,
                     ],
                 )
+            if message.document:
+                self.find_usernames_in_text(
+                    message.document.file_name,
+                    False,
+                    message,
+                    MentionSource.DOCUMENT_FILE_NAME,
+                )
+
+            if message.video:
+                self.find_usernames_in_text(
+                        message.video.file_name,
+                        False,
+                        message,
+                        MentionSource.DOCUMENT_FILE_NAME,
+                )
 
             if message.id > self.metadata.last_message_offset_id:
                 self.metadata.last_message_offset_id = message.id
                 self.metadata.last_message_offset_date = datetime_to_timestamp(message.date)
 
-            if idx % 400 == 0:
-                self.wait(random.randint(3, 10))
+            if idx % 500 == 0:
+                await self.wait(random.randint(3, 10))
+
+            idx += 1
 
     def find_usernames_in_text(
         self,

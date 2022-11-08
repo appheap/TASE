@@ -5,7 +5,7 @@ from tase.telegram.update_handlers.base import BaseHandler
 
 
 class OnCallbackQuery:
-    def on_callback_query(
+    async def on_callback_query(
         self,
         handler: BaseHandler,
         from_user: graph_models.vertices.User,

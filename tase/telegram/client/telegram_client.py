@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-import asyncio
 import re
 from enum import Enum
-from typing import Coroutine, Iterable, List, Optional, Union, Dict, Any
+from typing import Coroutine, Iterable, List, Optional, Union, Dict, Any, AsyncGenerator
 
 import pyrogram
 from pyrogram.errors import PeerIdInvalid
@@ -54,28 +53,28 @@ class TelegramClient:
     def init_client(self):
         pass
 
-    def start(self):
+    async def start(self):
         if self._client is None:
             self.init_client()
 
         logger.info("#" * 50)
         logger.info(self.name)
         logger.info("#" * 50)
-        self._client.start()
+        await self._client.start()
 
-    def set_bot_commands(
+    async def set_bot_commands(
         self,
         commands_list: List[Dict[str, Any]],
     ):
         pass
 
-    def stop(self) -> Coroutine:
-        return self._client.stop()
+    async def stop(self) -> Coroutine:
+        return await self._client.stop()
 
     def is_connected(self) -> bool:
         return self._client.is_connected
 
-    def peer_exists(
+    async def peer_exists(
         self,
         peer_id: Union[str, int],
     ) -> bool:
@@ -95,7 +94,7 @@ class TelegramClient:
         """
         try:
             # peer = self._client.resolve_peer(peer_id)
-            peer = asyncio.run(self._client.storage.get_peer_by_id(peer_id))
+            peer = await self._client.storage.get_peer_by_id(peer_id)
         except KeyError:
             # peer does not exist
 
@@ -109,7 +108,7 @@ class TelegramClient:
                     int(peer_id)
                 except ValueError:
                     try:
-                        peer = asyncio.run(self._client.storage.get_peer_by_username(peer_id))
+                        peer = await self._client.storage.get_peer_by_username(peer_id)
                     except KeyError:
                         pass
                     else:
@@ -117,7 +116,7 @@ class TelegramClient:
                             return True
                 else:
                     try:
-                        peer = asyncio.run(self._client.storage.get_peer_by_phone_number(peer_id))
+                        peer = await self._client.storage.get_peer_by_phone_number(peer_id)
                     except KeyError:
                         return False
                     else:
@@ -135,17 +134,17 @@ class TelegramClient:
 
         return False
 
-    def get_me(self) -> Optional[pyrogram.types.User]:
+    async def get_me(self) -> Optional[pyrogram.types.User]:
         # todo: add a feature to update this on fixed intervals to have latest information
         if self._me is None:
-            self._me = self._client.get_me()
+            self._me = await self._client.get_me()
         return self._me
 
-    def get_chat(
+    async def get_chat(
         self,
         chat_id: Union[int, str],
     ) -> Union[pyrogram.types.Chat, pyrogram.types.ChatPreview]:
-        return self._client.get_chat(chat_id=chat_id)
+        return await self._client.get_chat(chat_id=chat_id)
 
     def get_session_name(self) -> str:
         return self._client.name
@@ -183,8 +182,8 @@ class TelegramClient:
         offset_id: int = 0,
         only_newer_messages: bool = True,
         filter: str = "empty",
-    ):
-        yield from search_messages(
+    ) -> Optional[AsyncGenerator[pyrogram.types.Message, None]]:
+        return search_messages(
             client=self._client,
             chat_id=chat_id,
             query=query,
@@ -194,8 +193,9 @@ class TelegramClient:
             filter=filter,
         )
 
-    @staticmethod
-    def _parse(
+    @classmethod
+    def parse(
+        cls,
         client_config: ClientConfig,
         workdir: str,
     ) -> Optional[TelegramClient]:
@@ -213,12 +213,12 @@ class TelegramClient:
             # todo: raise error (unknown client type)
             logger.error("Unknown TelegramClient Type")
 
-    def get_messages(
+    async def get_messages(
         self,
         chat_id: Union[int, str],
         message_ids: Union[int, Iterable[int]] = None,
     ) -> Union[pyrogram.types.Message, List[pyrogram.types.Message]]:
-        messages = self._client.get_messages(
+        messages = await self._client.get_messages(
             chat_id=chat_id,
             message_ids=message_ids,
         )
@@ -278,13 +278,13 @@ class BotTelegramClient(TelegramClient):
             workdir=self.workdir,
         )
 
-    def set_bot_commands(
+    async def set_bot_commands(
         self,
         commands_list: List[Dict[str, Any]],
     ):
         for command_arg in commands_list:
             try:
-                self._client.set_bot_commands(
+                await self._client.set_bot_commands(
                     command_arg["commands"],
                     command_arg["scope"],
                 )

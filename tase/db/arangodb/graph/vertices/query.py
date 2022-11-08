@@ -5,7 +5,7 @@ from typing import Optional, Union, List, Tuple, Generator, TYPE_CHECKING
 
 import pyrogram
 
-from tase.common.utils import get_now_timestamp, timing
+from tase.common.utils import get_now_timestamp, sync_timed
 from tase.db.helpers import SearchMetaData
 from tase.errors import InvalidToVertex, InvalidFromVertex, EdgeCreationFailed
 from tase.my_logger import logger
@@ -141,7 +141,7 @@ class QueryMethods:
         "return non_inline_count + inline_count"
     )
 
-    @timing
+    @sync_timed
     def create_query(
         self: ArangoGraphMethods,
         bot_id: int,
@@ -286,7 +286,7 @@ class QueryMethods:
 
         return None, None
 
-    @timing
+    @sync_timed
     def get_or_create_query(
         self,
         bot_id: int,

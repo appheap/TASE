@@ -13,7 +13,7 @@ class ChannelAnalyzer(BaseModel):
     """
 
     @staticmethod
-    def calculate_score(
+    async def calculate_score(
         telegram_client: TelegramClient,
         telegram_chat_id: int,
         chat_members_count: int,
@@ -34,19 +34,19 @@ class ChannelAnalyzer(BaseModel):
         -------
         Calculated score for the channel
         """
-        all_messages_count = telegram_client._client.get_chat_history_count(telegram_chat_id)
-        audio_count = telegram_client._client.search_messages_count(telegram_chat_id, filter=MessagesFilter.AUDIO)
-        photo_video_count = telegram_client._client.search_messages_count(telegram_chat_id, filter=MessagesFilter.PHOTO_VIDEO)
-        document_count = telegram_client._client.search_messages_count(telegram_chat_id, filter=MessagesFilter.DOCUMENT)
-        audio_video_note_count = telegram_client._client.search_messages_count(telegram_chat_id, filter=MessagesFilter.AUDIO_VIDEO_NOTE)
-        gif_count = telegram_client._client.search_messages_count(telegram_chat_id, filter=MessagesFilter.ANIMATION)
-        link_count = telegram_client._client.search_messages_count(telegram_chat_id, filter=MessagesFilter.URL)
-        location_count = telegram_client._client.search_messages_count(telegram_chat_id, filter=MessagesFilter.LOCATION)
+        all_messages_count = await telegram_client._client.get_chat_history_count(telegram_chat_id)
+        audio_count = await telegram_client._client.search_messages_count(telegram_chat_id, filter=MessagesFilter.AUDIO)
+        photo_video_count = await telegram_client._client.search_messages_count(telegram_chat_id, filter=MessagesFilter.PHOTO_VIDEO)
+        document_count = await telegram_client._client.search_messages_count(telegram_chat_id, filter=MessagesFilter.DOCUMENT)
+        audio_video_note_count = await telegram_client._client.search_messages_count(telegram_chat_id, filter=MessagesFilter.AUDIO_VIDEO_NOTE)
+        gif_count = await telegram_client._client.search_messages_count(telegram_chat_id, filter=MessagesFilter.ANIMATION)
+        link_count = await telegram_client._client.search_messages_count(telegram_chat_id, filter=MessagesFilter.URL)
+        location_count = await telegram_client._client.search_messages_count(telegram_chat_id, filter=MessagesFilter.LOCATION)
         # phone_call_count = telegram_client._client.search_messages_count(
         #     chat.id, filter=MessagesFilter.PHONE_CALL
         # )
-        chat_photo_count = telegram_client._client.search_messages_count(telegram_chat_id, filter=MessagesFilter.CHAT_PHOTO)
-        contact_count = telegram_client._client.search_messages_count(telegram_chat_id, filter=MessagesFilter.CONTACT)
+        chat_photo_count = await telegram_client._client.search_messages_count(telegram_chat_id, filter=MessagesFilter.CHAT_PHOTO)
+        contact_count = await telegram_client._client.search_messages_count(telegram_chat_id, filter=MessagesFilter.CONTACT)
 
         media_count = (
             audio_count

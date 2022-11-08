@@ -19,7 +19,7 @@ class HomeCommand(BaseCommand):
     command_type: BotCommandType = Field(default=BotCommandType.HOME)
     command_description = "Show home menu"
 
-    def command_function(
+    async def command_function(
         self,
         client: pyrogram.Client,
         message: pyrogram.types.Message,
@@ -58,7 +58,7 @@ class HomeCommand(BaseCommand):
         else:
             chat_id = from_user.user_id
 
-        client.send_message(
+        await client.send_message(
             chat_id=chat_id,
             text=BaseTemplate.registry.home_template.render(data),
             parse_mode=ParseMode.HTML,

@@ -3,11 +3,11 @@ import gettext
 import json
 import re
 import secrets
+import time
 from collections import OrderedDict
 from datetime import datetime
 from functools import wraps
-from time import time
-from typing import Optional, List, Tuple, Dict, Match, Union
+from typing import Optional, List, Tuple, Dict, Match, Union, Callable, Any
 
 import arrow
 import psutil
@@ -107,7 +107,7 @@ languages_object = Languages(
 
 def _get_config_from_file(
     file_path: str,
-) -> Optional["dict"]:
+) -> Optional[Dict]:
     try:
         with open(file_path, "rb") as f:
             return tomli.load(f)
@@ -162,7 +162,7 @@ def prettify(
     obj: object,
     sort_keys=False,
     include_class_name=True,
-) -> "str":
+) -> str:
     return json.dumps(
         obj,
         indent=4,
@@ -225,22 +225,50 @@ def check_ram_usage(threshold: int = 90) -> None:
         raise NotEnoughRamError(threshold)
 
 
-def timing(f):
+def sync_timed(f):
     @wraps(f)
     def wrap(*args, **kw):
-        ts = time()
+        ts = time.time()
         result = f(*args, **kw)
-        te = time()
+        te = time.time()
 
-        # fixme
-        # logger.info("func:%r args:[%r, %r] took: %2.4f sec" % (f.__name__, args, kw, te - ts))
-        logger.error(f"func:{f.__name__}  took: {round((te - ts) * 1000):} ms")
+        logger.debug(f"sync func:{f.__name__}  took: {round((te - ts) * 1000):} ms")
         return result
 
     return wrap
 
 
-def exception_handler(func: "typing.Callable"):
+def async_timed():
+    def wrapper(func: Callable) -> Callable:
+        @wraps(func)
+        async def wrapped(*args, **kwargs) -> Any:
+            start = time.time()
+            try:
+                return await func(*args, **kwargs)
+            finally:
+                end = time.time()
+                logger.debug(f"async func:{func.__name__}  took: {round((end - start) * 1000):} ms")
+
+        return wrapped
+
+    return wrapper
+
+
+def async_exception_handler():
+    def wrapper(func: Callable) -> Callable:
+        @wraps(func)
+        async def wrapped(*args, **kwargs) -> Any:
+            try:
+                return await func(*args, **kwargs)
+            except Exception as e:
+                logger.exception(e)
+
+        return wrapped
+
+    return wrapper
+
+
+def sync_exception_handler(func: Callable):
     def wrap(*args, **kwargs):
         try:
             func(*args, **kwargs)

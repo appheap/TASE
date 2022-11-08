@@ -25,7 +25,7 @@ class RemoveFromPlaylistInlineButton(InlineButton):
     text = f"{emoji._minus}"
     is_inline = True
 
-    def on_inline_query(
+    async def on_inline_query(
         self,
         handler: BaseHandler,
         result: CustomInlineQueryResult,
@@ -47,7 +47,7 @@ class RemoveFromPlaylistInlineButton(InlineButton):
         except HitNoLinkedAudio:
             # fixme: this happens if the hit with the given `download_url` does not have any audio vertex linked to
             #  it. notify the user about this situation and update the database
-            client.send_message(
+            await client.send_message(
                 from_user.user_id,
                 "Given download url is not valid anymore",
             )
@@ -65,9 +65,9 @@ class RemoveFromPlaylistInlineButton(InlineButton):
             # what to show when user doesn't have any playlists yet or hasn't added this audio to any playlist
             result.set_results([AudioInNoPlaylistItem.get_item(from_user)])
 
-        result.answer_query()
+        await result.answer_query()
 
-    def on_chosen_inline_query(
+    async def on_chosen_inline_query(
         self,
         handler: BaseHandler,
         client: pyrogram.Client,
@@ -91,28 +91,28 @@ class RemoveFromPlaylistInlineButton(InlineButton):
                 get_now_timestamp(),
             )
         except PlaylistDoesNotExists as e:
-            client.send_message(
+            await client.send_message(
                 from_user.user_id,
                 "You do not have the playlist you have chosen",
             )
         except HitDoesNotExists as e:
-            client.send_message(
+            await client.send_message(
                 from_user.user_id,
                 "Given download url is not valid anymore",
             )
         except HitNoLinkedAudio as e:
-            client.send_message(
+            await client.send_message(
                 from_user.user_id,
                 "Audio does not exist anymore",
             )
         except InvalidAudioForInlineMode as e:
-            client.send_message(
+            await client.send_message(
                 from_user.user_id,
                 "This audio cannot be used in inline mode",
             )
         except Exception as e:
             logger.exception(e)
-            client.send_message(
+            await client.send_message(
                 from_user.user_id,
                 "Could not remove the audio from the playlist",
             )
@@ -120,17 +120,17 @@ class RemoveFromPlaylistInlineButton(InlineButton):
             # todo: update these messages
             if successful:
                 if removed:
-                    client.send_message(
+                    await client.send_message(
                         from_user.user_id,
                         "Removed from the playlist",
                     )
                 else:
-                    client.send_message(
+                    await client.send_message(
                         from_user.user_id,
                         "Did not remove from the playlist",
                     )
             else:
-                client.send_message(
+                await client.send_message(
                     from_user.user_id,
                     "Did not remove from the playlist",
                 )

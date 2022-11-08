@@ -1,21 +1,21 @@
+import asyncio
+import pickle
+from asyncio import AbstractEventLoop
 from multiprocessing import Process
-from typing import List, Optional
+from typing import Optional
 
-import kombu
-from apscheduler.schedulers.background import BackgroundScheduler
+import aio_pika
+from aio_pika.abc import AbstractRobustConnection
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from decouple import config
-from kombu import Connection, Consumer, Queue
-from kombu.mixins import ConsumerProducerMixin
-from kombu.transport import pyamqp
 
 from tase import task_globals
-from tase.common.utils import exception_handler
+from tase.common.utils import sync_exception_handler, async_exception_handler
 from tase.configs import TASEConfig
 from tase.db import DatabaseClient
 from tase.db.arangodb.enums import RabbitMQTaskType
 from tase.my_logger import logger
-from tase.scheduler.jobs import BaseJob
-from tase.task_distribution import BaseTask
+from tase.rabbimq_consumer import RabbitMQConsumer
 
 
 class SchedulerWorkerProcess(Process):
@@ -30,91 +30,169 @@ class SchedulerWorkerProcess(Process):
         self.config = config
         self.db: Optional[DatabaseClient] = None
         self.consumer = None
+        self.loop: Optional[AbstractEventLoop] = None
 
     def run(self) -> None:
         logger.info("SchedulerWorkerProcess started ....")
+        self.loop = asyncio.new_event_loop()
+        self.loop.run_until_complete(self.run_scheduler())
 
+    async def run_scheduler(self):
         self.db = DatabaseClient(
             self.config.elastic_config,
             self.config.arango_db_config,
         )
+        await self.db.init_databases()
 
         self.consumer = SchedulerJobConsumer(
-            connection=Connection(
-                config("RABBITMQ_URL"),
-                userid=config("RABBITMQ_DEFAULT_USER"),
-                password=config("RABBITMQ_DEFAULT_PASS"),
-            ),
             db=self.db,
+            loop=self.loop,
         )
-        self.consumer.run()
+        await self.consumer.init_consumer()
+
+        await asyncio.Future()
 
 
-class SchedulerJobConsumer(ConsumerProducerMixin):
-    def __init__(
-        self,
-        connection: kombu.Connection,
-        db: DatabaseClient,
-    ):
+class SchedulerJobConsumer(RabbitMQConsumer):
+    scheduler: Optional[AsyncIOScheduler]
+    # scheduler: Optional[BackgroundScheduler]
+    loop: Optional[AbstractEventLoop]
+    tasks: Optional[asyncio.Queue]
+
+    class Config:
+        arbitrary_types_allowed = True
+
+    async def await_tasks(self):
+        while True:
+            task: asyncio.Task = await self.tasks.get()
+            try:
+                await task
+            except Exception as e:
+                logger.exception(e)
+            else:
+                logger.info(f"Awaited another task: {task.get_name()}")
+
+    async def init_consumer(self) -> AbstractRobustConnection:
         logger.info("scheduler task consumer started...")
-        self.connection = connection
-        self.db = db
-
-        self.scheduler_queue = task_globals.scheduler_queue
-
-        self.scheduler = BackgroundScheduler()
+        # self.scheduler = BackgroundScheduler()
+        self.scheduler = AsyncIOScheduler()
         self.scheduler.start()
 
-        rabbitmq_worker_command_queue = Queue(
-            "scheduler_command_queue",
-            exchange=task_globals.rabbitmq_worker_command_exchange,
-            routing_key="scheduler_command_queue",
-            auto_delete=True,
+        self.tasks = asyncio.Queue()
+
+        connection = await aio_pika.connect_robust(
+            login=config("RABBITMQ_DEFAULT_USER"),
+            password=config("RABBITMQ_DEFAULT_PASS"),
         )
-        self.rabbitmq_worker_command_queue = rabbitmq_worker_command_queue
+        self.connection = connection
 
-    def get_consumers(
-        self,
-        consumer,
-        channel,
-    ) -> List[Consumer]:
-        return [
-            Consumer(
-                queues=[self.rabbitmq_worker_command_queue],
-                callbacks=[self.on_job],
-                channel=channel,
-                prefetch_count=1,
-                accept=["pickle"],
-            ),
-            Consumer(
-                queues=[self.scheduler_queue],
-                callbacks=[self.on_job_scheduled],
-                channel=channel,
-                prefetch_count=1,
-                accept=["pickle"],
-            ),
-        ]
+        # Creating channel
+        channel = await connection.channel()
 
-    @exception_handler
-    def on_job(
+        # Maximum message count which will be processing at the same time.
+        await channel.set_qos(prefetch_count=1)
+
+        rabbitmq_worker_command_queue = await channel.declare_queue(
+            "scheduler_command_queue",
+            auto_delete=True,
+            exclusive=True,
+        )
+        exchange = await channel.declare_exchange(
+            task_globals.rabbitmq_worker_command_exchange.name,
+            task_globals.rabbitmq_worker_command_exchange.type,
+            durable=task_globals.rabbitmq_worker_command_exchange.durable,
+            auto_delete=task_globals.rabbitmq_worker_command_exchange.auto_delete,
+        )
+
+        await rabbitmq_worker_command_queue.bind(
+            exchange,
+            routing_key="scheduler_command_queue",
+            robust=True,
+        )
+        await rabbitmq_worker_command_queue.consume(self.on_job)
+
+        ###############################################################
+
+        scheduler_queue = await channel.declare_queue(
+            task_globals.scheduler_queue_name,
+            auto_delete=True,
+            exclusive=True,
+        )
+        exchange = await channel.declare_exchange(
+            task_globals.scheduler_exchange.name,
+            task_globals.scheduler_exchange.type,
+            durable=task_globals.scheduler_exchange.durable,
+            auto_delete=task_globals.scheduler_exchange.auto_delete,
+        )
+
+        await scheduler_queue.bind(
+            exchange,
+            routing_key=task_globals.scheduler_queue_name,
+            robust=True,
+        )
+        await scheduler_queue.consume(self.on_job_scheduled)
+
+        await self.loop.create_task(self.await_tasks())
+
+        return connection
+
+    @async_exception_handler()
+    async def on_job(
         self,
-        body: object,
-        message: pyamqp.Message,
+        message: aio_pika.abc.AbstractIncomingMessage,
     ):
-        message.ack()
+        async with message.process():
+            from tase.task_distribution import BaseTask
 
-        if self.should_stop:
-            return
+            body = pickle.loads(message.body)
 
-        if isinstance(body, (BaseJob, BaseTask)):
-            logger.info(f"Scheduler got a new task: {body.type}")
-            if body.type != RabbitMQTaskType.UNKNOWN:
-                body.run(self, self.db)
-        else:
-            # todo: unknown type for body detected, what now?
-            raise TypeError(f"Unknown type for `body`: {type(body)}")
+            if isinstance(body, BaseTask):
+                logger.info(f"Scheduler got a new task: {body.type.value} @ {0}")
+                if body.type != RabbitMQTaskType.UNKNOWN:
+                    # await body.run(self, self.db, None)
+                    await self.tasks.put(self.loop.create_task(body.run(self, self.db, None)))
+            else:
+                # todo: unknown type for body detected, what now?
+                raise TypeError(f"Unknown type for `body`: {type(body)}")
 
-    @exception_handler
+    @async_exception_handler()
+    async def on_job_scheduled(
+        self,
+        message: aio_pika.abc.AbstractIncomingMessage,
+    ) -> None:
+        """
+        This method is executed when a new Job is fetched from RabbitMQ exchange and schedules the job on the
+        global scheduler
+
+        Parameters
+        ----------
+        message : aio_pika.abc.AbstractIncomingMessage
+            Object containing information about this message
+        """
+
+        from tase.scheduler.jobs import BaseJob
+
+        async with message.process():
+            if self.connection is None and self.scheduler.running():
+                logger.info("Shutting down scheduler...")
+                self.scheduler.shutdown()
+                return
+
+            job: BaseJob = pickle.loads(message.body)
+
+            if job.type != RabbitMQTaskType.UNKNOWN:
+                self.scheduler.add_job(
+                    self.job_runner,
+                    trigger=job.trigger,
+                    args=[
+                        job,
+                    ],
+                    coalesce=True,
+                    misfire_grace_time=None,
+                    replace_existing=True,
+                )
+
+    @sync_exception_handler
     def job_runner(
         self,
         *args,
@@ -135,41 +213,9 @@ class SchedulerJobConsumer(ConsumerProducerMixin):
         -------
         None
         """
-        args[0].run(self, self.db)
 
-    @exception_handler
-    def on_job_scheduled(
-        self,
-        body: object,
-        message: pyamqp.Message,
-    ) -> None:
-        """
-        This method is executed when a new Job is fetched from RabbitMQ exchange and schedules the job on the
-        global scheduler
+        async def f():
+            logger.info(f"Running `{args[0].type}`")
+            await self.tasks.put(self.loop.create_task(args[0].run(self, self.db)))
 
-        Parameters
-        ----------
-        body : tase.telegram.jobs.BaseJob
-            Job to be scheduled
-        message : pyamqp.Message
-            Object containing information about this message
-        """
-        message.ack()
-
-        from tase.scheduler.jobs import BaseJob
-
-        job: BaseJob = body
-        logger.info(f"scheduler_task_consumer_on_job : {job.type.value}")
-
-        if self.should_stop and self.scheduler.running():
-            self.scheduler.shutdown()
-            return
-
-        if job.type != RabbitMQTaskType.UNKNOWN:
-            self.scheduler.add_job(
-                self.job_runner,
-                trigger=job.trigger,
-                args=[
-                    job,
-                ],
-            )
+        self.loop.create_task(f())

@@ -10,9 +10,9 @@ from tase.common.bot_tasks_checker import BotTaskChecker
 from tase.common.preprocessing import telegram_url_regex, url_regex, clean_text, find_telegram_usernames
 from tase.common.utils import (
     datetime_to_timestamp,
-    exception_handler,
     emoji,
-    timing,
+    async_exception_handler,
+    async_timed,
 )
 from tase.my_logger import logger
 from tase.telegram.bots.bot_commands import BaseCommand, BotCommandType
@@ -65,20 +65,20 @@ class BotMessageHandler(BaseHandler):
         ]
         return handlers_list
 
-    @exception_handler
-    @timing
-    def commands_handler(
+    @async_exception_handler()
+    @async_timed()
+    async def commands_handler(
         self,
         client: pyrogram.Client,
         message: pyrogram.types.Message,
     ):
         logger.debug(f"commands_handler: {message.command}")
 
-        BaseCommand.run_command(client, message, self)
+        await BaseCommand.run_command(client, message, self)
 
-    @exception_handler
-    @timing
-    def downloads_handler(
+    @async_exception_handler()
+    @async_timed()
+    async def downloads_handler(
         self,
         client: pyrogram.Client,
         message: pyrogram.types.Message,
@@ -97,16 +97,16 @@ class BotMessageHandler(BaseHandler):
         logger.debug(f"base_downloads_handler: {message.text}")
 
         from_user = self.db.graph.get_interacted_user(message.from_user)
-        self.download_audio(
+        await self.download_audio(
             client,
             from_user,
             message.text,
             message,
         )
 
-    @exception_handler
-    @timing
-    def search_query_handler(
+    @async_exception_handler()
+    @async_timed()
+    async def search_query_handler(
         self,
         client: pyrogram.Client,
         message: pyrogram.types.Message,
@@ -117,7 +117,7 @@ class BotMessageHandler(BaseHandler):
         from_user = self.db.graph.get_interacted_user(message.from_user)
 
         if from_user.chosen_language_code is None or not len(from_user.chosen_language_code):
-            BaseCommand.run_command(client, message, self, BotCommandType.LANGUAGE)
+            await BaseCommand.run_command(client, message, self, BotCommandType.LANGUAGE)
             return
 
         # check if this message is reply to any bot task
@@ -139,7 +139,7 @@ class BotMessageHandler(BaseHandler):
             if len(query) <= 2:
                 found_any = False
             else:
-                es_audio_docs, query_metadata = self.db.index.search_audio(
+                es_audio_docs, query_metadata = await self.db.index.search_audio(
                     clean_text(query),
                     size=10,
                     filter_by_valid_for_inline_search=False,  # todo: is this a good idea?
@@ -167,7 +167,7 @@ class BotMessageHandler(BaseHandler):
                 )
             )
 
-        message.reply_text(
+        await message.reply_text(
             text=text,
             quote=True,
             parse_mode=ParseMode.HTML,
@@ -189,9 +189,9 @@ class BotMessageHandler(BaseHandler):
                 hit_download_urls=hit_download_urls,
             )
 
-    @exception_handler
-    @timing
-    def bot_message_handler(
+    @async_exception_handler()
+    @async_timed()
+    async def bot_message_handler(
         self,
         client: "pyrogram.Client",
         message: "pyrogram.types.Message",
@@ -263,7 +263,7 @@ class BotMessageHandler(BaseHandler):
             logger.debug("No usernames found in this message")
         else:
             # fixme: translate this string
-            message.reply_text(
+            await message.reply_text(
                 f"Special thanks for your contribution <b>{message.from_user.first_name or message.from_user.last_name}</b>. {random.choice(emoji.plants_list)}{random.choice(emoji.heart_list)}"
             )
 

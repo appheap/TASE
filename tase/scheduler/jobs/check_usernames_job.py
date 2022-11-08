@@ -1,9 +1,8 @@
+import asyncio
 import random
-import time
 
 import arrow
 from apscheduler.triggers.interval import IntervalTrigger
-from kombu.mixins import ConsumerProducerMixin
 
 import tase
 from .base_job import BaseJob
@@ -11,6 +10,7 @@ from ...db.arangodb.enums import RabbitMQTaskType
 from ...errors import NotEnoughRamError
 from ...my_logger import logger
 from ...telegram.client import TelegramClient
+from ...telegram.client.client_worker import RabbitMQConsumer
 from ...telegram.tasks import CheckUsernameTask
 
 
@@ -23,9 +23,9 @@ class CheckUsernamesJob(BaseJob):
         start_date=arrow.now().shift(hours=+1).datetime,
     )
 
-    def run(
+    async def run(
         self,
-        consumer: ConsumerProducerMixin,
+        consumer: RabbitMQConsumer,
         db: tase.db.DatabaseClient,
         telegram_client: TelegramClient = None,
     ) -> None:
@@ -37,7 +37,7 @@ class CheckUsernamesJob(BaseJob):
         for idx, username in enumerate(usernames):
             # todo: blocking or non-blocking? which one is better suited for this case?
             try:
-                CheckUsernameTask(
+                await CheckUsernameTask(
                     kwargs={
                         "username_key": username.key,
                     }
@@ -49,7 +49,7 @@ class CheckUsernamesJob(BaseJob):
             else:
                 if idx > 0 and idx % 10 == 0:
                     # fixme: sleep to avoid publishing many tasks while the others haven't been processed yet
-                    time.sleep(10 * random.randint(10, 15))
+                    await asyncio.sleep(10 * random.randint(10, 15))
 
         if failed:
             self.task_failed(db)

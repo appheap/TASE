@@ -1,149 +1,163 @@
-from threading import Thread
-from typing import Dict, List
+import asyncio
+import pickle
+import random
+from itertools import chain
+from typing import List, Dict
 
-import kombu
+import aio_pika
 from decouple import config
-from kombu import Consumer, Queue, Connection
-from kombu.mixins import ConsumerProducerMixin
-from kombu.transport import pyamqp
+from pydantic import Field
 
 from tase import task_globals
-from tase.common.utils import exception_handler
-from tase.configs import ClientTypes
-from tase.db import DatabaseClient
 from tase.db.arangodb.enums import RabbitMQTaskType
 from tase.my_logger import logger
+from tase.rabbimq_consumer import RabbitMQConsumer
 from tase.telegram.client import TelegramClient
 
 
-class ClientTaskConsumer(ConsumerProducerMixin):
-    def __init__(
+class TelegramClientConsumer(RabbitMQConsumer):
+    users: Dict[str, TelegramClient] = Field(default={})
+    bots: Dict[str, TelegramClient] = Field(default={})
+
+    class Config:
+        arbitrary_types_allowed = True
+
+    async def init_rabbitmq_consumer(
         self,
-        connection: Connection,
-        telegram_client: TelegramClient,
-        db,
-        client_worker_queues: Dict[str, kombu.Queue],
+        users: List[TelegramClient],
+        bots: List[TelegramClient],
     ):
-        logger.info("client task consumer started...")
+        for user in users:
+            self.users[user.name] = user
+
+        for bot in bots:
+            self.bots[bot.name] = bot
+
+        connection = await aio_pika.connect_robust(
+            login=config("RABBITMQ_DEFAULT_USER"),
+            password=config("RABBITMQ_DEFAULT_PASS"),
+        )
         self.connection = connection
-        self.telegram_client = telegram_client
-        self.db = db
-        self.client_worker_queues = client_worker_queues
 
-        telegram_client_worker_task_queue = Queue(
-            f"{self.telegram_client.get_session_name()}_task_queue",
-            exchange=task_globals.telegram_client_worker_exchange,
-            routing_key=f"{self.telegram_client.get_session_name()}_task_queue",
+        # Creating channel
+        channel = await connection.channel()
+
+        # Maximum message count which will be processing at the same time.
+        await channel.set_qos(prefetch_count=len(self.users) + len(self.bots))
+
+        # Declaring queue
+        for telegram_client in chain(self.users.values(), self.bots.values()):
+            queue = await channel.declare_queue(
+                f"{telegram_client.name}_task_queue",
+                auto_delete=True,
+                exclusive=True,
+            )
+            exchange = await channel.declare_exchange(
+                task_globals.telegram_client_worker_exchange.name,
+                task_globals.telegram_client_worker_exchange.type,
+                durable=task_globals.telegram_client_worker_exchange.durable,
+                auto_delete=task_globals.telegram_client_worker_exchange.auto_delete,
+            )
+
+            await queue.bind(
+                exchange,
+                routing_key=f"{telegram_client.name}_task_queue",
+                robust=True,
+            )
+            await queue.consume(self.process_message)
+
+        ############################################################
+
+        queue = await channel.declare_queue(
+            "telegram_client_manager_command_queue",
             auto_delete=True,
+            exclusive=True,
         )
-        self.telegram_client_worker_task_queue = telegram_client_worker_task_queue
-        self.client_worker_queues[self.telegram_client.name] = telegram_client_worker_task_queue
-        logger.info(f"client_worker_queues: {self.client_worker_queues}")
+        exchange = await channel.declare_exchange(
+            task_globals.rabbitmq_worker_command_exchange.name,
+            task_globals.rabbitmq_worker_command_exchange.type,
+            durable=task_globals.rabbitmq_worker_command_exchange.durable,
+            auto_delete=task_globals.rabbitmq_worker_command_exchange.auto_delete,
+        )
 
-        rabbitmq_worker_command_queue = Queue(
-            f"{self.telegram_client.get_session_name()}_command_queue",
-            exchange=task_globals.rabbitmq_worker_command_exchange,
-            routing_key=f"{self.telegram_client.get_session_name()}_command_queue",
+        await queue.bind(
+            exchange,
+            routing_key="telegram_client_manager_command_queue",
+            robust=True,
+        )
+        await queue.consume(self.process_message)
+
+        ############################################################
+
+        # Declaring queue
+        queue = await channel.declare_queue(
+            task_globals.telegram_workers_general_task_queue_name,
             auto_delete=True,
+            exclusive=True,
         )
-        self.rabbitmq_worker_command_queue = rabbitmq_worker_command_queue
-
-    def get_consumers(
-        self,
-        consumer,
-        channel,
-    ) -> List[Consumer]:
-        if self.telegram_client.client_type == ClientTypes.USER:
-            return [
-                Consumer(
-                    queues=[self.rabbitmq_worker_command_queue],
-                    callbacks=[self.on_task],
-                    channel=channel,
-                    prefetch_count=1,
-                    accept=["pickle"],
-                ),
-                Consumer(
-                    queues=[self.telegram_client_worker_task_queue],
-                    callbacks=[self.on_task],
-                    channel=channel,
-                    prefetch_count=1,
-                    accept=["pickle"],
-                ),
-                Consumer(
-                    queues=[task_globals.telegram_workers_general_task_queue],
-                    callbacks=[self.on_task],
-                    channel=channel,
-                    prefetch_count=1,
-                    accept=["pickle"],
-                ),
-            ]
-        else:
-            return [
-                Consumer(
-                    queues=[self.rabbitmq_worker_command_queue],
-                    callbacks=[self.on_task],
-                    channel=channel,
-                    prefetch_count=1,
-                    accept=["pickle"],
-                ),
-                Consumer(
-                    queues=[self.telegram_client_worker_task_queue],
-                    callbacks=[self.on_task],
-                    channel=channel,
-                    prefetch_count=1,
-                    accept=["pickle"],
-                ),
-            ]
-
-    @exception_handler
-    def on_task(
-        self,
-        body: object,
-        message: pyamqp.Message,
-    ):
-        message.ack()
-
-        if self.should_stop:
-            return
-
-        from tase.task_distribution import BaseTask
-
-        if isinstance(body, BaseTask):
-            logger.info(f"Worker got a new task: {body.type.value} @ {self.telegram_client.get_session_name()}")
-            if self.telegram_client.is_connected() and body.type != RabbitMQTaskType.UNKNOWN:
-                body.run(self, self.db, self.telegram_client)
-        else:
-            # todo: unknown type for body detected, what now?
-            raise TypeError(f"Unknown type for `body`: {type(body)}")
-
-
-class ClientWorkerThread(Thread):
-    def __init__(
-        self,
-        telegram_client: TelegramClient,
-        index: int,
-        db: DatabaseClient,
-        client_worker_queues: Dict[str, kombu.Queue],
-    ):
-        super().__init__()
-        self.daemon = True
-        self.telegram_client = telegram_client
-        self.name = f"Client_Worker_Thread {index}"
-        self.index = index
-        self.db = db
-        self.client_worker_queues = client_worker_queues
-        self.consumer = None
-
-    def run(self) -> None:
-        logger.info(f"Client Worker {self.index} started ....")
-        self.consumer = ClientTaskConsumer(
-            connection=Connection(
-                config("RABBITMQ_URL"),
-                userid=config("RABBITMQ_DEFAULT_USER"),
-                password=config("RABBITMQ_DEFAULT_PASS"),
-            ),
-            telegram_client=self.telegram_client,
-            db=self.db,
-            client_worker_queues=self.client_worker_queues,
+        exchange = await channel.declare_exchange(
+            task_globals.telegram_client_worker_exchange.name,
+            task_globals.telegram_client_worker_exchange.type,
+            durable=task_globals.telegram_client_worker_exchange.durable,
+            auto_delete=task_globals.telegram_client_worker_exchange.auto_delete,
         )
-        self.consumer.run()
+
+        await queue.bind(
+            exchange,
+            routing_key=task_globals.telegram_workers_general_task_queue_name,
+            robust=True,
+        )
+        await queue.consume(self.process_message)
+
+    async def shutdown(self):
+        if self.connection is not None:
+            await self.connection.close()
+
+    async def process_message(
+        self,
+        message: aio_pika.abc.AbstractIncomingMessage,
+    ) -> None:
+        async with message.process():
+            from tase.task_distribution import BaseTask
+
+            body = pickle.loads(message.body)
+
+            if isinstance(body, BaseTask):
+                logger.info(f"TelegramClientConsumer got a new task: {body.type.value}")
+                if body.type != RabbitMQTaskType.UNKNOWN:
+                    # await body.run(self.db, None)
+                    from tase.task_distribution import TargetWorkerType
+
+                    if body.target_worker_type == TargetWorkerType.ANY_TELEGRAM_CLIENTS_CONSUMER_WORK:
+                        asyncio.create_task(
+                            body.run(
+                                self,
+                                self.db,
+                                random.choice(list(self.users.values())),
+                            )
+                        )
+                    elif body.target_worker_type == TargetWorkerType.ONE_TELEGRAM_CLIENT_CONSUMER_WORK:
+                        if self.users.get(message.routing_key, None):
+                            asyncio.create_task(
+                                body.run(
+                                    self,
+                                    self.db,
+                                    self.users[message.routing_key],
+                                )
+                            )
+                        else:
+                            logger.error(f"Could not find Telegram user client with `{message.routing_key}` name")
+                    elif body.target_worker_type == TargetWorkerType.RABBITMQ_CONSUMER_COMMAND:
+                        asyncio.create_task(
+                            body.run(
+                                self,
+                                self.db,
+                                random.choice(list(self.users.values())),
+                            )
+                        )
+                    else:
+                        logger.error(f"Unexpected target_worker_type: `{body.target_worker_type}`")
+
+            else:
+                # todo: unknown type for body detected, what now?
+                raise TypeError(f"Unknown type for `body`: {type(body)}")

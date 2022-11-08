@@ -18,7 +18,7 @@ class LanguageCommand(BaseCommand):
     command_type: BotCommandType = Field(default=BotCommandType.LANGUAGE)
     command_description = "Show language selection menu"
 
-    def command_function(
+    async def command_function(
         self,
         client: pyrogram.Client,
         message: pyrogram.types.Message,
@@ -31,7 +31,7 @@ class LanguageCommand(BaseCommand):
             lang_code=from_user.chosen_language_code,
         )
 
-        client.send_message(
+        await client.send_message(
             chat_id=from_user.user_id,
             text=BaseTemplate.registry.choose_language_template.render(data),
             reply_markup=languages_object.get_choose_language_markup(),

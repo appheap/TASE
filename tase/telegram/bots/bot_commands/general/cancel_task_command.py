@@ -18,7 +18,7 @@ class CancelTaskCommand(BaseCommand):
     command_description = "Cancel the current task"
     required_role_level: UserRole = UserRole.SEARCHER
 
-    def command_function(
+    async def command_function(
         self,
         client: pyrogram.Client,
         message: pyrogram.types.Message,
@@ -32,7 +32,7 @@ class CancelTaskCommand(BaseCommand):
         )
         if latest_task is None:
             # user has no task running
-            message.reply_text(
+            await message.reply_text(
                 "No task is running!",
                 quote=True,
                 parse_mode=ParseMode.HTML,
@@ -45,14 +45,14 @@ class CancelTaskCommand(BaseCommand):
                 latest_task.type,
             )
             if canceled:
-                message.reply_text(
+                await message.reply_text(
                     "Task was successfully canceled!",
                     quote=True,
                     parse_mode=ParseMode.HTML,
                     disable_web_page_preview=True,
                 )
             else:
-                message.reply_text(
+                await message.reply_text(
                     "Could not cancel the due to internal error, please try again.",
                     quote=True,
                     parse_mode=ParseMode.HTML,

@@ -19,7 +19,7 @@ class HelpCatalogInlineButton(InlineButton):
     text = f"{s_help} | {emoji._exclamation_question_mark}"
     is_inline = True
 
-    def on_inline_query(
+    async def on_inline_query(
         self,
         handler: BaseHandler,
         result: CustomInlineQueryResult,
@@ -120,4 +120,4 @@ class HelpCatalogInlineButton(InlineButton):
         )
         result.cache_time = 300  # todo: fix me
 
-        result.answer_query()
+        await result.answer_query()

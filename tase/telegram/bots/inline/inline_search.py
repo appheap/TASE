@@ -16,7 +16,7 @@ from . import CustomInlineQueryResult
 
 class InlineSearch(OnInlineQuery):
     @classmethod
-    def on_inline_query(
+    async def on_inline_query(
         cls,
         handler: BaseHandler,
         result: CustomInlineQueryResult,
@@ -39,7 +39,7 @@ class InlineSearch(OnInlineQuery):
             else:
                 size = 15
 
-                es_audio_docs, query_metadata = handler.db.index.search_audio(
+                es_audio_docs, query_metadata = await handler.db.index.search_audio(
                     telegram_inline_query.query,
                     from_=result.from_,
                     size=size,  # todo: update?
@@ -86,7 +86,7 @@ class InlineSearch(OnInlineQuery):
 
                         result.add_item(
                             AudioItem.get_item(
-                                handler.telegram_client.get_me().username,
+                                (await handler.telegram_client.get_me()).username,
                                 audio_doc.file_id,
                                 from_user,
                                 es_audio_doc,
@@ -103,7 +103,7 @@ class InlineSearch(OnInlineQuery):
             # todo: No results matching the query found, what now?
             result.set_results([NoResultItem.get_item(from_user)])
 
-        result.answer_query()
+        await result.answer_query()
 
         if found_any:
             # fixme

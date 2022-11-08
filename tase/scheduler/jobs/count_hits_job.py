@@ -1,11 +1,12 @@
 import arrow
 from apscheduler.triggers.interval import IntervalTrigger
-from kombu.mixins import ConsumerProducerMixin, logger
+from kombu.mixins import logger
 
 from tase.db import DatabaseClient
 from .base_job import BaseJob
 from ...common.utils import get_now_timestamp
 from ...db.arangodb.enums import RabbitMQTaskType
+from ...telegram.client.client_worker import RabbitMQConsumer
 
 
 class CountHitsJob(BaseJob):
@@ -17,9 +18,9 @@ class CountHitsJob(BaseJob):
         start_date=arrow.now().datetime,
     )
 
-    def run(
+    async def run(
         self,
-        consumer: ConsumerProducerMixin,
+        consumer: RabbitMQConsumer,
         db: DatabaseClient,
         telegram_client: "TelegramClient" = None,
     ):
@@ -38,11 +39,11 @@ class CountHitsJob(BaseJob):
                 )
 
                 for hit_count in hits_count:
-                    es_audio_doc = db.index.get_audio_by_id(hit_count.audio_key)
+                    es_audio_doc = await db.index.get_audio_by_id(hit_count.audio_key)
                     if not es_audio_doc:
                         continue
 
-                    updated = es_audio_doc.update_by_hit_count(hit_count)
+                    updated = await es_audio_doc.update_by_hit_count(hit_count)
                     if not updated:
                         logger.error(f"Could not update hit count count for audio with key : `{hit_count.audio_key}`")
 

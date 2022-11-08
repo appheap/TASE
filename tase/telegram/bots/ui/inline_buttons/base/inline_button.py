@@ -162,7 +162,7 @@ class InlineButton(
 
     ############################################################
 
-    def on_inline_query(
+    async def on_inline_query(
         self,
         handler: BaseHandler,
         result: CustomInlineQueryResult,
@@ -174,7 +174,7 @@ class InlineButton(
     ):
         raise NotImplementedError
 
-    def on_chosen_inline_query(
+    async def on_chosen_inline_query(
         self,
         handler: BaseHandler,
         client: pyrogram.Client,
@@ -184,7 +184,7 @@ class InlineButton(
     ):
         raise NotImplementedError
 
-    def on_callback_query(
+    async def on_callback_query(
         self,
         handler: BaseHandler,
         from_user: graph_models.vertices.User,

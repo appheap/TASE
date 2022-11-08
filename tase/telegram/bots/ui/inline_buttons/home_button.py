@@ -15,16 +15,16 @@ class HomeInlineButton(InlineButton):
     text = f"{s_home} | {emoji._house}"
     is_inline = False
 
-    def on_callback_query(
+    async def on_callback_query(
         self,
         handler: BaseHandler,
         from_user: graph_models.vertices.User,
         client: pyrogram.Client,
         telegram_callback_query: pyrogram.types.CallbackQuery,
     ):
-        telegram_callback_query.answer("")
+        await telegram_callback_query.answer("")
 
-        bot_commands.BaseCommand.run_command_from_callback_query(
+        await bot_commands.BaseCommand.run_command_from_callback_query(
             client,
             telegram_callback_query,
             handler,

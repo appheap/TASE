@@ -19,10 +19,10 @@ class IndexAudiosJob(BaseJob):
 
     trigger = apscheduler.triggers.interval.IntervalTrigger(
         hours=1,
-        start_date=arrow.now().shift(minutes=+10).datetime,
+        start_date=arrow.now().shift(minutes=+1).datetime,
     )
 
-    def run(
+    async def run(
         self,
         consumer: ConsumerProducerMixin,
         db: tase.db.DatabaseClient,
@@ -41,15 +41,15 @@ class IndexAudiosJob(BaseJob):
 
         # todo: blocking or non-blocking? which one is better suited for this case?
         for chat in chain(chats, not_indexed_chats):
-            logger.debug(f"published task for indexing: {chat.username}")
+            logger.info(f"published task for indexing: {chat.username}")
             try:
-                IndexAudiosTask(
+                await IndexAudiosTask(
                     kwargs={
                         "chat_key": chat.key,
                     }
                 ).publish(db)
             except NotEnoughRamError:
-                logger.debug(f"indexing audio files from chat `{chat.username}` was cancelled due to high memory usage")
+                logger.error(f"indexing audio files from chat `{chat.username}` was cancelled due to high memory usage")
                 failed = True
                 break
             except Exception as e:

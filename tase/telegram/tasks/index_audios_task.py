@@ -1,8 +1,7 @@
+import asyncio
 import random
-import time
 from typing import Optional
 
-from kombu.mixins import ConsumerProducerMixin
 from pyrogram.errors import FloodWait
 
 from tase.common.utils import datetime_to_timestamp, prettify, get_now_timestamp
@@ -16,6 +15,7 @@ from tase.my_logger import logger
 from tase.task_distribution import BaseTask, TargetWorkerType
 from tase.telegram.channel_analyzer import ChannelAnalyzer
 from tase.telegram.client import TelegramClient
+from tase.telegram.client.client_worker import RabbitMQConsumer
 
 
 class IndexAudiosTask(BaseTask):
@@ -23,9 +23,9 @@ class IndexAudiosTask(BaseTask):
     type = RabbitMQTaskType.INDEX_AUDIOS_TASK
     priority = 3
 
-    def run(
+    async def run(
         self,
-        consumer_producer: ConsumerProducerMixin,
+        consumer: RabbitMQConsumer,
         db: DatabaseClient,
         telegram_client: TelegramClient = None,
     ):
@@ -39,33 +39,33 @@ class IndexAudiosTask(BaseTask):
             return
 
         if chat.audio_indexer_metadata is None or get_now_timestamp() - chat.audio_indexer_metadata.last_run_at > 14 * 24 * 60 * 60 * 1000:
-            chat = self.get_updated_chat(telegram_client, db, chat)
+            chat = await self.get_updated_chat(telegram_client, db, chat)
             if chat:
                 logger.info(f"Started indexing audio files from  `{chat.title}`")
 
-                success = self.index_audios(db, telegram_client, chat, index_audio=True)
+                success = await self.index_audios(db, telegram_client, chat, index_audio=True)
                 if success:
-                    self.wait()
-                    self.index_audios(db, telegram_client, chat, index_audio=False)
+                    await self.wait()
+                    await self.index_audios(db, telegram_client, chat, index_audio=False)
 
                 logger.info(f"Finished indexing audio files from `{chat.title}`")
-                self.wait()
+                await self.wait()
                 self.task_done(db)
         else:
             logger.info(f"Cancelled indexing of {chat.title}")
             self.task_failed(db)
 
     @classmethod
-    def wait(
+    async def wait(
         cls,
         sleep_time: int = random.randint(15, 25),
     ):
         # wait for a while before starting to index a new channel
         logger.info(f"Sleeping for {sleep_time} seconds...")
-        time.sleep(sleep_time)
+        await asyncio.sleep(sleep_time)
         logger.info(f"Waking up after sleeping for {sleep_time} seconds...")
 
-    def get_updated_chat(
+    async def get_updated_chat(
         self,
         telegram_client: TelegramClient,
         db: DatabaseClient,
@@ -75,10 +75,10 @@ class IndexAudiosTask(BaseTask):
         successful = False
         new_chat = None
 
-        if not telegram_client.peer_exists(chat.chat_id) or extra_check:
+        if not await telegram_client.peer_exists(chat.chat_id) or extra_check:
             # update the chat
             try:
-                tg_chat = telegram_client.get_chat(chat.username if chat.username else chat.invite_link)
+                tg_chat = await telegram_client.get_chat(chat.username if chat.username else chat.invite_link)
             except ValueError as e:
                 # In case the chat invite link points to a chat that this telegram client hasn't joined yet.
                 self.task_failed(db)
@@ -89,13 +89,14 @@ class IndexAudiosTask(BaseTask):
             except FloodWait as e:
                 self.task_failed(db)
                 logger.exception(e)
-                self.wait(e.value + random.randint(5, 15))
+                await self.wait()
+                # self.wait(e.value + random.randint(5, 15))
             except Exception as e:
                 self.task_failed(db)
                 logger.exception(e)
             else:
                 new_chat = db.graph.update_or_create_chat(tg_chat)
-                self.wait()
+                await self.wait()
                 if not new_chat:
                     self.task_failed(db)
                 else:
@@ -108,7 +109,7 @@ class IndexAudiosTask(BaseTask):
         else:
             return chat
 
-    def index_audios(
+    async def index_audios(
         self,
         db: DatabaseClient,
         telegram_client: TelegramClient,
@@ -135,20 +136,19 @@ class IndexAudiosTask(BaseTask):
         metadata.reset_counters()
 
         try:
-            for idx, message in enumerate(
-                telegram_client.iter_messages(
-                    chat_id=chat.chat_id,
-                    offset_id=metadata.last_message_offset_id,
-                    only_newer_messages=True,
-                    filter="audio" if index_audio else "document",
-                )
+            idx = 0
+            async for message in telegram_client.iter_messages(
+                chat_id=chat.chat_id,
+                offset_id=metadata.last_message_offset_id,
+                only_newer_messages=True,
+                filter="audio" if index_audio else "document",
             ):
                 if not index_audio:
                     audio, audio_type = get_telegram_message_media_type(message)
                     if audio is None or audio_type == TelegramAudioType.NON_AUDIO:
                         continue
 
-                successful = db.update_or_create_audio(
+                successful = await db.update_or_create_audio(
                     message,
                     telegram_client.telegram_id,
                 )
@@ -160,22 +160,24 @@ class IndexAudiosTask(BaseTask):
                     metadata.last_message_offset_date = datetime_to_timestamp(message.date)
 
                 if idx + 1 % 500 == 0:
-                    self.wait(random.randint(3, 10))
+                    await self.wait(random.randint(3, 10))
+
+                idx += 1
 
             if index_audio:
                 chat.update_audio_indexer_metadata(metadata)
 
                 if calculate_score and chat.chat_type == ChatType.CHANNEL and chat.is_public:
                     # sleep for a while
-                    self.wait(5)
+                    await self.wait(5)
 
-                    score = ChannelAnalyzer.calculate_score(
+                    score = await ChannelAnalyzer.calculate_score(
                         telegram_client,
                         chat.chat_id,
                         chat.members_count,
                     )
                     updated = chat.update_audio_indexer_score(score)
-                    logger.debug(f"Channel {chat.username} score: {score}")
+                    logger.info(f"Channel {chat.username} score: {score}")
             else:
                 chat.update_audio_doc_indexer_metadata(metadata)
 

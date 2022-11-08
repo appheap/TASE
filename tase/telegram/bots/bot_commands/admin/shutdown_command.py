@@ -21,7 +21,7 @@ class ShutdownCommand(BaseCommand):
     command_description = "Stop the system to perform an update"
     required_role_level: UserRole = UserRole.OWNER
 
-    def command_function(
+    async def command_function(
         self,
         client: pyrogram.Client,
         message: pyrogram.types.Message,
@@ -30,27 +30,27 @@ class ShutdownCommand(BaseCommand):
         from_callback_query: bool,
     ) -> None:
         # todo: translate me
-        message.reply_text("Starting to shutdown the system...")
+        await message.reply_text("Starting to shutdown the system...")
         try:
-            published = ShutdownTask().publish(
+            published = await ShutdownTask().publish(
                 handler.db,
                 check_memory_usage=False,
             )
         except NotEnoughRamError:
-            message.reply_text(
+            await message.reply_text(
                 f"Bot shutdown was cancelled due to high memory usage",
                 quote=True,
                 parse_mode=ParseMode.HTML,
             )
         else:
             if published:
-                message.reply_text(
+                await message.reply_text(
                     "Shutdown command completed successfully.",
                     quote=True,
                     parse_mode=ParseMode.HTML,
                 )
             else:
-                message.reply_text(
+                await message.reply_text(
                     "Could not shutdown the system.",
                     quote=True,
                     parse_mode=ParseMode.HTML,

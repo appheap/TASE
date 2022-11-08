@@ -1,10 +1,9 @@
-from kombu.mixins import ConsumerProducerMixin
-
 from tase.db import DatabaseClient
 from tase.telegram.client import TelegramClient
 from .base_task import BaseTask
 from .target_worker_type import TargetWorkerType
 from ..db.arangodb.enums import RabbitMQTaskType
+from ..telegram.client.client_worker import RabbitMQConsumer
 
 
 class ShutdownTask(BaseTask):
@@ -12,20 +11,20 @@ class ShutdownTask(BaseTask):
     type = RabbitMQTaskType.SHUTDOWN_TASK
     priority = 10
 
-    def run(
+    async def run(
         self,
-        consumer_producer: ConsumerProducerMixin,
+        consumer: RabbitMQConsumer,
         db: DatabaseClient,
         telegram_client: TelegramClient = None,
     ) -> None:
         self.task_in_worker(db)
-        consumer_producer.should_stop = True
+        await consumer.shutdown()
 
         from tase.scheduler.scheduler import SchedulerJobConsumer
 
-        if isinstance(consumer_producer, SchedulerJobConsumer):
-            if consumer_producer.scheduler.running:
-                consumer_producer.scheduler.shutdown()
+        if isinstance(consumer, SchedulerJobConsumer):
+            if consumer.scheduler.running:
+                consumer.scheduler.shutdown()
 
         # todo: add more functionality to this command. for instance, wrap the tasks in queue in a job and schedule
         #  them for the next consumer start/restart.

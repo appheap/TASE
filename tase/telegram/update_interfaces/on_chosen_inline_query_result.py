@@ -7,7 +7,7 @@ from tase.telegram.update_handlers.base import BaseHandler
 
 
 class OnChosenInlineQuery:
-    def on_chosen_inline_query(
+    async def on_chosen_inline_query(
         self,
         handler: BaseHandler,
         client: pyrogram.Client,

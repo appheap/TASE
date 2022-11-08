@@ -1,12 +1,12 @@
 import arrow
 from apscheduler.triggers.interval import IntervalTrigger
-from kombu.mixins import ConsumerProducerMixin
 
 import tase
 from .base_job import BaseJob
 from ...db.arangodb.enums import RabbitMQTaskType
 from ...my_logger import logger
 from ...telegram.client import TelegramClient
+from ...telegram.client.client_worker import RabbitMQConsumer
 
 
 class CheckUsernamesWithUncheckedMentionsJob(BaseJob):
@@ -19,9 +19,9 @@ class CheckUsernamesWithUncheckedMentionsJob(BaseJob):
         start_date=arrow.now().shift(minutes=+10).datetime,
     )
 
-    def run(
+    async def run(
         self,
-        consumer: ConsumerProducerMixin,
+        consumer: RabbitMQConsumer,
         db: tase.db.DatabaseClient,
         telegram_client: TelegramClient = None,
     ) -> None:

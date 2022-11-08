@@ -1,7 +1,6 @@
+import asyncio
 import random
-import time
 
-from kombu.mixins import ConsumerProducerMixin
 from pyrogram.errors import UsernameNotOccupied, UsernameInvalid, FloodWait
 
 from tase.common.utils import get_now_timestamp
@@ -12,6 +11,7 @@ from tase.my_logger import logger
 from tase.task_distribution import BaseTask, TargetWorkerType
 from tase.telegram.channel_analyzer import ChannelAnalyzer
 from tase.telegram.client import TelegramClient
+from tase.telegram.client.client_worker import RabbitMQConsumer
 
 
 class CheckUsernameTask(BaseTask):
@@ -19,9 +19,9 @@ class CheckUsernameTask(BaseTask):
     type = RabbitMQTaskType.CHECK_USERNAME_TASK
     priority = 1
 
-    def run(
+    async def run(
         self,
-        consumer_producer: ConsumerProducerMixin,
+        consumer: RabbitMQConsumer,
         db: DatabaseClient,
         telegram_client: TelegramClient = None,
     ):
@@ -35,7 +35,7 @@ class CheckUsernameTask(BaseTask):
 
         logger.info(f"Checking: {username_vertex.username}")
         try:
-            tg_mentioned_chat = telegram_client.get_chat(username_vertex.username)
+            tg_mentioned_chat = await telegram_client.get_chat(username_vertex.username)
         except (KeyError, ValueError, UsernameNotOccupied, UsernameInvalid) as e:
             # ValueError: In case the chat invite link points to a chat that this telegram client hasn't joined yet.
             # KeyError or UsernameNotOccupied: The username is not occupied by anyone, so update the username
@@ -54,10 +54,10 @@ class CheckUsernameTask(BaseTask):
             # fixme: find a solution for this
             self.task_failed(db)
 
-            sleep_time = e.value + random.randint(5, 15)
-            logger.info(f"Sleeping for {sleep_time} seconds...")
-            time.sleep(sleep_time)
-            logger.info(f"Waking up after sleeping for {sleep_time} seconds...")
+            # sleep_time = e.value + random.randint(5, 15)
+            # logger.info(f"Sleeping for {sleep_time} seconds...")
+            # await asyncio.sleep(sleep_time)
+            # logger.info(f"Waking up after sleeping for {sleep_time} seconds...")
 
         except Exception as e:
             logger.exception(e)
@@ -80,9 +80,9 @@ class CheckUsernameTask(BaseTask):
 
                     if mentioned_chat.chat_type == ChatType.CHANNEL and mentioned_chat.is_public:
                         # wait for a while
-                        time.sleep(5)
+                        await asyncio.sleep(5)
 
-                        score = ChannelAnalyzer.calculate_score(
+                        score = await ChannelAnalyzer.calculate_score(
                             telegram_client,
                             mentioned_chat.chat_id,
                             mentioned_chat.members_count,
@@ -103,4 +103,4 @@ class CheckUsernameTask(BaseTask):
         finally:
             # this is necessary to avoid flood errors
             # todo: is this one good enough?
-            time.sleep(random.randint(20, 30))
+            await asyncio.sleep(random.randint(20, 30))

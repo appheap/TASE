@@ -4,7 +4,7 @@ import arrow
 import pyrogram
 from pyrogram import handlers
 
-from tase.common.utils import exception_handler
+from tase.common.utils import async_exception_handler
 from tase.my_logger import logger
 from tase.telegram.update_handlers.base import BaseHandler, HandlerMetadata
 
@@ -20,8 +20,8 @@ class UserDeletedMessagesHandler(BaseHandler):
             )
         ]
 
-    @exception_handler
-    def deleted_messages_handler(
+    @async_exception_handler()
+    async def deleted_messages_handler(
         self,
         client: pyrogram.Client,
         messages: List[pyrogram.types.Message],

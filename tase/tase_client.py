@@ -1,5 +1,5 @@
+import asyncio
 import json
-import multiprocessing as mp
 from typing import List, Optional
 
 from decouple import config
@@ -11,13 +11,14 @@ from tase.scheduler import SchedulerWorkerProcess
 from tase.scheduler.jobs import (
     CountInteractionsJob,
     CountHitsJob,
-    CheckUsernamesWithUncheckedMentionsJob,
-    CheckUsernamesJob,
-    ExtractUsernamesJob,
     IndexAudiosJob,
+    ExtractUsernamesJob,
+    CheckUsernamesJob,
+    CheckUsernamesWithUncheckedMentionsJob,
+    DummyJob,
 )
 from tase.telegram.client import TelegramClient
-from tase.telegram.client.client_manager import ClientManager
+from tase.telegram.client.telegram_client_manager import TelegramClientManager
 
 
 class TASE:
@@ -27,14 +28,11 @@ class TASE:
     def __init__(
         self,
     ):
-        self.clients = []
-        self.client_managers: List[ClientManager] = []
         self.tase_config = None
         self.database_client = None
+        self.telegram_client_manager: Optional[TelegramClientManager] = None
 
-    def init_telegram_clients(self):
-        mgr = mp.Manager()
-        client_worker_queues = mgr.dict()
+    async def init_telegram_clients(self):
         scheduler = None
 
         debug = config(
@@ -51,41 +49,33 @@ class TASE:
 
             self.tase_config = tase_config
             if tase_config is not None:
-                for client_config in tase_config.clients_config:
-                    tg_client = TelegramClient._parse(
-                        client_config,
-                        tase_config.pyrogram_config.workdir,
-                    )
-                    client_manager = ClientManager(
-                        telegram_client_name=tg_client.name,
-                        telegram_client=tg_client,
-                        client_worker_queues=client_worker_queues,
-                        config=tase_config,
-                    )
-                    client_manager.start()
-                    self.clients.append(tg_client)
-                    self.client_managers.append(client_manager)
+                self.telegram_client_manager = TelegramClientManager(tase_config)
+                self.telegram_client_manager.start()
 
                 self.database_client = DatabaseClient(
                     elasticsearch_config=tase_config.elastic_config,
                     arangodb_config=tase_config.arango_db_config,
                     update_arango_indexes=True,
                 )
+                await self.database_client.init_databases()
 
                 scheduler = SchedulerWorkerProcess(tase_config)
                 scheduler.start()
 
                 # cancel active task from the last run
                 self.database_client.document.cancel_all_active_tasks()
-                try:
-                    # todo: do initial job scheduling in a proper way
-                    CountInteractionsJob().publish(self.database_client)
-                    CountHitsJob().publish(self.database_client)
 
-                    IndexAudiosJob().publish(self.database_client)
-                    ExtractUsernamesJob().publish(self.database_client)
-                    CheckUsernamesJob().publish(self.database_client)
-                    CheckUsernamesWithUncheckedMentionsJob().publish(self.database_client)
+                try:
+                    await asyncio.sleep(30)
+                    # todo: do initial job scheduling in a proper way
+                    # await DummyJob(kwargs={"key": 1}).publish(self.database_client)
+                    await CountInteractionsJob().publish(self.database_client)
+                    await CountHitsJob().publish(self.database_client)
+
+                    await IndexAudiosJob().publish(self.database_client)
+                    await ExtractUsernamesJob().publish(self.database_client)
+                    await CheckUsernamesJob().publish(self.database_client)
+                    await CheckUsernamesWithUncheckedMentionsJob().publish(self.database_client)
                 except NotEnoughRamError as e:
                     raise e
 
@@ -97,17 +87,13 @@ class TASE:
             # todo: raise error (empty config file path)
             pass
 
-        for client_mgr in self.client_managers:
-            client_mgr.join()
+        if self.telegram_client_manager:
+            self.telegram_client_manager.join()
 
         if scheduler:
             scheduler.join()
 
-    def connect_clients(self):
-        for client in self.clients:
-            client.start()
-
 
 if __name__ == "__main__":
     tase = TASE()
-    tase.init_telegram_clients()
+    asyncio.run(tase.init_telegram_clients())

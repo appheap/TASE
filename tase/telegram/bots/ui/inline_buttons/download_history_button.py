@@ -21,7 +21,7 @@ class DownloadHistoryInlineButton(InlineButton):
     text = f"{s_my_downloads} | {emoji._mobile_phone_with_arrow}"
     is_inline = True
 
-    def on_inline_query(
+    async def on_inline_query(
         self,
         handler: BaseHandler,
         result: CustomInlineQueryResult,
@@ -38,7 +38,7 @@ class DownloadHistoryInlineButton(InlineButton):
 
         audio_vertices = list(audio_vertices)
 
-        hit_download_urls = populate_audio_items(
+        hit_download_urls = await populate_audio_items(
             audio_vertices,
             from_user,
             handler,
@@ -49,7 +49,7 @@ class DownloadHistoryInlineButton(InlineButton):
         if not len(result) and result.is_first_page():
             result.set_results([NoDownloadItem.get_item(from_user)])
 
-        result.answer_query()
+        await result.answer_query()
 
         handler.db.graph.get_or_create_query(
             handler.telegram_client.telegram_id,
@@ -63,7 +63,7 @@ class DownloadHistoryInlineButton(InlineButton):
             hit_download_urls=hit_download_urls,
         )
 
-    def on_chosen_inline_query(
+    async def on_chosen_inline_query(
         self,
         handler: BaseHandler,
         client: pyrogram.Client,

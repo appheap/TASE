@@ -25,7 +25,7 @@ class ToggleFavoritePlaylistInlineButton(InlineButton):
     text = f"{emoji._red_heart}"
     is_inline = False
 
-    def on_callback_query(
+    async def on_callback_query(
         self,
         handler: BaseHandler,
         from_user: graph_models.vertices.User,
@@ -44,26 +44,26 @@ class ToggleFavoritePlaylistInlineButton(InlineButton):
                 hit_download_url,
             )
         except PlaylistDoesNotExists as e:
-            telegram_callback_query.answer("You do not have the playlist you have chosen")
+            await telegram_callback_query.answer("You do not have the playlist you have chosen")
         except HitDoesNotExists as e:
-            telegram_callback_query.answer("Given download url is not valid anymore")
+            await telegram_callback_query.answer("Given download url is not valid anymore")
         except HitNoLinkedAudio as e:
-            telegram_callback_query.answer("Audio does not exist anymore")
+            await telegram_callback_query.answer("Audio does not exist anymore")
         except InvalidAudioForInlineMode as e:
-            telegram_callback_query.answer("This audio cannot be used in inline mode")
+            await telegram_callback_query.answer("This audio cannot be used in inline mode")
         except Exception as e:
             logger.exception(e)
-            telegram_callback_query.answer("Could not add the audio to the playlist due to internal error")
+            await telegram_callback_query.answer("Could not add the audio to the playlist due to internal error")
         else:
             # todo: update these messages
             if successful:
                 if created:
-                    telegram_callback_query.answer(f"{'Removed from' if in_favorite_playlist else 'Added to'} the favorite playlist")
+                    await telegram_callback_query.answer(f"{'Removed from' if in_favorite_playlist else 'Added to'} the favorite playlist")
                     if telegram_callback_query.message is not None:
                         reply_markup = telegram_callback_query.message.reply_markup
                         reply_markup.inline_keyboard[0][2].text = self.new_text(not in_favorite_playlist)
 
-                        telegram_callback_query.edit_message_reply_markup(reply_markup)
+                        await telegram_callback_query.edit_message_reply_markup(reply_markup)
                     elif telegram_callback_query.inline_message_id:
                         audio_inline_message = handler.db.document.find_audio_inline_message_by_message_inline_id(
                             handler.telegram_client.telegram_id,
@@ -78,7 +78,7 @@ class ToggleFavoritePlaylistInlineButton(InlineButton):
                                 hit_download_url=hit_download_url,
                             )
                             reply_markup = get_audio_markup_keyboard(
-                                handler.telegram_client.get_me().username,
+                                (await handler.telegram_client.get_me()).username,
                                 chat_type,
                                 from_user.chosen_language_code,
                                 hit_download_url,
@@ -88,16 +88,16 @@ class ToggleFavoritePlaylistInlineButton(InlineButton):
                             if reply_markup:
                                 reply_markup.inline_keyboard[0][2].text = self.new_text(not in_favorite_playlist)
                                 try:
-                                    client.edit_inline_reply_markup(
+                                    await client.edit_inline_reply_markup(
                                         telegram_callback_query.inline_message_id,
                                         reply_markup,
                                     )
                                 except Exception as e:
                                     logger.exception(e)
                 else:
-                    telegram_callback_query.answer("It's already on the playlist")
+                    await telegram_callback_query.answer("It's already on the playlist")
             else:
-                telegram_callback_query.answer("Did not add to / remove from the playlist")
+                await telegram_callback_query.answer("Did not add to / remove from the playlist")
 
     def new_text(
         self,

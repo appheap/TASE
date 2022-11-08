@@ -950,6 +950,7 @@ class BaseCollectionDocument(BaseCollectionAttributes):
                 query,
                 # bind_vars=bind_vars,
                 count=True,
+                ttl=36000,  # fix this
             )
             if cursor is None or not len(cursor):
                 return None

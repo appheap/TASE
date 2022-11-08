@@ -22,7 +22,7 @@ class ExtractUsernamesJob(BaseJob):
         start_date=arrow.now().shift(minutes=+30).datetime,
     )
 
-    def run(
+    async def run(
         self,
         consumer: ConsumerProducerMixin,
         db: tase.db.DatabaseClient,
@@ -38,7 +38,7 @@ class ExtractUsernamesJob(BaseJob):
             logger.debug(chat.username)
             # todo: blocking or non-blocking? which one is better suited for this case?
             try:
-                ExtractUsernamesTask(
+                await ExtractUsernamesTask(
                     kwargs={
                         "chat_key": chat.key,
                     }
