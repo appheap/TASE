@@ -18,6 +18,7 @@ class ElasticsearchDatabase:
                 elasticsearch_config.basic_auth_username,
                 elasticsearch_config.basic_auth_password,
             ),
+            timeout=120,
         )
 
     async def init_database(self):

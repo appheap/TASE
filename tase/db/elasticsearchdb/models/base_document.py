@@ -6,7 +6,7 @@ from typing import Optional, Tuple, TypeVar, Dict, Any, Type, List
 
 import elasticsearch
 from elastic_transport import ObjectApiResponse
-from elasticsearch import ConflictError, Elasticsearch, NotFoundError, AsyncElasticsearch
+from elasticsearch import ConflictError, NotFoundError, AsyncElasticsearch
 from pydantic import BaseModel, Field, ValidationError
 
 from tase.common.utils import get_now_timestamp
