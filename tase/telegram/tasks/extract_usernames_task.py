@@ -270,6 +270,14 @@ class ExtractUsernamesTask(BaseTask):
                     MentionSource.DOCUMENT_FILE_NAME,
                 )
 
+            if message.video:
+                self.find_usernames_in_text(
+                        message.video.file_name,
+                        False,
+                        message,
+                        MentionSource.DOCUMENT_FILE_NAME,
+                )
+
             if message.id > self.metadata.last_message_offset_id:
                 self.metadata.last_message_offset_id = message.id
                 self.metadata.last_message_offset_date = datetime_to_timestamp(message.date)

@@ -37,12 +37,15 @@ class MentionSource(Enum):
     INLINE_KEYBOARD_TEXT_LINK = 9
     "mention source is in the message inline keyboard button text link"
 
+    VIDEO_FILE_NAME = 10
+    "mention source is video file name"
+
     @classmethod
     def is_direct_mention(
         cls,
         mention_source: MentionSource,
     ) -> bool:
-        return is_direct_mentions_dict[mention_source]
+        return is_direct_mentions_dict.get(mention_source, None)
 
 
 is_direct_mentions_dict = {
@@ -53,4 +56,7 @@ is_direct_mentions_dict = {
     MentionSource.AUDIO_PERFORMER: False,
     MentionSource.AUDIO_FILE_NAME: False,
     MentionSource.DOCUMENT_FILE_NAME: False,
+    MentionSource.INLINE_KEYBOARD_TEXT: False,
+    MentionSource.INLINE_KEYBOARD_TEXT_LINK: True,
+    MentionSource.VIDEO_FILE_NAME: False,
 }
