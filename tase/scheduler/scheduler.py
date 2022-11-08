@@ -55,16 +55,30 @@ class SchedulerWorkerProcess(Process):
 
 class SchedulerJobConsumer(RabbitMQConsumer):
     scheduler: Optional[AsyncIOScheduler]
+    # scheduler: Optional[BackgroundScheduler]
     loop: Optional[AbstractEventLoop]
+    tasks: Optional[asyncio.Queue]
 
     class Config:
         arbitrary_types_allowed = True
+
+    async def await_tasks(self):
+        while True:
+            task: asyncio.Task = await self.tasks.get()
+            try:
+                await task
+            except Exception as e:
+                logger.exception(e)
+            else:
+                logger.info(f"Awaited another task: {task.get_name()}")
 
     async def init_consumer(self) -> AbstractRobustConnection:
         logger.info("scheduler task consumer started...")
         # self.scheduler = BackgroundScheduler()
         self.scheduler = AsyncIOScheduler()
         self.scheduler.start()
+
+        self.tasks = asyncio.Queue()
 
         connection = await aio_pika.connect_robust(
             login=config("RABBITMQ_DEFAULT_USER"),
@@ -118,6 +132,8 @@ class SchedulerJobConsumer(RabbitMQConsumer):
         )
         await scheduler_queue.consume(self.on_job_scheduled)
 
+        await self.loop.create_task(self.await_tasks())
+
         return connection
 
     @async_exception_handler()
@@ -133,8 +149,8 @@ class SchedulerJobConsumer(RabbitMQConsumer):
             if isinstance(body, BaseTask):
                 logger.info(f"Scheduler got a new task: {body.type.value} @ {0}")
                 if body.type != RabbitMQTaskType.UNKNOWN:
-                    # await body.run(self.db, None)
-                    self.loop.create_task(body.run(self, self.db, None))
+                    # await body.run(self, self.db, None)
+                    await self.tasks.put(self.loop.create_task(body.run(self, self.db, None)))
             else:
                 # todo: unknown type for body detected, what now?
                 raise TypeError(f"Unknown type for `body`: {type(body)}")
@@ -171,6 +187,9 @@ class SchedulerJobConsumer(RabbitMQConsumer):
                     args=[
                         job,
                     ],
+                    coalesce=True,
+                    misfire_grace_time=None,
+                    replace_existing=True,
                 )
 
     @sync_exception_handler
@@ -194,5 +213,9 @@ class SchedulerJobConsumer(RabbitMQConsumer):
         -------
         None
         """
-        logger.info(f"Running `{args[0].type}`")
-        self.loop.create_task(args[0].run(self, self.db))
+
+        async def f():
+            logger.info(f"Running `{args[0].type}`")
+            await self.tasks.put(self.loop.create_task(args[0].run(self, self.db)))
+
+        self.loop.create_task(f())

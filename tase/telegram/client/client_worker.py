@@ -1,10 +1,12 @@
 import asyncio
 import pickle
 import random
-from typing import List, Optional
+from itertools import chain
+from typing import List, Dict
 
 import aio_pika
 from decouple import config
+from pydantic import Field
 
 from tase import task_globals
 from tase.db.arangodb.enums import RabbitMQTaskType
@@ -14,16 +16,22 @@ from tase.telegram.client import TelegramClient
 
 
 class TelegramClientConsumer(RabbitMQConsumer):
-    telegram_clients: Optional[List[TelegramClient]]
+    users: Dict[str, TelegramClient] = Field(default={})
+    bots: Dict[str, TelegramClient] = Field(default={})
 
     class Config:
         arbitrary_types_allowed = True
 
     async def init_rabbitmq_consumer(
         self,
-        telegram_clients: List[TelegramClient],
+        users: List[TelegramClient],
+        bots: List[TelegramClient],
     ):
-        self.telegram_clients = telegram_clients
+        for user in users:
+            self.users[user.name] = user
+
+        for bot in bots:
+            self.bots[bot.name] = bot
 
         connection = await aio_pika.connect_robust(
             login=config("RABBITMQ_DEFAULT_USER"),
@@ -35,10 +43,10 @@ class TelegramClientConsumer(RabbitMQConsumer):
         channel = await connection.channel()
 
         # Maximum message count which will be processing at the same time.
-        await channel.set_qos(prefetch_count=len(self.telegram_clients))
+        await channel.set_qos(prefetch_count=len(self.users) + len(self.bots))
 
         # Declaring queue
-        for telegram_client in self.telegram_clients:
+        for telegram_client in chain(self.users.values(), self.bots.values()):
             queue = await channel.declare_queue(
                 f"{telegram_client.name}_task_queue",
                 auto_delete=True,
@@ -115,10 +123,41 @@ class TelegramClientConsumer(RabbitMQConsumer):
             body = pickle.loads(message.body)
 
             if isinstance(body, BaseTask):
-                logger.info(f"Worker got a new task: {body.type.value} @ {0}")
+                logger.info(f"TelegramClientConsumer got a new task: {body.type.value}")
                 if body.type != RabbitMQTaskType.UNKNOWN:
                     # await body.run(self.db, None)
-                    asyncio.create_task(body.run(self, self.db, random.choice(self.telegram_clients[:-1])))
+                    from tase.task_distribution import TargetWorkerType
+
+                    if body.target_worker_type == TargetWorkerType.ANY_TELEGRAM_CLIENTS_CONSUMER_WORK:
+                        asyncio.create_task(
+                            body.run(
+                                self,
+                                self.db,
+                                random.choice(list(self.users.values())),
+                            )
+                        )
+                    elif body.target_worker_type == TargetWorkerType.ONE_TELEGRAM_CLIENT_CONSUMER_WORK:
+                        if self.users.get(message.routing_key, None):
+                            asyncio.create_task(
+                                body.run(
+                                    self,
+                                    self.db,
+                                    self.users[message.routing_key],
+                                )
+                            )
+                        else:
+                            logger.error(f"Could not find Telegram user client with `{message.routing_key}` name")
+                    elif body.target_worker_type == TargetWorkerType.RABBITMQ_CONSUMER_COMMAND:
+                        asyncio.create_task(
+                            body.run(
+                                self,
+                                self.db,
+                                random.choice(list(self.users.values())),
+                            )
+                        )
+                    else:
+                        logger.error(f"Unexpected target_worker_type: `{body.target_worker_type}`")
+
             else:
                 # todo: unknown type for body detected, what now?
                 raise TypeError(f"Unknown type for `body`: {type(body)}")

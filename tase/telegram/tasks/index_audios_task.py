@@ -177,7 +177,7 @@ class IndexAudiosTask(BaseTask):
                         chat.members_count,
                     )
                     updated = chat.update_audio_indexer_score(score)
-                    logger.debug(f"Channel {chat.username} score: {score}")
+                    logger.info(f"Channel {chat.username} score: {score}")
             else:
                 chat.update_audio_doc_indexer_metadata(metadata)
 

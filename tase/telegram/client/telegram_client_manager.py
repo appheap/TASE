@@ -10,7 +10,7 @@ from pyrogram import idle
 from tase.configs import TASEConfig, ClientTypes
 from tase.db import DatabaseClient
 from tase.my_logger import logger
-from tase.telegram.client import TelegramClient
+from tase.telegram.client import TelegramClient, UserTelegramClient
 from tase.telegram.client.client_worker import TelegramClientConsumer
 from tase.telegram.update_handlers.base import ClientDisconnectHandler
 from tase.telegram.update_handlers.bots import BotDeletedMessagesHandler, BotMessageHandler, CallbackQueryHandler, ChosenInlineQueryHandler, InlineQueryHandler
@@ -30,6 +30,8 @@ class TelegramClientManager(mp.Process):
         self.rabbitmq_consumer: Optional[TelegramClientConsumer] = None
 
         self.clients: List[TelegramClient] = []
+        self.users: List[TelegramClient] = []
+        self.bots: List[TelegramClient] = []
 
     def run(self) -> None:
         logger.info(f"process: {mp.current_process().name}, thread: {threading.current_thread()}")
@@ -58,6 +60,11 @@ class TelegramClientManager(mp.Process):
             )
             self.clients.append(telegram_client)
 
+            if isinstance(telegram_client, UserTelegramClient):
+                self.users.append(telegram_client)
+            else:
+                self.bots.append(telegram_client)
+
             await telegram_client.start()
 
             await telegram_client.set_bot_commands(self.db.graph.get_bot_commands_list_for_telegram(self.db.graph.get_admins_and_owners()))
@@ -70,7 +77,7 @@ class TelegramClientManager(mp.Process):
             self.init_handlers(telegram_client)
             self.register_update_handlers(telegram_client)
 
-        await self.rabbitmq_consumer.init_rabbitmq_consumer(self.clients)
+        await self.rabbitmq_consumer.init_rabbitmq_consumer(self.users, self.bots)
 
         await idle()
         for client in self.clients:

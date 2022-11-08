@@ -2,6 +2,7 @@ import pickle
 from typing import Optional, Tuple
 
 import aio_pika
+import aiormq
 from decouple import config
 from pydantic import BaseModel, Field
 
@@ -170,14 +171,16 @@ class BaseTask(BaseModel):
 
         async with connection:
             channel = await connection.channel()
-            exchange = await channel.declare_exchange(
-                exchange.name,
-                exchange.type,
-                durable=exchange.durable,
-                auto_delete=exchange.auto_delete,
-                passive=True,
-            )
-            # exchange=await channel.get_exchange(exchange.name)
+
+            try:
+                exchange = await channel.get_exchange(exchange.name)
+            except aiormq.exceptions.ChannelNotFoundEntity:
+                exchange = await channel.declare_exchange(
+                    exchange.name,
+                    exchange.type,
+                    durable=exchange.durable,
+                    auto_delete=exchange.auto_delete,
+                )
 
             await exchange.publish(
                 aio_pika.Message(

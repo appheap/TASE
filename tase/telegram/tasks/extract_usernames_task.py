@@ -230,7 +230,7 @@ class ExtractUsernamesTask(BaseTask):
             if message.forward_from_chat and message.forward_from_chat.username:
                 # fixme: it's a public channel or a public supergroup or a user or a bot
                 self.find_usernames_in_text(
-                    message.forward_from_chat.username,
+                    f"@{message.forward_from_chat.username}",
                     True,
                     message,
                     MentionSource.FORWARDED_CHAT_USERNAME,
@@ -261,6 +261,13 @@ class ExtractUsernamesTask(BaseTask):
                         MentionSource.AUDIO_PERFORMER,
                         MentionSource.AUDIO_FILE_NAME,
                     ],
+                )
+            if message.document:
+                self.find_usernames_in_text(
+                    message.document.file_name,
+                    False,
+                    message,
+                    MentionSource.DOCUMENT_FILE_NAME,
                 )
 
             if message.id > self.metadata.last_message_offset_id:
