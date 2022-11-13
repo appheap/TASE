@@ -1,0 +1,2 @@
+class CursorsMethods:
+    pass

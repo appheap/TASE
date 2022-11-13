@@ -1,0 +1,2 @@
+class BulkMethods:
+    pass

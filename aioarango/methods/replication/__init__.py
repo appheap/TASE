@@ -1,0 +1,2 @@
+class ReplicationMethods:
+    pass
