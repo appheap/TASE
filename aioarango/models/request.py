@@ -8,7 +8,7 @@ from aioarango.utils import normalize_headers, normalize_params
 
 
 class Request(BaseModel):
-    method: MethodType
+    method_type: MethodType
     endpoint: str
     headers: Optional[Fields]
     params: Optional[Fields]
