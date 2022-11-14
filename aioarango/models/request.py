@@ -3,15 +3,15 @@ from typing import Optional, Dict, Any
 from pydantic import BaseModel, validator
 
 from aioarango.enums import MethodType
-from aioarango.typings import Fields
+from aioarango.typings import Headers, Params
 from aioarango.utils import normalize_headers, normalize_params
 
 
 class Request(BaseModel):
     method_type: MethodType
     endpoint: str
-    headers: Optional[Fields]
-    params: Optional[Fields]
+    headers: Optional[Headers]
+    params: Optional[Params]
     data: Optional[Dict[str, Any]]
     deserialize: bool = True
 

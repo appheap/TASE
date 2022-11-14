@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Optional, MutableMapping, Union, Tuple
+from typing import Optional, MutableMapping, Union
 
 import aiohttp
 from pydantic import BaseModel
