@@ -1,3 +1,6 @@
+"""
+AQL Exceptions
+"""
 from .aql_cache_clear_error import AQLCacheClearError
 from .aql_cache_configure_error import AQLCacheConfigureError
 from .aql_cache_entries_error import AQLCacheEntriesError
