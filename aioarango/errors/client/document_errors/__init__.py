@@ -1,5 +1,5 @@
 """
-Database Exceptions
+Document Exceptions
 """
 
 from .document_parse_error import DocumentParseError

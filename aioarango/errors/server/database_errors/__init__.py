@@ -2,26 +2,14 @@
 Database Exceptions
 """
 
-from .document_count_error import DocumentCountError
-from .document_delete_error import DocumentDeleteError
-from .document_get_error import DocumentGetError
-from .document_ids_error import DocumentIDsError
-from .document_in_error import DocumentInError
-from .document_insert_error import DocumentInsertError
-from .document_keys_error import DocumentKeysError
-from .document_replace_error import DocumentReplaceError
-from .document_revision_error import DocumentRevisionError
-from .document_update_error import DocumentUpdateError
+from .database_create_error import DatabaseCreateError
+from .database_delete_error import DatabaseDeleteError
+from .database_list_error import DatabaseListError
+from .database_properties_error import DatabasePropertiesError
 
 __all__ = [
-    "DocumentCountError",
-    "DocumentDeleteError",
-    "DocumentGetError",
-    "DocumentIDsError",
-    "DocumentInError",
-    "DocumentInsertError",
-    "DocumentKeysError",
-    "DocumentReplaceError",
-    "DocumentRevisionError",
-    "DocumentUpdateError",
+    "DatabaseCreateError",
+    "DatabaseDeleteError",
+    "DatabaseListError",
+    "DatabasePropertiesError",
 ]
