@@ -10,7 +10,8 @@ from .document_in_error import DocumentInError
 from .document_insert_error import DocumentInsertError
 from .document_keys_error import DocumentKeysError
 from .document_replace_error import DocumentReplaceError
-from .document_revision_error import DocumentRevisionError
+from .document_revision_match_error import DocumentRevisionMatchError
+from .document_revision_mismatch_error import DocumentRevisionMisMatchError
 from .document_update_error import DocumentUpdateError
 
 __all__ = [
@@ -22,6 +23,7 @@ __all__ = [
     "DocumentInsertError",
     "DocumentKeysError",
     "DocumentReplaceError",
-    "DocumentRevisionError",
+    "DocumentRevisionMatchError",
+    "DocumentRevisionMisMatchError",
     "DocumentUpdateError",
 ]

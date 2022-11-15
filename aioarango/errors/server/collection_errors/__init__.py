@@ -8,6 +8,7 @@ from .collection_create_error import CollectionCreateError
 from .collection_delete_error import CollectionDeleteError
 from .collection_list_error import CollectionListError
 from .collection_load_error import CollectionLoadError
+from .collection_not_found_error import CollectionNotFoundError
 from .collection_properties_error import CollectionPropertiesError
 from .collection_recalculate_error import CollectionRecalculateCountError
 from .collection_rename_error import CollectionRenameError
@@ -24,6 +25,7 @@ __all__ = [
     "CollectionDeleteError",
     "CollectionListError",
     "CollectionLoadError",
+    "CollectionNotFoundError",
     "CollectionPropertiesError",
     "CollectionRecalculateCountError",
     "CollectionRenameError",

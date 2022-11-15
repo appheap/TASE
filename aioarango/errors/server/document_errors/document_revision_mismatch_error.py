@@ -1,5 +1,5 @@
 from aioarango.errors.base import ArangoServerError
 
 
-class DocumentRevisionError(ArangoServerError):
+class DocumentRevisionMisMatchError(ArangoServerError):
     """The expected and actual document revisions mismatched."""

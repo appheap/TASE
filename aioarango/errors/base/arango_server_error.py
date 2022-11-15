@@ -13,24 +13,24 @@ class ArangoServerError(ArangoError):
 
     def __init__(
         self,
-        resp: Response,
+        response: Response,
         request: Request,
         msg: Optional[str] = None,
     ):
-        msg = msg or resp.error_message or str(resp.status_code)  # fixme
-        self.error_message: Optional[str] = resp.error_message
-        self.error_code: Optional[int] = resp.error_code
+        msg = msg or response.error_message or str(response.status_code)  # fixme
+        self.error_message: Optional[str] = response.error_message
+        self.error_code: Optional[int] = response.error_code
         if self.error_code is not None:
-            msg = f"[HTTP {resp.status_code}][ERR {self.error_code}] {msg}"
+            msg = f"[HTTP {response.status_code}][ERR {self.error_code}] {msg}"
         else:
-            msg = f"[HTTP {resp.status_code}] {msg}"
-            self.error_code = resp.status_code
+            msg = f"[HTTP {response.status_code}] {msg}"
+            self.error_code = response.status_code
         super().__init__(msg)
 
         self.message: str = msg
-        self.url: str = resp.url
-        self.response: Response = resp
+        self.url: str = response.url
+        self.response: Response = response
         self.request: Request = request
-        self.http_method: MethodType = resp.method
-        self.http_code: int = resp.status_code
-        self.http_headers: Headers = resp.headers
+        self.http_method: MethodType = response.method
+        self.http_code: int = response.status_code
+        self.http_headers: Headers = response.headers
