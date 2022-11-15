@@ -74,10 +74,10 @@ class ReadDocument:
             headers["x-arango-allow-dirty-read"] = "true"
 
         def response_handler(response: Response) -> Optional[Json]:
-            if response.error_code == 1202:  # document not found
+            if response.error_code == 1202:  # document not found (status_code 404)
                 return None
 
-            if response.error_code == 1203:  # collection or view not found
+            if response.error_code == 1203:  # collection or view not found (status_code 404)
                 raise CollectionNotFoundError(response, request)
 
             if response.status_code == 304:  # the document in the db has not been updated
@@ -88,6 +88,8 @@ class ReadDocument:
 
             if not response.is_success:
                 raise DocumentGetError(response, request)
+
+            # status_code 200 : if the document was found
 
             return response.body
 
