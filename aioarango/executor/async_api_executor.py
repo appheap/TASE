@@ -1,16 +1,23 @@
 from typing import Callable
 
 from aioarango.enums import APIContextType
-from aioarango.executor import BaseAPIExecutor
 from aioarango.models import Request, Response
 from aioarango.typings import T
+from .base_api_executor import BaseAPIExecutor
+from ..connection import Connection
 
 
 class AsyncAPIExecutor(BaseAPIExecutor):
     """Async API Executor."""
 
-    context = APIContextType.ASYNC
-    return_result: bool
+    def __init__(
+        self,
+        connection: Connection,
+        return_result: bool,
+    ):
+        self.connection = connection
+        self.context = APIContextType.ASYNC
+        self.return_result = return_result
 
     async def execute(
         self,

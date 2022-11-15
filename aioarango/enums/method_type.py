@@ -7,3 +7,4 @@ class MethodType(Enum):
     POST = "post"
     PUT = "put"
     DELETE = "delete"
+    HEAD = "head"

@@ -20,7 +20,7 @@ from .user_management import UserManagementMethods
 from .views import ViewsMethods
 
 
-class Methods(
+class APIMethods(
     AdministrationMethods,
     AnalyzersMethods,
     AQLMethods,

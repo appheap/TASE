@@ -1,23 +1,21 @@
 from abc import ABC, abstractmethod
 from typing import Optional, MutableMapping, Union
 
-import aiohttp
-from pydantic import BaseModel
-from requests_toolbelt import MultipartEncoder
+from aiohttp import ClientSession, BasicAuth
 
 from aioarango.enums import MethodType
 from aioarango.models import Response
 from aioarango.typings import Headers
 
 
-class BaseHTTPClient(BaseModel, ABC):
+class BaseHTTPClient(ABC):
     """Abstract base class for HTTP clients."""
 
     @abstractmethod
     def create_session(
         self,
         host: str,
-    ) -> aiohttp.ClientSession:
+    ) -> ClientSession:
         """
         Return a new aiohttp client session given the host URL.
 
@@ -38,7 +36,7 @@ class BaseHTTPClient(BaseModel, ABC):
     @abstractmethod
     async def send_request(
         self,
-        session: aiohttp.ClientSession,
+        session: ClientSession,
         method_type: MethodType,
         url: str,
         headers: Optional[Headers] = None,

@@ -1,8 +1,8 @@
 __all__ = [
     "BaseHostResolver",
-    "RandomBaseHostResolver",
-    "RoundRobinBaseHostResolver",
-    "SingleBaseHostResolver",
+    "RandomHostResolver",
+    "RoundRobinHostResolver",
+    "SingleHostResolver",
     "HostResolver",
 ]
 
@@ -15,6 +15,6 @@ HostResolver = Union[
 ]
 
 from .base_resolver import BaseHostResolver
-from .random_host_resolver import RandomBaseHostResolver
-from .round_robin_resolver import RoundRobinBaseHostResolver
-from .single_host_resolver import SingleBaseHostResolver
+from .random_host_resolver import RandomHostResolver
+from .round_robin_resolver import RoundRobinHostResolver
+from .single_host_resolver import SingleHostResolver

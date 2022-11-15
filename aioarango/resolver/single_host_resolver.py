@@ -3,7 +3,7 @@ from typing import Optional, Set
 from aioarango.resolver import BaseHostResolver
 
 
-class SingleBaseHostResolver(BaseHostResolver):
+class SingleHostResolver(BaseHostResolver):
     """Single host resolver."""
 
     def get_host_index(

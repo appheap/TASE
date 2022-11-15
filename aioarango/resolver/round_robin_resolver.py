@@ -5,7 +5,7 @@ from pydantic import Field
 from aioarango.resolver import BaseHostResolver
 
 
-class RoundRobinBaseHostResolver(BaseHostResolver):
+class RoundRobinHostResolver(BaseHostResolver):
     """Round-robin host resolver."""
 
     _index: int = Field(default=-1)

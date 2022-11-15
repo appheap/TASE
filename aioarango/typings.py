@@ -5,6 +5,7 @@ __all__ = [
     "Jsons",
     "Params",
     "T",
+    "Result",
 ]
 
 from typing import Any, Dict, List, MutableMapping, Sequence, Union, TypeVar
@@ -16,3 +17,6 @@ Headers = MutableMapping[str, str]
 Fields = Union[str, Sequence[str]]
 
 T = TypeVar("T")
+
+# Result = Union[T, AsyncJob[T], BatchJob[T], None] # fixme
+Result = Union[T, None]

@@ -1,11 +1,10 @@
 from typing import Optional, MutableMapping, Union
 
 import aiohttp
-from pydantic import Field
 from requests_toolbelt import MultipartEncoder
 
 from aioarango.enums import MethodType
-from aioarango.http import BaseHTTPClient
+from aioarango.http_client import BaseHTTPClient
 from aioarango.models import Response
 from aioarango.typings import Headers
 
@@ -13,13 +12,12 @@ from aioarango.typings import Headers
 class DefaultHTTPClient(BaseHTTPClient):
     """Default HTTP client implementation."""
 
-    request_timeout: int = Field(default=60)
-
     def create_session(
         self,
         host: str,
+        request_timeout: int = 60,
     ) -> aiohttp.ClientSession:
-        return aiohttp.ClientSession()
+        return aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=request_timeout))
 
     async def send_request(
         self,
@@ -32,19 +30,18 @@ class DefaultHTTPClient(BaseHTTPClient):
         auth: Optional[aiohttp.BasicAuth] = None,
     ) -> Response:
         raw_response = await session.request(
-            method=method_type.value,
+            method=str(method_type.value),
             url=url,
             params=params,
             data=data,
             headers=headers,
             auth=auth,
-            timeout=self.request_timeout,
         )
 
         return Response(
             method=method_type,
             url=url,
-            headers=headers,
+            headers=dict(raw_response.headers),
             status_code=raw_response.status,
             raw_body=await raw_response.text(),
         )

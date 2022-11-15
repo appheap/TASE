@@ -4,7 +4,7 @@ from typing import Optional, Set
 from aioarango.resolver import BaseHostResolver
 
 
-class RandomBaseHostResolver(BaseHostResolver):
+class RandomHostResolver(BaseHostResolver):
     """Random host resolver."""
 
     def get_host_index(

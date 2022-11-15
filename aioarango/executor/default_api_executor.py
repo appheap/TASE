@@ -1,5 +1,6 @@
 from typing import Callable
 
+from aioarango.connection import Connection
 from aioarango.enums import APIContextType
 from aioarango.executor import BaseAPIExecutor
 from aioarango.models import Request, Response
@@ -9,7 +10,12 @@ from aioarango.typings import T
 class DefaultAPIExecutor(BaseAPIExecutor):
     """Default API executor."""
 
-    context = APIContextType.DEFAULT
+    def __init__(
+        self,
+        connection: Connection,
+    ):
+        self.connection = connection
+        self.context = APIContextType.DEFAULT
 
     async def execute(
         self,

@@ -4,38 +4,38 @@ import logging
 from abc import abstractmethod
 from typing import Sequence, Callable, Any, Optional, Set, Union
 
-import aiohttp
-from pydantic import BaseModel, Field
+from aiohttp import ClientSession, BasicAuth
 from requests_toolbelt import MultipartEncoder
 
 from aioarango.enums import MethodType
-from aioarango.http import HTTPClient
+from aioarango.http_client import HTTPClient
 from aioarango.models import Response, Request
 from aioarango.resolver import HostResolver
 from aioarango.typings import Fields, Json
 
 
-class BaseConnection(BaseModel):
+class BaseConnection:
     """Base connection to a specific ArangoDB database."""
 
-    hosts: Fields
-    host_resolver: HostResolver
-    sessions: Sequence[aiohttp.ClientSession]
-    db_name: str
-    http_client: HTTPClient
-    serializer: Callable[..., str]
-    deserializer: Callable[[str], Any]
+    def __init__(
+        self,
+        hosts: Fields,
+        host_resolver: HostResolver,
+        sessions: Sequence[ClientSession],
+        db_name: str,
+        http_client: HTTPClient,
+        serializer: Callable[..., str],
+        deserializer: Callable[[str], Any],
+    ):
 
-    _url_prefixes: Sequence[str] | None
-    _username: str | None = Field(default=None)
-
-    class Config:
-        underscore_attrs_are_private = True
-
-    def __init__(self, **data: Any):
-        super().__init__(**data)
-
-        self._url_prefixes = [f"{host}/_db/{self.db_name}" for host in self.hosts]
+        self._url_prefixes = [f"{host}/_db/{db_name}" for host in hosts]
+        self.host_resolver = host_resolver
+        self.sessions = sessions
+        self.db_name = db_name
+        self.http_client = http_client
+        self.serializer = serializer
+        self.deserializer = deserializer
+        self._username: Optional[str] = None
 
     @property
     def username(self) -> str | None:
@@ -132,7 +132,7 @@ class BaseConnection(BaseModel):
         self,
         host_index: int,
         request: Request,
-        auth: Optional[aiohttp.BasicAuth] = None,
+        auth: Optional[BasicAuth] = None,
     ) -> Response:
         """
         Execute a request until a valid response has been returned.
@@ -238,7 +238,7 @@ class BaseConnection(BaseModel):
         else:
             return self.serialize(data)
 
-    def ping(self) -> int:
+    async def ping(self) -> int:
         """
         Ping the next host to check if connection is established.
 
@@ -254,9 +254,11 @@ class BaseConnection(BaseModel):
         )
         resp = await self.send_request(request)
         if resp.status_code in {401, 403}:
-            raise ServerConnectionError("bad username and/or password")
+            # raise ServerConnectionError("bad username and/or password") # fixme
+            raise Exception("bad username and/or password")
         if not resp.is_success:  # pragma: no cover
-            raise ServerConnectionError(resp.error_message or "bad server response")
+            # raise ServerConnectionError(resp.error_message or "bad server response") # fixme
+            raise Exception(resp.error_message or "bad server response")
         return resp.status_code
 
     @abstractmethod

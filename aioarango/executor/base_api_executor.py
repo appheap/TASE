@@ -1,18 +1,11 @@
 from abc import abstractmethod
 from typing import Callable
 
-from pydantic import BaseModel
-
-from aioarango.connection import Connection
-from aioarango.enums import APIContextType
 from aioarango.models import Request, Response
 from aioarango.typings import T
 
 
-class BaseAPIExecutor(BaseModel):
-    connection: Connection
-    context: APIContextType
-
+class BaseAPIExecutor:
     @abstractmethod
     async def execute(
         self,
