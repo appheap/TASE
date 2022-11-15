@@ -1,4 +1,4 @@
-from typing import Optional, MutableMapping, Union
+from typing import Optional, MutableMapping, Union, Any
 
 import aiohttp
 from requests_toolbelt import MultipartEncoder
@@ -26,7 +26,7 @@ class DefaultHTTPClient(BaseHTTPClient):
         url: str,
         headers: Optional[Headers] = None,
         params: Optional[MutableMapping[str, str]] = None,
-        data: Union[str, MultipartEncoder, None] = None,
+        data: Union[str, Any, None] = None,
         auth: Optional[aiohttp.BasicAuth] = None,
     ) -> Response:
         raw_response = await session.request(

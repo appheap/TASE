@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Optional, MutableMapping, Union
+from typing import Optional, MutableMapping, Union, Any
 
 from aiohttp import ClientSession, BasicAuth
 
@@ -41,8 +41,8 @@ class BaseHTTPClient(ABC):
         url: str,
         headers: Optional[Headers] = None,
         params: Optional[MutableMapping[str, str]] = None,
-        data: Union[str, MultipartEncoder, None] = None,
-        auth: Optional[aiohttp.BasicAuth] = None,
+        data: Union[str, Any, None] = None,
+        auth: Optional[BasicAuth] = None,
     ) -> Response:
         """
         Send an HTTP request.
@@ -61,7 +61,7 @@ class BaseHTTPClient(ABC):
             Request headers
         params : MutableMapping[str, str], optional
             URL (query) parameters
-        data :str or MultipartEncoder, optional
+        data :str or Any, optional
             Request payload
         auth : aiohttp.BasicAuth
             Username and password
