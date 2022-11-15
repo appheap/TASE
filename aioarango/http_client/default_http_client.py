@@ -1,7 +1,6 @@
 from typing import Optional, MutableMapping, Union, Any
 
 import aiohttp
-from requests_toolbelt import MultipartEncoder
 
 from aioarango.enums import MethodType
 from aioarango.http_client import BaseHTTPClient
