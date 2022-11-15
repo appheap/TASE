@@ -1,4 +1,4 @@
-from aioarango.errors.server import ArangoServerError
+from aioarango.errors.base import ArangoServerError
 
 
 class FoxxReadmeGetError(ArangoServerError):

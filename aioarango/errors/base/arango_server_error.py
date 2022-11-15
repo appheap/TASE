@@ -1,9 +1,9 @@
 from typing import Optional
 
 from aioarango.enums import ErrorSource, MethodType
-from aioarango.errors.base import ArangoError
 from aioarango.models import Response, Request
 from aioarango.typings import Headers
+from .arango_error import ArangoError
 
 
 class ArangoServerError(ArangoError):

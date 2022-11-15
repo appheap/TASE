@@ -1,5 +1,13 @@
-from .arango_client_error import ArangoClientError
+from . import (
+    batch_errors as batch,
+    cursor_errors as cursor,
+    document_errors as document,
+    server_errors as server,
+)
 
 __all__ = [
-    "ArangoClientError",
+    "batch",
+    "cursor",
+    "document",
+    "server",
 ]

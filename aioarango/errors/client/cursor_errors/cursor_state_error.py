@@ -1,4 +1,4 @@
-from aioarango.errors.client import ArangoClientError
+from aioarango.errors.base import ArangoClientError
 
 
 class CursorStateError(ArangoClientError):
