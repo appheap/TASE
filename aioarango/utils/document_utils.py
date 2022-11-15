@@ -206,6 +206,11 @@ def ensure_key_from_id(
     -------
     Json
         Document body with "_key" field if it has "_id" field.
+
+    Raises
+    ------
+    aioarango.errors.client.document_errors.DocumentParseError
+        If collection name is invalid.
     """
     if "_id" in body and "_key" not in body:
         doc_id = validate_id(body["_id"], id_prefix)
