@@ -36,7 +36,7 @@ class CreateDocument:
         -----
         - Possibly given **_id** and **_rev** attributes in the body are always ignored, the URL part or the query parameter collection respectively counts.
 
-        - If the document was created successfully, then the **location** header contains the path to the newly created document. The **etag** header field
+        - If the document was created successfully, then the **Location** header contains the path to the newly created document. The **Etag** header field
           contains the revision of the document. Both are only set in the single document case.
 
         - If silent is not set to true, the body of the response contains a JSON object with the following attributes:
