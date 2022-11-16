@@ -15,7 +15,7 @@ class Request(BaseModel):
     endpoint: str  # API endpoint.
     headers: Optional[Headers]  # Request headers.
     params: Optional[Params]  # URL parameters.
-    data: Optional[Dict[str, Any]]  # Request payload.
+    data: Optional[Any]  # Request payload.
     deserialize: bool = True  # Whether the response body can be deserialized.
 
     read: Optional[Fields] = None  # Name(s) of collections read during transaction.
