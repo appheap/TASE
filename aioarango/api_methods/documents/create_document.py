@@ -2,9 +2,16 @@ from typing import Union, Optional
 
 from aioarango.api import Endpoint
 from aioarango.enums import MethodType, OverwriteMode
-from aioarango.errors import CollectionNotFoundError, DocumentIllegalError, DocumentUniqueConstraintError, DocumentInsertError
+from aioarango.errors import (
+    CollectionNotFoundError,
+    DocumentIllegalError,
+    DocumentUniqueConstraintError,
+    DocumentInsertError,
+    UnknownError,
+    DocumentIllegalKeyError,
+)
 from aioarango.models import Request, Response
-from aioarango.typings import Json, Params
+from aioarango.typings import Json, Params, Result
 from aioarango.utils.document_utils import ensure_key_from_id
 
 
@@ -22,7 +29,7 @@ class CreateDocument:
         overwrite_mode: Optional[OverwriteMode] = None,
         keep_none: Optional[bool] = None,
         merge: Optional[bool] = None,
-    ) -> Union[bool, Json]:
+    ) -> Result[Union[bool, Json]]:
         """
         Creates a new document from the document given in the body, unless there is already a document with the **_key** given. If no **_key** is given,
         a new unique **_key** is generated automatically.
@@ -87,7 +94,7 @@ class CreateDocument:
 
         Returns
         -------
-        bool | Json
+        Result
             Document metadata (e.g. document key, revision) or `True` if parameter **silent** was set to True.
 
         Raises
@@ -102,6 +109,8 @@ class CreateDocument:
             If document violates a unique constraint.
         aioarango.errors.DocumentInsertError
             If insert fails.
+        aioarango.errors.UnknownError
+            If an unknown error occurs.
         """
         document = ensure_key_from_id(document, id_prefix)
 
@@ -129,15 +138,34 @@ class CreateDocument:
         )
 
         def response_handler(response: Response) -> Union[bool, Json]:
-            if response.error_code == 1203:  # collection or view not found (status_code 404)
-                raise CollectionNotFoundError(response, request)
+            if response.status_code == 404:
+                if response.error_code == 1203:  # collection or view not found (status_code 404)
+                    raise CollectionNotFoundError(response, request)
+                else:
+                    # This must not happen
+                    raise UnknownError(response, request)
 
-            if response.error_code == 600:  # document format is illegal (status_code 400)
-                # the body does not contain a valid JSON representation of one document.
-                raise DocumentIllegalError(response, request)
+            elif response.status_code == 400:
+                # if the body does not contain a valid JSON representation of one document. The response body contains an error document in this case.
+                if response.error_code == 600:  # document format is illegal (status_code 400)
+                    # the body does not contain a valid JSON representation of one document.
+                    raise DocumentIllegalError(response, request)
+                elif response.error_code == 1221:  # illegal document key
+                    raise DocumentIllegalKeyError(response, request)
+                else:
+                    # This must not happen
+                    raise UnknownError(response, request)
 
-            if response.error_code == 1210:  # status_code 409
-                raise DocumentUniqueConstraintError(response, request)
+            elif response.status_code == 409:
+                # In the single document case if a document with the
+                # same qualifiers in an indexed attribute conflicts with an already
+                # existing document and thus violates that unique constraint. The
+                # response body contains an error document in this case.
+                if response.error_code == 1210:  # status_code 409
+                    raise DocumentUniqueConstraintError(response, request)
+                else:
+                    # This must not happen
+                    raise UnknownError(response, request)
 
             if not response.is_success:
                 raise DocumentInsertError(response, request)

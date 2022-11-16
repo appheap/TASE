@@ -7,6 +7,7 @@ from .document_delete_error import DocumentDeleteError
 from .document_get_error import DocumentGetError
 from .document_ids_error import DocumentIDsError
 from .document_illegal_error import DocumentIllegalError
+from .document_illegal_key_error import DocumentIllegalKeyError
 from .document_in_error import DocumentInError
 from .document_insert_error import DocumentInsertError
 from .document_keys_error import DocumentKeysError
@@ -23,6 +24,7 @@ __all__ = [
     "DocumentGetError",
     "DocumentIDsError",
     "DocumentIllegalError",
+    "DocumentIllegalKeyError",
     "DocumentInError",
     "DocumentInsertError",
     "DocumentKeysError",

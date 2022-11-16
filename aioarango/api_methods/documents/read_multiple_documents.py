@@ -2,7 +2,7 @@ from typing import Union, Sequence, List, Optional
 
 from aioarango.api import Endpoint
 from aioarango.enums import MethodType
-from aioarango.errors import CollectionNotFoundError, DocumentGetError, DocumentIllegalError, DocumentRevisionMisMatchError
+from aioarango.errors import CollectionNotFoundError, DocumentGetError, DocumentIllegalError, DocumentRevisionMisMatchError, UnknownError
 from aioarango.models import Request, Response
 from aioarango.typings import Json, Params, Result
 from aioarango.utils.document_utils import extract_id
@@ -55,6 +55,8 @@ class ReadMultipleDocuments:
             if given revision does not match the document revision in the database (document has been updated).
         aioarango.errors.DocumentGetError
             If retrieval fails.
+        aioarango.errors.UnknownError
+            If an unknown error occurs.
         """
         handles = [extract_id(d, id_prefix) if isinstance(d, dict) else d for d in documents]
         params: Params = {
@@ -72,16 +74,20 @@ class ReadMultipleDocuments:
         )
 
         def response_handler(response: Response) -> List[Json]:
-            if response.error_code == 1203:  # collection or view not found (status_code 404)
-                raise CollectionNotFoundError(response, request)
+            if response.status_code == 404:  # if the collection was not found.
+                if response.error_code == 1203:  # collection or view not found (status_code 404)
+                    raise CollectionNotFoundError(response, request)
+                else:
+                    # this must not happen
+                    raise UnknownError(response, request)
 
-            if response.status_code == 400:
+            elif response.status_code == 400:
                 # is returned if the body does not contain a valid JSON representation
                 # of an array of documents. The response body contains
                 # an error document in this case.
                 raise DocumentIllegalError(response, request)  # this should not happen, since the `keys` are extracted from the given documents
 
-            if response.status_code == 412:  # the document in the db has been updated
+            elif response.status_code == 412:  # the document in the db has been updated
                 # todo: check if this happens
                 # this should not happen, since the `keys` are extracted from the given documents
                 raise DocumentRevisionMisMatchError(response, request)

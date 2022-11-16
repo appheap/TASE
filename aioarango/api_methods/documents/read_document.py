@@ -2,9 +2,9 @@ from typing import Union, Optional
 
 from aioarango.api import Endpoint
 from aioarango.enums import MethodType
-from aioarango.errors import CollectionNotFoundError, DocumentRevisionMisMatchError, DocumentGetError, DocumentRevisionMatchError
+from aioarango.errors import CollectionNotFoundError, DocumentRevisionMisMatchError, DocumentGetError, DocumentRevisionMatchError, UnknownError
 from aioarango.models import Request, Response
-from aioarango.typings import Json
+from aioarango.typings import Json, Result
 from aioarango.utils.document_utils import prep_from_doc
 
 
@@ -17,7 +17,7 @@ class ReadDocument:
         rev: Optional[str] = None,
         revisions_must_match: Optional[bool] = None,
         allow_dirty_read: bool = False,
-    ) -> Optional[Json]:
+    ) -> Result[Optional[Json]]:
         """
         Return the document identified by `document-id`. The returned document contains three special attributes: `_id` containing the document identifier,
         `_key` containing key which uniquely identifies a document in a given collection and `_rev` containing the revision.
@@ -39,7 +39,7 @@ class ReadDocument:
 
         Returns
         -------
-        Json, optional
+        Result
             Document, or None if not found.
 
         Raises
@@ -54,6 +54,8 @@ class ReadDocument:
             if given revision does not match the document revision in the database (document has been updated).
         aioarango.errors.DocumentGetError
             If retrieval fails.
+        aioarango.errors.UnknownError
+            If an unknown error occurs.
         """
         handle, body, headers = prep_from_doc(
             document,
@@ -73,23 +75,25 @@ class ReadDocument:
             headers["x-arango-allow-dirty-read"] = "true"
 
         def response_handler(response: Response) -> Optional[Json]:
-            if response.error_code == 1202:  # document not found (status_code 404)
-                return None
+            if response.status_code == 404:  # if the document or collection was not found
+                if response.error_code == 1202:  # document not found (status_code 404)
+                    return None
+                elif response.error_code == 1203:  # collection or view not found (status_code 404)
+                    raise CollectionNotFoundError(response, request)
+                else:
+                    # This must not happen
+                    raise UnknownError(response, request)
 
-            if response.error_code == 1203:  # collection or view not found (status_code 404)
-                raise CollectionNotFoundError(response, request)
-
-            if response.status_code == 304:  # the document in the db has not been updated
+            elif response.status_code == 304:  # the document in the db has not been updated
                 raise DocumentRevisionMatchError(response, request)
 
-            if response.status_code == 412:  # the document in the db has been updated
+            elif response.status_code == 412:  # the document in the db has been updated
                 raise DocumentRevisionMisMatchError(response, request)
 
             if not response.is_success:
                 raise DocumentGetError(response, request)
 
             # status_code 200 : if the document was found
-
             return response.body
 
         return await self.execute(

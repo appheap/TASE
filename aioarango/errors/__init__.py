@@ -18,6 +18,7 @@ from .replication import *
 from .server import *
 from .task import *
 from .transaction import *
+from .unknown_error import UnknownError
 from .user import *
 from .view import *
 from .wal import *
