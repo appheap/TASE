@@ -11,6 +11,7 @@ from .document_illegal_key_error import DocumentIllegalKeyError
 from .document_in_error import DocumentInError
 from .document_insert_error import DocumentInsertError
 from .document_keys_error import DocumentKeysError
+from .document_not_found_error import DocumentNotFoundError
 from .document_parse_error import DocumentParseError
 from .document_replace_error import DocumentReplaceError
 from .document_revision_match_error import DocumentRevisionMatchError
