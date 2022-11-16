@@ -88,7 +88,11 @@ class ReadDocument:
                 raise DocumentRevisionMatchError(response, request)
 
             elif response.status_code == 412:  # the document in the db has been updated
-                raise DocumentRevisionMisMatchError(response, request)
+                if response.error_code == 1200:
+                    raise DocumentRevisionMisMatchError(response, request)
+                else:
+                    # This must not happen
+                    raise UnknownError(response, request)
 
             if not response.is_success:
                 raise DocumentGetError(response, request)

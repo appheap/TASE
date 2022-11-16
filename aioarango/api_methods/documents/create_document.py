@@ -78,7 +78,8 @@ class CreateDocument:
             Document ID, key or body.
         return_new : bool, default : False
             Include body of the new document in the returned metadata. Ignored if parameter silent is set to True.
-        sync :
+        sync : bool, default : False
+            Wait until the new documents have been synced to disk.
         silent : bool, default : False
             If set to True, no document metadata is returned. This can be used to save resources.
         overwrite : bool, default : False
@@ -105,6 +106,8 @@ class CreateDocument:
             If collection with the given name does not exist in the database.
         aioarango.errors.DocumentIllegalError
             If document format is illegal.
+        aioarango.errors.DocumentIllegalKeyError
+            If document key is illegal.
         aioarango.errors.DocumentUniqueConstraintError
             If document violates a unique constraint.
         aioarango.errors.DocumentInsertError
