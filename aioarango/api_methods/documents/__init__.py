@@ -6,11 +6,12 @@ from .read_multiple_documents import ReadMultipleDocuments
 from .remove_document import RemoveDocument
 from .remove_multiple_documents import RemoveMultipleDocuments
 from .replace_document import ReplaceDocument
+from .replace_multiple_documents import ReplaceMultipleDocuments
 from .update_document import UpdateDocument
-from .update_documents import UpdateDocuments
+from .update_multiple_documents import UpdateMultipleDocuments
 
 
-class DocumentsMethods(
+class MultipleDocumentsMethods(
     CreateDocument,
     CreateMultipleDocuments,
     ReadDocument,
@@ -19,7 +20,8 @@ class DocumentsMethods(
     RemoveDocument,
     RemoveMultipleDocuments,
     ReplaceDocument,
+    ReplaceMultipleDocuments,
     UpdateDocument,
-    UpdateDocuments,
+    UpdateMultipleDocuments,
 ):
     pass

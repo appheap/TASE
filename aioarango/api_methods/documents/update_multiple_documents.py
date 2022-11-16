@@ -17,8 +17,8 @@ from aioarango.typings import Json, Params, Result
 from aioarango.utils.document_utils import ensure_key_in_body
 
 
-class UpdateDocuments:
-    async def update_documents(
+class UpdateMultipleDocuments:
+    async def update_multiple_documents(
         self: Endpoint,
         collection_name: str,
         id_prefix: str,
@@ -189,7 +189,7 @@ class UpdateDocuments:
                 if "_id" in doc_or_error:
                     if "_oldRev" in doc_or_error:
                         doc_or_error["_old_rev"] = doc_or_error.pop("_oldRev")
-                        results.append(doc_or_error)
+                    results.append(doc_or_error)
                 else:
                     sub_resp = self.connection.prep_bulk_err_response(response, doc_or_error)
 

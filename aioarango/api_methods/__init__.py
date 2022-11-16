@@ -7,7 +7,7 @@ from .cluster import ClusterMethods
 from .collections import CollectionsMethods
 from .cursors import CursorsMethods
 from .database import DatabaseMethods
-from .documents import DocumentsMethods
+from .documents import MultipleDocumentsMethods
 from .foxx import FoxxMethods
 from .graph import GraphMethods
 from .graph_edges import GraphEdgesMethods
@@ -30,7 +30,7 @@ class APIMethods(
     CollectionsMethods,
     CursorsMethods,
     DatabaseMethods,
-    DocumentsMethods,
+    MultipleDocumentsMethods,
     FoxxMethods,
     GraphMethods,
     GraphEdgesMethods,

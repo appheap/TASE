@@ -9,7 +9,7 @@ from aioarango.errors import (
     DocumentIllegalKeyError,
     DocumentNotFoundError,
     DocumentIllegalError,
-    DocumentUniqueConstraintError,
+    DocumentUniqueConstraintError, DocumentReplaceError,
 )
 from aioarango.errors.base import ArangoServerError
 from aioarango.models import Request, Response
@@ -150,7 +150,7 @@ class CreateMultipleDocuments:
             response: Response,
         ) -> Union[bool, List[Union[Json, ArangoServerError]]]:
             if not response.is_success:
-                raise DocumentInsertError(response, request)
+                raise DocumentReplaceError(response, request)
             if silent is True:
                 return True
 
@@ -177,7 +177,7 @@ class CreateMultipleDocuments:
                         error = DocumentRevisionMisMatchError(sub_resp, request)
                     else:
                         # This must not happen
-                        error = DocumentInsertError(sub_resp, request)
+                        error = DocumentReplaceError(sub_resp, request)
 
                     results.append(error)
 
