@@ -29,6 +29,7 @@ __all__ = [
     "DocumentInError",
     "DocumentInsertError",
     "DocumentKeysError",
+    "DocumentNotFoundError",
     "DocumentParseError",
     "DocumentReplaceError",
     "DocumentRevisionMatchError",

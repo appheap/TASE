@@ -11,7 +11,7 @@ from aioarango.errors import (
     DocumentRevisionMisMatchError,
 )
 from aioarango.errors.base import ArangoServerError
-from aioarango.errors.document import DocumentNotFoundError
+from aioarango.errors import DocumentNotFoundError
 from aioarango.models import Request, Response
 from aioarango.typings import Json, Params, Result
 from aioarango.utils.document_utils import ensure_key_in_body

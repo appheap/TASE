@@ -14,7 +14,7 @@ class ReadDocumentHeader:
         collection_name: str,
         id_prefix: str,
         document: Union[str, Json],
-        rev: Optional[str] = None,
+        revision: Optional[str] = None,
         check_for_revisions_match: Optional[bool] = None,
         check_for_revisions_mismatch: Optional[bool] = None,
         allow_dirty_read: bool = False,
@@ -31,7 +31,7 @@ class ReadDocumentHeader:
             ID prefix for this document.
         document : str or Json
             Document ID, key or body.
-        rev : str, default : None
+        revision : str, default : None
             Document revision to check. Overrides the value of "_rev" field in `document` if present.
         check_for_revisions_match : bool, default : None
             The given revision and the document revision in the database must match.
@@ -61,7 +61,7 @@ class ReadDocumentHeader:
         handle, body, headers = prep_from_doc(
             document,
             id_prefix,
-            rev,
+            revision,
             check_for_revisions_match=check_for_revisions_match,
             check_for_revisions_mismatch=check_for_revisions_mismatch,
         )
