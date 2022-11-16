@@ -1,4 +1,5 @@
 from .create_document import CreateDocument
+from .create_multiple_documents import CreateMultipleDocuments
 from .read_document import ReadDocument
 from .read_document_header import ReadDocumentHeader
 from .read_multiple_documents import ReadMultipleDocuments
@@ -11,6 +12,7 @@ from .update_documents import UpdateDocuments
 
 class DocumentsMethods(
     CreateDocument,
+    CreateMultipleDocuments,
     ReadDocument,
     ReadDocumentHeader,
     ReadMultipleDocuments,
