@@ -115,17 +115,12 @@ class BaseConnection:
 
         """
         if deserialize:
-            response.body = self.deserialize(response.raw_body)
-            if isinstance(response.body, dict):
-                response.error_code = response.body.get("errorNum")
-                response.error_message = response.body.get("errorMessage")
-                if response.status_code == response.error_code == 503:
-                    raise ConnectionError  # Fallback to another host
+            response.lazy_load(self.deserialize(response.raw_body))
+            if isinstance(response.body, dict) and response.status_code == response.error_code == 503:
+                raise ConnectionError  # Fallback to another host
         else:
             response.body = response.raw_body
 
-        http_ok = 200 <= response.status_code < 300
-        response.is_success = http_ok and response.error_code is None
         return response
 
     async def process_request(
@@ -199,7 +194,7 @@ class BaseConnection:
             Child bulk error response.
 
         """
-        resp = Response(
+        response = Response(
             method=parent_response.method,
             url=parent_response.url,
             headers=parent_response.headers,
@@ -207,11 +202,8 @@ class BaseConnection:
             # status_text=parent_response.status_text,
             raw_body=self.serialize(body),
         )
-        resp.body = body
-        resp.error_code = body["errorNum"]
-        resp.error_message = body["errorMessage"]
-        resp.is_success = False
-        return resp
+        response.lazy_load(body)
+        return response
 
     def normalize_data(
         self,

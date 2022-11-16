@@ -3,15 +3,7 @@ from typing import Union, List, Sequence, Optional, Deque
 
 from aioarango.api import Endpoint
 from aioarango.enums import MethodType, OverwriteMode
-from aioarango.errors import (
-    DocumentInsertError,
-    DocumentRevisionMisMatchError,
-    DocumentIllegalKeyError,
-    DocumentNotFoundError,
-    DocumentIllegalError,
-    DocumentUniqueConstraintError, DocumentReplaceError,
-)
-from aioarango.errors.base import ArangoServerError
+from aioarango.errors import ArangoServerError
 from aioarango.models import Request, Response
 from aioarango.typings import Json, Result, Params
 from aioarango.utils.document_utils import ensure_key_from_id
@@ -150,7 +142,8 @@ class CreateMultipleDocuments:
             response: Response,
         ) -> Union[bool, List[Union[Json, ArangoServerError]]]:
             if not response.is_success:
-                raise DocumentReplaceError(response, request)
+                raise ArangoServerError(response, request)
+
             if silent is True:
                 return True
 
@@ -162,24 +155,22 @@ class CreateMultipleDocuments:
                     results.append(body)
                 else:
                     sub_resp = self.connection.prep_bulk_err_response(response, body)
+                    # if sub_resp.error_code == 600:  # document format is illegal (status_code 400)
+                    #     # the body does not contain a valid JSON representation of one document.
+                    #     error = DocumentIllegalError(sub_resp, request)
+                    # elif sub_resp.error_code == 1202:  # document not found
+                    #     error = DocumentNotFoundError(sub_resp, request)
+                    # elif sub_resp.error_code == 1221:  # illegal document key
+                    #     error = DocumentIllegalKeyError(sub_resp, request)
+                    # elif sub_resp.error_code == 1210:  # status_code 409
+                    #     error = DocumentUniqueConstraintError(response, request)
+                    # elif sub_resp.error_code == 1200:
+                    #     error = DocumentRevisionMisMatchError(sub_resp, request)
+                    # else:
+                    #     # This must not happen
+                    #     error = DocumentReplaceError(sub_resp, request)
 
-                    error: ArangoServerError
-                    if sub_resp.error_code == 600:  # document format is illegal (status_code 400)
-                        # the body does not contain a valid JSON representation of one document.
-                        error = DocumentIllegalError(sub_resp, request)
-                    elif sub_resp.error_code == 1202:  # document not found
-                        error = DocumentNotFoundError(sub_resp, request)
-                    elif sub_resp.error_code == 1221:  # illegal document key
-                        error = DocumentIllegalKeyError(sub_resp, request)
-                    elif sub_resp.error_code == 1210:  # status_code 409
-                        error = DocumentUniqueConstraintError(response, request)
-                    elif sub_resp.error_code == 1200:
-                        error = DocumentRevisionMisMatchError(sub_resp, request)
-                    else:
-                        # This must not happen
-                        error = DocumentReplaceError(sub_resp, request)
-
-                    results.append(error)
+                    results.append(ArangoServerError(sub_resp, request))
 
             # status_code 201 and 202
             # 201 : if waitForSync was true and operations were processed.

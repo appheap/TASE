@@ -2,14 +2,7 @@ from typing import Union, Optional
 
 from aioarango.api import Endpoint
 from aioarango.enums import MethodType
-from aioarango.errors import (
-    CollectionNotFoundError,
-    DocumentIllegalError,
-    DocumentIllegalKeyError,
-    DocumentUpdateError,
-    DocumentRevisionMisMatchError,
-    DocumentUniqueConstraintError,
-)
+from aioarango.errors import ArangoServerError
 from aioarango.models import Request, Response
 from aioarango.typings import Json, Params, Result
 from aioarango.utils.document_utils import prep_from_doc
@@ -167,21 +160,21 @@ class UpdateDocument:
         def response_handler(response: Response) -> Union[bool, Json]:
             if response.status_code == 404:
                 if response.error_code == 1203:  # collection or view not found (status_code 404)
-                    raise CollectionNotFoundError(response, request)
+                    raise ArangoServerError(response, request)
                 else:
                     # This must not happen
-                    raise DocumentUpdateError(response, request)
+                    raise ArangoServerError(response, request)
 
             elif response.status_code == 400:
                 # if the body does not contain a valid JSON representation of one document. The response body contains an error document in this case.
                 if response.error_code == 600:  # document format is illegal (status_code 400)
                     # the body does not contain a valid JSON representation of one document.
-                    raise DocumentIllegalError(response, request)
+                    raise ArangoServerError(response, request)
                 elif response.error_code == 1221:  # illegal document key
-                    raise DocumentIllegalKeyError(response, request)
+                    raise ArangoServerError(response, request)
                 else:
                     # This must not happen
-                    raise DocumentUpdateError(response, request)
+                    raise ArangoServerError(response, request)
 
             elif response.status_code == 409:
                 # In the single document case if a document with the
@@ -189,23 +182,23 @@ class UpdateDocument:
                 # existing document and thus violates that unique constraint. The
                 # response body contains an error document in this case.
                 if response.error_code == 1210:  # status_code 409
-                    raise DocumentUniqueConstraintError(response, request)
+                    raise ArangoServerError(response, request)
                 else:
                     # This must not happen
-                    raise DocumentUpdateError(response, request)
+                    raise ArangoServerError(response, request)
 
             elif response.status_code == 412:
                 # if the precondition was violated. The response will
                 # also contain the found documents' current revisions in the `_rev`
                 # attributes. Additionally, the attributes `_id` and `_key` will be returned.
                 if response.error_code == 1200:
-                    raise DocumentRevisionMisMatchError(response, request)
+                    raise ArangoServerError(response, request)
                 else:
                     # This must not happen
-                    raise DocumentUpdateError(response, request)
+                    raise ArangoServerError(response, request)
 
             if not response.is_success:
-                raise DocumentUpdateError(response, request)
+                raise ArangoServerError(response, request)
 
             # status_code 200, 201 and 202
             # 201 : The documents were created successfully and waitForSync was true.

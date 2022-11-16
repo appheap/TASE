@@ -2,7 +2,7 @@ from typing import Union, Optional
 
 from aioarango.api import Endpoint
 from aioarango.enums import MethodType
-from aioarango.errors import CollectionNotFoundError, DocumentRevisionMisMatchError, DocumentGetError, DocumentRevisionMatchError
+from aioarango.errors import ArangoServerError
 from aioarango.models import Request, Response
 from aioarango.typings import Json, Headers, Result
 from aioarango.utils.document_utils import prep_from_doc
@@ -82,18 +82,18 @@ class ReadDocumentHeader:
                 if response.error_code == 1202:  # document not found (status_code 404)
                     return None
                 elif response.error_code == 1203:  # collection or view not found (status_code 404)
-                    raise CollectionNotFoundError(response, request)
+                    raise ArangoServerError(response, request)
                 else:
                     return None
 
             elif response.status_code == 304:  # the document in the db has not been updated
-                raise DocumentRevisionMatchError(response, request)
+                raise ArangoServerError(response, request)
 
             elif response.status_code == 412:  # the document in the db has been updated
-                raise DocumentRevisionMisMatchError(response, request)
+                raise ArangoServerError(response, request)
 
             if not response.is_success:
-                raise DocumentGetError(response, request)
+                raise ArangoServerError(response, request)
 
             # status_code 200 : if the document was found
             return response.headers

@@ -145,7 +145,7 @@ def prep_from_doc(
         doc_id = extract_id(document, id_prefix)
         rev = rev or document.get("_rev", None)
 
-        if check_for_revisions_match is None or rev is None:
+        if (check_for_revisions_match is None and check_for_revisions_mismatch is None) or rev is None:
             return doc_id, doc_id, {}
         else:
             if check_for_revisions_match:
@@ -162,7 +162,7 @@ def prep_from_doc(
         else:
             doc_id = id_prefix + document
 
-        if check_for_revisions_match is None or rev is None:
+        if (check_for_revisions_match is None and check_for_revisions_mismatch is None) is None or rev is None:
             return doc_id, doc_id, {}
         else:
             if check_for_revisions_match:

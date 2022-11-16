@@ -3,8 +3,7 @@ from typing import Optional, Sequence, Union, List, Deque
 
 from aioarango.api import Endpoint
 from aioarango.enums import MethodType
-from aioarango.errors import DocumentDeleteError, DocumentRevisionMisMatchError, DocumentIllegalError, DocumentNotFoundError, DocumentIllegalKeyError
-from aioarango.errors.base import ArangoServerError
+from aioarango.errors import ArangoServerError
 from aioarango.models import Request, Response
 from aioarango.typings import Json, Result, Params
 from aioarango.utils.document_utils import ensure_key_in_body
@@ -126,7 +125,7 @@ class RemoveMultipleDocuments:
             resp: Response,
         ) -> Union[bool, List[Union[Json, ArangoServerError]]]:
             if not resp.is_success:
-                raise DocumentDeleteError(resp, request)
+                raise ArangoServerError(resp, request)
 
             if silent is True:
                 return True
@@ -141,16 +140,16 @@ class RemoveMultipleDocuments:
                     error: ArangoServerError
                     if sub_resp.error_code == 600:  # document format is illegal (status_code 400)
                         # the body does not contain a valid JSON representation of one document.
-                        error = DocumentIllegalError(sub_resp, request)
+                        error = ArangoServerError(sub_resp, request)
                     elif sub_resp.error_code == 1202:  # document not found
-                        error = DocumentNotFoundError(sub_resp, request)
+                        error = ArangoServerError(sub_resp, request)
                     elif sub_resp.error_code == 1221:  # illegal document key
-                        error = DocumentIllegalKeyError(sub_resp, request)
+                        error = ArangoServerError(sub_resp, request)
                     elif sub_resp.error_code == 1200:
-                        error = DocumentRevisionMisMatchError(sub_resp, request)
+                        error = ArangoServerError(sub_resp, request)
                     else:
                         # This must not happen
-                        error = DocumentDeleteError(sub_resp, request)
+                        error = ArangoServerError(sub_resp, request)
 
                     results.append(error)
 

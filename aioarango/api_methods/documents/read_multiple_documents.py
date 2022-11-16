@@ -2,7 +2,7 @@ from typing import Union, Sequence, List, Optional
 
 from aioarango.api import Endpoint
 from aioarango.enums import MethodType
-from aioarango.errors import CollectionNotFoundError, DocumentGetError, DocumentIllegalError, DocumentRevisionMisMatchError
+from aioarango.errors import ArangoServerError
 from aioarango.models import Request, Response
 from aioarango.typings import Json, Params, Result
 from aioarango.utils.document_utils import extract_id
@@ -74,24 +74,24 @@ class ReadMultipleDocuments:
         def response_handler(response: Response) -> List[Json]:
             if response.status_code == 404:  # if the collection was not found.
                 if response.error_code == 1203:  # collection or view not found (status_code 404)
-                    raise CollectionNotFoundError(response, request)
+                    raise ArangoServerError(response, request)
                 else:
                     # this must not happen
-                    raise DocumentGetError(response, request)
+                    raise ArangoServerError(response, request)
 
             elif response.status_code == 400:
                 # is returned if the body does not contain a valid JSON representation
                 # of an array of documents. The response body contains
                 # an error document in this case.
-                raise DocumentIllegalError(response, request)  # this should not happen, since the `keys` are extracted from the given documents
+                raise ArangoServerError(response, request)  # this should not happen, since the `keys` are extracted from the given documents
 
             elif response.status_code == 412:  # the document in the db has been updated
                 # todo: check if this happens
                 # this should not happen, since the `keys` are extracted from the given documents
-                raise DocumentRevisionMisMatchError(response, request)
+                raise ArangoServerError(response, request)
 
             if not response.is_success:
-                raise DocumentGetError(response, request)
+                raise ArangoServerError(response, request)
 
             # status_code 200 :  if no error happened
             return [doc for doc in response.body if "_id" in doc]

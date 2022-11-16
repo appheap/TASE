@@ -3,15 +3,7 @@ from typing import Union, Optional, List
 
 from aioarango.api import Endpoint
 from aioarango.enums import MethodType
-from aioarango.errors import (
-    CollectionNotFoundError,
-    DocumentIllegalError,
-    DocumentIllegalKeyError,
-    DocumentUpdateError,
-    DocumentRevisionMisMatchError,
-)
-from aioarango.errors.base import ArangoServerError
-from aioarango.errors import DocumentNotFoundError
+from aioarango.errors import ArangoServerError
 from aioarango.models import Request, Response
 from aioarango.typings import Json, Params, Result
 from aioarango.utils.document_utils import ensure_key_in_body
@@ -162,24 +154,24 @@ class UpdateMultipleDocuments:
         def response_handler(response: Response) -> Union[bool, List[Union[Json, ArangoServerError]]]:
             if response.status_code == 404:  # if the collection was not found.
                 if response.error_code == 1203:  # collection or view not found (status_code 404)
-                    raise CollectionNotFoundError(response, request)
+                    raise ArangoServerError(response, request)
                 else:
                     # This must not happen
-                    raise DocumentUpdateError(response, request)
+                    raise ArangoServerError(response, request)
 
             elif response.status_code == 400:
                 # if the body does not contain a valid JSON representation of one document. The response body contains an error document in this case.
                 if response.error_code == 600:  # document format is illegal (status_code 400)
                     # the body does not contain a valid JSON representation of one document.
-                    raise DocumentIllegalError(response, request)
+                    raise ArangoServerError(response, request)
                 elif response.error_code == 1221:  # illegal document key
-                    raise DocumentIllegalKeyError(response, request)
+                    raise ArangoServerError(response, request)
                 else:
                     # This must not happen
-                    raise DocumentUpdateError(response, request)
+                    raise ArangoServerError(response, request)
 
             if not response.is_success:
-                raise DocumentUpdateError(response, request)
+                raise ArangoServerError(response, request)
 
             if silent:
                 return True
@@ -196,16 +188,16 @@ class UpdateMultipleDocuments:
                     error: ArangoServerError
                     if sub_resp.error_code == 600:  # document format is illegal (status_code 400)
                         # the body does not contain a valid JSON representation of one document.
-                        error = DocumentIllegalError(sub_resp, request)
+                        error = ArangoServerError(sub_resp, request)
                     elif sub_resp.error_code == 1202:  # document not found
-                        error = DocumentNotFoundError(sub_resp, request)
+                        error = ArangoServerError(sub_resp, request)
                     elif sub_resp.error_code == 1221:  # illegal document key
-                        error = DocumentIllegalKeyError(sub_resp, request)
+                        error = ArangoServerError(sub_resp, request)
                     elif sub_resp.error_code == 1200:
-                        error = DocumentRevisionMisMatchError(sub_resp, request)
+                        error = ArangoServerError(sub_resp, request)
                     else:
                         # This must not happen
-                        error = DocumentUpdateError(sub_resp, request)
+                        error = ArangoServerError(sub_resp, request)
 
                     results.append(error)
 

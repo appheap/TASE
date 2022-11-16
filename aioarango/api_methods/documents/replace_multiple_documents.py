@@ -3,16 +3,7 @@ from typing import Sequence, Optional, Union, List, Deque
 
 from aioarango.api import Endpoint
 from aioarango.enums import MethodType
-from aioarango.errors import (
-    DocumentReplaceError,
-    DocumentRevisionMisMatchError,
-    DocumentInsertError,
-    DocumentIllegalError,
-    DocumentNotFoundError,
-    DocumentIllegalKeyError,
-    DocumentUniqueConstraintError,
-)
-from aioarango.errors.base import ArangoServerError
+from aioarango.errors import ArangoServerError
 from aioarango.models import Request, Response
 from aioarango.typings import Json, Params, Result
 from aioarango.utils.document_utils import ensure_key_in_body
@@ -138,7 +129,7 @@ class ReplaceMultipleDocuments:
             response: Response,
         ) -> Union[bool, List[Union[Json, ArangoServerError]]]:
             if not response.is_success:
-                raise DocumentReplaceError(response, request)
+                raise ArangoServerError(response, request)
 
             if silent is True:
                 return True
@@ -155,18 +146,18 @@ class ReplaceMultipleDocuments:
                     error: ArangoServerError
                     if sub_resp.error_code == 600:  # document format is illegal (status_code 400)
                         # the body does not contain a valid JSON representation of one document.
-                        error = DocumentIllegalError(sub_resp, request)
+                        error = ArangoServerError(sub_resp, request)
                     elif sub_resp.error_code == 1202:  # document not found
-                        error = DocumentNotFoundError(sub_resp, request)
+                        error = ArangoServerError(sub_resp, request)
                     elif sub_resp.error_code == 1221:  # illegal document key
-                        error = DocumentIllegalKeyError(sub_resp, request)
+                        error = ArangoServerError(sub_resp, request)
                     elif sub_resp.error_code == 1210:  # status_code 409
-                        error = DocumentUniqueConstraintError(response, request)
+                        error = ArangoServerError(response, request)
                     elif sub_resp.error_code == 1200:
-                        error = DocumentRevisionMisMatchError(sub_resp, request)
+                        error = ArangoServerError(sub_resp, request)
                     else:
                         # This must not happen
-                        error = DocumentInsertError(sub_resp, request)
+                        error = ArangoServerError(sub_resp, request)
 
                     results.append(error)
 

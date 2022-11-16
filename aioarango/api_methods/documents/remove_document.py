@@ -2,7 +2,7 @@ from typing import Optional, Union
 
 from aioarango.api import Endpoint
 from aioarango.enums import MethodType
-from aioarango.errors import DocumentDeleteError, DocumentRevisionMisMatchError, CollectionNotFoundError, DocumentNotFoundError
+from aioarango.errors import ArangoServerError
 from aioarango.models import Request, Response
 from aioarango.typings import Json, Params, Result
 from aioarango.utils.document_utils import prep_from_doc
@@ -112,15 +112,15 @@ class RemoveDocument:
         def response_handler(response: Response) -> Union[bool, Json]:
             if response.status_code == 404:
                 if response.error_code == 1203:  # collection or view not found (status_code 404)
-                    raise CollectionNotFoundError(response, request)
+                    raise ArangoServerError(response, request)
                 elif response.error_code == 1202:
                     if ignore_missing:
                         return False
                     else:
-                        raise DocumentNotFoundError(response, request)
+                        raise ArangoServerError(response, request)
                 else:
                     # This must not happen
-                    raise DocumentDeleteError(response, request)
+                    raise ArangoServerError(response, request)
 
             elif response.status_code == 412:
                 # if a "If-Match" header or `rev` is given and the found
@@ -128,13 +128,13 @@ class RemoveDocument:
                 # document's current revision in the _rev attribute. Additionally, the
                 # attributes _id and _key will be returned.
                 if response.error_code == 1200:
-                    raise DocumentRevisionMisMatchError(response, request)
+                    raise ArangoServerError(response, request)
                 else:
                     # This must not happen
-                    raise DocumentDeleteError(response, request)
+                    raise ArangoServerError(response, request)
 
             if not response.is_success:
-                raise DocumentDeleteError(response, request)
+                raise ArangoServerError(response, request)
 
             # status code 200 and 202:
             # 200 : is returned if the document was removed successfully and waitForSync was true.
