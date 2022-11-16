@@ -7,7 +7,6 @@ from aioarango.errors import (
     DocumentIllegalError,
     DocumentUniqueConstraintError,
     DocumentInsertError,
-    UnknownError,
     DocumentIllegalKeyError,
 )
 from aioarango.models import Request, Response
@@ -112,8 +111,6 @@ class CreateDocument:
             If document violates a unique constraint.
         aioarango.errors.DocumentInsertError
             If insert fails.
-        aioarango.errors.UnknownError
-            If an unknown error occurs.
         """
         document = ensure_key_from_id(document, id_prefix)
 
@@ -146,7 +143,7 @@ class CreateDocument:
                     raise CollectionNotFoundError(response, request)
                 else:
                     # This must not happen
-                    raise UnknownError(response, request)
+                    raise DocumentInsertError(response, request)
 
             elif response.status_code == 400:
                 # if the body does not contain a valid JSON representation of one document. The response body contains an error document in this case.
@@ -157,7 +154,7 @@ class CreateDocument:
                     raise DocumentIllegalKeyError(response, request)
                 else:
                     # This must not happen
-                    raise UnknownError(response, request)
+                    raise DocumentInsertError(response, request)
 
             elif response.status_code == 409:
                 # In the single document case if a document with the
@@ -168,7 +165,7 @@ class CreateDocument:
                     raise DocumentUniqueConstraintError(response, request)
                 else:
                     # This must not happen
-                    raise UnknownError(response, request)
+                    raise DocumentInsertError(response, request)
 
             if not response.is_success:
                 raise DocumentInsertError(response, request)

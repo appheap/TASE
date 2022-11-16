@@ -2,7 +2,7 @@ from typing import Union, Sequence, List, Optional
 
 from aioarango.api import Endpoint
 from aioarango.enums import MethodType
-from aioarango.errors import CollectionNotFoundError, DocumentGetError, DocumentIllegalError, DocumentRevisionMisMatchError, UnknownError
+from aioarango.errors import CollectionNotFoundError, DocumentGetError, DocumentIllegalError, DocumentRevisionMisMatchError
 from aioarango.models import Request, Response
 from aioarango.typings import Json, Params, Result
 from aioarango.utils.document_utils import extract_id
@@ -55,8 +55,6 @@ class ReadMultipleDocuments:
             if given revision does not match the document revision in the database (document has been updated).
         aioarango.errors.DocumentGetError
             If retrieval fails.
-        aioarango.errors.UnknownError
-            If an unknown error occurs.
         """
         handles = [extract_id(d, id_prefix) if isinstance(d, dict) else d for d in documents]
         params: Params = {
@@ -79,7 +77,7 @@ class ReadMultipleDocuments:
                     raise CollectionNotFoundError(response, request)
                 else:
                     # this must not happen
-                    raise UnknownError(response, request)
+                    raise DocumentGetError(response, request)
 
             elif response.status_code == 400:
                 # is returned if the body does not contain a valid JSON representation

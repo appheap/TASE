@@ -2,7 +2,7 @@ from typing import Union, Optional
 
 from aioarango.api import Endpoint
 from aioarango.enums import MethodType
-from aioarango.errors import CollectionNotFoundError, DocumentRevisionMisMatchError, DocumentGetError, DocumentRevisionMatchError, UnknownError
+from aioarango.errors import CollectionNotFoundError, DocumentRevisionMisMatchError, DocumentGetError, DocumentRevisionMatchError
 from aioarango.models import Request, Response
 from aioarango.typings import Json, Result
 from aioarango.utils.document_utils import prep_from_doc
@@ -54,8 +54,6 @@ class ReadDocument:
             if given revision does not match the document revision in the database (document has been updated).
         aioarango.errors.DocumentGetError
             If retrieval fails.
-        aioarango.errors.UnknownError
-            If an unknown error occurs.
         """
         handle, body, headers = prep_from_doc(
             document,
@@ -82,7 +80,7 @@ class ReadDocument:
                     raise CollectionNotFoundError(response, request)
                 else:
                     # This must not happen
-                    raise UnknownError(response, request)
+                    raise DocumentGetError(response, request)
 
             elif response.status_code == 304:  # the document in the db has not been updated
                 raise DocumentRevisionMatchError(response, request)
@@ -92,7 +90,7 @@ class ReadDocument:
                     raise DocumentRevisionMisMatchError(response, request)
                 else:
                     # This must not happen
-                    raise UnknownError(response, request)
+                    raise DocumentGetError(response, request)
 
             if not response.is_success:
                 raise DocumentGetError(response, request)
