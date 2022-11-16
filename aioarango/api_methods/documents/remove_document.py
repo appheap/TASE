@@ -15,7 +15,7 @@ class RemoveDocument:
         id_prefix: str,
         document: Union[str, Json],
         revision: Optional[str] = None,
-        check_for_revisions_match: Optional[str] = True,
+        check_for_revisions_match: Optional[bool] = True,
         ignore_missing: bool = False,
         return_old: bool = False,
         wait_for_sync: Optional[bool] = None,
@@ -68,6 +68,23 @@ class RemoveDocument:
         Result
             Document metadata (e.g. document key, revision), or True if parameter **silent** was set to True, or False if document was not found and **ignore_missing** was set to True (does not apply in transactions).
 
+
+        Raises
+        ------
+        aioarango.errors.DocumentParseError
+            If `key` and `ID` are missing from the document body, or if collection name is invalid.
+        aioarango.errors.CollectionNotFoundError
+            If collection with the given name does not exist in the database.
+        aioarango.errors.DocumentNotFoundError
+            If document was not found in the collection.
+        aioarango.errors.DocumentIllegalError
+            If document format is illegal.
+        aioarango.errors.DocumentIllegalKeyError
+            If document key is illegal.
+        aioarango.errors.DocumentRevisionMisMatchError
+            If the given document revision does not match with the one in the database.
+        aioarango.errors.DocumentDeleteError
+            If remove fails.
         """
         handle, body, headers = prep_from_doc(
             document,
