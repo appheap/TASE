@@ -9,10 +9,11 @@ from aioarango.errors import (
     DocumentIllegalKeyError,
     DocumentUpdateError,
     DocumentRevisionMisMatchError,
+    DocumentUniqueConstraintError,
 )
 from aioarango.models import Request, Response
 from aioarango.typings import Json, Params, Result
-from aioarango.utils.document_utils import extract_id
+from aioarango.utils.document_utils import prep_from_doc
 
 
 class UpdateDocument:
@@ -23,20 +24,19 @@ class UpdateDocument:
         document: Union[str, Json],
         return_new: bool = False,
         return_old: bool = False,
-        ignore_revs: Optional[bool] = True,
+        check_for_revisions_match: Optional[bool] = True,
         keep_none: Optional[bool] = None,
         merge: Optional[bool] = True,
         wait_for_sync: Optional[bool] = None,
         silent: bool = False,
     ) -> Result[Union[bool, Json]]:
         """
-        Partially updates documents, the documents to update are specified
-        by the **_key** attributes in the body objects. The body of the
-        request must contain a JSON array of document updates with the
-        attributes to patch (the patch documents). All attributes from the
-        patch documents will be added to the existing documents if they do
-        not yet exist, and overwritten in the existing documents if they do
-        exist there.
+        Partially updates the document identified by document-id.
+        The body of the request must contain a JSON document with the
+        attributes to patch (the patch document). All attributes from the
+        patch document will be added to the existing document if they do not
+        yet exist, and overwritten in the existing document if they do exist
+        there.
 
         Notes
         -----
@@ -44,16 +44,24 @@ class UpdateDocument:
 
         - Setting an attribute value to **None** in the patch documents will cause a value of **null** to be saved for the attribute by default.
 
-        - If **ignore_revs** is *false* and there is a **_rev** attribute in a document in the body and its value does not match the revision of the corresponding
-          document in the database, the precondition is violated.
+        - If the **If-Match** header is specified and the revision of the
+          document in the database is unequal to the given revision, the precondition is violated.
 
-        - Cluster only: The patch document may contain
-          values for the collection's pre-defined shard keys. Values for the shard keys
-          are treated as hints to improve performance. Should the shard keys
-          values be incorrect ArangoDB may answer with a not found error
+        - If **If-Match** is not given and **ignoreRevs** is *false* and there
+          is a *_rev* attribute in the body and its value does not match
+          the revision of the document in the database, the precondition is
+          violated.
+
+        - If a precondition is violated, an HTTP *412* is returned.
+
+        - If the document exists and can be updated, then an HTTP *201* or
+          an HTTP *202* is returned (depending on **wait_for_sync**, see below),
+          the **Etag** header field contains the new revision of the document
+          (in double quotes) and the **Location** header contains a complete URL
+          under which the document can be queried.
 
         - Optionally, the query parameter **wait_for_sync** can be used to force
-          synchronization of the document replacement operation to disk even in case
+          synchronization of the updated document operation to disk even in case
           that the **wait_for_sync** flag had been *disabled* for the entire collection.
           Thus, the **wait_for_sync** query parameter can be used to force synchronization
           of just specific operations. To use this, set the **wait_for_sync** parameter
@@ -63,15 +71,11 @@ class UpdateDocument:
           synchronization for collections that have a default **wait_for_sync** value
           of *true*.
 
-        - The body of the response contains a JSON array of the same length
-          as the input array with the information about the identifier and the
-          revision of the updated documents. In each entry, the attribute
-          **_id** contains the known document-id of each updated document,
-          **_key** contains the key which uniquely identifies a document in a
-          given collection, and the attribute **_rev** contains the new document
-          revision. In case of an error or violated precondition, an error
-          object with the attribute error set to true and the attribute
-          **error_code** set to the error code is built.
+        - If **silent** is not set to *true*, the body of the response contains a JSON
+          object with the information about the identifier and the revision. The attribute
+          **_id** contains the known document-id of the updated document, **_key**
+          contains the key which uniquely identifies a document in a given collection,
+          and the attribute **_rev** contains the new document revision.
 
         - If the query parameter **return_old** is *true*, then, for each
           generated document, the complete previous revision of the document
@@ -80,14 +84,6 @@ class UpdateDocument:
         - If the query parameter **return_new** is *true*, then, for each
           generated document, the complete new document is returned under
           the **new** attribute in the result.
-
-        - Note that if any precondition is violated or an error occurred with
-          some documents, the return code is still `201` or `202`, but
-          the additional HTTP header **X-Arango-Error-Codes** is set, which
-          contains a map of the error codes that occurred together with their
-          multiplicities, as in: `1200:17`,`1205:10` which means that in 17
-          cases the error 1200 "revision conflict" and in 10 cases the error
-          1205 "illegal document handle" has happened.
 
         Parameters
         ----------
@@ -101,12 +97,8 @@ class UpdateDocument:
             Include body of the new document in the returned metadata. Ignored if parameter silent is set to True.
         return_old : bool, default : False
             Include body of the old document if overwritten. Ignored if parameter `silent` is set to True. Only available if the `overwrite` option is used.
-        ignore_revs : bool, default : True
-            By `default`, or if this is set to `true`, the `_rev` attributes in
-            the given documents are ignored. If this is set to `false`, then
-            any `_rev` attribute given in a body document is taken as a
-            precondition. The document is only updated if the current revision
-            is the one specified.
+        check_for_revisions_match : bool, default : True
+            If set to `True`, revision of **document** (if given) is compared against the revision of target document.
         keep_none : bool, default : None
             If set to `True`, fields with value None are retained in the document. Otherwise, they are removed completely. Applies only when `overwrite_mode` is set to "update" (update-insert).
         merge : bool, default : None
@@ -130,6 +122,8 @@ class UpdateDocument:
             If document format is illegal.
         aioarango.errors.DocumentIllegalKeyError
             If document key is illegal.
+        aioarango.errors.DocumentUniqueConstraintError
+            If document violates a unique constraint.
         aioarango.errors.DocumentRevisionMisMatchError
             If the given document revision does not match with the one in the database.
         aioarango.errors.DocumentUpdateError
@@ -137,11 +131,23 @@ class UpdateDocument:
         aioarango.errors.UnknownError
             If an unknown error occurs.
         """
+
+        handle, body, headers = prep_from_doc(
+            document,
+            id_prefix,
+            check_for_revisions_match=check_for_revisions_match,
+        )
+
         params: Params = {
             "mergeObjects": merge,
             "returnNew": return_new,
             "returnOld": return_old,
-            "ignoreRevs": ignore_revs,
+            "ignoreRevs": not check_for_revisions_match,
+            #  (ignoreRevs):  By `default`, or if this is set to `true`, the `_rev` attributes in
+            # the given documents are ignored. If this is set to `false`, then
+            # any `_rev` attribute given in a body document is taken as a
+            # precondition. The document is only updated if the current revision
+            # is the one specified.
             "silent": silent,
         }
         if wait_for_sync is not None:
@@ -151,9 +157,10 @@ class UpdateDocument:
 
         request = Request(
             method_type=MethodType.PATCH,
-            endpoint=f"/_api/document/{extract_id(document, id_prefix)}",
+            endpoint=f"/_api/document/{handle}",
             data=document,
             params=params,
+            headers=headers,
             write=collection_name,
         )
 
@@ -176,7 +183,21 @@ class UpdateDocument:
                     # This must not happen
                     raise UnknownError(response, request)
 
+            elif response.status_code == 409:
+                # In the single document case if a document with the
+                # same qualifiers in an indexed attribute conflicts with an already
+                # existing document and thus violates that unique constraint. The
+                # response body contains an error document in this case.
+                if response.error_code == 1210:  # status_code 409
+                    raise DocumentUniqueConstraintError(response, request)
+                else:
+                    # This must not happen
+                    raise UnknownError(response, request)
+
             elif response.status_code == 412:
+                # if the precondition was violated. The response will
+                # also contain the found documents' current revisions in the `_rev`
+                # attributes. Additionally, the attributes `_id` and `_key` will be returned.
                 if response.error_code == 1200:
                     raise DocumentRevisionMisMatchError(response, request)
                 else:
@@ -186,7 +207,7 @@ class UpdateDocument:
             if not response.is_success:
                 raise DocumentUpdateError(response, request)
 
-            # status_code 201 and 202
+            # status_code 200, 201 and 202
             # 201 : The documents were created successfully and waitForSync was true.
             # 202 : The documents were created successfully and waitForSync was false.
 

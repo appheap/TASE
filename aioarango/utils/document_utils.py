@@ -106,8 +106,9 @@ def prep_from_body(
 def prep_from_doc(
     document: Union[str, Json],
     id_prefix: str,
-    rev: Optional[str],
-    revisions_must_match: Optional[bool] = None,
+    rev: Optional[str] = None,
+    check_for_revisions_match: Optional[bool] = None,
+    check_for_revisions_mismatch: Optional[bool] = None,
 ) -> Tuple[str, Union[str, Json], Json]:
     """
     Prepare document ID, body and request headers.
@@ -118,10 +119,12 @@ def prep_from_doc(
         Document ID, key or body
     id_prefix : str
         ID prefix for this document
-    rev : str, optional
+    rev : str, default : None
         Revision key
-    revisions_must_match : bool, default : None
-        Whether to check for revision match or mismatch
+    check_for_revisions_match : bool, default : None
+        Whether the revisions must match or not
+    check_for_revisions_mismatch : bool, default : None
+        Whether the revisions must mismatch or not
 
 
     Returns
@@ -140,12 +143,18 @@ def prep_from_doc(
 
     if isinstance(document, dict):
         doc_id = extract_id(document, id_prefix)
-        rev = rev or document.get("_rev")
+        rev = rev or document.get("_rev", None)
 
-        if revisions_must_match is None or rev is None:
+        if check_for_revisions_match is None or rev is None:
             return doc_id, doc_id, {}
         else:
-            headers = {"If-Match": rev} if revisions_must_match else {"If-None-Match": rev}
+            if check_for_revisions_match:
+                headers = {"If-Match": rev}
+            elif check_for_revisions_mismatch:
+                headers = {"If-None-Match": rev}
+            else:
+                headers = {}
+
             return doc_id, doc_id, headers
     else:
         if "/" in document:
@@ -153,10 +162,15 @@ def prep_from_doc(
         else:
             doc_id = id_prefix + document
 
-        if revisions_must_match is None or rev is None:
+        if check_for_revisions_match is None or rev is None:
             return doc_id, doc_id, {}
         else:
-            headers = {"If-Match": rev} if revisions_must_match else {"If-None-Match": rev}
+            if check_for_revisions_match:
+                headers = {"If-Match": rev}
+            elif check_for_revisions_mismatch:
+                headers = {"If-None-Match": rev}
+            else:
+                headers = {}
             return doc_id, doc_id, headers
 
 

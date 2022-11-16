@@ -15,7 +15,8 @@ class ReadDocumentHeader:
         id_prefix: str,
         document: Union[str, Json],
         rev: Optional[str] = None,
-        revisions_must_match: Optional[bool] = None,
+        check_for_revisions_match: Optional[bool] = None,
+        check_for_revisions_mismatch: Optional[bool] = None,
         allow_dirty_read: bool = False,
     ) -> Result[Optional[Headers]]:
         """
@@ -32,8 +33,10 @@ class ReadDocumentHeader:
             Document ID, key or body.
         rev : str, default : None
             Document revision to check. Overrides the value of "_rev" field in `document` if present.
-        revisions_must_match : bool, default : None
-            Whether the given revision and the document revision in the database must match or not.
+        check_for_revisions_match : bool, default : None
+            The given revision and the document revision in the database must match.
+        check_for_revisions_mismatch : bool, default : None
+            The given revision and the document revision in the database must not match.
         allow_dirty_read : bool, default : False
             Whether to allow reads from followers in a cluster.
 
@@ -59,7 +62,8 @@ class ReadDocumentHeader:
             document,
             id_prefix,
             rev,
-            revisions_must_match,
+            check_for_revisions_match=check_for_revisions_match,
+            check_for_revisions_mismatch=check_for_revisions_mismatch,
         )
 
         request = Request(
