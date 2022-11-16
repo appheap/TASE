@@ -7,7 +7,7 @@ import aiohttp
 
 from aioarango.connection import BasicConnection
 from aioarango.enums import HostResolverType, ConnectionType
-from aioarango.errors.client.server_errors import ServerConnectionError
+from aioarango.errors import ServerConnectionError
 from aioarango.executor import DefaultAPIExecutor
 from aioarango.http_client import HTTPClient, DefaultHTTPClient
 from aioarango.resolver import HostResolver, SingleHostResolver, RandomHostResolver, RoundRobinHostResolver

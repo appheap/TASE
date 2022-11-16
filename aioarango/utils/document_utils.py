@@ -1,6 +1,6 @@
 from typing import Union, Optional, Tuple
 
-from aioarango.errors.client.document_errors import DocumentParseError
+from aioarango.errors import DocumentParseError
 from aioarango.typings import Json, Headers
 
 
@@ -25,7 +25,7 @@ def validate_id(
 
     Raises
     ------
-    aioarango.errors.client.document_errors.DocumentParseError
+    aioarango.errors.DocumentParseError
         If collection name is invalid.
     """
     if not doc_id.startswith(id_prefix):
@@ -54,7 +54,7 @@ def extract_id(
 
     Raises
     ------
-    aioarango.errors.client.document_errors.DocumentParseError
+    aioarango.errors.DocumentParseError
         If `key` and `ID` are missing from the body.
     """
     try:
@@ -91,9 +91,12 @@ def prep_from_body(
 
     Raises
     ------
-    aioarango.errors.client.document_errors.DocumentParseError
-        If `key` and `ID` are missing from the document body.
+    aioarango.errors.DocumentParseError
+        If `key` and `ID` are missing from the document body or the document is `None`.
     """
+    if document is None:
+        raise DocumentParseError(f"document cannot be `None`")
+
     doc_id = extract_id(document, id_prefix)
     if revisions_must_match is None or "_rev" not in document:
         return doc_id, {}
@@ -128,10 +131,13 @@ def prep_from_doc(
 
     Raises
     ------
-    aioarango.errors.client.document_errors.DocumentParseError
-        If `key` and `ID` are missing from the document body, or if collection name is invalid.
+    aioarango.errors.DocumentParseError
+        If `key` and `ID` are missing from the document body, or the document is `None` or if collection name is invalid.
 
     """
+    if document is None:
+        raise DocumentParseError(f"document cannot be `None`")
+
     if isinstance(document, dict):
         doc_id = extract_id(document, id_prefix)
         rev = rev or document.get("_rev")
@@ -175,9 +181,12 @@ def ensure_key_in_body(
 
     Raises
     ------
-    aioarango.errors.client.document_errors.DocumentParseError
-        If `key` and `ID` are missing from the document body.
+    aioarango.errors.DocumentParseError
+        If `key` and `ID` are missing from the document body or the body is `None`.
     """
+    if body is None:
+        raise DocumentParseError(f"body cannot be `None`")
+
     if "_key" in body:
         return body
     elif "_id" in body:
@@ -209,9 +218,12 @@ def ensure_key_from_id(
 
     Raises
     ------
-    aioarango.errors.client.document_errors.DocumentParseError
-        If collection name is invalid.
+    aioarango.errors.DocumentParseError
+        If collection name is invalid or the body is `None`.
     """
+    if body is None:
+        raise DocumentParseError(f"body cannot be `None`")
+
     if "_id" in body and "_key" not in body:
         doc_id = validate_id(body["_id"], id_prefix)
         body = body.copy()

@@ -1,6 +1,7 @@
 __all__ = [
     "BaseHTTPClient",
     "DefaultHTTPClient",
+    "HTTPClient",
 ]
 
 from typing import Union

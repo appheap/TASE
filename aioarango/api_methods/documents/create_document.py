@@ -2,12 +2,7 @@ from typing import Union, Optional
 
 from aioarango.api import Endpoint
 from aioarango.enums import MethodType, OverwriteMode
-from aioarango.errors.server.collection_errors import CollectionNotFoundError
-from aioarango.errors.server.document_errors import (
-    DocumentInsertError,
-    DocumentIllegalError,
-    DocumentUniqueConstraintError,
-)
+from aioarango.errors import CollectionNotFoundError, DocumentIllegalError, DocumentUniqueConstraintError, DocumentInsertError
 from aioarango.models import Request, Response
 from aioarango.typings import Json, Params
 from aioarango.utils.document_utils import ensure_key_from_id
@@ -97,15 +92,15 @@ class CreateDocument:
 
         Raises
         ------
-        aioarango.errors.client.document_errors.DocumentParseError
+        aioarango.errors.DocumentParseError
             If `key` and `ID` are missing from the document body, or if collection name is invalid.
-        aioarango.errors.client.document_errors.CollectionNotFoundError
+        aioarango.errors.CollectionNotFoundError
             If collection with the given name does not exist in the database.
-        aioarango.errors.client.document_errors.DocumentIllegalError
+        aioarango.errors.DocumentIllegalError
             If document format is illegal.
-        aioarango.errors.client.document_errors.DocumentUniqueConstraintError
+        aioarango.errors.DocumentUniqueConstraintError
             If document violates a unique constraint.
-        aioarango.errors.server.document_errors.DocumentInsertError
+        aioarango.errors.DocumentInsertError
             If insert fails.
         """
         document = ensure_key_from_id(document, id_prefix)

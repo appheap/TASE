@@ -2,8 +2,7 @@ from typing import Union, Optional
 
 from aioarango.api import Endpoint
 from aioarango.enums import MethodType
-from aioarango.errors.server.collection_errors import CollectionNotFoundError
-from aioarango.errors.server.document_errors import DocumentRevisionMisMatchError, DocumentGetError, DocumentRevisionMatchError
+from aioarango.errors import CollectionNotFoundError, DocumentRevisionMisMatchError, DocumentGetError, DocumentRevisionMatchError
 from aioarango.models import Request, Response
 from aioarango.typings import Json, Headers
 from aioarango.utils.document_utils import prep_from_doc
@@ -45,15 +44,15 @@ class ReadDocumentHeader:
 
         Raises
         ------
-        aioarango.errors.client.document_errors.DocumentParseError
+        aioarango.errors.DocumentParseError
             If `key` and `ID` are missing from the document body, or if collection name is invalid.
-        aioarango.errors.client.document_errors.CollectionNotFoundError
+        aioarango.errors.client.CollectionNotFoundError
             If collection with the given name does not exist in the database.
-        aioarango.errors.client.document_errors.DocumentRevisionMatchError
+        aioarango.errors.DocumentRevisionMatchError
             If given revision matches the document revision in the database (document has not been updated).
-        aioarango.errors.client.document_errors.DocumentRevisionMisMatchError
+        aioarango.errors.client.DocumentRevisionMisMatchError
             if given revision does not match the document revision in the database (document has been updated).
-        aioarango.errors.client.document_errors.DocumentGetError
+        aioarango.errors.DocumentGetError
             If retrieval fails.
         """
         handle, body, headers = prep_from_doc(
