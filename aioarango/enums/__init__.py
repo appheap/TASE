@@ -5,6 +5,7 @@ __all__ = [
     "HostResolverType",
     "MethodType",
     "OverwriteMode",
+    "ShardingMethod",
 ]
 
 from .api_context_type import APIContextType
@@ -13,3 +14,4 @@ from .error_source import ErrorSource
 from .host_resolver_type import HostResolverType
 from .method_type import MethodType
 from .overwrite_mode import OverwriteMode
+from .sharding_method import ShardingMethod
