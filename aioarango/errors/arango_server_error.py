@@ -39,7 +39,12 @@ class ArangoServerError(ArangoError):
                 f"[HTTP {response.status_code}][ERR {self.error_code} : `{self.arango_error.title}` -> `{self.arango_error.description}`] ArangoDB says: {msg}"
             )
         else:
-            msg = f"[HTTP {response.status_code}] ArangoDB says: {msg}`"
+            from aioarango.errors import ErrorType
+
+            if self.http_error.type in (ErrorType.EMPTY_PLACEHOLDER, ErrorType.UNKNOWN):
+                msg = f"[HTTP {response.status_code}] ArangoDB says: {msg}`"
+            else:
+                msg = f"[HTTP {response.status_code} : `{self.http_error.title}` -> `{self.http_error.description}`] ArangoDB says: {msg}"
             self.error_code = response.status_code
         super().__init__(msg)
 
