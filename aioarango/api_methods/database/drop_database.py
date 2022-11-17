@@ -43,6 +43,11 @@ class DropDatabase:
         -------
         Result
             True if database was deleted successfully.
+
+        Raises
+        ------
+        aioarango.server.ArangoServerError
+            If drop fails.
         """
         request = Request(
             method_type=MethodType.DELETE,
