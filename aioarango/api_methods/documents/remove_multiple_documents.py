@@ -1,15 +1,31 @@
-import collections
-from typing import Optional, Sequence, Union, List, Deque
+from typing import Optional, Sequence, Union, List
 
 from aioarango.api import Endpoint
 from aioarango.enums import MethodType
-from aioarango.errors import ArangoServerError
+from aioarango.errors import ArangoServerError, ErrorType
 from aioarango.models import Request, Response
 from aioarango.typings import Json, Result, Params
-from aioarango.utils.document_utils import ensure_key_in_body
+from aioarango.utils.document_utils import ensure_key_in_body, populate_doc_or_error
 
 
 class RemoveMultipleDocuments:
+    error_codes = (ErrorType.ARANGO_DATA_SOURCE_NOT_FOUND,)
+    sub_error_codes = (
+        ErrorType.HTTP_CORRUPTED_JSON,
+        ErrorType.ARANGO_CONFLICT,
+        ErrorType.ARANGO_DOCUMENT_NOT_FOUND,
+        ErrorType.ARANGO_DOCUMENT_HANDLE_BAD,
+        ErrorType.ARANGO_DOCUMENT_KEY_BAD,
+    )
+    status_codes = (
+        200,
+        # is returned if waitForSync was true.
+        202,
+        # is returned if waitForSync was false.
+        404,  # 1203
+        # is returned if the collection was not found. The response body contains an error document in this case.
+    )
+
     async def remove_multiple_documents(
         self: Endpoint,
         collection_name: str,
@@ -90,19 +106,12 @@ class RemoveMultipleDocuments:
         ------
         aioarango.errors.DocumentParseError
             If `key` and `ID` are missing from the document body, or if collection name is invalid.
-        aioarango.errors.CollectionNotFoundError
-            If collection with the given name does not exist in the database.
-        aioarango.errors.DocumentNotFoundError
-            If document was not found in the collection.
-        aioarango.errors.DocumentIllegalError
-            If document format is illegal.
-        aioarango.errors.DocumentIllegalKeyError
-            If document key is illegal.
-        aioarango.errors.DocumentRevisionMisMatchError
-            If the given document revision does not match with the one in the database.
-        aioarango.errors.DocumentDeleteError
+        aioarango.errors.ArangoServerError
             If remove fails.
         """
+
+        documents = [ensure_key_in_body(doc, id_prefix) if isinstance(doc, dict) else doc for doc in documents]
+
         params: Params = {
             "returnOld": return_old,
             "ignoreRevs": not check_for_revisions_match,
@@ -110,8 +119,6 @@ class RemoveMultipleDocuments:
         }
         if wait_for_sync is not None:
             params["waitForSync"] = wait_for_sync
-
-        documents = [ensure_key_in_body(doc, id_prefix) if isinstance(doc, dict) else doc for doc in documents]
 
         request = Request(
             method_type=MethodType.DELETE,
@@ -122,40 +129,19 @@ class RemoveMultipleDocuments:
         )
 
         def response_handler(
-            resp: Response,
+            response: Response,
         ) -> Union[bool, List[Union[Json, ArangoServerError]]]:
-            if not resp.is_success:
-                raise ArangoServerError(resp, request)
+            if response.status_code in (404) or not response.is_success:
+                raise ArangoServerError(response, request)
 
             if silent is True:
                 return True
 
-            results: Deque[Union[Json, ArangoServerError]] = collections.deque()
-            for body in resp.body:
-                if "_id" in body:
-                    results.append(body)
-                else:
-                    sub_resp = self.connection.prep_bulk_err_response(resp, body)
-
-                    error: ArangoServerError
-                    if sub_resp.error_code == 600:  # document format is illegal (status_code 400)
-                        # the body does not contain a valid JSON representation of one document.
-                        error = ArangoServerError(sub_resp, request)
-                    elif sub_resp.error_code == 1202:  # document not found
-                        error = ArangoServerError(sub_resp, request)
-                    elif sub_resp.error_code == 1221:  # illegal document key
-                        error = ArangoServerError(sub_resp, request)
-                    elif sub_resp.error_code == 1200:
-                        error = ArangoServerError(sub_resp, request)
-                    else:
-                        # This must not happen
-                        error = ArangoServerError(sub_resp, request)
-
-                    results.append(error)
-
             # status_code 200 and 202
-            # 200 : if waitForSync was true.
-            # 202 : if waitForSync was false.
-            return list(results)
+            return populate_doc_or_error(
+                response,
+                request,
+                self.connection.prep_bulk_err_response,
+            )
 
         return await self.execute(request, response_handler)

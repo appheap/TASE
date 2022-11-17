@@ -9,6 +9,23 @@ from aioarango.utils.document_utils import prep_from_doc
 
 
 class ReadDocumentHeader:
+    error_types = (
+        # this endpoint does not return any `error_code`
+    )
+
+    status_codes = (
+        200,
+        # is returned if the document was found.
+        304,  # `error_code` is `None`.
+        # is returned if the "If-None-Match" header is given and the document has the same version.
+        404,  # `error_code` is `None`.
+        # is returned if the document or collection was not found.
+        412,  # `error_code` is `None`.
+        # is returned if an "If-Match" header is given and the found
+        # document has a different version. The response will also contain the found
+        # document's current revision in the Etag header.
+    )
+
     async def read_document_header(
         self: Endpoint,
         collection_name: str,
@@ -49,13 +66,7 @@ class ReadDocumentHeader:
         ------
         aioarango.errors.DocumentParseError
             If `key` and `ID` are missing from the document body, or if collection name is invalid.
-        aioarango.errors.client.CollectionNotFoundError
-            If collection with the given name does not exist in the database.
-        aioarango.errors.DocumentRevisionMatchError
-            If given revision matches the document revision in the database (document has not been updated).
-        aioarango.errors.client.DocumentRevisionMisMatchError
-            if given revision does not match the document revision in the database (document has been updated).
-        aioarango.errors.DocumentGetError
+        aioarango.errors.ArangoServerError
             If retrieval fails.
         """
         handle, body, headers = prep_from_doc(
@@ -77,21 +88,7 @@ class ReadDocumentHeader:
             headers["x-arango-allow-dirty-read"] = "true"
 
         def response_handler(response: Response) -> Optional[Headers]:
-            if response.status_code == 404:  # if the document or collection was not found
-                # todo: `error_code` is None, so none of the following checks will happen except the `else` clause
-                if response.error_code == 1202:  # document not found (status_code 404)
-                    return None
-                elif response.error_code == 1203:  # collection or view not found (status_code 404)
-                    raise ArangoServerError(response, request)
-                else:
-                    return None
-
-            elif response.status_code == 304:  # the document in the db has not been updated
-                raise ArangoServerError(response, request)
-
-            elif response.status_code == 412:  # the document in the db has been updated
-                raise ArangoServerError(response, request)
-
+            # the `error_code` attribute of the `response` object is `None`, only `status_code` is available for this endpoint
             if not response.is_success:
                 raise ArangoServerError(response, request)
 

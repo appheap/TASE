@@ -1,15 +1,40 @@
-import collections
 from typing import Union, Optional, List
 
 from aioarango.api import Endpoint
 from aioarango.enums import MethodType
-from aioarango.errors import ArangoServerError
+from aioarango.errors import ArangoServerError, ErrorType
 from aioarango.models import Request, Response
 from aioarango.typings import Json, Params, Result
-from aioarango.utils.document_utils import ensure_key_in_body
+from aioarango.utils.document_utils import ensure_key_in_body, populate_doc_or_error
 
 
 class UpdateMultipleDocuments:
+    error_codes = (
+        ErrorType.HTTP_CORRUPTED_JSON,
+        ErrorType.ARANGO_DATA_SOURCE_NOT_FOUND,
+    )
+    sub_error_codes = (
+        ErrorType.HTTP_CORRUPTED_JSON,
+        ErrorType.ARANGO_CONFLICT,
+        ErrorType.ARANGO_DOCUMENT_NOT_FOUND,
+        ErrorType.ARANGO_DATA_SOURCE_NOT_FOUND,
+        ErrorType.ARANGO_UNIQUE_CONSTRAINT_VIOLATED,
+        ErrorType.ARANGO_DOCUMENT_KEY_BAD,
+    )
+    status_codes = (
+        201,
+        # is returned if waitForSync was true and operations were processed.
+        202,
+        # is returned if waitForSync was false and operations were processed.
+        400,  # 600
+        # is returned if the body does not contain a valid JSON representation
+        # of an array of documents. The response body contains
+        # an error document in this case.
+        404,  # 1203
+        # is returned if the collection specified by collection is unknown.
+        # The response body contains an error document in this case.
+    )
+
     async def update_multiple_documents(
         self: Endpoint,
         collection_name: str,
@@ -118,17 +143,11 @@ class UpdateMultipleDocuments:
         ------
         aioarango.errors.DocumentParseError
             If `key` and `ID` are missing from the document body, or if collection name is invalid.
-        aioarango.errors.CollectionNotFoundError
-            If collection with the given name does not exist in the database.
-        aioarango.errors.DocumentIllegalError
-            If document format is illegal.
-        aioarango.errors.DocumentIllegalKeyError
-            If document key is illegal.
-        aioarango.errors.DocumentRevisionMisMatchError
-            If the given document revision does not match with the one in the database.
-        aioarango.errors.DocumentUpdateError
+        aioarango.errors.ArangoServerError
             If update fails.
         """
+        documents = [ensure_key_in_body(doc, id_prefix) for doc in documents]
+
         params: Params = {
             "mergeObjects": merge,
             "returnNew": return_new,
@@ -141,8 +160,6 @@ class UpdateMultipleDocuments:
         if keep_none is not None:
             params["keepNull"] = keep_none
 
-        documents = [ensure_key_in_body(doc, id_prefix) for doc in documents]
-
         request = Request(
             method_type=MethodType.PATCH,
             endpoint=f"/_api/document/{collection_name}",
@@ -152,23 +169,8 @@ class UpdateMultipleDocuments:
         )
 
         def response_handler(response: Response) -> Union[bool, List[Union[Json, ArangoServerError]]]:
-            if response.status_code == 404:  # if the collection was not found.
-                if response.error_code == 1203:  # collection or view not found (status_code 404)
-                    raise ArangoServerError(response, request)
-                else:
-                    # This must not happen
-                    raise ArangoServerError(response, request)
-
-            elif response.status_code == 400:
-                # if the body does not contain a valid JSON representation of one document. The response body contains an error document in this case.
-                if response.error_code == 600:  # document format is illegal (status_code 400)
-                    # the body does not contain a valid JSON representation of one document.
-                    raise ArangoServerError(response, request)
-                elif response.error_code == 1221:  # illegal document key
-                    raise ArangoServerError(response, request)
-                else:
-                    # This must not happen
-                    raise ArangoServerError(response, request)
+            if response.status_code in (400, 404) or not response.is_success:
+                raise ArangoServerError(response, request)
 
             if not response.is_success:
                 raise ArangoServerError(response, request)
@@ -176,35 +178,12 @@ class UpdateMultipleDocuments:
             if silent:
                 return True
 
-            results = collections.deque()
-            for doc_or_error in response.body:
-                if "_id" in doc_or_error:
-                    if "_oldRev" in doc_or_error:
-                        doc_or_error["_old_rev"] = doc_or_error.pop("_oldRev")
-                    results.append(doc_or_error)
-                else:
-                    sub_resp = self.connection.prep_bulk_err_response(response, doc_or_error)
-
-                    error: ArangoServerError
-                    if sub_resp.error_code == 600:  # document format is illegal (status_code 400)
-                        # the body does not contain a valid JSON representation of one document.
-                        error = ArangoServerError(sub_resp, request)
-                    elif sub_resp.error_code == 1202:  # document not found
-                        error = ArangoServerError(sub_resp, request)
-                    elif sub_resp.error_code == 1221:  # illegal document key
-                        error = ArangoServerError(sub_resp, request)
-                    elif sub_resp.error_code == 1200:
-                        error = ArangoServerError(sub_resp, request)
-                    else:
-                        # This must not happen
-                        error = ArangoServerError(sub_resp, request)
-
-                    results.append(error)
-
             # status_code 201 and 202
-            # 201 : waitForSync was true and operations were processed.
-            # 202 : waitForSync was false and operations were processed.
-            return list(results)
+            return populate_doc_or_error(
+                response,
+                request,
+                self.connection.prep_bulk_err_response,
+            )
 
         return await self.execute(
             request,

@@ -21,20 +21,26 @@ class ArangoServerError(ArangoError):
         msg: Optional[str] = None,
     ):
         msg = msg or response.error_message or str(response.status_code)  # fixme
+
         self.error_message: Optional[str] = response.error_message
         self.error_code: Optional[int] = response.error_code
-        if self.error_code is not None:
-            msg = f"[HTTP {response.status_code}][ERR {self.error_code}] {msg}"
-        else:
-            msg = f"[HTTP {response.status_code}] {msg}"
-            self.error_code = response.status_code
-        super().__init__(msg)
-
-        self.message: str = msg
         self.url: str = response.url
         self.response: Response = response
         self.request: Request = request
         self.http_method: MethodType = response.method
         self.http_code: int = response.status_code
         self.http_headers: Headers = response.headers
-        self.error: error_ref.Error = error_ref.get_error(self.error_code)
+
+        self.arango_error: error_ref.Error = error_ref.get_error(self.error_code)
+        self.http_error: error_ref.Error = error_ref.get_error(self.http_code)
+
+        if self.error_code is not None:
+            msg = (
+                f"[HTTP {response.status_code}][ERR {self.error_code} : `{self.arango_error.title}` -> `{self.arango_error.description}`] ArangoDB says: {msg}"
+            )
+        else:
+            msg = f"[HTTP {response.status_code}] ArangoDB says: {msg}`"
+            self.error_code = response.status_code
+        super().__init__(msg)
+
+        self.message: str = msg

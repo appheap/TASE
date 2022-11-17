@@ -2,13 +2,29 @@ from typing import Union, Sequence, List, Optional
 
 from aioarango.api import Endpoint
 from aioarango.enums import MethodType
-from aioarango.errors import ArangoServerError
+from aioarango.errors import ArangoServerError, ErrorType
 from aioarango.models import Request, Response
 from aioarango.typings import Json, Params, Result
-from aioarango.utils.document_utils import extract_id
+from aioarango.utils.document_utils import ensure_key_in_body, populate_doc_or_error
 
 
 class ReadMultipleDocuments:
+    error_codes = (
+        ErrorType.ARANGO_DATA_SOURCE_NOT_FOUND,
+        ErrorType.ARANGO_DOCUMENT_TYPE_INVALID,
+    )
+    sub_error_codes = (
+        ErrorType.ARANGO_CONFLICT,  # http: 200
+        ErrorType.ARANGO_DOCUMENT_NOT_FOUND,  # http: 200
+        ErrorType.ARANGO_DOCUMENT_HANDLE_BAD,  # http: 200
+    )
+    status_codes = (
+        200,
+        400,
+        404,  # 1203, 1227
+        412,
+    )
+
     async def read_multiple_documents(
         self: Endpoint,
         collection_name: str,
@@ -17,10 +33,25 @@ class ReadMultipleDocuments:
         allow_dirty_read: bool = False,
         only_get: Optional[bool] = True,
         ignore_revs: Optional[bool] = True,
-    ) -> Result[List[Json]]:
+    ) -> Result[List[Union[Json, ArangoServerError]]]:
         """
         Returns the documents identified by their **_key** in the body objects. The body of the request must contain a JSON array of either strings (the
         **_key** values to lookup) or search documents.
+
+        Notes
+        -----
+        - A search document must contain at least a value for the **_key** field.
+          A value for **_rev** may be specified to verify whether the document
+          has the same revision value, unless **ignoreRevs** is set to `false`.
+
+        - Cluster only: The search document may contain
+          values for the collection's pre-defined shard keys. Values for the shard keys
+          are treated as hints to improve performance. Should the shard keys
+          values be incorrect ArangoDB may answer with a not found error.
+
+        - The returned array of documents contains three special attributes: **_id** containing the document
+          identifier, **_key** containing key which uniquely identifies a document
+          in a given collection and **_rev** containing the revision.
 
         Parameters
         ----------
@@ -47,16 +78,10 @@ class ReadMultipleDocuments:
         ------
         aioarango.errors.DocumentParseError
             If `key` and `ID` are missing from the document body, or if collection name is invalid.
-        aioarango.errors.CollectionNotFoundError
-            If collection with the given name does not exist in the database.
-        aioarango.errors.DocumentIllegalError
-            If document format is illegal.
-        aioarango.errors.DocumentRevisionMisMatchError
-            if given revision does not match the document revision in the database (document has been updated).
-        aioarango.errors.DocumentGetError
+        aioarango.errors.ArangoServerError
             If retrieval fails.
         """
-        handles = [extract_id(d, id_prefix) if isinstance(d, dict) else d for d in documents]
+        documents = [ensure_key_in_body(doc, id_prefix) if isinstance(doc, dict) else doc for doc in documents]
         params: Params = {
             "onlyget": only_get,
             "ignoreRevs": "true" if ignore_revs else "false",
@@ -66,35 +91,21 @@ class ReadMultipleDocuments:
             method_type=MethodType.PUT,
             endpoint=f"/_api/document/{collection_name}",
             params=params,
-            data=handles,
+            data=documents,
             read=collection_name,
             headers={"x-arango-allow-dirty-read": "true"} if allow_dirty_read else None,
         )
 
-        def response_handler(response: Response) -> List[Json]:
-            if response.status_code == 404:  # if the collection was not found.
-                if response.error_code == 1203:  # collection or view not found (status_code 404)
-                    raise ArangoServerError(response, request)
-                else:
-                    # this must not happen
-                    raise ArangoServerError(response, request)
-
-            elif response.status_code == 400:
-                # is returned if the body does not contain a valid JSON representation
-                # of an array of documents. The response body contains
-                # an error document in this case.
-                raise ArangoServerError(response, request)  # this should not happen, since the `keys` are extracted from the given documents
-
-            elif response.status_code == 412:  # the document in the db has been updated
-                # todo: check if this happens
-                # this should not happen, since the `keys` are extracted from the given documents
-                raise ArangoServerError(response, request)
-
-            if not response.is_success:
+        def response_handler(response: Response) -> List[Union[Json, ArangoServerError]]:
+            if response.status_code in (400, 404, 412) or not response.is_success:
                 raise ArangoServerError(response, request)
 
             # status_code 200 :  if no error happened
-            return [doc for doc in response.body if "_id" in doc]
+            return populate_doc_or_error(
+                response,
+                request,
+                self.connection.prep_bulk_err_response,
+            )
 
         return await self.execute(
             request,

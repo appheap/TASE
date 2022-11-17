@@ -1,6 +1,8 @@
-from typing import Union, Optional, Tuple
+import collections
+from typing import Union, Optional, Tuple, List, Callable
 
-from aioarango.errors import DocumentParseError
+from aioarango.errors import DocumentParseError, ArangoServerError
+from aioarango.models import Response, Request
 from aioarango.typings import Json, Headers
 
 
@@ -243,3 +245,25 @@ def ensure_key_from_id(
         body = body.copy()
         body["_key"] = doc_id[len(id_prefix) :]
     return body
+
+
+def populate_doc_or_error(
+    response: Response,
+    request: Request,
+    prep_bulk_err_response_function: Callable,
+) -> List[Union[Json, ArangoServerError]]:
+    results = collections.deque()
+
+    if response is None or request is None:
+        return list(results)
+
+    for doc_or_error in response.body:
+        if "_id" in doc_or_error:
+            if "_oldRev" in doc_or_error:
+                doc_or_error["_old_rev"] = doc_or_error.pop("_oldRev")
+            results.append(doc_or_error)
+        else:
+            sub_resp = prep_bulk_err_response_function(response, doc_or_error)
+            results.append(ArangoServerError(sub_resp, request))
+
+    return list(results)

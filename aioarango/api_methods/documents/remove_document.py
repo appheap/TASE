@@ -2,13 +2,32 @@ from typing import Optional, Union
 
 from aioarango.api import Endpoint
 from aioarango.enums import MethodType
-from aioarango.errors import ArangoServerError
+from aioarango.errors import ArangoServerError, ErrorType
 from aioarango.models import Request, Response
 from aioarango.typings import Json, Params, Result
 from aioarango.utils.document_utils import prep_from_doc
 
 
 class RemoveDocument:
+    error_codes = (
+        ErrorType.ARANGO_DOCUMENT_NOT_FOUND,
+        ErrorType.ARANGO_DATA_SOURCE_NOT_FOUND,
+        ErrorType.ARANGO_CONFLICT,
+    )
+    status_codes = (
+        200,
+        # is returned if the document was removed successfully and waitForSync was true.
+        202,
+        # is returned if the document was removed successfully and waitForSync was false.
+        404,  # 1202, 1203
+        # is returned if the collection or the document was not found. The response body contains an error document in this case.
+        412,  # 1200
+        # is returned if a "If-Match" header or rev is given and the found
+        # document has a different version. The response will also contain the found
+        # document's current revision in the _rev attribute. Additionally, the
+        # attributes _id and _key will be returned.
+    )
+
     async def remove_document(
         self: Endpoint,
         collection_name: str,
@@ -16,7 +35,6 @@ class RemoveDocument:
         document: Union[str, Json],
         revision: Optional[str] = None,
         check_for_revisions_match: Optional[bool] = True,
-        ignore_missing: bool = False,
         return_old: bool = False,
         wait_for_sync: Optional[bool] = None,
         silent: bool = False,
@@ -54,8 +72,6 @@ class RemoveDocument:
             Expected document revision. Overrides the value of "_rev" field in **document** if present.
         check_for_revisions_match : bool, default : True
             If set to `True`, revision of **document** (if given) is compared against the revision of target document.
-        ignore_missing : bool, default : False
-            Do not raise an exception on missing document. This parameter has no effect in transactions where an exception is always raised on failures.
         return_old : bool, default : False
             Include body of the old document in the returned metadata. Ignored if parameter **silent** is set to True.
         wait_for_sync : bool, optional
@@ -73,17 +89,7 @@ class RemoveDocument:
         ------
         aioarango.errors.DocumentParseError
             If `key` and `ID` are missing from the document body, or if collection name is invalid.
-        aioarango.errors.CollectionNotFoundError
-            If collection with the given name does not exist in the database.
-        aioarango.errors.DocumentNotFoundError
-            If document was not found in the collection.
-        aioarango.errors.DocumentIllegalError
-            If document format is illegal.
-        aioarango.errors.DocumentIllegalKeyError
-            If document key is illegal.
-        aioarango.errors.DocumentRevisionMisMatchError
-            If the given document revision does not match with the one in the database.
-        aioarango.errors.DocumentDeleteError
+        aioarango.errors.ArangoServerError
             If remove fails.
         """
         handle, body, headers = prep_from_doc(
@@ -110,35 +116,10 @@ class RemoveDocument:
         )
 
         def response_handler(response: Response) -> Union[bool, Json]:
-            if response.status_code == 404:
-                if response.error_code == 1203:  # collection or view not found (status_code 404)
-                    raise ArangoServerError(response, request)
-                elif response.error_code == 1202:
-                    if ignore_missing:
-                        return False
-                    else:
-                        raise ArangoServerError(response, request)
-                else:
-                    # This must not happen
-                    raise ArangoServerError(response, request)
-
-            elif response.status_code == 412:
-                # if a "If-Match" header or `rev` is given and the found
-                # document has a different version. The response will also contain the found
-                # document's current revision in the _rev attribute. Additionally, the
-                # attributes _id and _key will be returned.
-                if response.error_code == 1200:
-                    raise ArangoServerError(response, request)
-                else:
-                    # This must not happen
-                    raise ArangoServerError(response, request)
-
-            if not response.is_success:
+            if response.status_code in (404, 412) or not response.is_success:
                 raise ArangoServerError(response, request)
 
             # status code 200 and 202:
-            # 200 : is returned if the document was removed successfully and waitForSync was true.
-            # 202 : is returned if the document was removed successfully and waitForSync was false.
             return True if silent else response.body
 
         return await self.execute(request, response_handler)

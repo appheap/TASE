@@ -1,15 +1,39 @@
-import collections
-from typing import Union, List, Sequence, Optional, Deque
+from typing import Union, List, Sequence, Optional
 
 from aioarango.api import Endpoint
 from aioarango.enums import MethodType, OverwriteMode
-from aioarango.errors import ArangoServerError
+from aioarango.errors import ArangoServerError, ErrorType
 from aioarango.models import Request, Response
 from aioarango.typings import Json, Result, Params
-from aioarango.utils.document_utils import ensure_key_from_id
+from aioarango.utils.document_utils import ensure_key_from_id, populate_doc_or_error
 
 
 class CreateMultipleDocuments:
+    error_codes = (
+        ErrorType.HTTP_CORRUPTED_JSON,
+        ErrorType.ARANGO_DATA_SOURCE_NOT_FOUND,
+    )
+    sub_error_codes = (
+        ErrorType.HTTP_CORRUPTED_JSON,
+        ErrorType.ARANGO_DOCUMENT_NOT_FOUND,  # not sure about this
+        ErrorType.ARANGO_DATA_SOURCE_NOT_FOUND,
+        ErrorType.ARANGO_UNIQUE_CONSTRAINT_VIOLATED,
+        ErrorType.ARANGO_DOCUMENT_KEY_BAD,
+    )
+    status_codes = (
+        201,
+        # is returned if waitForSync was true and operations were processed.
+        202,
+        # is returned if waitForSync was false and operations were processed.
+        400,  # 600
+        # is returned if the body does not contain a valid JSON representation
+        # of an array of documents. The response body contains
+        # an error document in this case.
+        404,  # 1203
+        # is returned if the collection specified by collection is unknown.
+        # The response body contains an error document in this case.
+    )
+
     async def create_multiple_documents(
         self: Endpoint,
         collection_name: str,
@@ -113,6 +137,13 @@ class CreateMultipleDocuments:
             List of document metadata (e.g. document keys, revisions) and
             any exception, or `True` if parameter **silent** was set to `True`.
 
+
+        Raises
+        ------
+        aioarango.errors.DocumentParseError
+            If `key` and `ID` are missing from the document body, or if collection name is invalid.
+        aioarango.errors.ArangoServerError
+            If insert fails.
         """
         documents = [ensure_key_from_id(doc, id_prefix) for doc in documents]
 
@@ -141,40 +172,17 @@ class CreateMultipleDocuments:
         def response_handler(
             response: Response,
         ) -> Union[bool, List[Union[Json, ArangoServerError]]]:
-            if not response.is_success:
+            if response.status_code in (400, 404) or not response.is_success:
                 raise ArangoServerError(response, request)
 
             if silent is True:
                 return True
 
-            results: Deque[Union[Json, ArangoServerError]] = collections.deque()
-            for body in response.body:
-                if "_id" in body:
-                    if "_oldRev" in body:
-                        body["_old_rev"] = body.pop("_oldRev")
-                    results.append(body)
-                else:
-                    sub_resp = self.connection.prep_bulk_err_response(response, body)
-                    # if sub_resp.error_code == 600:  # document format is illegal (status_code 400)
-                    #     # the body does not contain a valid JSON representation of one document.
-                    #     error = DocumentIllegalError(sub_resp, request)
-                    # elif sub_resp.error_code == 1202:  # document not found
-                    #     error = DocumentNotFoundError(sub_resp, request)
-                    # elif sub_resp.error_code == 1221:  # illegal document key
-                    #     error = DocumentIllegalKeyError(sub_resp, request)
-                    # elif sub_resp.error_code == 1210:  # status_code 409
-                    #     error = DocumentUniqueConstraintError(response, request)
-                    # elif sub_resp.error_code == 1200:
-                    #     error = DocumentRevisionMisMatchError(sub_resp, request)
-                    # else:
-                    #     # This must not happen
-                    #     error = DocumentReplaceError(sub_resp, request)
-
-                    results.append(ArangoServerError(sub_resp, request))
-
             # status_code 201 and 202
-            # 201 : if waitForSync was true and operations were processed.
-            # 202 : if waitForSync was false and operations were processed.
-            return list(results)
+            return populate_doc_or_error(
+                response,
+                request,
+                self.connection.prep_bulk_err_response,
+            )
 
         return await self.execute(request, response_handler)

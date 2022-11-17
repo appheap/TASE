@@ -2,13 +2,41 @@ from typing import Union, Optional
 
 from aioarango.api import Endpoint
 from aioarango.enums import MethodType, OverwriteMode
-from aioarango.errors import ArangoServerError
+from aioarango.errors import ArangoServerError, ErrorType
 from aioarango.models import Request, Response
 from aioarango.typings import Json, Params, Result
 from aioarango.utils.document_utils import ensure_key_from_id
 
 
 class CreateDocument:
+    error_types = (
+        ErrorType.HTTP_CORRUPTED_JSON,
+        ErrorType.ARANGO_DOCUMENT_KEY_BAD,
+        ErrorType.ARANGO_DATA_SOURCE_NOT_FOUND,
+        ErrorType.ARANGO_UNIQUE_CONSTRAINT_VIOLATED,
+    )
+
+    status_codes = (
+        201,
+        # is returned if the documents were created successfully and
+        # waitForSync was true.
+        202,
+        # is returned if the documents were created successfully and
+        # waitForSync was false.
+        400,  # 600, 1221
+        # is returned if the body does not contain a valid JSON representation
+        # of one document. The response body contains
+        # an error document in this case.
+        404,  # 1203
+        # is returned if the collection specified by collection is unknown.
+        # The response body contains an error document in this case.
+        409,  # 1210
+        # is returned in the single document case if a document with the
+        # same qualifiers in an indexed attribute conflicts with an already
+        # existing document and thus violates that unique constraint. The
+        # response body contains an error document in this case
+    )
+
     async def create_document(
         self: Endpoint,
         collection_name: str,
@@ -95,15 +123,7 @@ class CreateDocument:
         ------
         aioarango.errors.DocumentParseError
             If `key` and `ID` are missing from the document body, or if collection name is invalid.
-        aioarango.errors.CollectionNotFoundError
-            If collection with the given name does not exist in the database.
-        aioarango.errors.DocumentIllegalError
-            If document format is illegal.
-        aioarango.errors.DocumentIllegalKeyError
-            If document key is illegal.
-        aioarango.errors.DocumentUniqueConstraintError
-            If document violates a unique constraint.
-        aioarango.errors.DocumentInsertError
+        aioarango.errors.ArangoServerError
             If insert fails.
         """
         document = ensure_key_from_id(document, id_prefix)
@@ -132,42 +152,10 @@ class CreateDocument:
         )
 
         def response_handler(response: Response) -> Union[bool, Json]:
-            if response.status_code == 404:
-                if response.error_code == 1203:  # collection or view not found (status_code 404)
-                    raise ArangoServerError(response, request)
-                else:
-                    # This must not happen
-                    raise ArangoServerError(response, request)
-
-            elif response.status_code == 400:
-                # if the body does not contain a valid JSON representation of one document. The response body contains an error document in this case.
-                if response.error_code == 600:  # document format is illegal (status_code 400)
-                    # the body does not contain a valid JSON representation of one document.
-                    raise ArangoServerError(response, request)
-                elif response.error_code == 1221:  # illegal document key
-                    raise ArangoServerError(response, request)
-                else:
-                    # This must not happen
-                    raise ArangoServerError(response, request)
-
-            elif response.status_code == 409:
-                # In the single document case if a document with the
-                # same qualifiers in an indexed attribute conflicts with an already
-                # existing document and thus violates that unique constraint. The
-                # response body contains an error document in this case.
-                if response.error_code == 1210:  # status_code 409
-                    raise ArangoServerError(response, request)
-                else:
-                    # This must not happen
-                    raise ArangoServerError(response, request)
-
-            if not response.is_success:
+            if response.status_code in (400, 404, 409) or not response.is_success:
                 raise ArangoServerError(response, request)
 
             # status_code 201 and 202
-            # 201 : The documents were created successfully and waitForSync was true.
-            # 202 : The documents were created successfully and waitForSync was false.
-
             if silent:
                 return True
 

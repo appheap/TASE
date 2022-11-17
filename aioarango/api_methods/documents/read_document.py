@@ -9,6 +9,26 @@ from aioarango.utils.document_utils import prep_from_doc
 
 
 class ReadDocument:
+    error_types = (
+        ErrorType.ARANGO_DOCUMENT_NOT_FOUND,
+        ErrorType.ARANGO_DATA_SOURCE_NOT_FOUND,
+        ErrorType.HTTP_PRECONDITION_FAILED,
+        ErrorType.ARANGO_CONFLICT,
+    )
+    status_codes = (
+        200,
+        # is returned if the document was found
+        304,  # `error_code` is None
+        # is returned if the "If-None-Match" header is given and the document has the same version
+        404,  # 1202, 1203
+        # is returned if the document or collection was not found
+        412,  # 1200
+        # is returned if an "If-Match" header is given and the found
+        # document has a different version. The response will also contain the found
+        # document's current revision in the _rev attribute. Additionally, the
+        # attributes _id and _key will be returned.
+    )
+
     async def read_document(
         self: Endpoint,
         collection_name: str,
@@ -16,11 +36,12 @@ class ReadDocument:
         document: Union[str, Json],
         revision: Optional[str] = None,
         check_for_revisions_match: Optional[bool] = None,
+        check_for_revisions_mismatch: Optional[bool] = None,
         allow_dirty_read: bool = False,
     ) -> Result[Optional[Json]]:
         """
-        Return the document identified by `document-id`. The returned document contains three special attributes: `_id` containing the document identifier,
-        `_key` containing key which uniquely identifies a document in a given collection and `_rev` containing the revision.
+        Return the document identified by `document-id`. The returned document contains three special attributes: **_id** containing the document identifier,
+        **_key** containing key which uniquely identifies a document in a given collection and **_rev** containing the revision.
 
         Parameters
         ----------
@@ -33,7 +54,9 @@ class ReadDocument:
         revision : str, default : None
             Document revision to check. Overrides the value of "_rev" field in `document` if present.
         check_for_revisions_match : bool, default : None
-            Whether the given revision and the document revision in the database must match or not.
+            The given revision and the document revision in the database must match.
+        check_for_revisions_mismatch : bool, default : None
+            The given revision and the document revision in the database must not match.
         allow_dirty_read : bool, default : False
             Whether to allow reads from followers in a cluster.
 
@@ -46,13 +69,7 @@ class ReadDocument:
         ------
         aioarango.errors.DocumentParseError
             If `key` and `ID` are missing from the document body, or if collection name is invalid.
-        aioarango.errors.CollectionNotFoundError
-            If collection with the given name does not exist in the database.
-        aioarango.errors.DocumentRevisionMatchError
-            If given revision matches the document revision in the database (document has not been updated).
-        aioarango.errors.DocumentRevisionMisMatchError
-            if given revision does not match the document revision in the database (document has been updated).
-        aioarango.errors.DocumentGetError
+        aioarango.errors.ArangoServerError
             If retrieval fails.
         """
         handle, body, headers = prep_from_doc(
@@ -60,6 +77,7 @@ class ReadDocument:
             id_prefix,
             revision,
             check_for_revisions_match=check_for_revisions_match,
+            check_for_revisions_mismatch=check_for_revisions_mismatch,
         )
 
         request = Request(
@@ -73,26 +91,6 @@ class ReadDocument:
             headers["x-arango-allow-dirty-read"] = "true"
 
         def response_handler(response: Response) -> Optional[Json]:
-            if response.status_code == 404:  # if the document or collection was not found
-                if response.error_code == 1202:  # document not found (status_code 404)
-                    return None
-                elif response.error_code == 1203:  # collection or view not found (status_code 404)
-                    raise ArangoServerError(response, request)
-                else:
-                    # This must not happen
-                    raise ArangoServerError(response, request)
-
-            elif response.status_code == 304:  # the document in the db has not been updated
-                raise ArangoServerError(response, request)
-
-            elif response.status_code == 412:  # the document in the db has been updated
-                # if response.error_code == 1200:
-                if response.error.type == ErrorType.HTTP_PRECONDITION_FAILED:
-                    raise ArangoServerError(response, request)
-                else:
-                    # This must not happen
-                    raise ArangoServerError(response, request)
-
             if not response.is_success:
                 raise ArangoServerError(response, request)
 
