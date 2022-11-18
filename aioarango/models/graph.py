@@ -48,9 +48,9 @@ class Graph(BaseModel):
     """
 
     name: str
-    id: str
-    key: str
-    rev: str
+    id: Optional[str]
+    key: Optional[str]
+    rev: Optional[str]
 
     number_of_shards: Optional[int]
     replication_factor: Union[int, str, None]
