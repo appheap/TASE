@@ -6,6 +6,7 @@ from .get_graph import GetGraph
 from .list_all_graphs import ListAllGraphs
 from .list_edge_definitions import ListEdgeDefinitions
 from .list_vertex_collections import ListVertexCollections
+from .remove_edge_definition import RemoveEdgeDefinition
 from .remove_vertex_collection import RemoveVertexCollection
 
 
@@ -18,6 +19,7 @@ class GraphMethods(
     ListAllGraphs,
     ListEdgeDefinitions,
     ListVertexCollections,
+    RemoveEdgeDefinition,
     RemoveVertexCollection,
 ):
     pass
