@@ -72,7 +72,8 @@ def extract_id(
 def prep_from_body(
     document: Json,
     id_prefix: str,
-    revisions_must_match: Optional[bool] = None,
+    check_for_revisions_match: Optional[bool] = None,
+    check_for_revisions_mismatch: Optional[bool] = None,
 ) -> Tuple[str, Headers]:
     """
     Prepare document ID and request headers.
@@ -83,8 +84,10 @@ def prep_from_body(
         Document body
     id_prefix : str
         ID prefix for this document
-    revisions_must_match : bool, default : None
-        Whether to check for revision match or mismatch
+    check_for_revisions_match : bool, default : None
+        Whether the revisions must match or not
+    check_for_revisions_mismatch : bool, default : None
+        Whether the revisions must mismatch or not
 
     Returns
     -------
@@ -100,9 +103,12 @@ def prep_from_body(
         raise DocumentParseError(f"document cannot be `None`")
 
     doc_id = extract_id(document, id_prefix)
-    if revisions_must_match is None or "_rev" not in document:
+    if (check_for_revisions_match is None and check_for_revisions_mismatch is None) or "_rev" not in document:
         return doc_id, {}
-    return doc_id, {"If-Match": document["_rev"]} if revisions_must_match else {"If-None-Match": document["_rev"]}
+    if check_for_revisions_match:
+        return doc_id, {"If-Match": document["_rev"]}
+    if check_for_revisions_mismatch:
+        return doc_id, {"If-None-Match": document["_rev"]}
 
 
 def prep_from_doc(

@@ -12,6 +12,7 @@ from .list_vertex_collections import ListVertexCollections
 from .remove_edge_definition import RemoveEdgeDefinition
 from .remove_vertex import RemoveVertex
 from .remove_vertex_collection import RemoveVertexCollection
+from .update_vertex import UpdateVertex
 
 
 class GraphMethods(
@@ -29,5 +30,6 @@ class GraphMethods(
     RemoveEdgeDefinition,
     RemoveVertex,
     RemoveVertexCollection,
+    UpdateVertex,
 ):
     pass
