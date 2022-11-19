@@ -1,3 +1,4 @@
+from itertools import chain
 from typing import Optional, List
 
 from aioarango.api import Endpoint
@@ -82,15 +83,32 @@ class CreateGraph:
 
         data: Json = {"name": graph.name, "options": {}}
 
-        if graph.edge_definitions is not None:
-            data["edgeDefinitions"] = [
-                {
-                    "collection": definition.collection,  # todo: these attributes aren't validated by ArangoDB, should be checked by the client instead.
-                    "from": definition.from_,
-                    "to": definition.to,
-                }
-                for definition in graph.edge_definitions
-            ]
+        if graph.edge_definitions is not None and len(graph.edge_definitions):
+            edge_definitions = []
+            for edge_definition_obj in graph.edge_definitions:
+                if edge_definition_obj is None:
+                    raise GraphParseError(f"`edge_definition` is invalid!")
+
+                if edge_definition_obj.from_ is None or not len(edge_definition_obj.from_):
+                    raise GraphParseError(f"edge_definition `{edge_definition_obj.collection}` : `from` attribute of edge_definition variable is invalid!")
+
+                if edge_definition_obj.to is None or not len(edge_definition_obj.to):
+                    raise GraphParseError(f"edge_definition `{edge_definition_obj.collection}` : `to` attribute of edge_definition variable is invalid!")
+
+                if edge_definition_obj.collection in chain(edge_definition_obj.from_, edge_definition_obj.to):
+                    raise GraphParseError(
+                        f"edge_definition `collection` attribute (`{edge_definition_obj.collection}`) cannot be the same as `to` or `from` collections!"
+                    )
+
+                edge_definitions.append(
+                    {
+                        "collection": edge_definition_obj.collection,
+                        "from": edge_definition_obj.from_,
+                        "to": edge_definition_obj.to,
+                    }
+                )
+
+            data["edgeDefinitions"] = edge_definitions
 
         if satellites is not None and len(satellites):
             data["satellites"] = satellites
