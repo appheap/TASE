@@ -5,6 +5,7 @@ from .create_graph import CreateGraph
 from .create_vertex import CreateVertex
 from .drop_graph import DropGraph
 from .get_graph import GetGraph
+from .get_vertex import GetVertex
 from .list_all_graphs import ListAllGraphs
 from .list_edge_definitions import ListEdgeDefinitions
 from .list_vertex_collections import ListVertexCollections
@@ -21,6 +22,7 @@ class GraphMethods(
     CreateVertex,
     DropGraph,
     GetGraph,
+    GetVertex,
     ListAllGraphs,
     ListEdgeDefinitions,
     ListVertexCollections,
