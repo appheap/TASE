@@ -58,6 +58,13 @@ class AddVertexCollection:
         -------
         Result
             Graph object description if the vertex creation was successful.
+
+        Raises
+        ------
+        ValueError
+            If graph name or the vertex collection name is invalid.
+        aioarango.errors.ArangoServerError
+            If operation fails.
         """
         if graph_name is None or not len(graph_name):
             raise ValueError("`graph_name` is invalid!")
