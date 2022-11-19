@@ -9,7 +9,7 @@ from aioarango.utils.document_utils import prep_from_body
 from aioarango.utils.graph_utils import format_edge
 
 
-class UpdateEdge:
+class ReplaceEdge:
     error_codes = (
         ErrorType.ARANGO_CONFLICT,
         ErrorType.ARANGO_DOCUMENT_NOT_FOUND,
@@ -17,26 +17,26 @@ class UpdateEdge:
         ErrorType.GRAPH_NOT_FOUND,
     )
     status_codes = (
-        200,
-        # Returned if the edge could be updated, and `waitForSync` is true.
+        201,
+        # Returned if the request was successful but `waitForSync` is true.
         202,
-        # Returned if the request was successful, and `waitForSync` is false.
+        # Returned if the request was successful but `waitForSync` is false.
         403,
         # Returned if your user has insufficient rights.
-        # In order to update edges in the graph you at least need to have the following privileges:
+        # In order to replace edges in the graph you at least need to have the following privileges:
         #   1. `Read Only` access on the Database.
         #   2. `Write` access on the given collection.
         404,  # 1202, 1203, 1924
         # Returned in the following cases:
         #   - No graph with this name could be found.
         #   - This collection is not part of the graph.
-        #   - The edge to update does not exist.
-        #   - either `_from` or `_to` vertex does not exist (if updated).
+        #   - The edge to replace does not exist.
+        #   - either `_from` or `_to` vertex does not exist.
         412,  # 1200
         # Returned if if-match header is given, but the stored documents revision is different.
     )
 
-    async def update_edge(
+    async def replace_edge(
         self: Endpoint,
         graph_name: str,
         edge_collection_name: str,
@@ -49,7 +49,7 @@ class UpdateEdge:
         return_new: bool = False,
     ) -> Result[Json]:
         """
-        Update the data of the specific edge in the collection.
+        Replace the data of an edge in the collection.
 
 
         Parameters
@@ -87,7 +87,7 @@ class UpdateEdge:
         aioarango.errors.DocumentParseError
             If collection name is invalid or the body is `None`.
         aioarango.errors.ArangoServerError
-            If update fails.
+            If replace fails.
 
         """
         if graph_name is None or not len(graph_name):
@@ -111,7 +111,7 @@ class UpdateEdge:
             params["waitForSync"] = wait_for_sync
 
         request = Request(
-            method_type=MethodType.PATCH,
+            method_type=MethodType.PUT,
             endpoint=f"/_api/gharial/{graph_name}/edge/{edge_id}",
             headers=headers,
             params=params,
@@ -123,7 +123,7 @@ class UpdateEdge:
             if not response.is_success:
                 raise ArangoServerError(response, request)
 
-            # status_code 200, 202
+            # status_code 201, 202
             return format_edge(response.body)
 
         return await self.execute(request, response_handler)
