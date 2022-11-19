@@ -12,6 +12,7 @@ class AddEdgeDefinition:
     error_codes = (
         ErrorType.ARANGO_ILLEGAL_NAME,
         ErrorType.GRAPH_COLLECTION_MULTI_USE,
+        ErrorType.GRAPH_NOT_FOUND,
     )
     status_codes = (
         201,
@@ -30,7 +31,7 @@ class AddEdgeDefinition:
         # Returned if your user has insufficient rights.
         # In order to modify a graph you at least need to have the following privileges:
         #   1. `Administrate` access on the Database.
-        404,
+        404,  # 1924
         # Returned if no graph with this name could be found.
     )
 
