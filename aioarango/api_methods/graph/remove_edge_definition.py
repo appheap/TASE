@@ -64,10 +64,10 @@ class RemoveEdgeDefinition:
             If operation fails.
         """
         if graph_name is None or not len(graph_name):
-            raise ValueError("`graph_name` is invalid!")
+            raise ValueError(f"`graph_name` has invalid value: `{graph_name}`")
 
         if name is None or not len(name):
-            raise ValueError("`name` is invalid!")
+            raise ValueError(f"`name` has invalid value: `{name}`")
 
         params: Params = {}
         if wait_for_sync is not None:
@@ -78,7 +78,7 @@ class RemoveEdgeDefinition:
         request = Request(
             method_type=MethodType.DELETE,
             endpoint=f"/_api/gharial/{graph_name}/edge/{name}",
-            params=params if params is not None else None,
+            params=params if len(params) else None,
         )
 
         def response_handler(response: Response) -> Graph:

@@ -24,6 +24,11 @@ class ListAllGraphs:
         Result
             List of all graph stored in the database if successful.
 
+        Raises
+        ------
+        aioarango.errors.ArangoServerError
+            If retrieval fails.
+
         """
         request = Request(
             method_type=MethodType.GET,

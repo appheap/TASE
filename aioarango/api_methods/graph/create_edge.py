@@ -11,6 +11,7 @@ from aioarango.utils.graph_utils import format_edge
 
 class CreateEdge:
     error_codes = (
+        ErrorType.ARANGO_UNIQUE_CONSTRAINT_VIOLATED,
         ErrorType.ARANGO_INVALID_EDGE_ATTRIBUTE,
         ErrorType.GRAPH_NOT_FOUND,
         ErrorType.GRAPH_EDGE_COLLECTION_NOT_USED,
@@ -35,6 +36,7 @@ class CreateEdge:
         #   - the edge collection is not part of the graph.
         #   - the vertex collection is part of the graph, but does not exist.
         #   - `_from` or `_to` vertex does not exist.
+        409,  # 1210
     )
 
     async def create_edge(

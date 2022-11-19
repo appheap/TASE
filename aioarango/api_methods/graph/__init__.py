@@ -9,6 +9,7 @@ from .list_all_graphs import ListAllGraphs
 from .list_edge_definitions import ListEdgeDefinitions
 from .list_vertex_collections import ListVertexCollections
 from .remove_edge_definition import RemoveEdgeDefinition
+from .remove_vertex import RemoveVertex
 from .remove_vertex_collection import RemoveVertexCollection
 
 
@@ -24,6 +25,7 @@ class GraphMethods(
     ListEdgeDefinitions,
     ListVertexCollections,
     RemoveEdgeDefinition,
+    RemoveVertex,
     RemoveVertexCollection,
 ):
     pass

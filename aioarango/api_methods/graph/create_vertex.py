@@ -11,6 +11,7 @@ from aioarango.utils.graph_utils import format_vertex
 
 class CreateVertex:
     error_types = (
+        ErrorType.ARANGO_UNIQUE_CONSTRAINT_VIOLATED,
         ErrorType.ARANGO_DOCUMENT_KEY_BAD,
         ErrorType.GRAPH_NOT_FOUND,
         ErrorType.GRAPH_REFERENCED_VERTEX_COLLECTION_NOT_USED,
@@ -29,6 +30,7 @@ class CreateVertex:
         404,  # 1924, 1947
         # Returned if no graph with this name could be found.
         # Or if a graph is found but this collection is not part of the graph
+        409,  # 1210
     )
 
     async def create_vertex(
@@ -39,7 +41,7 @@ class CreateVertex:
         vertex: Json,
         return_new: Optional[bool] = False,
         wait_for_sync: Optional[bool] = None,
-    ) -> Result:
+    ) -> Result[Json]:
         """
         Add a vertex to the given collection.
 
@@ -97,7 +99,7 @@ class CreateVertex:
             write=vertex_collection_name,
         )
 
-        def response_handler(response: Response):
+        def response_handler(response: Response) -> Json:
             if not response.is_success:
                 raise ArangoServerError(response, request)
 
