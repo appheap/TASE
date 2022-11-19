@@ -1,4 +1,5 @@
 from .add_edge_definition import AddEdgeDefinition
+from .add_vertex_collection import AddVertexCollection
 from .create_graph import CreateGraph
 from .drop_graph import DropGraph
 from .get_graph import GetGraph
@@ -9,6 +10,7 @@ from .list_vertex_collections import ListVertexCollections
 
 class GraphMethods(
     AddEdgeDefinition,
+    AddVertexCollection,
     CreateGraph,
     DropGraph,
     GetGraph,
