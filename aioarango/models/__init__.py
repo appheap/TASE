@@ -1,4 +1,5 @@
 __all__ = [
+    "ArangoCollection",
     "DatabaseInfo",
     "EdgeDefinition",
     "Graph",
@@ -7,6 +8,7 @@ __all__ = [
     "User",
 ]
 
+from .arango_collection import ArangoCollection
 from .database_info import DatabaseInfo
 from .edge_definition import EdgeDefinition
 from .graph import Graph
