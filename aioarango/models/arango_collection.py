@@ -27,7 +27,7 @@ class ArangoCollection(BaseModel):
     is_system : bool
         `True` if this is a system collection; usually name will start with an `underscore`.
     globally_unique_id : str
-        # fixme
+        Unique identifier of the collection.
     wait_for_sync: bool, optional
         If true then creating, changing or removing documents will wait until the data has been synchronized to disk.
     collection_schema : Json, optional
