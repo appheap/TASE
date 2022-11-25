@@ -76,6 +76,7 @@ class ArangoCollection(BaseModel):
     type: CollectionType
     is_system: bool
     globally_unique_id: str
+    # the above attributes form the minimum version of this object.
 
     wait_for_sync: Optional[bool]
     collection_schema: Optional[Json]
