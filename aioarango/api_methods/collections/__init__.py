@@ -1,3 +1,4 @@
+from .compact_collection_data import CompactCollectionData
 from .create_collection import CreateCollection
 from .drop_collection import DropCollection
 from .get_collection_checksum import GetCollectionChecksum
@@ -9,6 +10,7 @@ from .truncate_collection import TruncateCollection
 
 
 class CollectionsMethods(
+    CompactCollectionData,
     CreateCollection,
     DropCollection,
     GetCollectionChecksum,
