@@ -78,9 +78,12 @@ class ArangoCollection(BaseModel):
     globally_unique_id: str
     # the above attributes form the minimum version of this object.
 
-    # these attributes are get from checksum endpoint
+    # these attributes are set when running collection checksum endpoint.
     checksum: Optional[str]
     revision: Optional[str]
+
+    # this attribute is set when running count collection endpoint.
+    count: Optional[int]
 
     wait_for_sync: Optional[bool]
     collection_schema: Optional[Json]
@@ -119,6 +122,7 @@ class ArangoCollection(BaseModel):
             globally_unique_id=obj["globallyUniqueId"],
             checksum=obj.get("checksum", None),
             revision=obj.get("revision", None),
+            count=obj.get("count", None),
             wait_for_sync=obj.get("waitForSync", None),
             collection_schema=obj.get("schema", None),
             computed_values=computed_values,

@@ -1,36 +1,26 @@
 from aioarango.api import Endpoint
 from aioarango.enums import MethodType
 from aioarango.errors import ArangoServerError, ErrorType
-from aioarango.models import ArangoCollection, Request, Response
+from aioarango.models import Request, Response, ArangoCollection
 from aioarango.typings import Result
 
 
-class CompactCollectionData:
+class GetCollectionDocumentCount:
     error_codes = (ErrorType.ARANGO_DATA_SOURCE_NOT_FOUND,)
     status_codes = (
         200,
-        # Compaction started successfully
-        401,
-        # if the request was not authenticated as a user with sufficient rights
+        400,
+        # If the collection-name is missing, then a HTTP 400 is returned.
         404,  # 1203
+        # If the collection-name is unknown, then a HTTP 404 is returned.
     )
 
-    async def compact_collection_data(
+    async def get_collection_document_count(
         self: Endpoint,
         name: str,
     ) -> Result[ArangoCollection]:
         """
-        Compact the data of a collection in order to reclaim disk space.
-        The operation will compact the document and index data by rewriting the
-        underlying .sst files and only keeping the relevant entries.
-
-        Notes
-        -----
-        Under normal circumstances, running a compact operation is not necessary, as
-        the collection data will eventually get compacted anyway. However, in some
-        situations, e.g. after running lots of update/replace or remove operations,
-        the disk data for a collection may contain a lot of outdated data for which the
-        space shall be reclaimed. In this case the compaction operation can be used.
+        Get number of documents in a collection.
 
         Parameters
         ----------
@@ -40,7 +30,7 @@ class CompactCollectionData:
         Returns
         -------
         Result
-            An `ArangoCollection` object. (minimum version)
+            An `ArangoCollection` object. (full version with `count` attribute)
 
         Raises
         ------
@@ -48,14 +38,13 @@ class CompactCollectionData:
             If name is invalid.
         aioarango.errors.ArangoServerError
             If operation fails.
-
         """
         if name is None or not len(name):
             raise ValueError(f"`name` has invalid value: `{name}`")
 
         request = Request(
-            method_type=MethodType.PUT,
-            endpoint=f"/_api/collection/{name}/compact",
+            method_type=MethodType.GET,
+            endpoint=f"/_api/collection/{name}/count",
         )
 
         def response_handler(response: Response) -> ArangoCollection:
