@@ -27,6 +27,21 @@ class GetCollectionStatistics:
         Get statistics for a collection. In addition, the result also contains the number of documents
         and additional statistical information about the collection.
 
+        Notes
+        -----
+        Returns information about the collection: (status_code 200)
+            - **count**: The number of documents currently present in the collection.
+            - **figures**:
+
+                - **indexes**:
+
+                    - **count**: The total number of indexes defined for the collection, including the pre-defined indexes (e.g. primary index).
+                    - **size**: The total memory allocated for indexes in bytes.
+
+
+        **Warning**: Accessing collections by their numeric ID is deprecated from version 3.4.0 on. You should reference them via their names instead.
+
+
         Parameters
         ----------
         name : str
