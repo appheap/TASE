@@ -81,11 +81,12 @@ class ArangoCollection(BaseModel):
 
     # these attributes are set when running collection checksum endpoint.
     checksum: Optional[str]
-    revision: Optional[str]
+    revision: Optional[str]  # this attribute is also set when running `revision` endpoint`
 
     # this attribute is set when running `count` collection endpoint or `figures` endpoint.
     count: Optional[int]
 
+    # this attribute is set when running `figure` endpoint.
     figures: Optional[CollectionFigures]
 
     wait_for_sync: Optional[bool]
