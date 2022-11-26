@@ -1,3 +1,4 @@
+from .change_collection_properties import ChangeCollectionProperties
 from .compact_collection_data import CompactCollectionData
 from .create_collection import CreateCollection
 from .drop_collection import DropCollection
@@ -13,6 +14,7 @@ from .truncate_collection import TruncateCollection
 
 
 class CollectionsMethods(
+    ChangeCollectionProperties,
     CompactCollectionData,
     CreateCollection,
     DropCollection,
