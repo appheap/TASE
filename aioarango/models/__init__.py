@@ -1,5 +1,7 @@
 __all__ = [
     "ArangoCollection",
+    "CollectionFigures",
+    "Indexes",
     "ComputedValue",
     "DatabaseInfo",
     "EdgeDefinition",
@@ -11,6 +13,7 @@ __all__ = [
 ]
 
 from .arango_collection import ArangoCollection
+from .collection_figures import CollectionFigures, Indexes
 from .computed_value import ComputedValue
 from .database_info import DatabaseInfo
 from .edge_definition import EdgeDefinition

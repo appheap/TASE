@@ -6,6 +6,7 @@ from pydantic import BaseModel
 
 from aioarango.enums import CollectionStatus, CollectionType
 from aioarango.typings import Json
+from .collection_figures import CollectionFigures
 from .computed_value import ComputedValue
 from .key_options import KeyOptions
 
@@ -82,8 +83,10 @@ class ArangoCollection(BaseModel):
     checksum: Optional[str]
     revision: Optional[str]
 
-    # this attribute is set when running count collection endpoint.
+    # this attribute is set when running `count` collection endpoint or `figures` endpoint.
     count: Optional[int]
+
+    figures: Optional[CollectionFigures]
 
     wait_for_sync: Optional[bool]
     collection_schema: Optional[Json]
@@ -123,6 +126,7 @@ class ArangoCollection(BaseModel):
             checksum=obj.get("checksum", None),
             revision=obj.get("revision", None),
             count=obj.get("count", None),
+            figures=CollectionFigures.parse_from_dict(obj.get("figures", None)),
             wait_for_sync=obj.get("waitForSync", None),
             collection_schema=obj.get("schema", None),
             computed_values=computed_values,
