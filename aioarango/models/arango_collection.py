@@ -7,6 +7,7 @@ from pydantic import BaseModel
 from aioarango.enums import CollectionStatus, CollectionType
 from aioarango.typings import Json
 from .collection_figures import CollectionFigures
+from .collection_shard_info import CollectionShardInfo
 from .computed_value import ComputedValue
 from .key_options import KeyOptions
 
@@ -89,6 +90,9 @@ class ArangoCollection(BaseModel):
     # this attribute is set when running `figure` endpoint.
     figures: Optional[CollectionFigures]
 
+    # this attribute is set when running `shards` endpoint.
+    shards: Optional[List[CollectionShardInfo]]
+
     wait_for_sync: Optional[bool]
     collection_schema: Optional[Json]
     computed_values: Optional[List[ComputedValue]]
@@ -117,6 +121,22 @@ class ArangoCollection(BaseModel):
         if obj.get("computedValues", None):
             computed_values = [ComputedValue.parse_from_dict(item) for item in obj["computedValues"]]
 
+        shards = None
+        if obj.get("shards", None):
+            shards_obj = obj["shards"]
+            shards = []
+            if isinstance(shards_obj, dict):
+                for shard_id, responsible_servers in shards_obj.items():
+                    shards.append(
+                        CollectionShardInfo(
+                            shard_id=shard_id,
+                            responsible_servers=responsible_servers,
+                        )
+                    )
+            elif isinstance(shards_obj, list):
+                for shard_id in shards_obj:
+                    shards.append(CollectionShardInfo(shard_id=shard_id))
+
         return ArangoCollection(
             id=obj["id"],
             name=obj["name"],
@@ -128,6 +148,7 @@ class ArangoCollection(BaseModel):
             revision=obj.get("revision", None),
             count=obj.get("count", None),
             figures=CollectionFigures.parse_from_dict(obj.get("figures", None)),
+            shards=shards,
             wait_for_sync=obj.get("waitForSync", None),
             collection_schema=obj.get("schema", None),
             computed_values=computed_values,

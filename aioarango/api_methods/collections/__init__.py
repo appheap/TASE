@@ -5,6 +5,7 @@ from .drop_collection import DropCollection
 from .get_collection_checksum import GetCollectionChecksum
 from .get_collection_document_count import GetCollectionDocumentCount
 from .get_collection_revision import GetCollectionRevision
+from .get_collection_shard_ids import GetCollectionShardIDs
 from .get_collection_statistics import GetCollectionStatistics
 from .get_document_responsible_shard import GetDocumentResponsibleShard
 from .load_indexes_into_memory import LoadIndexesIntoMemory
@@ -24,6 +25,7 @@ class CollectionsMethods(
     GetCollectionChecksum,
     GetCollectionDocumentCount,
     GetCollectionRevision,
+    GetCollectionShardIDs,
     GetCollectionStatistics,
     GetDocumentResponsibleShard,
     LoadIndexesIntoMemory,
