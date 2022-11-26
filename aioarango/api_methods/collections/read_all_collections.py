@@ -35,7 +35,7 @@ class ReadAllCollections:
         Returns
         -------
         Result
-            A list of `ArangoCollection` objects.
+            A list of `ArangoCollection` objects. (the minimum version)
 
         Raises
         ------

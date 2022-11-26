@@ -19,9 +19,9 @@ class ArangoCollection(BaseModel):
     id : str
         unique identifier of the collection; **deprecated**
     name : str
-         Literal name of this collection.
+        Literal name of this collection.
     status : CollectionStatus
-        pass
+        Status of the collection.
     type : CollectionType
         Type of the collection
     is_system : bool
