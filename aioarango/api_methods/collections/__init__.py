@@ -9,6 +9,7 @@ from .load_indexes_into_memory import LoadIndexesIntoMemory
 from .read_all_collections import ReadAllCollections
 from .read_collection_info import ReadCollectionInfo
 from .read_collection_properties import ReadCollectionProperties
+from .recalculate_collection_document_count import RecalculateCollectionDocumentCount
 from .rename_collection import RenameCollection
 from .truncate_collection import TruncateCollection
 
@@ -25,6 +26,7 @@ class CollectionsMethods(
     ReadAllCollections,
     ReadCollectionInfo,
     ReadCollectionProperties,
+    RecalculateCollectionDocumentCount,
     RenameCollection,
     TruncateCollection,
 ):
