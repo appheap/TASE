@@ -1,5 +1,6 @@
 from .create_full_text_index import CreateFullTextIndex
 from .create_geo_index import CreateGeoIndex
+from .create_index import CreateIndex
 from .create_inverted_index import CreateInvertedIndex
 from .create_multi_dimensional_index import CreateMultiDimensionalIndex
 from .create_persistent_index import CreatePersistentIndex
@@ -12,6 +13,7 @@ from .read_index import ReadIndex
 class IndexesMethods(
     CreateFullTextIndex,
     CreateGeoIndex,
+    CreateIndex,
     CreateInvertedIndex,
     CreateMultiDimensionalIndex,
     CreatePersistentIndex,
