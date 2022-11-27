@@ -115,6 +115,20 @@ class InvertedIndexNestedAttribute(BaseModel):
     features: Optional[List[InvertedIndexFeaturesType]]
     search_field: Optional[bool]
 
+    def to_db(self) -> Dict[str, Any]:
+        data = {"name": self.name}
+
+        if self.analyzer is not None:
+            data["analyzer"] = self.analyzer
+
+        if self.features is not None and len(self.features):
+            data["features"] = [str(item.value) for item in self.features]
+
+        if self.search_field is not None:
+            data["searchField"] = self.search_field
+
+        return data
+
 
 class InvertedIndexField(BaseModel):
     """
@@ -177,6 +191,28 @@ class InvertedIndexField(BaseModel):
     search_field: Optional[bool]
     track_list_positions: Optional[bool]
     nested: Optional[InvertedIndexNestedAttribute]
+
+    def to_db(self) -> Dict[str, Any]:
+        data = {"name": self.name}
+        if self.analyzer is not None:
+            data["analyzer"] = self.analyzer
+
+        if self.features is not None and len(self.features):
+            data["features"] = [str(item.value) for item in self.features]
+
+        if self.include_all_fields is not None:
+            data["includeAllFields"] = self.include_all_fields
+
+        if self.search_field is not None:
+            data["searchField"] = self.search_field
+
+        if self.track_list_positions is not None:
+            data["trackListPositions"] = self.track_list_positions
+
+        if self.nested is not None:
+            data["nested"] = self.nested.to_db()
+
+        return data
 
 
 class InvertedIndex(BaseArangoIndex):
@@ -338,6 +374,12 @@ class InvertedIndex(BaseArangoIndex):
     def to_db(self) -> Dict[str, Any]:
         data = super(InvertedIndex, self).to_db()
 
+        if self.fields is not None and len(self.fields):
+            data["fields"] = [field.to_db() if isinstance(field, InvertedIndexField) else field for field in self.fields]
+
+        if self.features is not None and len(self.features):
+            data["features"] = [str(item.value) for item in self.features]
+
         if self.in_background is not None:
             data["inBackground"] = self.in_background
 
@@ -345,10 +387,10 @@ class InvertedIndex(BaseArangoIndex):
             data["parallelism"] = self.parallelism
 
         if self.primary_sort is not None:
-            data["PrimarySort"] = self.primary_sort
+            data["PrimarySort"] = self.primary_sort.dict()
 
-        if self.stored_values is not None:
-            data["storedValues"] = self.stored_values
+        if self.stored_values is not None and len(self.stored_values):
+            data["storedValues"] = [item.dict() for item in self.stored_values]
 
         if self.analyzer is not None:
             data["analyzer"] = self.analyzer

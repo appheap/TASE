@@ -136,7 +136,7 @@ class BaseArangoIndex(BaseModel):
                     obj["consolidation_policy"] = obj.pop("consolidationPolicy")
 
                 if "fieldValueTypes" in obj:
-                    obj["field_value_type"] = obj.pop("fieldValueTypes")
+                    obj["field_value_types"] = obj.pop("fieldValueTypes")
 
                 if "expireAfter" in obj:
                     obj["expiry_time"] = obj.pop("expireAfter")

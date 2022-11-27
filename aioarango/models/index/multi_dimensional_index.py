@@ -7,7 +7,27 @@ from ...enums import IndexType
 
 
 class MultiDimensionalIndex(BaseArangoIndex):
-    type = IndexType.TTL
+    """
+    Attributes
+    ----------
+    type : IndexType
+        Type of the index. must be equal to "zkd".
+    name : str
+        An easy-to-remember name for the index to look it up or refer to it in index hints.
+        Index names are subject to the same character restrictions as collection names.
+        If omitted, a name is auto-generated so that it is unique with respect to the
+        collection, e.g. `idx_832910498`.
+    fields : list of str
+        An array of attribute names used for each dimension. Array expansions are not allowed.
+    in_background : bool, optional
+        The optional attribute `inBackground` can be set to `true` to create the index
+        in the background, which will not write-lock the underlying collection for
+        as long as if the index is built in the foreground. The default value is `false`.
+    field_value_types : str, default : "double"
+        Must be equal to "double". Currently only doubles are supported as values.
+    """
+
+    type = IndexType.MULTI_DIMENSIONAL
 
     unique: Optional[bool]
     in_background: Optional[bool]

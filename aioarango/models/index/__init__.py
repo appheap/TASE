@@ -4,7 +4,7 @@ from .full_text_index import FullTextIndex
 from .geo_index import GeoIndex
 from .hash_index import HashIndex
 from .index_figures import IndexFigures
-from .inverted_index import InvertedIndex, ConsolidationPolicy
+from .inverted_index import InvertedIndex, ConsolidationPolicy, InvertedIndexField
 from .multi_dimensional_index import MultiDimensionalIndex
 from .persistent_index import PersistentIndex
 from .primary_index import PrimaryIndex
