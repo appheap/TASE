@@ -4,6 +4,7 @@ from .create_inverted_index import CreateInvertedIndex
 from .create_multi_dimensional_index import CreateMultiDimensionalIndex
 from .create_persistent_index import CreatePersistentIndex
 from .create_ttl_index import CreateTTLIndex
+from .delete_index import DeleteIndex
 from .read_all_collection_indexes import ReadAllCollectionIndexes
 from .read_index import ReadIndex
 
@@ -15,6 +16,7 @@ class IndexesMethods(
     CreateMultiDimensionalIndex,
     CreatePersistentIndex,
     CreateTTLIndex,
+    DeleteIndex,
     ReadAllCollectionIndexes,
     ReadIndex,
 ):

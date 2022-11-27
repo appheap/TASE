@@ -34,7 +34,6 @@ class ReadIndex:
 
     async def read_index(
         self: Endpoint,
-        collection_name: str,
         index_id: str,
     ) -> Result[
         Union[EdgeIndex, FullTextIndex, GeoIndex, HashIndex, InvertedIndex, PersistentIndex, PrimaryIndex, SkipListIndex, TTLIndex, MultiDimensionalIndex]
@@ -53,8 +52,6 @@ class ReadIndex:
 
         Parameters
         ----------
-        collection_name : str
-            Name of the collection
         index_id : str
             ID of the index to read.
 
@@ -66,20 +63,17 @@ class ReadIndex:
         Raises
         ------
         ValueError
-            If `collection_name` or `index_id` are invalid.
+            If `index_id` is invalid.
         aioarango.errors.ArangoServerError
             If operation fails.
 
         """
-        if collection_name is None or not len(collection_name):
-            raise ValueError(f"`collection_name` has invalid value: `{collection_name}`")
-
         if index_id is None or not len(index_id):
             raise ValueError(f"`index_id` has invalid value: `{index_id}`")
 
         request = Request(
             method_type=MethodType.GET,
-            endpoint=f"/_api/index/{collection_name}/{index_id}",
+            endpoint=f"/_api/index/{index_id}",
         )
 
         def response_handler(
