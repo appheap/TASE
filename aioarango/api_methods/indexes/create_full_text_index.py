@@ -67,7 +67,7 @@ class CreateFullTextIndex:
             if not response.is_success:
                 raise ArangoServerError(response, request)
 
-            # status_code 200
+            # status_code 200, 201
             return BaseArangoIndex.from_db(response.body)
 
         return await self.execute(request, response_handler)

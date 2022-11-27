@@ -42,12 +42,14 @@ class GeoIndex(BaseArangoIndex):
         as long as if the index is built in the foreground. The default value is `false`.
 
     """
+
     type = IndexType.GEO
 
     in_background: Optional[bool]
     ordered: Optional[bool]
     legacy_polygons: Optional[bool]
-    worst_indexed_level:Optional[int]
+    worst_indexed_level: Optional[int]
+    best_indexed_level: Optional[int]
 
     def to_db(
         self,

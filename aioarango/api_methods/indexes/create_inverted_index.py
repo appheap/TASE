@@ -2,50 +2,48 @@ from aioarango.api import Endpoint
 from aioarango.enums import MethodType
 from aioarango.errors import ArangoServerError, ErrorType
 from aioarango.models import Request, Response
-from aioarango.models.index import BaseArangoIndex, GeoIndex
+from aioarango.models.index import BaseArangoIndex, InvertedIndex
 from aioarango.typings import Result
 
 
-class CreateGeoIndex:
+class CreateInvertedIndex:
     error_codes = (
         ErrorType.ARANGO_DATA_SOURCE_NOT_FOUND,
         ErrorType.ARANGO_DUPLICATE_NAME,
+        ErrorType.ARANGO_INDEX_CREATION_FAILED,  # todo: report this error to arangodb.com (happens when a request to create an existing index is executed)
     )
     status_codes = (
         200,
         # If the index already exists, then a HTTP 200 is returned.
         201,
         # If the index does not already exist and could be created, then a HTTP 201 is returned.
+        400,  # 1235
         404,  # 1203
         # If the collection-name is unknown, then a HTTP 404 is returned.
         409,  # 1207
     )
 
-    async def create_geo_index(
+    async def create_inverted_index(
         self: Endpoint,
         collection_name: str,
-        index: GeoIndex,
-    ) -> Result[GeoIndex]:
+        index: InvertedIndex,
+    ) -> Result[InvertedIndex]:
         """
-        Create a geo-spatial index in the collection collection-name, if
-        it does not already exist. Expects an object containing the index details.
+        Create  an inverted index for the collection collection-name, if
+        it does not already exist. The call expects an object containing the index
+        details.
 
-        Notes
-        -----
-        Geo indexes are always sparse, meaning that documents that do not contain
-        the index attributes or have non-numeric values in the index attributes
-        will not be indexed.
 
         Parameters
         ----------
         collection_name : str
             Name of the collection.
-        index : GeoIndex
+        index : InvertedIndex
             Index to create.
 
         Returns
         -------
-        GeoIndex
+        InvertedIndex
             Created Index will be returned.
 
         Raises
@@ -61,14 +59,14 @@ class CreateGeoIndex:
 
         request = Request(
             method_type=MethodType.POST,
-            endpoint=f"/_api/index#geo",
+            endpoint=f"/_api/index#inverted",
             data=index.to_db(),
             params={
                 "collection": collection_name,
             },
         )
 
-        def response_handler(response: Response) -> GeoIndex:
+        def response_handler(response: Response) -> InvertedIndex:
             if not response.is_success:
                 raise ArangoServerError(response, request)
 

@@ -10,7 +10,7 @@ from .index_figures import IndexFigures
 
 class BaseArangoIndex(BaseModel):
     id: Optional[str]
-    version: int = Field(default=1)
+    custom_version: int = Field(default=1)
     type: IndexType
     name: str
     fields: List[str]
@@ -30,7 +30,7 @@ class BaseArangoIndex(BaseModel):
 
         data = {
             "type": self.type.value,
-            "name": f"{self.name}__{self.version}",
+            "name": f"{self.name}__{self.custom_version}",
             "fields": self.fields,
         }
 
@@ -153,6 +153,9 @@ class BaseArangoIndex(BaseModel):
                 if "geoJson" in obj:
                     obj["geo_json"] = obj.pop("geoJson")
 
+                if "bestIndexedLevel" in obj:
+                    obj["best_indexed_level"] = obj.pop("bestIndexedLevel")
+
                 if index_type == IndexType.EDGE:
                     index = EdgeIndex.from_db(obj)
                 elif index_type == IndexType.FULL_TEXT:
@@ -179,7 +182,7 @@ class BaseArangoIndex(BaseModel):
                 if "__" in index.name:
                     name, version = index.name.split("__")
                     index.name = name
-                    index.version = int(version)
+                    index.custom_version = int(version)
 
                 return index
 
