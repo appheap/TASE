@@ -5,6 +5,7 @@ from .create_multi_dimensional_index import CreateMultiDimensionalIndex
 from .create_persistent_index import CreatePersistentIndex
 from .create_ttl_index import CreateTTLIndex
 from .read_all_collection_indexes import ReadAllCollectionIndexes
+from .read_index import ReadIndex
 
 
 class IndexesMethods(
@@ -15,5 +16,6 @@ class IndexesMethods(
     CreatePersistentIndex,
     CreateTTLIndex,
     ReadAllCollectionIndexes,
+    ReadIndex,
 ):
     pass
