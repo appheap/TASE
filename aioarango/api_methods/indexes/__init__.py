@@ -3,6 +3,7 @@ from .create_geo_index import CreateGeoIndex
 from .create_inverted_index import CreateInvertedIndex
 from .create_multi_dimensional_index import CreateMultiDimensionalIndex
 from .create_persistent_index import CreatePersistentIndex
+from .create_ttl_index import CreateTTLIndex
 from .read_all_collection_indexes import ReadAllCollectionIndexes
 
 
@@ -12,6 +13,7 @@ class IndexesMethods(
     CreateInvertedIndex,
     CreateMultiDimensionalIndex,
     CreatePersistentIndex,
+    CreateTTLIndex,
     ReadAllCollectionIndexes,
 ):
     pass
