@@ -6,6 +6,7 @@ __all__ = [
     "ConnectionType",
     "ErrorSource",
     "HostResolverType",
+    "IndexType",
     "KeyOptionsType",
     "MethodType",
     "OverwriteMode",
@@ -20,6 +21,7 @@ from .compute_on_type import ComputeOnType
 from .connection_type import ConnectionType
 from .error_source import ErrorSource
 from .host_resolver_type import HostResolverType
+from .index_type import IndexType
 from .key_options_type import KeyOptionsType
 from .method_type import MethodType
 from .overwrite_mode import OverwriteMode

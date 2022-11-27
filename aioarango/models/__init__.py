@@ -1,4 +1,5 @@
 __all__ = [
+    "index",
     "ArangoCollection",
     "CollectionFigures",
     "Indexes",
@@ -13,6 +14,7 @@ __all__ = [
     "User",
 ]
 
+from . import index
 from .arango_collection import ArangoCollection
 from .collection_figures import CollectionFigures, Indexes
 from .collection_shard_info import CollectionShardInfo
