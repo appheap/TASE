@@ -49,7 +49,7 @@ class ReadAllCollectionIndexes:
         Raises
         ------
         ValueError
-            If name is invalid.
+            If name is invalid or the `type` of an index in invalid.
         aioarango.errors.ArangoServerError
             If operation fails.
 

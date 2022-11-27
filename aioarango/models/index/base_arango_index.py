@@ -16,6 +16,7 @@ class BaseArangoIndex(BaseModel):
     fields: List[str]
     selectivity: Optional[float]
     figures: Optional[IndexFigures]
+    is_newly_created: Optional[bool]
 
     def to_db(self) -> Dict[str, Any]:
         if self.type is None or self.type == IndexType.UNKNOWN:
@@ -40,6 +41,25 @@ class BaseArangoIndex(BaseModel):
         cls,
         obj: Dict[str, Any],
     ) -> Optional[BaseArangoIndex]:
+        """
+        Parse the object from a dictionary.
+
+        Parameters
+        ----------
+        obj : dict
+            Dictionary to parse the object from.
+
+        Returns
+        -------
+        BaseArangoIndex, optional
+            Parse index if parsing was successful.
+
+        Raises
+        ------
+        ValueError
+            If the `type` attribute of the dictionary in invalid.
+
+        """
         if obj is None or not len(obj):
             return None
 
@@ -119,7 +139,10 @@ class BaseArangoIndex(BaseModel):
                     obj["field_value_type"] = obj.pop("fieldValueTypes")
 
                 if "expireAfter" in obj:
-                    obj["expiry_time"]=obj.pop("expireAfter")
+                    obj["expiry_time"] = obj.pop("expireAfter")
+
+                if "isNewlyCreated" in obj:
+                    obj["is_newly_created"] = obj.pop("isNewlyCreated")
 
                 if index_type == IndexType.EDGE:
                     index = EdgeIndex.from_db(obj)
