@@ -144,6 +144,15 @@ class BaseArangoIndex(BaseModel):
                 if "isNewlyCreated" in obj:
                     obj["is_newly_created"] = obj.pop("isNewlyCreated")
 
+                if "worstIndexedLevel" in obj:
+                    obj["worst_indexed_level"] = obj.pop("worstIndexedLevel")
+
+                if "maxNumCoverCells" in obj:
+                    obj["max_num_cover_cells"] = obj.pop("maxNumCoverCells")
+
+                if "geoJson" in obj:
+                    obj["geo_json"] = obj.pop("geoJson")
+
                 if index_type == IndexType.EDGE:
                     index = EdgeIndex.from_db(obj)
                 elif index_type == IndexType.FULL_TEXT:
