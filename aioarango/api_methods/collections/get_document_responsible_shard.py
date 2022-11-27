@@ -84,6 +84,7 @@ class GetDocumentResponsibleShard:
             else {
                 "_key": document,
             },
+            read=name,
         )
 
         def response_handler(response: Response) -> str:

@@ -105,6 +105,7 @@ class ReadCollectionProperties:
         request = Request(
             method_type=MethodType.GET,
             endpoint=f"/_api/collection/{name}/properties",
+            read=name,
         )
 
         def response_handler(response: Response) -> ArangoCollection:

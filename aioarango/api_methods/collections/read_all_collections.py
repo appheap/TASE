@@ -43,6 +43,7 @@ class ReadAllCollections:
             If retrieval fails.
 
         """
+        # todo: check if `read` or `write` is necessary
         request = Request(
             method_type=MethodType.GET,
             endpoint=f"/_api/collection",

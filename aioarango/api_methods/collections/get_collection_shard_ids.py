@@ -66,6 +66,7 @@ class GetCollectionShardIDs:
             params={
                 "details": show_details,
             },
+            read=name,
         )
 
         def response_handler(response: Response) -> ArangoCollection:

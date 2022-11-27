@@ -56,6 +56,7 @@ class CompactCollectionData:
         request = Request(
             method_type=MethodType.PUT,
             endpoint=f"/_api/collection/{name}/compact",
+            write=name,  # fixme: is this valid?
         )
 
         def response_handler(response: Response) -> ArangoCollection:

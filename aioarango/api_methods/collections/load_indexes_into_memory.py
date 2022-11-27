@@ -73,6 +73,7 @@ class LoadIndexesIntoMemory:
         request = Request(
             method_type=MethodType.PUT,
             endpoint=f"/_api/collection/{name}/loadIndexesIntoMemory",
+            read=name,
         )
 
         def response_handler(response: Response) -> bool:

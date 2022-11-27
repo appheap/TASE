@@ -110,6 +110,7 @@ class ChangeCollectionProperties:
             method_type=MethodType.PUT,
             endpoint=f"/_api/collection/{name}/properties",
             data=data,
+            write=name,
         )
 
         def response_handler(response: Response) -> ArangoCollection:

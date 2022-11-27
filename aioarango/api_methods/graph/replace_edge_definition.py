@@ -109,6 +109,7 @@ class ReplaceEdgeDefinition:
             endpoint=f"/_api/gharial/{graph_name}/edge/{edge_definition.collection}",
             data=data,
             params=params if len(params) else None,
+            write=edge_definition.collection,
         )
 
         def response_handler(response: Response) -> Graph:

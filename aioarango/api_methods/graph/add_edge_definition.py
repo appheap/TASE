@@ -110,6 +110,7 @@ class AddEdgeDefinition:
             method_type=MethodType.POST,
             endpoint=f"/_api/gharial/{graph_name}/edge",
             data=data,
+            write=edge_definition.collection,
         )
 
         def response_handler(response: Response) -> Graph:

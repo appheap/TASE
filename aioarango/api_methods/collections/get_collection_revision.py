@@ -57,6 +57,7 @@ class GetCollectionRevision:
         request = Request(
             method_type=MethodType.GET,
             endpoint=f"/_api/collection/{name}/revision",
+            read=name,
         )
 
         def response_handler(response: Response) -> ArangoCollection:

@@ -88,6 +88,7 @@ class GetCollectionChecksum:
                 "withRevisions": with_revisions,
                 "withData": with_data,
             },
+            read=name,
         )
 
         def response_handler(response: Response) -> ArangoCollection:

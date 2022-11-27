@@ -79,6 +79,7 @@ class RemoveEdgeDefinition:
             method_type=MethodType.DELETE,
             endpoint=f"/_api/gharial/{graph_name}/edge/{name}",
             params=params if len(params) else None,
+            write=name,
         )
 
         def response_handler(response: Response) -> Graph:

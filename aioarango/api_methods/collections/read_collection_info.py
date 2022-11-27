@@ -62,6 +62,7 @@ class ReadCollectionInfo:
         request = Request(
             method_type=MethodType.GET,
             endpoint=f"/_api/collection/{name}",
+            read=name,
         )
 
         def response_handler(response: Response) -> ArangoCollection:

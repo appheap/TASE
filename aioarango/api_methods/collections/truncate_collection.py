@@ -68,6 +68,7 @@ class TruncateCollection:
                 "waitForSync": wait_for_sync,
                 "compact": compact,
             },
+            write=name,
         )
 
         def response_handler(response: Response) -> ArangoCollection:

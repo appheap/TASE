@@ -70,6 +70,7 @@ class DropCollection:
             method_type=MethodType.DELETE,
             endpoint=f"/_api/collection/{name}",
             params=params,
+            write=name,
         )
 
         def response_handler(response: Response) -> bool:

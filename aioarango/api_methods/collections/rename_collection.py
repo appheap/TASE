@@ -79,6 +79,7 @@ class RenameCollection:
             data={
                 "name": new_name,
             },
+            write=name,
         )
 
         def response_handler(response: Response) -> ArangoCollection:

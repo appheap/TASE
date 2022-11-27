@@ -72,6 +72,7 @@ class RemoveVertexCollection:
             method_type=MethodType.DELETE,
             endpoint=f"/_api/gharial/{graph_name}/vertex/{name}",
             params={"dropCollection": drop_collection} if drop_collection is not None else None,
+            write=name,
         )
 
         def response_handler(response: Response) -> Graph:

@@ -167,6 +167,7 @@ class CreateMultipleDocuments:
             endpoint=f"/_api/document/{collection_name}",
             data=documents,
             params=params,
+            write=collection_name,
         )
 
         def response_handler(

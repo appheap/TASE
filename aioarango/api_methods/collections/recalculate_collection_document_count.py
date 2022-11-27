@@ -51,6 +51,7 @@ class RecalculateCollectionDocumentCount:
         request = Request(
             method_type=MethodType.PUT,
             endpoint=f"/_api/collection/{name}/recalculateCount",
+            read=name,
         )
 
         def response_handler(response: Response) -> bool:

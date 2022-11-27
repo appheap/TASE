@@ -83,6 +83,7 @@ class AddVertexCollection:
             method_type=MethodType.POST,
             endpoint=f"/_api/gharial/{graph_name}/vertex",
             data=data,
+            write=name,
         )
 
         def response_handler(response: Response):

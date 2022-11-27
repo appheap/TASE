@@ -212,6 +212,7 @@ class CreateCollection:
             endpoint="/_api/collection",
             params=params,
             data=data,
+            write=name,
         )
 
         def response_handler(response: Response) -> ArangoCollection:
