@@ -8,13 +8,18 @@ from aioarango.typings import T, Result
 
 
 class Endpoint:
+    __slots__ = [
+        "_connection",
+        "_executor",
+    ]
+
     def __init__(
         self,
         connection: Connection,
         executor: API_Executor,
     ):
-        self.connection = connection
-        self.executor = executor
+        self._connection = connection
+        self._executor = executor
 
     @property
     def db_name(self) -> str:
@@ -27,7 +32,7 @@ class Endpoint:
             Database name
 
         """
-        return self.connection.db_name
+        return self._connection.db_name
 
     @property
     def username(self) -> Optional[str]:
@@ -40,7 +45,7 @@ class Endpoint:
             Username
 
         """
-        return self.connection.username
+        return self._connection.username
 
     @property
     def context(self) -> APIContextType:
@@ -53,7 +58,7 @@ class Endpoint:
             API execution context
 
         """
-        return self.executor.context
+        return self._executor.context
 
     async def execute(
         self,
@@ -76,7 +81,7 @@ class Endpoint:
             API execution result
 
         """
-        return await self.executor.execute(
+        return await self._executor.execute(
             request,
             response_handler,
         )

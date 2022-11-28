@@ -1,32 +1,38 @@
 from numbers import Number
 from typing import Optional, MutableMapping, Sequence
 
-from aioarango.api import Endpoint
-from aioarango.enums import MethodType
-from aioarango.errors import ArangoServerError, ErrorType
-from aioarango.models import Request, Response
+from aioarango.api_methods import AQLMethods
+from aioarango.connection import Connection
+from aioarango.executor import API_Executor
 from aioarango.typings import Result, Json
+from .cursor import Cursor
 
 
-class CreateCursor(Endpoint):
-    error_codes = (
-        ErrorType.ARANGO_ILLEGAL_NAME,
-        ErrorType.QUERY_BIND_PARAMETER_MISSING,
-        ErrorType.QUERY_ARRAY_EXPECTED,
-    )
-    status_codes = (
-        201,
-        # is returned if the result set can be created by the server.
-        400,  # 1200, 1551, 1563
-        # is returned if the JSON representation is malformed or the query specification is
-        # missing from the request.
-        # If the JSON representation is malformed or the query specification is
-        # missing from the request, the server will respond with HTTP 400.
-        # The body of the response will contain a JSON object with additional error
-        # details.
-    )
+class AQL:
+    """
+    AQL (ArangoDB Query Language) API wrapper.
+    """
 
-    async def create_cursor(
+    __slots__ = [
+        "_connection",
+        "_executor",
+        "_api",
+    ]
+
+    def __init__(
+        self,
+        connection: Connection,
+        executor: API_Executor,
+    ):
+        self._connection: Connection = connection
+        self._executor: API_Executor = executor
+
+        self._api: AQLMethods = AQLMethods(connection, executor)
+
+    def __repr__(self) -> str:
+        return f"<AQL in {self._connection.db_name}>"
+
+    async def execute(
         self,
         query: str,
         count: Optional[bool] = False,
@@ -51,7 +57,7 @@ class CreateCursor(Endpoint):
         intermediate_commit_count: Optional[int] = None,
         skip_inaccessible_cols: Optional[bool] = None,
         allow_dirty_read: bool = False,
-    ) -> Result[Json]:
+    ) -> Result[Cursor]:
         """
         Execute the query and return the result cursor.
 
@@ -199,7 +205,7 @@ class CreateCursor(Endpoint):
         Returns
         -------
         Result
-            A `Json` object is returned if the operation was successful.
+            A `Cursor` API wrapper object is returned if the operation was successful.
 
         Raises
         ------
@@ -208,73 +214,60 @@ class CreateCursor(Endpoint):
         aioarango.errors.ArangoServerError
             If operation fails.
         """
-        if query is None or not len(query):
-            raise ValueError(f"`query` has invalid value: `{query}`")
-
-        if batch_size is not None and batch_size == 0:
-            raise ValueError(f"`batch_size` value cannot be `0`")
-
-        data: Json = {"query": query, "count": count}
-        if batch_size is not None:
-            data["batchSize"] = batch_size
-        if ttl is not None:
-            data["ttl"] = ttl
-        if cache is not None:
-            data["cache"] = cache
-        if memory_limit is not None:
-            data["memoryLimit"] = memory_limit
-        if bind_vars is not None:
-            data["bindVars"] = bind_vars
-
-        options: Json = {}
-        if full_count is not None:
-            options["fullCount"] = full_count
-        if fill_block_cache is not None:
-            options["fillBlockCache"] = fill_block_cache
-        if max_plans is not None:
-            options["maxNumberOfPlans"] = max_plans
-        if max_nodes_per_call_stack is not None:
-            options["maxNodesPerCallstack"] = max_nodes_per_call_stack
-        if max_warning_count is not None:
-            options["maxWarningCount"] = max_warning_count
-        if fail_on_warning is not None:
-            options["failOnWarning"] = fail_on_warning
-        if stream is not None:
-            options["stream"] = stream
-        if optimizer_rules is not None:
-            options["optimizer"] = {"rules": optimizer_rules}
-        if profile is not None:
-            options["profile"] = profile
-        if satellite_sync_wait is not None:
-            options["satelliteSyncWait"] = satellite_sync_wait
-        if max_runtime is not None:
-            options["maxRuntime"] = max_runtime
-        if max_transaction_size is not None:
-            options["maxTransactionSize"] = max_transaction_size
-        if intermediate_commit_size is not None:
-            options["intermediateCommitSize"] = intermediate_commit_size
-        if intermediate_commit_count is not None:
-            options["intermediateCommitCount"] = intermediate_commit_count
-        if skip_inaccessible_cols is not None:
-            options["skipInaccessibleCollections"] = skip_inaccessible_cols
-
-        if options:
-            data["options"] = options
-
-        data.update(options)
-
-        request = Request(
-            method_type=MethodType.POST,
-            endpoint="/_api/cursor",
-            data=data,
-            headers={"x-arango-allow-dirty-read": "true"} if allow_dirty_read else None,
+        cursor_body = await self._api.create_cursor(
+            query=query,
+            count=count,
+            batch_size=batch_size,
+            ttl=ttl,
+            cache=cache,
+            memory_limit=memory_limit,
+            bind_vars=bind_vars,
+            full_count=full_count,
+            fill_block_cache=fill_block_cache,
+            max_plans=max_plans,
+            max_nodes_per_call_stack=max_nodes_per_call_stack,
+            max_warning_count=max_warning_count,
+            fail_on_warning=fail_on_warning,
+            stream=stream,
+            optimizer_rules=optimizer_rules,
+            profile=profile,
+            satellite_sync_wait=satellite_sync_wait,
+            max_runtime=max_runtime,
+            max_transaction_size=max_transaction_size,
+            intermediate_commit_size=intermediate_commit_size,
+            intermediate_commit_count=intermediate_commit_count,
+            skip_inaccessible_cols=skip_inaccessible_cols,
+            allow_dirty_read=allow_dirty_read,
         )
 
-        def response_handler(response: Response) -> Json:
-            if not response.is_success:
-                raise ArangoServerError(response, request)
+        return Cursor(
+            self._connection,
+            self._executor,
+            cursor_body,
+        )
 
-            # status_code 200
-            return response.body
+    async def validate(
+        self,
+        query: str,
+    ) -> Result[Json]:
+        """
+        Parse and validate the query without executing it.
 
-        return await self.execute(request, response_handler)
+        Parameters
+        ----------
+        query : str
+            Query to validate.
+
+        Returns
+        -------
+        Json
+            Query details.
+
+        Raises
+        ------
+        ValueError
+            If query has invalid value.
+        aioarango.errors.ArangoServerError
+            If validation fails.
+        """
+        return await self._api.parse_aql_query(query)
