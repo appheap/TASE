@@ -5,6 +5,7 @@ __all__ = [
     "Indexes",
     "CollectionShardInfo",
     "ComputedValue",
+    "CursorStats",
     "DatabaseInfo",
     "EdgeDefinition",
     "Graph",
@@ -19,6 +20,7 @@ from .arango_collection import ArangoCollection
 from .collection_figures import CollectionFigures, Indexes
 from .collection_shard_info import CollectionShardInfo
 from .computed_value import ComputedValue
+from .cursor_stats import CursorStats
 from .database_info import DatabaseInfo
 from .edge_definition import EdgeDefinition
 from .graph import Graph
