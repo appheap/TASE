@@ -1,4 +1,5 @@
 from .clear_slow_aql_queries import ClearSlowAQLQueries
+from .create_user_aql_function import CreateUserAQLFunction
 from .explain_aql_query import ExplainAQLQuery
 from .get_running_aql_queries import GetRunningAQLQueries
 from .get_slow_aql_queries import GetSlowAQLQueries
@@ -10,6 +11,7 @@ from ..cursors import CreateCursor  # fixme: this class belongs to `cursor` api 
 
 class AQLMethods(
     ClearSlowAQLQueries,
+    CreateUserAQLFunction,
     ExplainAQLQuery,
     GetRunningAQLQueries,
     GetSlowAQLQueries,

@@ -472,3 +472,44 @@ class AQL:
             If operation fails.
         """
         return await self._api.get_user_registered_aql_functions(namespace=namespace)
+
+    async def create_function(
+        self,
+        name: str,
+        code: str,
+        is_deterministic: Optional[bool] = None,
+    ) -> Result[bool]:
+        """
+        Create User AQL function.
+
+        Parameters
+        ----------
+        name : str
+            Name of the AQL function.
+        code : str
+            Function definition in Javascript.
+        is_deterministic : bool, optional
+            An optional `boolean` value to indicate whether the function
+            results are fully deterministic (function return value solely depends on
+            the input value and return value is the same for repeated calls with same
+            input). The isDeterministic attribute is currently not used but may be
+            used later for optimizations.
+
+        Returns
+        -------
+        Result
+           Whether the AQL function was newly created or an existing one was replaced.
+
+        Raises
+        ------
+        ValueError
+            If `name` or `code` parameters have invalid value.
+        aioarango.errors.ArangoServerError
+            If operation fails.
+
+        """
+        return await self._api.create_user_aql_function(
+            name=name,
+            code=code,
+            is_deterministic=is_deterministic,
+        )
