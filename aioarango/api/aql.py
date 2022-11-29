@@ -7,7 +7,7 @@ from aioarango.executor import API_Executor
 from aioarango.typings import Result, Json, Jsons
 from .cursor import Cursor
 from ..errors import ArangoServerError, ErrorType
-from ..models import AQLQuery
+from ..models import AQLQuery, QueryOptimizerRule
 
 
 class AQL:
@@ -559,3 +559,20 @@ class AQL:
             raise e
         else:
             return response
+
+    async def query_rules(self) -> Result[List[QueryOptimizerRule]]:
+        """
+        Return the available optimizer rules for AQL queries
+
+
+        Returns
+        -------
+        Result
+            The available optimizer rules for AQL queries
+
+        Raises
+        ------
+        aioarango.errors.ArangoServerError
+            If operation fails.
+        """
+        return await self._api.get_all_aql_query_optimizer_rules()

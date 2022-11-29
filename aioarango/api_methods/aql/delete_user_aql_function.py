@@ -27,6 +27,15 @@ class DeleteUserAQLFunction(Endpoint):
         Remove an existing AQL user function or function group, identified by **name**.
 
 
+        Notes
+        -----
+        If the function can be removed by the server, the server will respond with HTTP 200;
+
+            - **error**: boolean flag to indicate whether an error occurred (false in this case).
+            - **code**: the HTTP status code.
+            - **deletedCount**: The number of deleted user functions, always `1` when group is set to `false`.
+              Any number `>= 0` when group is set to `true`.
+
 
         Parameters
         ----------

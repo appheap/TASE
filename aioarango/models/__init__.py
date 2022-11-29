@@ -11,6 +11,8 @@ __all__ = [
     "EdgeDefinition",
     "Graph",
     "KeyOptions",
+    "QueryOptimizerRuleFlags",
+    "QueryOptimizerRule",
     "Request",
     "Response",
     "User",
@@ -27,6 +29,7 @@ from .database_info import DatabaseInfo
 from .edge_definition import EdgeDefinition
 from .graph import Graph
 from .key_options import KeyOptions
+from .query_optimizer_rule import QueryOptimizerRuleFlags, QueryOptimizerRule
 from .request import Request
 from .response import Response
 from .user import User
