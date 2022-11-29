@@ -27,7 +27,7 @@ class AQLTrackingData(BaseModel):
         of slow queries. If the list of slow queries is full, the oldest entry in
         it will be discarded when additional slow queries occur.
 
-    slow_query_threshold : float, optional
+    slow_query_threshold : int, optional
         Threshold value for treating a query as slow. A
         query with a runtime greater or equal to this threshold value will be
         put into the list of slow queries when slow query tracking is enabled.
@@ -38,12 +38,15 @@ class AQLTrackingData(BaseModel):
         list of queries. Query strings can have arbitrary lengths, and this property
         can be used to save memory in case very long query strings are used. The
         value is specified in bytes.
+
+    slow_streaming_query_threshold : int, optional
+        ? # fixme
     """
 
     enabled: Optional[bool]
     track_slow_queries: Optional[bool]
     track_bind_vars: Optional[bool]
     max_slow_queries: Optional[int]
-    slow_query_threshold: Optional[float]
+    slow_query_threshold: Optional[int]
     max_query_string_length: Optional[int]
-    slow_streaming_query_threshold: Optional[float]
+    slow_streaming_query_threshold: Optional[int]

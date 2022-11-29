@@ -1,3 +1,4 @@
+from .change_aql_query_tracking_properties import ChangeAQLQueryTrackingProperties
 from .clear_slow_aql_queries import ClearSlowAQLQueries
 from .create_user_aql_function import CreateUserAQLFunction
 from .delete_user_aql_function import DeleteUserAQLFunction
@@ -13,6 +14,7 @@ from ..cursors import CreateCursor  # fixme: this class belongs to `cursor` api 
 
 
 class AQLMethods(
+    ChangeAQLQueryTrackingProperties,
     ClearSlowAQLQueries,
     CreateUserAQLFunction,
     DeleteUserAQLFunction,

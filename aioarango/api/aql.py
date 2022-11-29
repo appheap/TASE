@@ -594,3 +594,54 @@ class AQL:
 
         """
         return await self._api.get_aql_query_tracking_properties()
+
+    async def set_tracking(
+        self,
+        enabled: Optional[bool] = None,
+        max_slow_queries: Optional[int] = None,
+        slow_query_threshold: Optional[int] = None,
+        max_query_string_length: Optional[int] = None,
+        track_bind_vars: Optional[bool] = None,
+        track_slow_queries: Optional[bool] = None,
+    ) -> Result[AQLTrackingData]:
+        """
+        Configure AQL query tracking properties
+
+
+        Parameters
+        ----------
+        enabled : bool, optional
+            Track queries if set to True.
+        max_slow_queries : int, optional
+            Max number of slow queries to track. Oldest entries are discarded first.
+        slow_query_threshold : int, optional
+            Runtime threshold (in seconds) for treating a query as slow.
+        max_query_string_length : int, optional
+            Max query string length (in bytes) tracked.
+        track_bind_vars : bool, optional
+            If set to `True`, track bind variables used in queries.
+        track_slow_queries : bool, optional
+            If set to `True`, track slow queries whose runtimes
+            exceed **slow_query_threshold**. To use this, parameter **enabled** must
+            be set to `True`.
+
+        Returns
+        -------
+        AQLTrackingData
+            An `AQLTrackingData` object is returned on success.
+
+
+        Raises
+        ------
+        aioarango.errors.ArangoServerError
+            If operation fails.
+
+        """
+        return await self._api.change_aql_query_tracking_properties(
+            enabled=enabled,
+            max_slow_queries=max_slow_queries,
+            slow_query_threshold=slow_query_threshold,
+            max_query_string_length=max_query_string_length,
+            track_bind_vars=track_bind_vars,
+            track_slow_queries=track_slow_queries,
+        )
