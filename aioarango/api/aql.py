@@ -6,6 +6,7 @@ from aioarango.connection import Connection
 from aioarango.executor import API_Executor
 from aioarango.typings import Result, Json
 from .cursor import Cursor
+from ..errors import ArangoServerError
 
 
 class AQL:
@@ -271,3 +272,48 @@ class AQL:
             If validation fails.
         """
         return await self._api.parse_aql_query(query)
+
+    async def kill(
+        self,
+        query_id: str,
+        kill_in_all_databases: Optional[bool] = None,
+        ignore_missing: Optional[bool] = True,
+    ) -> Result[bool]:
+        """
+        Kill a running query.
+
+        Parameters
+        ----------
+        query_id : str
+            ID of the query to kill.
+        kill_in_all_databases : bool, optional
+            If set to `true`, will attempt to kill the specified query in all databases, not just the selected one.
+            Using the parameter is only allowed in the `system` database and with `superuser` privileges.
+        ignore_missing : bool, default : True
+            Whether to not throw errors in case the query does not exist.
+
+
+        Returns
+        -------
+        bool
+            `True` if the kill request was sent successfully. `False` if the query was not found and the `ignore_missing` parameter was set to `True`.
+
+        Raises
+        ------
+        ValueError
+            If `query_id` has invalid value.
+        aioarango.errors.ArangoServerError
+            If operation fails.
+        """
+        try:
+            response = await self._api.kill_running_aql_query(
+                query_id=query_id,
+                kill_in_all_databases=kill_in_all_databases,
+            )
+        except ArangoServerError as e:
+            if e.response.status_code == 404 and ignore_missing:
+                return False
+
+            raise e
+        else:
+            return response

@@ -4,7 +4,6 @@ from collections import deque
 from types import TracebackType
 from typing import Any, Deque, Optional, Sequence, Type
 
-
 from ..api_methods import CursorsMethods
 from ..connection import Connection
 from ..errors import CursorCountError, CursorEmptyError, CursorStateError, ArangoServerError
@@ -144,6 +143,14 @@ class Cursor:
             raise CursorCountError("cursor count not enable")
 
         return self._count
+
+    @property
+    def id(self) -> Optional[str]:
+        return self._id
+
+    @property
+    def type(self) -> Optional[str]:
+        return self._type
 
     def empty(self) -> bool:
         """

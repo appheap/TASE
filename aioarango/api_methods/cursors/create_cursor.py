@@ -10,6 +10,7 @@ from aioarango.typings import Result, Json
 
 class CreateCursor(Endpoint):
     error_codes = (
+        ErrorType.RESOURCE_LIMIT,
         ErrorType.ARANGO_ILLEGAL_NAME,
         ErrorType.QUERY_BIND_PARAMETER_MISSING,
         ErrorType.QUERY_ARRAY_EXPECTED,
@@ -24,6 +25,7 @@ class CreateCursor(Endpoint):
         # missing from the request, the server will respond with HTTP 400.
         # The body of the response will contain a JSON object with additional error
         # details.
+        500,  # 32
     )
 
     async def create_cursor(
