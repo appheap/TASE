@@ -371,3 +371,30 @@ class AQL:
 
         """
         return await self._api.clear_slow_aql_queries(clear_from_all_databases=clear_from_all_databases)
+
+    async def queries(
+        self,
+        get_from_all_databases: Optional[bool] = None,
+    ) -> Result[List[AQLQuery]]:
+        """
+        Return the currently running AQL queries.
+
+
+        Parameters
+        ----------
+        get_from_all_databases : bool, optional
+            If set to `true`, will return the slow queries from all databases, not just the selected one.
+            Using the parameter is only allowed in the system database and with superuser privileges.
+
+
+        Returns
+        -------
+        Result
+            Running AQL queries.
+
+        Raises
+        ------
+        aioarango.errors.ArangoServerError
+            If operation fails.
+        """
+        return await self._api.get_running_aql_queries(get_from_all_databases=get_from_all_databases)

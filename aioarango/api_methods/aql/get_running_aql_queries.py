@@ -8,7 +8,7 @@ from aioarango.typings import Result
 from aioarango.utils.aql_utils import format_aql_query
 
 
-class GetSlowAQLQueries(Endpoint):
+class GetRunningAQLQueries(Endpoint):
     error_codes = ()
     status_codes = (
         200,
@@ -20,17 +20,12 @@ class GetSlowAQLQueries(Endpoint):
         # was made in a different database than _system, or by a non-privileged user.
     )
 
-    async def get_slow_aql_queries(
+    async def get_running_aql_queries(
         self,
         get_from_all_databases: Optional[bool] = None,
     ) -> Result[List[AQLQuery]]:
         """
-        Return an array containing the last AQL queries that are finished and
-        have exceeded the slow query threshold in the selected database.
-        The maximum amount of queries in the list can be controlled by setting
-        the query tracking property `maxSlowQueries`. The threshold for treating
-        a query as slow can be adjusted by setting the query tracking property
-        `slowQueryThreshold`.
+        Return an array containing the AQL queries currently running in the selected database
 
         Notes
         -----
@@ -42,20 +37,34 @@ class GetSlowAQLQueries(Endpoint):
             - **bindVars**: the bind parameter values used by the query.
             - **started**: the date and time when the query was started.
             - **runTime**: the query's total run time.
-            - **state**: the query's current execution state (will always be "finished" for the list of slow queries)
             - **stream**: whether the query uses a streaming cursor or not.
+            - **state**: the query's current execution state (as a string). One of:
+
+                - "initializing"
+                - "parsing"
+                - "optimizing ast"
+                - "loading collections"
+                - "instantiating plan"
+                - "optimizing plan"
+                - "executing"
+                - "finalizing"
+                - "finished"
+                - "killed"
+                - "invalid"
+
+
 
 
         Parameters
         ----------
         get_from_all_databases : bool, optional
-            If set to `true`, will return the slow queries from all databases, not just the selected one.
-            Using the parameter is only allowed in the system database and with superuser privileges.
+            If set to `true`, will return the currently running queries in all databases, not just the selected one.
+            Using the parameter is only allowed in the `system` database and with `superuser` privileges.
 
         Returns
         -------
         Result
-            List of slow AQL queries.
+            List of current running AQL queries.
 
         Raises
         ------
@@ -65,7 +74,7 @@ class GetSlowAQLQueries(Endpoint):
         """
         request = Request(
             method_type=MethodType.GET,
-            endpoint="/_api/query/slow",
+            endpoint="/_api/query/current",
             params={
                 "all": get_from_all_databases,
             }

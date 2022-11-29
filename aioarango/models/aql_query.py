@@ -2,6 +2,8 @@ from typing import Optional, MutableMapping
 
 from pydantic import BaseModel
 
+from aioarango.enums import AQLQueryState
+
 
 class AQLQuery(BaseModel):
     """
@@ -23,7 +25,7 @@ class AQLQuery(BaseModel):
         Date and time when the query was started.
     runtime: float, optional
         Query's total run time (in seconds).
-    state: str, optional
+    state: AQLQueryState, optional
         Query's current execution state (will always be "finished" for the list of slow queries).
     stream: bool, optional
         Whether the query uses a streaming cursor or not.
@@ -36,6 +38,6 @@ class AQLQuery(BaseModel):
     bind_vars: Optional[MutableMapping[str, str]]
     runtime: Optional[float]
     started: Optional[str]
-    state: Optional[str]
+    state: Optional[AQLQueryState]
     stream: Optional[bool]
     user: Optional[str]
