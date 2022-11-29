@@ -110,11 +110,11 @@ class Cursor:
     def __aiter__(self) -> Cursor:
         return self
 
-    async def __aenter__(self) -> Cursor:
-        return self
-
     async def __anext__(self) -> Any:
         return await self.next()
+
+    async def __aenter__(self) -> Cursor:
+        return self
 
     async def __aexit__(
         self,

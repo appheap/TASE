@@ -345,3 +345,29 @@ class AQL:
             If operation fails.
         """
         return await self._api.get_slow_aql_queries(get_from_all_databases=get_from_all_databases)
+
+    async def clear_slow_queries(
+        self,
+        clear_from_all_databases: Optional[bool] = None,
+    ) -> Result[bool]:
+        """
+        Clear the list of slow AQL queries in the currently selected database
+
+        Parameters
+        ----------
+        clear_from_all_databases : bool, optional
+            If set to `true`, will clear the slow query history in all databases, not just the selected one.
+            Using the parameter is only allowed in the `system` database and with `superuser` privileges.
+
+        Returns
+        -------
+        Result
+            True if slow queries were cleared successfully.
+
+        Raises
+        ------
+        aioarango.errors.ArangoServerError
+            If operation fails.
+
+        """
+        return await self._api.clear_slow_aql_queries(clear_from_all_databases=clear_from_all_databases)
