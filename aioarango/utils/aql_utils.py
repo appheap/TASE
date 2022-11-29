@@ -70,3 +70,26 @@ def format_aql_tracking(body: Json) -> Json:
         result["track_slow_queries"] = body["trackSlowQueries"]
 
     return result
+
+
+def format_aql_cache(body: Json) -> Json:
+    """
+    Format AQL cache data.
+
+    Parameters
+    ----------
+    body : Json
+        Input body.
+
+    Returns
+    -------
+    Json
+        Formatted body.
+    """
+    return {
+        "mode": body["mode"],
+        "max_results": body["maxResults"],
+        "max_results_size": body["maxResultsSize"],
+        "max_entry_size": body["maxEntrySize"],
+        "include_system": body["includeSystem"],
+    }

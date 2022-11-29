@@ -1,6 +1,6 @@
 from .administration import AdministrationMethods
 from .analyzers import AnalyzersMethods
-from .aql import AQLMethods
+from .aql import AQLMethods, AQLCacheMethods
 from .backup_restore import BackupRestoreMethods
 from .bulk import BulkMethods
 from .cluster import ClusterMethods

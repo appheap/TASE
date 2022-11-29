@@ -1,13 +1,56 @@
 from numbers import Number
 from typing import Optional, MutableMapping, Sequence, List, Union
 
-from aioarango.api_methods import AQLMethods
+from aioarango.api_methods import AQLMethods, AQLCacheMethods
 from aioarango.connection import Connection
 from aioarango.executor import API_Executor
 from aioarango.typings import Result, Json, Jsons
 from .cursor import Cursor
 from ..errors import ArangoServerError, ErrorType
-from ..models import AQLQuery, QueryOptimizerRule, AQLTrackingData
+from ..models import AQLQuery, QueryOptimizerRule, AQLTrackingData, AQLCacheProperties
+
+
+class AQLQueryCache:
+    """
+    AQL Query Cache API wrapper.
+    """
+
+    __slots__ = [
+        "_connection",
+        "_executor",
+        "_api",
+    ]
+
+    def __init__(
+        self,
+        connection: Connection,
+        executor: API_Executor,
+    ):
+        self._connection: Connection = connection
+        self._executor: API_Executor = executor
+
+        self._api: AQLCacheMethods = AQLCacheMethods(connection, executor)
+
+    def __repr__(self) -> str:
+        return f"<AQLQueryCache in {self._connection.db_name}>"
+
+    async def properties(self) -> Result[AQLCacheProperties]:
+        """
+        Return the global AQL query results cache configuration.
+
+        Returns
+        -------
+        AQLCacheProperties
+            An `AQLCacheProperties` object is returned on success.
+
+        Raises
+        ------
+        aioarango.errors.ArangoServerError
+            If operation fails.
+
+        """
+
+        return await self._api.get_aql_cache_properties()
 
 
 class AQL:
@@ -33,6 +76,19 @@ class AQL:
 
     def __repr__(self) -> str:
         return f"<AQL in {self._connection.db_name}>"
+
+    @property
+    def cache(self) -> AQLQueryCache:
+        """
+        Return the query cache API wrapper.
+
+        Returns
+        -------
+        AQLQueryCache
+            Query cache API wrapper.
+
+        """
+        return AQLQueryCache(self._connection, self._executor)
 
     async def execute(
         self,
