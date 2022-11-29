@@ -444,3 +444,31 @@ class AQL:
             opt_rules=opt_rules,
             bind_vars=bind_vars,
         )
+
+    async def functions(
+        self,
+        namespace: Optional[str] = None,
+    ) -> Result[Jsons]:
+        """
+        List the AQL functions defined in the database.
+
+        # todo: result parsing of this endpoint should be investigated in more detail.
+
+
+        Parameters
+        ----------
+        namespace : str, optional
+            Returns all registered AQL user functions from namespace `namespace` under `result`.
+
+
+        Returns
+        -------
+        Result
+            AQL functions.
+
+        Raises
+        ------
+        aioarango.errors.ArangoServerError
+            If operation fails.
+        """
+        return await self._api.get_user_registered_aql_functions(namespace=namespace)
