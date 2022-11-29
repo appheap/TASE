@@ -6,7 +6,7 @@ from aioarango.connection import Connection
 from aioarango.executor import API_Executor
 from aioarango.typings import Result, Json, Jsons
 from .cursor import Cursor
-from ..errors import ArangoServerError
+from ..errors import ArangoServerError, ErrorType
 from ..models import AQLQuery
 
 
@@ -513,3 +513,49 @@ class AQL:
             code=code,
             is_deterministic=is_deterministic,
         )
+
+    async def delete_function(
+        self,
+        name: str,
+        group: Optional[bool] = None,
+        ignore_missing: Optional[bool] = True,
+    ) -> Result[int]:
+        """
+        Delete an AQL function.
+
+        Parameters
+        ----------
+        name : str
+            AQL function name.
+        group : bool, optional
+            If set to `True`, value of parameter **name** is treated
+            as a namespace prefix, and all functions in the namespace are
+            deleted. If set to `False`, the value of **name** must be a fully
+            qualified function name including any namespaces.
+        ignore_missing : bool, default : True
+            Do not raise an exception on missing function.
+
+        Returns
+        -------
+        Result
+            Number of AQL functions deleted if operation was successful,
+            `0` if function(s) was not found and **ignore_missing** was set
+            to `True`.
+
+        Raises
+        ------
+        ValueError
+            If `name` has invalid value.
+        aioarango.errors.ArangoServerError
+            If operation fails.
+
+        """
+        try:
+            response = await self._api.delete_user_aql_function(name=name, group=group)
+        except ArangoServerError as e:
+            if e.arango_error == ErrorType.QUERY_FUNCTION_NOT_FOUND and ignore_missing:
+                return 0
+
+            raise e
+        else:
+            return response
