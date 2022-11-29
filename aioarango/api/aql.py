@@ -7,7 +7,7 @@ from aioarango.executor import API_Executor
 from aioarango.typings import Result, Json, Jsons
 from .cursor import Cursor
 from ..errors import ArangoServerError, ErrorType
-from ..models import AQLQuery, QueryOptimizerRule
+from ..models import AQLQuery, QueryOptimizerRule, AQLTrackingData
 
 
 class AQL:
@@ -576,3 +576,21 @@ class AQL:
             If operation fails.
         """
         return await self._api.get_all_aql_query_optimizer_rules()
+
+    async def tracking(self) -> Result[AQLTrackingData]:
+        """
+        Return the current query tracking configuration
+
+        Returns
+        -------
+        AQLTrackingData
+            An `AQLTrackingData` object is returned on success.
+
+
+        Raises
+        ------
+        aioarango.errors.ArangoServerError
+            If operation fails.
+
+        """
+        return await self._api.get_aql_query_tracking_properties()

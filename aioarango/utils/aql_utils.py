@@ -37,3 +37,36 @@ def format_aql_query(body: Json) -> Json:
         result["user"] = body["user"]
 
     return result
+
+
+def format_aql_tracking(body: Json) -> Json:
+    """
+    Format AQL tracking data.
+
+    Parameters
+    ----------
+    body : Json
+        Input body.
+
+    Returns
+    -------
+    Json
+        Formatted body.
+    """
+    result: Json = {}
+    if "enabled" in body:
+        result["enabled"] = body["enabled"]
+    if "maxQueryStringLength" in body:
+        result["max_query_string_length"] = body["maxQueryStringLength"]
+    if "maxSlowQueries" in body:
+        result["max_slow_queries"] = body["maxSlowQueries"]
+    if "slowQueryThreshold" in body:
+        result["slow_query_threshold"] = body["slowQueryThreshold"]
+    if "slowStreamingQueryThreshold" in body:
+        result["slow_streaming_query_threshold"] = body["slowStreamingQueryThreshold"]
+    if "trackBindVars" in body:
+        result["track_bind_vars"] = body["trackBindVars"]
+    if "trackSlowQueries" in body:
+        result["track_slow_queries"] = body["trackSlowQueries"]
+
+    return result

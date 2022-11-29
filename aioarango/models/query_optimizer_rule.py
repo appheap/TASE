@@ -56,6 +56,7 @@ class QueryOptimizerRule(BaseModel):
     flags : QueryOptimizerRuleFlags, optional
         Flags for this rule.
     """
+
     name: Optional[str]
     flags: Optional[QueryOptimizerRuleFlags]
 
