@@ -1,5 +1,5 @@
 from numbers import Number
-from typing import Optional, MutableMapping, Sequence
+from typing import Optional, MutableMapping, Sequence, List
 
 from aioarango.api_methods import AQLMethods
 from aioarango.connection import Connection
@@ -7,6 +7,7 @@ from aioarango.executor import API_Executor
 from aioarango.typings import Result, Json
 from .cursor import Cursor
 from ..errors import ArangoServerError
+from ..models import AQLQuery
 
 
 class AQL:
@@ -317,3 +318,30 @@ class AQL:
             raise e
         else:
             return response
+
+    async def slow_queries(
+        self,
+        get_from_all_databases: Optional[bool] = None,
+    ) -> Result[List[AQLQuery]]:
+        """
+        Return a list of all slow AQL queries.
+
+
+        Parameters
+        ----------
+        get_from_all_databases : bool, optional
+            If set to `true`, will return the slow queries from all databases, not just the selected one.
+            Using the parameter is only allowed in the system database and with superuser privileges.
+
+
+        Returns
+        -------
+        Result
+            List of slow AQL queries.
+
+        Raises
+        ------
+        aioarango.errors.ArangoServerError
+            If operation fails.
+        """
+        return await self._api.get_slow_aql_queries(get_from_all_databases=get_from_all_databases)

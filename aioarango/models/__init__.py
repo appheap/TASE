@@ -1,5 +1,6 @@
 __all__ = [
     "index",
+    "AQLQuery",
     "ArangoCollection",
     "CollectionFigures",
     "Indexes",
@@ -16,6 +17,7 @@ __all__ = [
 ]
 
 from . import index
+from .aql_query import AQLQuery
 from .arango_collection import ArangoCollection
 from .collection_figures import CollectionFigures, Indexes
 from .collection_shard_info import CollectionShardInfo
