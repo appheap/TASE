@@ -65,7 +65,7 @@ class VertexCollection(BaseCollection):
         revision: Optional[str] = None,
         check_for_revisions_match: Optional[bool] = None,
         check_for_revisions_mismatch: Optional[bool] = None,
-    ) -> Optional[Json]:
+    ) -> Result[Optional[Json]]:
         """
         Return a vertex document.
 
@@ -115,6 +115,8 @@ class VertexCollection(BaseCollection):
 
             if e.response.status_code == 304:
                 raise DocumentRevisionMatchError(e.response, e.request)
+
+            raise e
         else:
             return response
 
