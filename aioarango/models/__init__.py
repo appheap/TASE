@@ -2,6 +2,7 @@ __all__ = [
     "index",
     "AQLCacheProperties",
     "AQLQuery",
+    "AQLQueryCacheEntry",
     "AQLTrackingData",
     "ArangoCollection",
     "CollectionFigures",
@@ -23,6 +24,7 @@ __all__ = [
 from . import index
 from .aql_cache_properties import AQLCacheProperties
 from .aql_query import AQLQuery
+from .aql_query_cache_entry import AQLQueryCacheEntry
 from .aql_tracking_data import AQLTrackingData
 from .arango_collection import ArangoCollection
 from .collection_figures import CollectionFigures, Indexes

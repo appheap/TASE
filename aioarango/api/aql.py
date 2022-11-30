@@ -8,7 +8,7 @@ from aioarango.typings import Result, Json, Jsons
 from .cursor import Cursor
 from ..enums import AQLCacheMode
 from ..errors import ArangoServerError, ErrorType
-from ..models import AQLQuery, QueryOptimizerRule, AQLTrackingData, AQLCacheProperties
+from ..models import AQLQuery, QueryOptimizerRule, AQLTrackingData, AQLCacheProperties, AQLQueryCacheEntry
 
 
 class AQLQueryCache:
@@ -96,6 +96,24 @@ class AQLQueryCache:
             max_entry_size=max_entry_size,
             include_system=include_system,
         )
+
+    async def entries(self) -> Result[List[AQLQueryCacheEntry]]:
+        """
+        Return an array containing the AQL query results currently stored in the query results cache of the selected database.
+
+        Returns
+        -------
+        Result
+            List of `AQLQueryCacheEntry` objects.
+
+
+        Raises
+        ------
+        aioarango.errors.ArangoServerError
+            If operation fails.
+
+        """
+        return await self._api.get_aql_cache_entries()
 
 
 class AQL:

@@ -93,3 +93,41 @@ def format_aql_cache(body: Json) -> Json:
         "max_entry_size": body["maxEntrySize"],
         "include_system": body["includeSystem"],
     }
+
+
+def format_query_cache_entry(body: Json) -> Json:
+    """
+    Format AQL query cache entry.
+
+    Parameters
+    ----------
+    body : Json
+        Input body.
+
+    Returns
+    -------
+    Json
+        Formatted body.
+    """
+    result = {}
+
+    if "hash" in body:
+        result["hash"] = body["hash"]
+    if "query" in body:
+        result["query"] = body["query"]
+    if "bindVars" in body:
+        result["bind_vars"] = body["bindVars"]
+    if "size" in body:
+        result["size"] = body["size"]
+    if "results" in body:
+        result["results"] = body["results"]
+    if "started" in body:
+        result["started"] = body["started"]
+    if "hits" in body:
+        result["hits"] = body["hits"]
+    if "runTime" in body:
+        result["runtime"] = body["runTime"]
+    if "dataSources" in body:
+        result["data_sources"] = body["dataSources"]
+
+    return result
