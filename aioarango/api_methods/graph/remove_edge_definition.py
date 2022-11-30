@@ -59,7 +59,7 @@ class RemoveEdgeDefinition(Endpoint):
         Raises
         ------
         ValueError
-            If graph name or the vertex collection name is invalid.
+            If graph name or the edge collection name is invalid.
         aioarango.errors.ArangoServerError
             If operation fails.
         """

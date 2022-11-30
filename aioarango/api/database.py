@@ -227,9 +227,6 @@ class Database:
             If `name` has invalid value.
 
         """
-        if not name:
-            raise ValueError(f"`name` has invalid value: `{name}`")
-
         return StandardCollection(
             connection=self._connection,
             executor=self._executor,
