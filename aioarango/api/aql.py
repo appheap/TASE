@@ -6,6 +6,7 @@ from aioarango.connection import Connection
 from aioarango.executor import API_Executor
 from aioarango.typings import Result, Json, Jsons
 from .cursor import Cursor
+from ..enums import AQLCacheMode
 from ..errors import ArangoServerError, ErrorType
 from ..models import AQLQuery, QueryOptimizerRule, AQLTrackingData, AQLCacheProperties
 
@@ -51,6 +52,50 @@ class AQLQueryCache:
         """
 
         return await self._api.get_aql_cache_properties()
+
+    async def configure(
+        self,
+        mode: Optional[AQLCacheMode] = None,
+        max_results: Optional[int] = None,
+        max_results_size: Optional[int] = None,
+        max_entry_size: Optional[int] = None,
+        include_system: Optional[bool] = None,
+    ) -> Result[AQLCacheProperties]:
+        """
+        Globally adjust the AQL query results cache properties.
+
+
+        Parameters
+        ----------
+        mode : AQLCacheMode, optional
+            Operation mode. Allowed values are "off", "on" and "demand".
+        max_results : int, optional
+            Max number of query results stored per database-specific cache.
+        max_results_size : int, optional
+            Max cumulative size of query results stored per database-specific cache.
+        max_entry_size : int, optional
+            Max entry size of each query result stored per database-specific cache.
+        include_system : bool, optional
+            Store results of queries in system collections.
+
+        Returns
+        -------
+        AQLCacheProperties
+            An `AQLCacheProperties` object is returned on success.
+
+        Raises
+        ------
+        aioarango.errors.ArangoServerError
+            If operation fails.
+
+        """
+        return await self._api.change_aql_cache_properties(
+            mode=mode,
+            max_results=max_results,
+            max_results_size=max_results_size,
+            max_entry_size=max_entry_size,
+            include_system=include_system,
+        )
 
 
 class AQL:
