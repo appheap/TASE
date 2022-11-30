@@ -89,7 +89,7 @@ class ReadCollectionProperties(Endpoint):
         Returns
         -------
         Result
-            An `ArangoCollection` object is returned.
+            An `ArangoCollection` object is returned. (full version?)
 
         Raises
         ------

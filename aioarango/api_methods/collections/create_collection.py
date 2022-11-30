@@ -33,7 +33,7 @@ class CreateCollection(Endpoint):
         write_concern: Optional[int] = None,
         schema: Optional[Json] = None,
         computed_values: Optional[List[ComputedValue]] = None,
-    ) -> Result:
+    ) -> Result[ArangoCollection]:
         """
         Create a new collection with the given name.
 
@@ -160,7 +160,7 @@ class CreateCollection(Endpoint):
         Returns
         -------
         Result
-            An `ArangoCollection` object.
+            An `ArangoCollection` object. (full version?)
 
 
         Raises
@@ -169,8 +169,6 @@ class CreateCollection(Endpoint):
             If collection name is invalid.
         aioarango.errors.ArangoServerError
             if create fails.
-
-
         """
         if name is None or not len(name):
             raise ValueError(f"`name` has invalid value: `{name}`")

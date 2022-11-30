@@ -689,7 +689,7 @@ class AQL:
         try:
             response = await self._api.delete_user_aql_function(name=name, group=group)
         except ArangoServerError as e:
-            if e.arango_error == ErrorType.QUERY_FUNCTION_NOT_FOUND and ignore_missing:
+            if e.arango_error.type == ErrorType.QUERY_FUNCTION_NOT_FOUND and ignore_missing:
                 return 0
 
             raise e
