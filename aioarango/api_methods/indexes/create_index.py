@@ -1,23 +1,11 @@
-from typing import Union
-
 from aioarango.api import Endpoint
 from aioarango.enums import MethodType
 from aioarango.errors import ArangoServerError, ErrorType
 from aioarango.models import Request, Response
 from aioarango.models.index import (
     BaseArangoIndex,
-    EdgeIndex,
-    FullTextIndex,
-    GeoIndex,
-    HashIndex,
-    InvertedIndex,
-    PersistentIndex,
-    PrimaryIndex,
-    SkipListIndex,
-    TTLIndex,
-    MultiDimensionalIndex,
 )
-from aioarango.typings import Result
+from aioarango.typings import Result, ArangoIndex
 
 
 class CreateIndex(Endpoint):
@@ -41,12 +29,8 @@ class CreateIndex(Endpoint):
     async def create_index(
         self,
         collection_name: str,
-        index: Union[
-            EdgeIndex, FullTextIndex, GeoIndex, HashIndex, InvertedIndex, PersistentIndex, PrimaryIndex, SkipListIndex, TTLIndex, MultiDimensionalIndex
-        ],
-    ) -> Result[
-        Union[EdgeIndex, FullTextIndex, GeoIndex, HashIndex, InvertedIndex, PersistentIndex, PrimaryIndex, SkipListIndex, TTLIndex, MultiDimensionalIndex]
-    ]:
+        index: ArangoIndex,
+    ) -> Result[ArangoIndex]:
         """
         Create a new index in the collection. Expects an object containing the index details.
 
@@ -138,12 +122,12 @@ class CreateIndex(Endpoint):
         ----------
         collection_name : str
             Name of the collection.
-        index : GeoIndex
+        index : ArangoIndex
             Index to create.
 
         Returns
         -------
-        GeoIndex
+        ArangoIndex
             Created Index will be returned.
 
         Raises
@@ -168,7 +152,7 @@ class CreateIndex(Endpoint):
 
         def response_handler(
             response: Response,
-        ) -> Union[EdgeIndex, FullTextIndex, GeoIndex, HashIndex, InvertedIndex, PersistentIndex, PrimaryIndex, SkipListIndex, TTLIndex, MultiDimensionalIndex]:
+        ) -> ArangoIndex:
             if not response.is_success:
                 raise ArangoServerError(response, request)
 

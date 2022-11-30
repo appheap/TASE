@@ -11,7 +11,7 @@ from .update_document import UpdateDocument
 from .update_multiple_documents import UpdateMultipleDocuments
 
 
-class MultipleDocumentsMethods(
+class DocumentsMethods(
     CreateDocument,
     CreateMultipleDocuments,
     ReadDocument,

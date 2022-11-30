@@ -1,10 +1,14 @@
 from typing import Optional, List, Union
 
-from aioarango.api_methods import CollectionsMethods
+from aioarango.api_methods import CollectionsMethods, IndexesMethods
 from aioarango.connection import Connection
+from aioarango.errors import ArangoServerError, ErrorType
 from aioarango.executor import API_Executor
 from aioarango.models import ArangoCollection, ComputedValue
-from aioarango.typings import Result, Json
+from aioarango.models.index import (
+    BaseArangoIndex,
+)
+from aioarango.typings import Result, Json, ArangoIndex
 
 
 class BaseCollection:
@@ -16,6 +20,7 @@ class BaseCollection:
         "_connection",
         "_executor",
         "_collections_api",
+        "_index_api",
         "_name",
         "_id_prefix",
     ]
@@ -35,6 +40,7 @@ class BaseCollection:
         self._id_prefix = name + "/"
 
         self._collections_api = CollectionsMethods(connection, executor)
+        self._index_api = IndexesMethods(connection, executor)
 
     @property
     def name(self) -> str:
@@ -375,3 +381,124 @@ class BaseCollection:
     ####################
     # Index Management #
     ####################
+
+    async def indexes(
+        self,
+        with_stats: Optional[bool] = False,
+        with_hidden: Optional[bool] = False,
+    ) -> Result[List[BaseArangoIndex]]:
+        """
+        Return the collection indexes.
+
+        Parameters
+        ----------
+        with_stats : bool, default : False
+            Whether to include figures and estimates in the result or not.
+        with_hidden : bool, default : False
+            Whether to include hidden indexes in the result or not.
+
+        Returns
+        -------
+        list
+            List of all indexes of the collection.
+
+        Raises
+        ------
+        ValueError
+            If the `type` of an index in invalid.
+        aioarango.errors.ArangoServerError
+            If operation fails.
+
+        """
+        return await self._index_api.read_all_collection_indexes(
+            name=self.name,
+            with_stats=with_stats,
+            with_hidden=with_hidden,
+        )
+
+    async def add_index(
+        self,
+        index: ArangoIndex,
+    ) -> Result[ArangoIndex]:
+        """
+        Create a new index.
+
+        Parameters
+        ----------
+        index : ArangoIndex
+            Index to create.
+
+        Returns
+        -------
+        ArangoIndex
+            Created Index will be returned.
+
+        Raises
+        ------
+        ValueError
+            If the `type` of index is invalid.
+        aioarango.errors.ArangoServerError
+            If operation fails.
+        """
+        return await self._index_api.create_index(
+            collection_name=self.name,
+            index=index,
+        )
+
+    async def delete_index(
+        self,
+        index_id: str,
+        ignore_missing: Optional[bool] = False,
+    ) -> Result[bool]:
+        """
+        Delete an index.
+
+        Parameters
+        ----------
+        index_id : str
+            ID of the index to delete.
+        ignore_missing : bool, default : False
+            Do not raise an exception on missing index.
+
+        Returns
+        -------
+        Result
+            `True` if index was deleted successfully, `False` if index was
+            not found and **ignore_missing** was set to `True`.
+
+        Raises
+        ------
+        ValueError
+            If `index_id` is invalid.
+        aioarango.errors.ArangoServerError
+            If operation fails.
+        """
+        try:
+            response = await self._index_api.delete_index(index_id=index_id)
+        except ArangoServerError as e:
+            if e.arango_error.type == ErrorType.ARANGO_INDEX_NOT_FOUND and ignore_missing:
+                return False
+
+            raise e
+        else:
+            return response
+
+    async def load_indexes(self) -> Result[bool]:
+        """
+        Cache all indexes in the collection into memory.
+
+        Returns
+        -------
+        bool
+            `True` if index was loaded successfully.
+
+        Raises
+        ------
+        aioarango.errors.ArangoServerError
+            If operation fails.
+        """
+        return await self._collections_api.load_indexes_into_memory(name=self.name)
+
+    #################################
+    # Document Management
+    #################################

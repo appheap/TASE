@@ -44,7 +44,7 @@ class ReadAllCollectionIndexes(Endpoint):
         Returns
         -------
         Result
-            List of all indexed of the collection.
+            List of all indexes of the collection.
 
         Raises
         ------
