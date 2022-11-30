@@ -6,7 +6,7 @@ from aioarango.models.index import BaseArangoIndex, PersistentIndex
 from aioarango.typings import Result
 
 
-class CreatePersistentIndex:
+class CreatePersistentIndex(Endpoint):
     error_codes = (
         ErrorType.ARANGO_DATA_SOURCE_NOT_FOUND,
         ErrorType.ARANGO_DUPLICATE_NAME,
@@ -22,7 +22,7 @@ class CreatePersistentIndex:
     )
 
     async def create_persistent_index(
-        self: Endpoint,
+        self,
         collection_name: str,
         index: PersistentIndex,
     ) -> Result[PersistentIndex]:

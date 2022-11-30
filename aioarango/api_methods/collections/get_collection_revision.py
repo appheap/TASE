@@ -5,7 +5,7 @@ from aioarango.models import ArangoCollection, Request, Response
 from aioarango.typings import Result
 
 
-class GetCollectionRevision:
+class GetCollectionRevision(Endpoint):
     error_codes = (ErrorType.ARANGO_DATA_SOURCE_NOT_FOUND,)
     status_codes = (
         200,
@@ -17,7 +17,7 @@ class GetCollectionRevision:
     )
 
     async def get_collection_revision(
-        self: Endpoint,
+        self,
         name: str,
     ) -> Result[ArangoCollection]:
         """

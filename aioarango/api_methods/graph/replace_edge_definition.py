@@ -8,7 +8,7 @@ from aioarango.models import Request, Response, EdgeDefinition, Graph
 from aioarango.typings import Result, Params
 
 
-class ReplaceEdgeDefinition:
+class ReplaceEdgeDefinition(Endpoint):
     error_codes = (
         ErrorType.ARANGO_ILLEGAL_NAME,
         ErrorType.GRAPH_COLLECTION_MULTI_USE,
@@ -32,7 +32,7 @@ class ReplaceEdgeDefinition:
     )
 
     async def replace_edge_definition(
-        self: Endpoint,
+        self,
         graph_name: str,
         edge_definition: EdgeDefinition,
         satellites: Optional[List[str]] = None,

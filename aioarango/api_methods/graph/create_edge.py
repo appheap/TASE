@@ -9,7 +9,7 @@ from aioarango.utils.document_utils import ensure_key_from_id
 from aioarango.utils.graph_utils import format_edge
 
 
-class CreateEdge:
+class CreateEdge(Endpoint):
     error_codes = (
         ErrorType.ARANGO_UNIQUE_CONSTRAINT_VIOLATED,
         ErrorType.ARANGO_INVALID_EDGE_ATTRIBUTE,
@@ -40,7 +40,7 @@ class CreateEdge:
     )
 
     async def create_edge(
-        self: Endpoint,
+        self,
         graph_name: str,
         edge_collection_name: str,
         id_prefix: str,

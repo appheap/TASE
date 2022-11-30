@@ -8,7 +8,7 @@ from aioarango.typings import Json, Result, Params
 from aioarango.utils.document_utils import ensure_key_in_body, populate_doc_or_error
 
 
-class RemoveMultipleDocuments:
+class RemoveMultipleDocuments(Endpoint):
     error_codes = (ErrorType.ARANGO_DATA_SOURCE_NOT_FOUND,)
     sub_error_codes = (
         ErrorType.HTTP_CORRUPTED_JSON,
@@ -27,7 +27,7 @@ class RemoveMultipleDocuments:
     )
 
     async def remove_multiple_documents(
-        self: Endpoint,
+        self,
         collection_name: str,
         id_prefix: str,
         documents: Sequence[Union[str, Json]],
@@ -131,7 +131,7 @@ class RemoveMultipleDocuments:
         def response_handler(
             response: Response,
         ) -> Union[bool, List[Union[Json, ArangoServerError]]]:
-            if response.status_code in (404) or not response.is_success:
+            if not response.is_success:
                 raise ArangoServerError(response, request)
 
             if silent is True:
@@ -141,7 +141,7 @@ class RemoveMultipleDocuments:
             return populate_doc_or_error(
                 response,
                 request,
-                self.connection.prep_bulk_err_response,
+                self._connection.prep_bulk_err_response,
             )
 
         return await self.execute(request, response_handler)

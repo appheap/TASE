@@ -8,7 +8,7 @@ from aioarango.typings import Json, Params, Result
 from aioarango.utils.document_utils import ensure_key_from_id
 
 
-class CreateDocument:
+class CreateDocument(Endpoint):
     error_types = (
         ErrorType.HTTP_CORRUPTED_JSON,
         ErrorType.ARANGO_DOCUMENT_KEY_BAD,
@@ -38,7 +38,7 @@ class CreateDocument:
     )
 
     async def create_document(
-        self: Endpoint,
+        self,
         collection_name: str,
         id_prefix: str,
         document: Union[str, Json],
@@ -152,7 +152,7 @@ class CreateDocument:
         )
 
         def response_handler(response: Response) -> Union[bool, Json]:
-            if response.status_code in (400, 404, 409) or not response.is_success:
+            if not response.is_success:
                 raise ArangoServerError(response, request)
 
             # status_code 201 and 202

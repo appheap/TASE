@@ -5,7 +5,7 @@ from aioarango.models import Graph, Request, Response
 from aioarango.typings import Result
 
 
-class GetGraph:
+class GetGraph(Endpoint):
     error_codes = (ErrorType.GRAPH_NOT_FOUND,)
     status_codes = (
         200,
@@ -15,7 +15,7 @@ class GetGraph:
     )
 
     async def get_graph(
-        self: Endpoint,
+        self,
         name: str,
     ) -> Result[Graph]:
         """

@@ -8,7 +8,7 @@ from aioarango.typings import Json, Result
 from aioarango.utils.document_utils import prep_from_doc
 
 
-class ReadDocument:
+class ReadDocument(Endpoint):
     error_types = (
         ErrorType.ARANGO_DOCUMENT_NOT_FOUND,
         ErrorType.ARANGO_DATA_SOURCE_NOT_FOUND,
@@ -30,7 +30,7 @@ class ReadDocument:
     )
 
     async def read_document(
-        self: Endpoint,
+        self,
         collection_name: str,
         id_prefix: str,
         document: Union[str, Json],

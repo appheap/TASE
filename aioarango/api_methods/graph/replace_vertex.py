@@ -9,7 +9,7 @@ from aioarango.utils.document_utils import prep_from_body
 from aioarango.utils.graph_utils import format_vertex
 
 
-class ReplaceVertex:
+class ReplaceVertex(Endpoint):
     error_codes = (
         ErrorType.ARANGO_CONFLICT,
         ErrorType.ARANGO_DOCUMENT_NOT_FOUND,
@@ -36,7 +36,7 @@ class ReplaceVertex:
     )
 
     async def replace_vertex(
-        self: Endpoint,
+        self,
         graph_name: str,
         vertex_collection_name: str,
         id_prefix: str,

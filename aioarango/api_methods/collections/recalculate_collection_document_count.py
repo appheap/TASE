@@ -5,7 +5,7 @@ from aioarango.models import Response, Request
 from aioarango.typings import Result
 
 
-class RecalculateCollectionDocumentCount:
+class RecalculateCollectionDocumentCount(Endpoint):
     error_codes = (ErrorType.ARANGO_DATA_SOURCE_NOT_FOUND,)
     status_codes = (
         200,
@@ -15,7 +15,7 @@ class RecalculateCollectionDocumentCount:
     )
 
     async def recalculate_collection_document_count(
-        self: Endpoint,
+        self,
         name: str,
     ) -> Result[bool]:
         """

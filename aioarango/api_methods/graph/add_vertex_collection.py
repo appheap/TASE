@@ -7,7 +7,7 @@ from aioarango.models import Request, Response, Graph
 from aioarango.typings import Result
 
 
-class AddVertexCollection:
+class AddVertexCollection(Endpoint):
     error_codes = (
         ErrorType.ARANGO_ILLEGAL_NAME,
         ErrorType.GRAPH_NOT_FOUND,
@@ -33,7 +33,7 @@ class AddVertexCollection:
     )
 
     async def add_vertex_collection(
-        self: Endpoint,
+        self,
         graph_name: str,
         name: str,
         satellites: Optional[List[str]] = None,

@@ -7,7 +7,7 @@ from aioarango.models import ArangoCollection, Request, Response
 from aioarango.typings import Result
 
 
-class GetCollectionShardIDs:
+class GetCollectionShardIDs(Endpoint):
     error_codes = (
         ErrorType.NOT_IMPLEMENTED,
         ErrorType.ARANGO_DATA_SOURCE_NOT_FOUND,
@@ -24,7 +24,7 @@ class GetCollectionShardIDs:
     )
 
     async def get_collection_shard_ids(
-        self: Endpoint,
+        self,
         name: str,
         show_details: Optional[bool] = False,
     ) -> Result[ArangoCollection]:

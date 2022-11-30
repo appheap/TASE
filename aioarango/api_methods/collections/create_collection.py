@@ -8,7 +8,7 @@ from aioarango.models.key_options_input import KeyOptionsInput
 from aioarango.typings import Result, Json, Params
 
 
-class CreateCollection:
+class CreateCollection(Endpoint):
     error_codes = (ErrorType.ARANGO_DUPLICATE_NAME,)
     status_codes = (
         200,
@@ -16,7 +16,7 @@ class CreateCollection:
     )
 
     async def create_collection(
-        self: Endpoint,
+        self,
         name: str,
         wait_for_sync: bool = False,
         is_system: bool = False,

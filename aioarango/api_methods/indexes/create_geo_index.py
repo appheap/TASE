@@ -6,7 +6,7 @@ from aioarango.models.index import BaseArangoIndex, GeoIndex
 from aioarango.typings import Result
 
 
-class CreateGeoIndex:
+class CreateGeoIndex(Endpoint):
     error_codes = (
         ErrorType.ARANGO_DATA_SOURCE_NOT_FOUND,
         ErrorType.ARANGO_DUPLICATE_NAME,
@@ -22,7 +22,7 @@ class CreateGeoIndex:
     )
 
     async def create_geo_index(
-        self: Endpoint,
+        self,
         collection_name: str,
         index: GeoIndex,
     ) -> Result[GeoIndex]:

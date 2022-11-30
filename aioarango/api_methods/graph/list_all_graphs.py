@@ -8,14 +8,14 @@ from aioarango.models import Request, Response, Graph
 from aioarango.typings import Result
 
 
-class ListAllGraphs:
+class ListAllGraphs(Endpoint):
     error_codes = ()
     status_codes = (
         200,
         # Is returned if the module is available and the graphs could be listed.
     )
 
-    async def list_all_graphs(self: Endpoint) -> Result[List[Graph]]:
+    async def list_all_graphs(self) -> Result[List[Graph]]:
         """
         List all graphs stored in this database.
 

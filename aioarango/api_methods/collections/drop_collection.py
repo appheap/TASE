@@ -7,7 +7,7 @@ from aioarango.models import Request, Response
 from aioarango.typings import Result, Params
 
 
-class DropCollection:
+class DropCollection(Endpoint):
     error_codes = (ErrorType.ARANGO_DATA_SOURCE_NOT_FOUND,)
     status_codes = (
         200,
@@ -18,7 +18,7 @@ class DropCollection:
     )
 
     async def drop_collection(
-        self: Endpoint,
+        self,
         name: str,
         is_system_collection: Optional[bool] = None,
     ) -> Result[bool]:

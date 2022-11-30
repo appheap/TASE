@@ -8,12 +8,12 @@ from aioarango.models import Request, Response, ArangoCollection
 from aioarango.typings import Result
 
 
-class ReadAllCollections:
+class ReadAllCollections(Endpoint):
     error_codes = ()
     status_codes = (200,)
 
     async def read_all_collections(
-        self: Endpoint,
+        self,
         exclude_system_collection: Optional[bool] = False,
     ) -> Result[List[ArangoCollection]]:
         """

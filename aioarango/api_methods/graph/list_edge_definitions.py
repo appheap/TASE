@@ -7,7 +7,7 @@ from aioarango.models import Request, Response, EdgeDefinition
 from aioarango.typings import Result
 
 
-class ListEdgeDefinitions:
+class ListEdgeDefinitions(Endpoint):
     error_codes = (ErrorType.GRAPH_NOT_FOUND,)
     status_codes = (
         200,
@@ -17,7 +17,7 @@ class ListEdgeDefinitions:
     )
 
     async def list_edge_definitions(
-        self: Endpoint,
+        self,
         name: str,
     ) -> Result[List[EdgeDefinition]]:
         """

@@ -5,7 +5,7 @@ from aioarango.models import Request, Response
 from aioarango.typings import Result
 
 
-class LoadIndexesIntoMemory:
+class LoadIndexesIntoMemory(Endpoint):
     error_codes = (ErrorType.ARANGO_DATA_SOURCE_NOT_FOUND,)
     status_codes = (
         200,
@@ -17,7 +17,7 @@ class LoadIndexesIntoMemory:
     )
 
     async def load_indexes_into_memory(
-        self: Endpoint,
+        self,
         name: str,
     ) -> Result[bool]:
         """

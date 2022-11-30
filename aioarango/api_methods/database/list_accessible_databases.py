@@ -7,7 +7,7 @@ from aioarango.models import Request, Response
 from aioarango.typings import Result
 
 
-class ListAccessibleDatabases:
+class ListAccessibleDatabases(Endpoint):
     error_codes = ()
     status_codes = (
         200,
@@ -16,7 +16,7 @@ class ListAccessibleDatabases:
         # is returned if the request is invalid.
     )
 
-    async def list_accessible_databases(self: Endpoint) -> Result[List[str]]:
+    async def list_accessible_databases(self) -> Result[List[str]]:
         """
         Retrieve the list of all databases the current user can access without
         specifying a different username or password.

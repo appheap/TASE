@@ -8,7 +8,7 @@ from aioarango.typings import Json, Headers, Result
 from aioarango.utils.document_utils import prep_from_doc
 
 
-class ReadDocumentHeader:
+class ReadDocumentHeader(Endpoint):
     error_types = (
         # this endpoint does not return any `error_code`
     )
@@ -27,7 +27,7 @@ class ReadDocumentHeader:
     )
 
     async def read_document_header(
-        self: Endpoint,
+        self,
         collection_name: str,
         id_prefix: str,
         document: Union[str, Json],

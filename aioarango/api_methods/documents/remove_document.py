@@ -8,7 +8,7 @@ from aioarango.typings import Json, Params, Result
 from aioarango.utils.document_utils import prep_from_doc
 
 
-class RemoveDocument:
+class RemoveDocument(Endpoint):
     error_codes = (
         ErrorType.ARANGO_DOCUMENT_NOT_FOUND,
         ErrorType.ARANGO_DATA_SOURCE_NOT_FOUND,
@@ -29,7 +29,7 @@ class RemoveDocument:
     )
 
     async def remove_document(
-        self: Endpoint,
+        self,
         collection_name: str,
         id_prefix: str,
         document: Union[str, Json],
@@ -116,7 +116,7 @@ class RemoveDocument:
         )
 
         def response_handler(response: Response) -> Union[bool, Json]:
-            if response.status_code in (404, 412) or not response.is_success:
+            if not response.is_success:
                 raise ArangoServerError(response, request)
 
             # status code 200 and 202:

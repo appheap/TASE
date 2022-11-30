@@ -7,7 +7,7 @@ from aioarango.models import Request, Response, Graph
 from aioarango.typings import Result, Params
 
 
-class RemoveEdgeDefinition:
+class RemoveEdgeDefinition(Endpoint):
     error_codes = (
         ErrorType.GRAPH_NOT_FOUND,
         ErrorType.GRAPH_EDGE_COLLECTION_NOT_USED,
@@ -27,7 +27,7 @@ class RemoveEdgeDefinition:
     )
 
     async def remove_edge_definition(
-        self: Endpoint,
+        self,
         graph_name: str,
         name: str,
         drop_collections: Optional[bool] = None,

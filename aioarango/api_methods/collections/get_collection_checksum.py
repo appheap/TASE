@@ -7,7 +7,7 @@ from aioarango.models import Request, Response, ArangoCollection
 from aioarango.typings import Result
 
 
-class GetCollectionChecksum:
+class GetCollectionChecksum(Endpoint):
     error_codes = (ErrorType.ARANGO_DATA_SOURCE_NOT_FOUND,)
     status_codes = (
         200,
@@ -18,7 +18,7 @@ class GetCollectionChecksum:
     )
 
     async def get_collection_checksum(
-        self: Endpoint,
+        self,
         name: str,
         with_revisions: Optional[bool] = False,
         with_data: Optional[bool] = False,

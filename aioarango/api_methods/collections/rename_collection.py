@@ -5,7 +5,7 @@ from aioarango.models import ArangoCollection, Request, Response
 from aioarango.typings import Result
 
 
-class RenameCollection:
+class RenameCollection(Endpoint):
     error_codes = (
         ErrorType.ARANGO_DATA_SOURCE_NOT_FOUND,
         ErrorType.ARANGO_ILLEGAL_NAME,
@@ -19,7 +19,7 @@ class RenameCollection:
     )
 
     async def rename_collection(
-        self: Endpoint,
+        self,
         name: str,
         new_name: str,
     ) -> Result[ArangoCollection]:

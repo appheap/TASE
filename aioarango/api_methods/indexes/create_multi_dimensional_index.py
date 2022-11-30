@@ -6,7 +6,7 @@ from aioarango.models.index import BaseArangoIndex, MultiDimensionalIndex
 from aioarango.typings import Result
 
 
-class CreateMultiDimensionalIndex:
+class CreateMultiDimensionalIndex(Endpoint):
     error_codes = (
         ErrorType.ARANGO_DATA_SOURCE_NOT_FOUND,
         ErrorType.ARANGO_DUPLICATE_NAME,
@@ -22,7 +22,7 @@ class CreateMultiDimensionalIndex:
     )
 
     async def create_multidimensional_index(
-        self: Endpoint,
+        self,
         collection_name: str,
         index: MultiDimensionalIndex,
     ) -> Result[MultiDimensionalIndex]:

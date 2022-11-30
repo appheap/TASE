@@ -20,7 +20,7 @@ from aioarango.models.index import (
 from aioarango.typings import Result
 
 
-class ReadIndex:
+class ReadIndex(Endpoint):
     error_codes = (
         ErrorType.ARANGO_DATA_SOURCE_NOT_FOUND,
         ErrorType.ARANGO_INDEX_NOT_FOUND,
@@ -33,7 +33,7 @@ class ReadIndex:
     )
 
     async def read_index(
-        self: Endpoint,
+        self,
         index_id: str,
     ) -> Result[
         Union[EdgeIndex, FullTextIndex, GeoIndex, HashIndex, InvertedIndex, PersistentIndex, PrimaryIndex, SkipListIndex, TTLIndex, MultiDimensionalIndex]

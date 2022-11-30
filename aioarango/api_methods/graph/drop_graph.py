@@ -7,7 +7,7 @@ from aioarango.models import Request, Response
 from aioarango.typings import Result, Params
 
 
-class DropGraph:
+class DropGraph(Endpoint):
     error_codes = (
         ErrorType.HTTP_METHOD_NOT_ALLOWED,
         ErrorType.GRAPH_NOT_FOUND,
@@ -30,7 +30,7 @@ class DropGraph:
     )
 
     async def drop_graph(
-        self: Endpoint,
+        self,
         name: str,
         drop_collections: Optional[bool] = None,
     ) -> Result[bool]:

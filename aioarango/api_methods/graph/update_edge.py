@@ -9,7 +9,7 @@ from aioarango.utils.document_utils import prep_from_body
 from aioarango.utils.graph_utils import format_edge
 
 
-class UpdateEdge:
+class UpdateEdge(Endpoint):
     error_codes = (
         ErrorType.ARANGO_CONFLICT,
         ErrorType.ARANGO_DOCUMENT_NOT_FOUND,
@@ -37,7 +37,7 @@ class UpdateEdge:
     )
 
     async def update_edge(
-        self: Endpoint,
+        self,
         graph_name: str,
         edge_collection_name: str,
         id_prefix: str,

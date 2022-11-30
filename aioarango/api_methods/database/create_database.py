@@ -7,7 +7,7 @@ from aioarango.models import Request, Response, User
 from aioarango.typings import Json, Result
 
 
-class CreateDatabase:
+class CreateDatabase(Endpoint):
     error_codes = (
         ErrorType.ARANGO_USE_SYSTEM_DATABASE,
         ErrorType.ARANGO_DUPLICATE_NAME,
@@ -25,7 +25,7 @@ class CreateDatabase:
     )
 
     async def create_database(
-        self: Endpoint,
+        self,
         name: str,
         users: Optional[Sequence[User]] = None,
         replication_factor: Union[int, str, None] = None,
@@ -105,7 +105,7 @@ class CreateDatabase:
         )
 
         def response_handler(response: Response) -> bool:
-            if response.status_code in (400, 403, 409) or not response.is_success:
+            if not response.is_success:
                 raise ArangoServerError(response, request)
 
             # status_code 201

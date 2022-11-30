@@ -6,7 +6,7 @@ from aioarango.models.index import FullTextIndex, BaseArangoIndex
 from aioarango.typings import Result
 
 
-class CreateFullTextIndex:
+class CreateFullTextIndex(Endpoint):
     error_codes = (
         ErrorType.ARANGO_DATA_SOURCE_NOT_FOUND,
         ErrorType.ARANGO_DUPLICATE_NAME,
@@ -22,7 +22,7 @@ class CreateFullTextIndex:
     )
 
     async def create_full_text_index(
-        self: Endpoint,
+        self,
         collection_name: str,
         index: FullTextIndex,
     ) -> Result[FullTextIndex]:

@@ -7,7 +7,7 @@ from aioarango.models import Request, Response
 from aioarango.typings import Result
 
 
-class ListOfDatabases:
+class ListOfDatabases(Endpoint):
     error_codes = (ErrorType.ARANGO_USE_SYSTEM_DATABASE,)
     status_codes = (
         200,
@@ -19,7 +19,7 @@ class ListOfDatabases:
     )
 
     async def list_of_databases(
-        self: Endpoint,
+        self,
     ) -> Result[List[str]]:
         """
         Retrieves the list of all existing databases.

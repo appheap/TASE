@@ -8,7 +8,7 @@ from aioarango.models import Request, Response, Graph
 from aioarango.typings import Result, Json, Params
 
 
-class CreateGraph:
+class CreateGraph(Endpoint):
     error_codes = (
         ErrorType.ARANGO_ILLEGAL_NAME,
         ErrorType.ARANGO_DOCUMENT_KEY_BAD,
@@ -39,7 +39,7 @@ class CreateGraph:
     )
 
     async def create_graph(
-        self: Endpoint,
+        self,
         graph: Graph,
         satellites: Optional[List[str]] = None,
         wait_for_sync: Optional[bool] = None,

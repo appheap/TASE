@@ -9,7 +9,7 @@ from aioarango.utils.document_utils import ensure_key_from_id
 from aioarango.utils.graph_utils import format_vertex
 
 
-class CreateVertex:
+class CreateVertex(Endpoint):
     error_types = (
         ErrorType.ARANGO_UNIQUE_CONSTRAINT_VIOLATED,
         ErrorType.ARANGO_DOCUMENT_KEY_BAD,
@@ -34,7 +34,7 @@ class CreateVertex:
     )
 
     async def create_vertex(
-        self: Endpoint,
+        self,
         graph_name: str,
         vertex_collection_name: str,
         id_prefix: str,

@@ -8,7 +8,7 @@ from aioarango.models.index import BaseArangoIndex
 from aioarango.typings import Result
 
 
-class ReadAllCollectionIndexes:
+class ReadAllCollectionIndexes(Endpoint):
     error_codes = (ErrorType.ARANGO_DATA_SOURCE_NOT_FOUND,)
     status_codes = (
         200,
@@ -17,7 +17,7 @@ class ReadAllCollectionIndexes:
     )
 
     async def read_all_collection_indexes(
-        self: Endpoint,
+        self,
         name: str,
         with_stats: Optional[bool] = False,
         with_hidden: Optional[bool] = False,

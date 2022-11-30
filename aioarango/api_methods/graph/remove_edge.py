@@ -8,7 +8,7 @@ from aioarango.typings import Result, Json, Params
 from aioarango.utils.document_utils import prep_from_doc
 
 
-class RemoveEdge:
+class RemoveEdge(Endpoint):
     error_codes = (
         ErrorType.ARANGO_DOCUMENT_NOT_FOUND,
         ErrorType.ARANGO_DATA_SOURCE_NOT_FOUND,
@@ -35,7 +35,7 @@ class RemoveEdge:
     )
 
     async def remove_edge(
-        self: Endpoint,
+        self,
         graph_name: str,
         edge_collection_name: str,
         id_prefix: str,

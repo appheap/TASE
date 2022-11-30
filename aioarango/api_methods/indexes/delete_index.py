@@ -5,7 +5,7 @@ from aioarango.models import Request, Response
 from aioarango.typings import Result
 
 
-class DeleteIndex:
+class DeleteIndex(Endpoint):
     error_codes = (
         ErrorType.ARANGO_DATA_SOURCE_NOT_FOUND,
         ErrorType.ARANGO_INDEX_NOT_FOUND,
@@ -18,7 +18,7 @@ class DeleteIndex:
     )
 
     async def delete_index(
-        self: Endpoint,
+        self,
         index_id: str,
     ) -> Result[bool]:
         """

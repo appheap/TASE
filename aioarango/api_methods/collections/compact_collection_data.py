@@ -5,7 +5,7 @@ from aioarango.models import ArangoCollection, Request, Response
 from aioarango.typings import Result
 
 
-class CompactCollectionData:
+class CompactCollectionData(Endpoint):
     error_codes = (ErrorType.ARANGO_DATA_SOURCE_NOT_FOUND,)
     status_codes = (
         200,
@@ -16,7 +16,7 @@ class CompactCollectionData:
     )
 
     async def compact_collection_data(
-        self: Endpoint,
+        self,
         name: str,
     ) -> Result[ArangoCollection]:
         """

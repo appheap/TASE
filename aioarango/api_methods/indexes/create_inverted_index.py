@@ -6,7 +6,7 @@ from aioarango.models.index import BaseArangoIndex, InvertedIndex
 from aioarango.typings import Result
 
 
-class CreateInvertedIndex:
+class CreateInvertedIndex(Endpoint):
     error_codes = (
         ErrorType.ARANGO_DATA_SOURCE_NOT_FOUND,
         ErrorType.ARANGO_DUPLICATE_NAME,
@@ -24,7 +24,7 @@ class CreateInvertedIndex:
     )
 
     async def create_inverted_index(
-        self: Endpoint,
+        self,
         collection_name: str,
         index: InvertedIndex,
     ) -> Result[InvertedIndex]:

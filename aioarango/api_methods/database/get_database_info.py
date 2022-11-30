@@ -5,7 +5,7 @@ from aioarango.models import Request, Response, DatabaseInfo
 from aioarango.typings import Result
 
 
-class GetDatabaseInfo:
+class GetDatabaseInfo(Endpoint):
     error_codes = ()
     status_codes = (
         200,
@@ -17,7 +17,7 @@ class GetDatabaseInfo:
     )
 
     async def get_database_info(
-        self: Endpoint,
+        self,
     ) -> Result[DatabaseInfo]:
         """
         Retrieve the properties of the current database.

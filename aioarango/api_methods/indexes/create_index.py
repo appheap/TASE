@@ -20,7 +20,7 @@ from aioarango.models.index import (
 from aioarango.typings import Result
 
 
-class CreateIndex:
+class CreateIndex(Endpoint):
     error_codes = (
         ErrorType.ARANGO_DATA_SOURCE_NOT_FOUND,
         ErrorType.ARANGO_DUPLICATE_NAME,
@@ -39,7 +39,7 @@ class CreateIndex:
     )
 
     async def create_index(
-        self: Endpoint,
+        self,
         collection_name: str,
         index: Union[
             EdgeIndex, FullTextIndex, GeoIndex, HashIndex, InvertedIndex, PersistentIndex, PrimaryIndex, SkipListIndex, TTLIndex, MultiDimensionalIndex

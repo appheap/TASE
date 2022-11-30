@@ -8,7 +8,7 @@ from aioarango.typings import Result, Json
 from aioarango.utils.document_utils import prep_from_doc
 
 
-class GetVertex:
+class GetVertex(Endpoint):
     error_codes = (
         ErrorType.ARANGO_CONFLICT,
         ErrorType.ARANGO_DOCUMENT_NOT_FOUND,
@@ -38,7 +38,7 @@ class GetVertex:
     )
 
     async def get_vertex(
-        self: Endpoint,
+        self,
         graph_name: str,
         vertex_collection_name,
         id_prefix: str,

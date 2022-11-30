@@ -5,7 +5,7 @@ from aioarango.models import Request, Response
 from aioarango.typings import Result
 
 
-class DropDatabase:
+class DropDatabase(Endpoint):
     error_codes = (
         ErrorType.HTTP_BAD_PARAMETER,
         ErrorType.ARANGO_DATABASE_NOT_FOUND,
@@ -22,7 +22,7 @@ class DropDatabase:
     )
 
     async def drop_database(
-        self: Endpoint,
+        self,
         name: str,
     ) -> Result[bool]:
         """

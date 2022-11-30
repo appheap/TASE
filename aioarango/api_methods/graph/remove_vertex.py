@@ -8,7 +8,7 @@ from aioarango.typings import Result, Json, Params
 from aioarango.utils.document_utils import prep_from_doc
 
 
-class RemoveVertex:
+class RemoveVertex(Endpoint):
     error_codes = (
         ErrorType.ARANGO_DOCUMENT_NOT_FOUND,
         ErrorType.ARANGO_DATA_SOURCE_NOT_FOUND,
@@ -35,7 +35,7 @@ class RemoveVertex:
     )
 
     async def remove_vertex(
-        self: Endpoint,
+        self,
         graph_name: str,
         vertex_collection_name: str,
         id_prefix: str,

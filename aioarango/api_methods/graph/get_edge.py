@@ -8,7 +8,7 @@ from aioarango.typings import Result, Json
 from aioarango.utils.document_utils import prep_from_doc
 
 
-class GetEdge:
+class GetEdge(Endpoint):
     error_codes = (
         ErrorType.ARANGO_CONFLICT,
         ErrorType.ARANGO_DOCUMENT_NOT_FOUND,
@@ -38,7 +38,7 @@ class GetEdge:
     )
 
     async def get_edge(
-        self: Endpoint,
+        self,
         graph_name: str,
         edge_collection_name,
         id_prefix: str,

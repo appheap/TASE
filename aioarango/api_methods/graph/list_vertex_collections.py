@@ -7,7 +7,7 @@ from aioarango.models import Response, Request
 from aioarango.typings import Result
 
 
-class ListVertexCollections:
+class ListVertexCollections(Endpoint):
     error_codes = (ErrorType.GRAPH_NOT_FOUND,)
     status_codes = (
         200,
@@ -17,7 +17,7 @@ class ListVertexCollections:
     )
 
     async def list_vertex_collections(
-        self: Endpoint,
+        self,
         graph_name: str,
     ) -> Result[List[str]]:
         """

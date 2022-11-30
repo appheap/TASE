@@ -8,7 +8,7 @@ from aioarango.typings import Json, Params, Result
 from aioarango.utils.document_utils import ensure_key_in_body, populate_doc_or_error
 
 
-class ReadMultipleDocuments:
+class ReadMultipleDocuments(Endpoint):
     error_codes = (
         ErrorType.ARANGO_DATA_SOURCE_NOT_FOUND,
         ErrorType.ARANGO_DOCUMENT_TYPE_INVALID,
@@ -26,7 +26,7 @@ class ReadMultipleDocuments:
     )
 
     async def read_multiple_documents(
-        self: Endpoint,
+        self,
         collection_name: str,
         id_prefix: str,
         documents: Sequence[Union[str, Json]],
@@ -97,14 +97,14 @@ class ReadMultipleDocuments:
         )
 
         def response_handler(response: Response) -> List[Union[Json, ArangoServerError]]:
-            if response.status_code in (400, 404, 412) or not response.is_success:
+            if not response.is_success:
                 raise ArangoServerError(response, request)
 
             # status_code 200 :  if no error happened
             return populate_doc_or_error(
                 response,
                 request,
-                self.connection.prep_bulk_err_response,
+                self._connection.prep_bulk_err_response,
             )
 
         return await self.execute(

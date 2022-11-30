@@ -5,7 +5,7 @@ from aioarango.models import Request, Response, ArangoCollection
 from aioarango.typings import Result
 
 
-class ReadCollectionInfo:
+class ReadCollectionInfo(Endpoint):
     error_codes = (ErrorType.ARANGO_DATA_SOURCE_NOT_FOUND,)
     status_codes = (
         404,  # 1203
@@ -14,7 +14,7 @@ class ReadCollectionInfo:
     )
 
     async def read_collection_info(
-        self: Endpoint,
+        self,
         name: str,
     ) -> Result[ArangoCollection]:
         """

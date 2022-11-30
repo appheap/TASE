@@ -7,7 +7,7 @@ from aioarango.models import ArangoCollection, Request, Response, ComputedValue
 from aioarango.typings import Result, Json
 
 
-class ChangeCollectionProperties:
+class ChangeCollectionProperties(Endpoint):
     error_codes = (ErrorType.ARANGO_DATA_SOURCE_NOT_FOUND,)
     status_codes = (
         200,
@@ -18,7 +18,7 @@ class ChangeCollectionProperties:
     )
 
     async def change_collection_properties(
-        self: Endpoint,
+        self,
         name: str,
         wait_for_sync: Optional[bool] = None,
         enable_cache: Optional[bool] = None,

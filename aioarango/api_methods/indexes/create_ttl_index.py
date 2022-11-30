@@ -6,7 +6,7 @@ from aioarango.models.index import BaseArangoIndex, TTLIndex
 from aioarango.typings import Result
 
 
-class CreateTTLIndex:
+class CreateTTLIndex(Endpoint):
     error_codes = (
         ErrorType.ARANGO_DATA_SOURCE_NOT_FOUND,
         ErrorType.ARANGO_DUPLICATE_NAME,
@@ -22,7 +22,7 @@ class CreateTTLIndex:
     )
 
     async def create_ttl_index(
-        self: Endpoint,
+        self,
         collection_name: str,
         index: TTLIndex,
     ) -> Result[TTLIndex]:

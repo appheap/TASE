@@ -7,7 +7,7 @@ from aioarango.models import ArangoCollection, Request, Response
 from aioarango.typings import Result
 
 
-class GetCollectionStatistics:
+class GetCollectionStatistics(Endpoint):
     error_codes = (ErrorType.ARANGO_DATA_SOURCE_NOT_FOUND,)
     status_codes = (
         200,
@@ -19,7 +19,7 @@ class GetCollectionStatistics:
     )
 
     async def get_collection_statistics(
-        self: Endpoint,
+        self,
         name: str,
         show_details: Optional[bool] = False,
     ) -> Result[ArangoCollection]:

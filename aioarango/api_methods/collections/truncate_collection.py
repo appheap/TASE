@@ -7,7 +7,7 @@ from aioarango.models import Request, Response, ArangoCollection
 from aioarango.typings import Result
 
 
-class TruncateCollection:
+class TruncateCollection(Endpoint):
     error_codes = (ErrorType.ARANGO_DATA_SOURCE_NOT_FOUND,)
     status_codes = (
         200,
@@ -18,7 +18,7 @@ class TruncateCollection:
     )
 
     async def truncate_collection(
-        self: Endpoint,
+        self,
         name: str,
         wait_for_sync: Optional[bool] = False,
         compact: Optional[bool] = True,

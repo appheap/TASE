@@ -7,7 +7,7 @@ from aioarango.models import Graph, Response, Request
 from aioarango.typings import Result
 
 
-class RemoveVertexCollection:
+class RemoveVertexCollection(Endpoint):
     error_codes = (
         ErrorType.GRAPH_NOT_IN_ORPHAN_COLLECTION,
         ErrorType.GRAPH_NOT_FOUND,
@@ -30,7 +30,7 @@ class RemoveVertexCollection:
     )
 
     async def remove_vertex_collection(
-        self: Endpoint,
+        self,
         graph_name: str,
         name: str,
         drop_collection: Optional[bool] = None,

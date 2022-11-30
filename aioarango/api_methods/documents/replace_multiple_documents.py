@@ -8,7 +8,7 @@ from aioarango.typings import Json, Params, Result
 from aioarango.utils.document_utils import ensure_key_in_body, populate_doc_or_error
 
 
-class ReplaceMultipleDocuments:
+class ReplaceMultipleDocuments(Endpoint):
     error_codes = (
         ErrorType.HTTP_CORRUPTED_JSON,
         ErrorType.ARANGO_DATA_SOURCE_NOT_FOUND,
@@ -36,7 +36,7 @@ class ReplaceMultipleDocuments:
     )
 
     async def replace_multiple_documents(
-        self: Endpoint,
+        self,
         collection_name: str,
         id_prefix: str,
         documents: Sequence[Json],
@@ -159,7 +159,7 @@ class ReplaceMultipleDocuments:
         def response_handler(
             response: Response,
         ) -> Union[bool, List[Union[Json, ArangoServerError]]]:
-            if response.status_code in (400, 404) or not response.is_success:
+            if not response.is_success:
                 raise ArangoServerError(response, request)
 
             if silent is True:
@@ -169,7 +169,7 @@ class ReplaceMultipleDocuments:
             return populate_doc_or_error(
                 response,
                 request,
-                self.connection.prep_bulk_err_response,
+                self._connection.prep_bulk_err_response,
             )
 
         return await self.execute(request, response_handler)

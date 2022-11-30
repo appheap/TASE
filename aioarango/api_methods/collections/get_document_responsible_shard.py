@@ -8,7 +8,7 @@ from aioarango.typings import Json, Result
 from aioarango.utils.document_utils import ensure_key_in_body
 
 
-class GetDocumentResponsibleShard:
+class GetDocumentResponsibleShard(Endpoint):
     error_codes = (
         ErrorType.ARANGO_DOCUMENT_NOT_FOUND,
         ErrorType.ARANGO_DATA_SOURCE_NOT_FOUND,
@@ -30,7 +30,7 @@ class GetDocumentResponsibleShard:
     )
 
     async def get_document_responsible_shard(
-        self: Endpoint,
+        self,
         name: str,
         document: Union[str, Json],
         id_prefix: str,

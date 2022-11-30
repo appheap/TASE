@@ -8,7 +8,7 @@ from aioarango.typings import Json, Params, Result
 from aioarango.utils.document_utils import prep_from_doc
 
 
-class ReplaceDocument:
+class ReplaceDocument(Endpoint):
     error_codes = (
         ErrorType.HTTP_CORRUPTED_JSON,
         ErrorType.ARANGO_DOCUMENT_KEY_BAD,
@@ -40,7 +40,7 @@ class ReplaceDocument:
     )
 
     async def replace_document(
-        self: Endpoint,
+        self,
         collection_name: str,
         id_prefix: str,
         document: Union[str, Json],
@@ -167,7 +167,7 @@ class ReplaceDocument:
         )
 
         def response_handler(response: Response) -> Union[bool, Json]:
-            if response.status_code in (400, 404, 409, 412) or not response.is_success:
+            if not response.is_success:
                 raise ArangoServerError(response, request)
 
             # status_code 200, 201 and 202
