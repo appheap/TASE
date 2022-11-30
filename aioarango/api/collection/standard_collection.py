@@ -208,7 +208,7 @@ class StandardCollection(BaseCollection):
         silent : bool, default : False
             If set to True, no document metadata is returned. This can be used to save resources.
         ignore_missing : bool, default : False
-            Do not raise an exception on missing index.
+            Do not raise an exception on missing document.
 
         Returns
         -------
@@ -354,6 +354,8 @@ class StandardCollection(BaseCollection):
             Block until operation is synchronized to disk.
         silent : bool, default : False
             If set to `True`, no document metadata is returned. This can be used to save resources.
+        ignore_missing : bool, default : False
+            Do not raise an exception on missing index.
 
         Returns
         -------

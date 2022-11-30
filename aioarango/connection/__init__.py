@@ -1,6 +1,7 @@
 __all__ = [
     "BaseConnection",
     "BasicConnection",
+    "Connection",
 ]
 
 from typing import Union
