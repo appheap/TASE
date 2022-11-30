@@ -115,6 +115,23 @@ class AQLQueryCache:
         """
         return await self._api.get_aql_cache_entries()
 
+    async def clear(self) -> Result[bool]:
+        """
+        Clear the query results cache for the current database.
+
+
+        Returns
+        -------
+        Result
+            `True` if the query cache was cleared successfully.
+
+        Raises
+        ------
+        aioarango.errors.ArangoServerError
+            If operation fails.
+        """
+        return await self._api.clear_aql_cache_entries()
+
 
 class AQL:
     """
