@@ -4,7 +4,7 @@ from typing import Optional, List
 from aioarango.api import Endpoint
 from aioarango.enums import MethodType
 from aioarango.errors import ArangoServerError, ErrorType
-from aioarango.models import Request, Response, EdgeDefinition, Graph
+from aioarango.models import Request, Response, EdgeDefinition, GraphInfo
 from aioarango.typings import Result, Params
 
 
@@ -112,11 +112,11 @@ class ReplaceEdgeDefinition(Endpoint):
             write=edge_definition.collection,
         )
 
-        def response_handler(response: Response) -> Graph:
+        def response_handler(response: Response) -> GraphInfo:
             if not response.is_success:
                 raise ArangoServerError(response, request)
 
             # status_code 201, 202
-            return Graph.parse_graph_dict(response.body["graph"])
+            return GraphInfo.parse_graph_dict(response.body["graph"])
 
         return await self.execute(request, response_handler)

@@ -1,7 +1,7 @@
 from aioarango.api import Endpoint
 from aioarango.enums import MethodType
 from aioarango.errors import ArangoServerError, ErrorType
-from aioarango.models import Graph, Request, Response
+from aioarango.models import GraphInfo, Request, Response
 from aioarango.typings import Result
 
 
@@ -17,7 +17,7 @@ class GetGraph(Endpoint):
     async def get_graph(
         self,
         name: str,
-    ) -> Result[Graph]:
+    ) -> Result[GraphInfo]:
         """
         Get a graph from the ArangoDB.
 
@@ -47,7 +47,7 @@ class GetGraph(Endpoint):
             endpoint=f"/_api/gharial/{name}",
         )
 
-        def response_handler(response: Response) -> Graph:
+        def response_handler(response: Response) -> GraphInfo:
             if not response.is_success:
                 raise ArangoServerError(response, request)
 
@@ -55,6 +55,6 @@ class GetGraph(Endpoint):
             if "graph" not in response.body:
                 raise ValueError("`name` has invalid value!")
 
-            return Graph.parse_graph_dict(response.body["graph"])
+            return GraphInfo.parse_graph_dict(response.body["graph"])
 
         return await self.execute(request, response_handler)

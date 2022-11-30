@@ -12,7 +12,7 @@ __all__ = [
     "CursorStats",
     "DatabaseInfo",
     "EdgeDefinition",
-    "Graph",
+    "GraphInfo",
     "KeyOptions",
     "QueryOptimizerRuleFlags",
     "QueryOptimizerRule",
@@ -33,7 +33,7 @@ from .computed_value import ComputedValue
 from .cursor_stats import CursorStats
 from .database_info import DatabaseInfo
 from .edge_definition import EdgeDefinition
-from .graph import Graph
+from .graph_info import GraphInfo
 from .key_options import KeyOptions
 from .query_optimizer_rule import QueryOptimizerRuleFlags, QueryOptimizerRule
 from .request import Request

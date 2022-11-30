@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from .edge_definition import EdgeDefinition
 
 
-class Graph(BaseModel):
+class GraphInfo(BaseModel):
     """
     Attributes
     ----------
@@ -67,7 +67,7 @@ class Graph(BaseModel):
     def parse_graph_dict(
         cls,
         graph_body: dict,
-    ) -> Optional[Graph]:
+    ) -> Optional[GraphInfo]:
         graph_dict = {
             "id": graph_body["_id"],
             "key": graph_body["_key"],
@@ -91,4 +91,4 @@ class Graph(BaseModel):
         if "orphanCollections" in graph_body:
             graph_dict["orphan_collections"] = graph_body["orphanCollections"]
 
-        return Graph.parse_obj(graph_dict)
+        return GraphInfo.parse_obj(graph_dict)

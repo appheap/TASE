@@ -4,7 +4,7 @@ from typing import Optional, List
 from aioarango.api import Endpoint
 from aioarango.enums import MethodType
 from aioarango.errors import ArangoServerError, GraphParseError, ErrorType
-from aioarango.models import Request, Response, Graph
+from aioarango.models import Request, Response, GraphInfo
 from aioarango.typings import Result, Json, Params
 
 
@@ -40,10 +40,10 @@ class CreateGraph(Endpoint):
 
     async def create_graph(
         self,
-        graph: Graph,
+        graph: GraphInfo,
         satellites: Optional[List[str]] = None,
         wait_for_sync: Optional[bool] = None,
-    ) -> Result[Graph]:
+    ) -> Result[GraphInfo]:
         """
         Create a graph.
 
@@ -53,7 +53,7 @@ class CreateGraph(Endpoint):
 
         Parameters
         ----------
-        graph : Graph
+        graph : GraphInfo
             Graph object used to create the graph in the ArangoDB.
         satellites : list of str, optional
             An array of collection names that will be used to create SatelliteCollections
@@ -134,11 +134,11 @@ class CreateGraph(Endpoint):
             params=params,
         )
 
-        def response_handler(response: Response) -> Graph:
+        def response_handler(response: Response) -> GraphInfo:
             if not response.is_success:
                 raise ArangoServerError(response, request)
 
             # status_code 201, 202
-            return Graph.parse_graph_dict(response.body["graph"])
+            return GraphInfo.parse_graph_dict(response.body["graph"])
 
         return await self.execute(request, response_handler)

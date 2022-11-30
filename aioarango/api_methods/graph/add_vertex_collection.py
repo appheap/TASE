@@ -3,7 +3,7 @@ from typing import List, Optional
 from aioarango.api import Endpoint
 from aioarango.enums import MethodType
 from aioarango.errors import ArangoServerError, ErrorType
-from aioarango.models import Request, Response, Graph
+from aioarango.models import Request, Response, GraphInfo
 from aioarango.typings import Result
 
 
@@ -37,7 +37,7 @@ class AddVertexCollection(Endpoint):
         graph_name: str,
         name: str,
         satellites: Optional[List[str]] = None,
-    ) -> Result[Graph]:
+    ) -> Result[GraphInfo]:
         """
         Adds a vertex collection to the set of orphan collections of the graph.
         If the collection does not exist, it will be created.
@@ -91,6 +91,6 @@ class AddVertexCollection(Endpoint):
                 raise ArangoServerError(response, request)
 
             # status_code 201, 202
-            return Graph.parse_graph_dict(response.body["graph"])
+            return GraphInfo.parse_graph_dict(response.body["graph"])
 
         return await self.execute(request, response_handler)

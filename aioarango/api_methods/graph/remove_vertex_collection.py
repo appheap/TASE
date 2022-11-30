@@ -3,7 +3,7 @@ from typing import Optional
 from aioarango.api import Endpoint
 from aioarango.enums import MethodType
 from aioarango.errors import ArangoServerError, ErrorType
-from aioarango.models import Graph, Response, Request
+from aioarango.models import GraphInfo, Response, Request
 from aioarango.typings import Result
 
 
@@ -34,7 +34,7 @@ class RemoveVertexCollection(Endpoint):
         graph_name: str,
         name: str,
         drop_collection: Optional[bool] = None,
-    ) -> Result[Graph]:
+    ) -> Result[GraphInfo]:
         """
         Remove a vertex collection from the graph and optionally **delete** the collection, if it is not used in any other graph.
         It can only remove vertex collections that are no longer part of edge definitions,
@@ -75,11 +75,11 @@ class RemoveVertexCollection(Endpoint):
             write=name,
         )
 
-        def response_handler(response: Response) -> Graph:
+        def response_handler(response: Response) -> GraphInfo:
             if not response.is_success:
                 raise ArangoServerError(response, request)
 
             # status_code 200, 202
-            return Graph.parse_graph_dict(response.body["graph"])
+            return GraphInfo.parse_graph_dict(response.body["graph"])
 
         return await self.execute(request, response_handler)

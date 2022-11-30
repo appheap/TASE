@@ -3,7 +3,7 @@ from typing import Optional
 from aioarango.api import Endpoint
 from aioarango.enums import MethodType
 from aioarango.errors import ArangoServerError, ErrorType
-from aioarango.models import Request, Response, Graph
+from aioarango.models import Request, Response, GraphInfo
 from aioarango.typings import Result, Params
 
 
@@ -32,7 +32,7 @@ class RemoveEdgeDefinition(Endpoint):
         name: str,
         drop_collections: Optional[bool] = None,
         wait_for_sync: Optional[bool] = None,
-    ) -> Result[Graph]:
+    ) -> Result[GraphInfo]:
         """
         Remove one edge definition from the graph. This will only remove the
         edge collection, the vertex collections remain untouched and can still
@@ -82,10 +82,10 @@ class RemoveEdgeDefinition(Endpoint):
             write=name,
         )
 
-        def response_handler(response: Response) -> Graph:
+        def response_handler(response: Response) -> GraphInfo:
             if not response.is_success:
                 raise ArangoServerError(response, request)
 
-            return Graph.parse_graph_dict(response.body["graph"])
+            return GraphInfo.parse_graph_dict(response.body["graph"])
 
         return await self.execute(request, response_handler)

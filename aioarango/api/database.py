@@ -2,12 +2,13 @@ from typing import Optional, List, Sequence, Union
 
 from .aql import AQL
 from .collection import StandardCollection
+from .graph import Graph
 from ..api_methods import APIMethods
 from ..connection import Connection
 from ..enums import ShardingMethod, CollectionType, KeyOptionsType, ShardingStrategy
 from ..errors import ArangoServerError, ErrorType
 from ..executor import API_Executor
-from ..models import ArangoCollection, User, ComputedValue
+from ..models import ArangoCollection, User, ComputedValue, GraphInfo
 from ..models.key_options_input import KeyOptionsInput
 from ..typings import Result, Json
 
@@ -38,6 +39,7 @@ class Database:
     #######################
     # Database Management #
     #######################
+
     async def databases(self) -> Result[List[str]]:
         """
         Return the names of all databases.
@@ -462,3 +464,189 @@ class Database:
     ####################
     # Graph Management #
     ####################
+
+    def graph(
+        self,
+        name: str,
+    ) -> Graph:
+        """
+        Return the graph API wrapper.
+
+        Parameters
+        ----------
+        name : str
+            Graph name.
+
+        Returns
+        -------
+        Graph
+            Graph API wrapper.
+
+        """
+        return Graph(
+            connection=self._connection,
+            executor=self._executor,
+            name=name,
+        )
+
+    async def has_graph(
+        self,
+        name: str,
+    ) -> Result[bool]:
+        """
+        Check if a graph exists in the database.
+
+        Parameters
+        ----------
+        name : str
+            Graph name to check.
+
+        Returns
+        -------
+        bool
+            True if graph exists, False otherwise.
+
+        Raises
+        ------
+        aioarango.errors.ArangoServerError
+            If operation fails.
+        """
+        return name in await self._api.list_all_graphs()
+
+    async def graphs(self) -> Result[List[GraphInfo]]:
+        """
+        List all graphs in the database.
+
+        Returns
+        -------
+        list
+            Graphs in the database.
+
+        Raises
+        ------
+        aioarango.errors.ArangoServerError
+            If operation fails.
+        """
+        return await self._api.list_all_graphs()
+
+    async def create_graph(
+        self,
+        graph: GraphInfo,
+        satellites: Optional[List[str]] = None,
+        wait_for_sync: Optional[bool] = None,
+    ) -> Result[Graph]:
+        """
+        Create a graph.
+
+        Notes
+        -----
+        - The **id**, **key** and the **rev** attributes of the input graph object must should not be set.
+
+        Parameters
+        ----------
+        graph : GraphInfo
+            Graph object used to create the graph in the ArangoDB.
+        satellites : list of str, optional
+            An array of collection names that will be used to create SatelliteCollections
+            for a Hybrid (Disjoint) SmartGraph (Enterprise Edition only). Each array element
+            must be a string and a valid collection name. The collection type cannot be modified later.
+        wait_for_sync : bool, optional
+            Block until operation is synchronized to disk.
+
+        Returns
+        -------
+        Graph
+            Graph API wrapper.
+
+        Raises
+        ------
+        aioarango.errors.GraphParseError
+            If graph input object cannot be parsed.
+        aioarango.errors.ArangoServerError
+            If create fails.
+        """
+        response = await self._api.create_graph(
+            graph=graph,
+            satellites=satellites,
+            wait_for_sync=wait_for_sync,
+        )
+
+        return Graph(
+            connection=self._connection,
+            executor=self._executor,
+            name=response.name,
+        )
+
+    async def delete_graph(
+        self,
+        name: str,
+        drop_collections: Optional[bool] = None,
+        ignore_missing: Optional[bool] = False,
+    ) -> Result[bool]:
+        """
+        Drop graph of the given name from the database.
+
+        Parameters
+        ----------
+        name : str
+            Graph name to drop.
+        drop_collections : bool, optional
+            Drop collections of this graph as well. Collections will only be dropped if they are not used in other graphs.
+        ignore_missing : bool, default : False
+            Do not raise an exception on missing graph.
+
+        Returns
+        -------
+        bool
+            True if graph was deleted successfully, False if graph was not
+            found and **ignore_missing** was set to True.
+
+        Raises
+        ------
+        aioarango.errors.ArangoServerError
+            If delete fails.
+        """
+        try:
+            response = await self._api.drop_graph(
+                name=name,
+                drop_collections=drop_collections,
+            )
+        except ArangoServerError as e:
+            if e.arango_error.type == ErrorType.GRAPH_NOT_FOUND and ignore_missing:
+                return False
+
+            raise e
+        else:
+            return response
+
+    #######################
+    # Document Management #
+    #######################
+
+    ###################
+    # Task Management #
+    ###################
+
+    ###################
+    # User Management #
+    ###################
+
+    #########################
+    # Permission Management #
+    #########################
+
+    ########################
+    # Async Job Management #
+    ########################
+
+    ###################
+    # View Management #
+    ###################
+
+    ################################
+    # ArangoSearch View Management #
+    ################################
+
+    #######################
+    # Analyzer Management #
+    #######################

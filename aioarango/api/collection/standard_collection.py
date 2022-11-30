@@ -4,8 +4,7 @@ from .base_collection import BaseCollection
 from ...api_methods import DocumentsMethods
 from ...connection import Connection
 from ...enums import OverwriteMode
-from ...errors import ArangoServerError, ErrorType
-from ...errors.server import DocumentRevisionMisMatchError, DocumentRevisionMatchError, CollectionUniqueConstraintViolated
+from ...errors import ArangoServerError, ErrorType, DocumentRevisionMisMatchError, DocumentRevisionMatchError, CollectionUniqueConstraintViolated
 from ...executor import API_Executor
 from ...typings import Json, Result
 
@@ -73,9 +72,9 @@ class StandardCollection(BaseCollection):
         ------
         aioarango.errors.DocumentParseError
             If `key` and `ID` are missing from the document body, or if collection name is invalid.
-        aioarango.errors.server.DocumentRevisionMisMatchError
+        aioarango.errors.DocumentRevisionMisMatchError
             If revisions mismatch.
-        aioarango.errors.server.DocumentRevisionMatchError
+        aioarango.errors.DocumentRevisionMatchError
             If revisions match.
         aioarango.errors.ArangoServerError
             If retrieval fails.
@@ -147,7 +146,7 @@ class StandardCollection(BaseCollection):
         ------
         aioarango.errors.DocumentParseError
             If `key` and `ID` are missing from the document body.
-        aioarango.errors.server.CollectionUniqueConstraintViolated
+        aioarango.errors.CollectionUniqueConstraintViolated
             If a unique constraint of the collection is violated.
         aioarango.errors.ArangoServerError
             If insert fails.
@@ -220,9 +219,9 @@ class StandardCollection(BaseCollection):
         ------
         aioarango.errors.DocumentParseError
             If `key` and `ID` are missing from the document body.
-        aioarango.errors.server.DocumentRevisionMisMatchError
+        aioarango.errors.DocumentRevisionMisMatchError
             If revisions mismatch.
-        aioarango.errors.server.CollectionUniqueConstraintViolated
+        aioarango.errors.CollectionUniqueConstraintViolated
             If a unique constraint of the collection is violated.
         aioarango.errors.ArangoServerError
             If update fails.
@@ -295,9 +294,9 @@ class StandardCollection(BaseCollection):
         ------
         aioarango.errors.DocumentParseError
             If `key` and `ID` are missing from the document body.
-        aioarango.errors.server.DocumentRevisionMisMatchError
+        aioarango.errors.DocumentRevisionMisMatchError
             If revisions mismatch.
-        aioarango.errors.server.CollectionUniqueConstraintViolated
+        aioarango.errors.CollectionUniqueConstraintViolated
             If a unique constraint of the collection is violated.
         aioarango.errors.ArangoServerError
             If replace fails.
@@ -366,7 +365,7 @@ class StandardCollection(BaseCollection):
         ------
         aioarango.errors.DocumentParseError
             If `key` and `ID` are missing from the document body, or if collection name is invalid.
-        aioarango.errors.server.DocumentRevisionMisMatchError
+        aioarango.errors.DocumentRevisionMisMatchError
             If revisions mismatch.
         aioarango.errors.ArangoServerError
             If remove fails.
