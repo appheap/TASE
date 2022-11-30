@@ -5,10 +5,10 @@ from typing import Callable, Union, Sequence, List, Optional
 
 import aiohttp
 
+from aioarango.api import StandardDatabase
 from aioarango.connection import BasicConnection
 from aioarango.enums import HostResolverType, ConnectionType
 from aioarango.errors import ServerConnectionError
-from aioarango.executor import DefaultAPIExecutor
 from aioarango.http_client import HTTPClient, DefaultHTTPClient
 from aioarango.resolver import HostResolver, SingleHostResolver, RandomHostResolver, RoundRobinHostResolver
 
@@ -88,7 +88,7 @@ class ArangoClient:
         connection_type: ConnectionType = ConnectionType.BASIC,
         verify: bool = True,
         superuser_token: Optional[str] = None,
-    ):
+    ) -> StandardDatabase:
         if connection_type == ConnectionType.BASIC:
             connection = BasicConnection(
                 hosts=self.hosts,
@@ -112,9 +112,4 @@ class ArangoClient:
             except Exception as err:
                 raise ServerConnectionError(f"bad connection: {err}")
 
-        from aioarango.api import Database
-
-        return Database(
-            connection=connection,
-            executor=DefaultAPIExecutor(connection=connection),
-        )
+        return StandardDatabase(connection=connection)

@@ -1,16 +1,16 @@
 from typing import Optional, List, Sequence, Union
 
-from .aql import AQL
-from .collection import StandardCollection
-from .graph import Graph
-from ..api_methods import APIMethods
-from ..connection import Connection
-from ..enums import ShardingMethod, CollectionType, KeyOptionsType, ShardingStrategy
-from ..errors import ArangoServerError, ErrorType
-from ..executor import API_Executor
-from ..models import ArangoCollection, User, ComputedValue, GraphInfo
-from ..models.key_options_input import KeyOptionsInput
-from ..typings import Result, Json
+from aioarango.api.aql import AQL
+from aioarango.api.collection import StandardCollection
+from aioarango.api.graph import Graph
+from aioarango.api_methods import APIMethods
+from aioarango.connection import Connection
+from aioarango.enums import ShardingMethod, CollectionType, KeyOptionsType, ShardingStrategy
+from aioarango.errors import ArangoServerError, ErrorType
+from aioarango.executor import API_Executor
+from aioarango.models import ArangoCollection, User, ComputedValue, GraphInfo
+from aioarango.models.key_options_input import KeyOptionsInput
+from aioarango.typings import Result, Json
 
 
 class Database:
@@ -31,6 +31,19 @@ class Database:
         self._executor = executor
 
         self._api = APIMethods(connection, executor)
+
+    @property
+    def name(self) -> str:
+        """
+        Return the name of the current database.
+
+        Returns
+        -------
+        str
+            Database name.
+
+        """
+        return self._connection.db_name
 
     @property
     def aql(self) -> AQL:
