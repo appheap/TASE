@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import collections
-from typing import Optional, Tuple, Generator, TYPE_CHECKING, List
+from typing import Optional, Tuple, TYPE_CHECKING, List, Deque
 
 from pydantic import Field
 
+from aioarango.models import PersistentIndex
 from tase.common.utils import generate_token_urlsafe, prettify, get_now_timestamp
 from tase.errors import (
     PlaylistDoesNotExists,
@@ -20,7 +21,6 @@ from tase.my_logger import logger
 from . import Audio
 from .base_vertex import BaseVertex
 from .user import User
-from ...base.index import PersistentIndex
 
 if TYPE_CHECKING:
     from .. import ArangoGraphMethods
@@ -33,14 +33,14 @@ class Playlist(BaseVertex, BaseSoftDeletableDocument):
     schema_version = 1
     _extra_indexes = [
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="rank",
             fields=[
                 "rank",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="is_favorite",
             fields=[
                 "is_favorite",
@@ -56,7 +56,7 @@ class Playlist(BaseVertex, BaseSoftDeletableDocument):
     rank: int
     is_favorite: bool = Field(default=False)
 
-    def update_title(
+    async def update_title(
         self,
         title: str,
     ) -> bool:
@@ -78,9 +78,9 @@ class Playlist(BaseVertex, BaseSoftDeletableDocument):
 
         self_copy = self.copy(deep=True)
         self_copy.title = title
-        return self.update(self_copy, reserve_non_updatable_fields=False)
+        return await self.update(self_copy, reserve_non_updatable_fields=False)
 
-    def update_description(
+    async def update_description(
         self,
         description: str,
     ) -> bool:
@@ -102,7 +102,7 @@ class Playlist(BaseVertex, BaseSoftDeletableDocument):
 
         self_copy = self.copy(deep=True)
         self_copy.description = description
-        return self.update(self_copy, reserve_non_updatable_fields=False)
+        return await self.update(self_copy, reserve_non_updatable_fields=False)
 
 
 class PlaylistMethods:
@@ -188,7 +188,7 @@ class PlaylistMethods:
         "       return true"
     )
 
-    def get_user_playlist_by_title(
+    async def get_user_playlist_by_title(
         self,
         user: User,
         title: str,
@@ -216,7 +216,7 @@ class PlaylistMethods:
 
         from tase.db.arangodb.graph.edges import Has
 
-        cursor = Playlist.execute_query(
+        async with await Playlist.execute_query(
             self._get_user_playlist_by_title_query,
             bind_vars={
                 "start_vertex": user.id,
@@ -225,13 +225,13 @@ class PlaylistMethods:
                 "filter_out": filter_out_soft_deleted,
                 "title": title,
             },
-        )
-        if cursor is not None:
-            return Playlist.from_collection(cursor.pop())
+        ) as cursor:
+            async for doc in cursor:
+                return Playlist.from_collection(doc)
 
         return None
 
-    def get_user_playlist_by_key(
+    async def get_user_playlist_by_key(
         self,
         user: User,
         key: str,
@@ -259,7 +259,7 @@ class PlaylistMethods:
 
         from tase.db.arangodb.graph.edges import Has
 
-        cursor = Playlist.execute_query(
+        async with await Playlist.execute_query(
             self._get_user_playlist_by_key_query,
             bind_vars={
                 "start_vertex": user.id,
@@ -268,13 +268,13 @@ class PlaylistMethods:
                 "filter_out": filter_out_soft_deleted,
                 "key": key,
             },
-        )
-        if cursor is not None:
-            return Playlist.from_collection(cursor.pop())
+        ) as cursor:
+            async for doc in cursor:
+                return Playlist.from_collection(doc)
 
         return None
 
-    def get_user_favorite_playlist(
+    async def get_user_favorite_playlist(
         self,
         user: User,
     ) -> Optional[Playlist]:
@@ -297,7 +297,7 @@ class PlaylistMethods:
 
         from tase.db.arangodb.graph.edges import Has
 
-        cursor = Playlist.execute_query(
+        async with await Playlist.execute_query(
             self._get_user_favorite_playlist_query,
             bind_vars={
                 "start_vertex": user.id,
@@ -305,12 +305,13 @@ class PlaylistMethods:
                 "playlists": Playlist._collection_name,
                 "is_favorite": True,
             },
-        )
-        if cursor is not None:
-            return Playlist.from_collection(cursor.pop())
+        ) as cursor:
+            async for doc in cursor:
+                return Playlist.from_collection(doc)
+
         return None
 
-    def create_playlist(
+    async def create_playlist(
         self,
         user: User,
         title: str,
@@ -344,7 +345,7 @@ class PlaylistMethods:
         # making sure of the `key` uniqueness
         while True:
             key = generate_token_urlsafe(10)
-            key_exists = Playlist.has(key)
+            key_exists = await Playlist.has(key)
             if key_exists is not None and not key_exists:
                 break
 
@@ -359,16 +360,16 @@ class PlaylistMethods:
             rank=1 if is_favorite else 2,
         )
 
-        playlist, successful = Playlist.insert(v)
+        playlist, successful = await Playlist.insert(v)
 
         if playlist and successful:
             try:
                 from tase.db.arangodb.graph.edges import Has
 
-                has_edge = Has.get_or_create_edge(user, playlist)
+                has_edge = await Has.get_or_create_edge(user, playlist)
             except (InvalidFromVertex, InvalidToVertex):
                 # todo: could not create the has_edge, abort the transaction
-                deleted = playlist.delete()
+                deleted = await playlist.delete()
                 if not deleted:
                     # todo: could not delete the playlist, what now?
                     logger.error(f"Could not delete playlist: {prettify(playlist)}")
@@ -377,7 +378,7 @@ class PlaylistMethods:
 
         return playlist
 
-    def get_or_create_playlist(
+    async def get_or_create_playlist(
         self,
         user: User,
         title: str,
@@ -408,7 +409,7 @@ class PlaylistMethods:
 
         if is_favorite:
             # check if there is a favorite playlist already, one favorite playlist is allowed per user
-            user_fav_playlist = self.get_user_favorite_playlist(user)
+            user_fav_playlist = await self.get_user_favorite_playlist(user)
             if user_fav_playlist:
                 # the user has a favorite playlist already
                 return user_fav_playlist
@@ -419,13 +420,13 @@ class PlaylistMethods:
                 return None
 
         # only check the playlists that haven't been soft-deleted.
-        playlist = self.get_user_playlist_by_title(user, title, filter_out_soft_deleted=True)
+        playlist = await self.get_user_playlist_by_title(user, title, filter_out_soft_deleted=True)
         if playlist:
             return playlist
 
-        return self.create_playlist(user, title, description, is_favorite)
+        return await self.create_playlist(user, title, description, is_favorite)
 
-    def create_favorite_playlist(
+    async def create_favorite_playlist(
         self,
         user: User,
     ) -> Optional[Playlist]:
@@ -443,14 +444,14 @@ class PlaylistMethods:
             Favorite `Playlist` of the `user` if the operation was successful, return `None` otherwise.
 
         """
-        return self.get_or_create_playlist(
+        return await self.get_or_create_playlist(
             user,
             title="Favorite",
             description="Favorite Playlist",
             is_favorite=True,
         )
 
-    def get_or_create_favorite_playlist(
+    async def get_or_create_favorite_playlist(
         self,
         user: User,
     ) -> Optional[Playlist]:
@@ -468,13 +469,13 @@ class PlaylistMethods:
             Retrieved/Created `Playlist` for the given `User`, return `None` if the operation wasn't successful.
 
         """
-        playlist = self.get_user_favorite_playlist(user)
+        playlist = await self.get_user_favorite_playlist(user)
         if playlist is None:
-            playlist = self.create_favorite_playlist(user)
+            playlist = await self.create_favorite_playlist(user)
 
         return playlist
 
-    def remove_playlist(
+    async def remove_playlist(
         self,
         user: User,
         playlist_key: str,
@@ -506,7 +507,7 @@ class PlaylistMethods:
         if user is None or playlist_key is None or deleted_at is None:
             return False
 
-        playlist = Playlist.get(playlist_key)
+        playlist = await Playlist.get(playlist_key)
         if not playlist:
             raise PlaylistDoesNotExists(user.key, playlist_key)
 
@@ -514,17 +515,17 @@ class PlaylistMethods:
         from tase.db.arangodb.graph.edges import Has
         from tase.db.arangodb.graph.edges import Had
 
-        has_edge: Has = Has.get(Has.parse_key(user, playlist))
+        has_edge: Has = await Has.get(Has.parse_key(user, playlist))
         if has_edge:
             try:
-                had_edge = Had.get_or_create_edge(user, playlist, has=has_edge, deleted_at=deleted_at)
+                had_edge = await Had.get_or_create_edge(user, playlist, has=has_edge, deleted_at=deleted_at)
             except (InvalidFromVertex, InvalidToVertex):
                 # fixme: check if the user or playlist are listed in had edge ends.
                 pass
             else:
                 if had_edge:
-                    is_has_deleted = has_edge.delete()
-                    is_playlist_deleted = playlist.delete(
+                    is_has_deleted = await has_edge.delete()
+                    is_playlist_deleted = await playlist.delete(
                         soft_delete=True,
                         is_exact_date=True,
                         deleted_at=deleted_at,
@@ -541,7 +542,7 @@ class PlaylistMethods:
 
         return False
 
-    def get_user_playlists(
+    async def get_user_playlists(
         self,
         user: User,
         offset: int = 0,
@@ -570,7 +571,8 @@ class PlaylistMethods:
 
         from tase.db.arangodb.graph.edges import Has
 
-        cursor = Playlist.execute_query(
+        res = collections.deque()
+        async with await Playlist.execute_query(
             self._get_user_playlists_query,
             bind_vars={
                 "start_vertex": user.id,
@@ -579,15 +581,13 @@ class PlaylistMethods:
                 "offset": offset,
                 "limit": limit,
             },
-        )
-        res = collections.deque()
-        if cursor is not None and len(cursor):
-            for doc in cursor:
+        ) as cursor:
+            async for doc in cursor:
                 res.append(Playlist.from_collection(doc))
 
         return list(res)
 
-    def get_user_valid_playlists(
+    async def get_user_valid_playlists(
         self,
         user: User,
         playlist_capacity: int = 200,
@@ -619,7 +619,8 @@ class PlaylistMethods:
 
         from tase.db.arangodb.graph.edges import Has
 
-        cursor = Playlist.execute_query(
+        res = collections.deque()
+        async with await Playlist.execute_query(
             self._get_user_valid_playlists_query,
             bind_vars={
                 "start_vertex": user.id,
@@ -630,15 +631,13 @@ class PlaylistMethods:
                 "offset": offset,
                 "limit": limit,
             },
-        )
-        res = collections.deque()
-        if cursor is not None and len(cursor):
-            for doc in cursor:
+        ) as cursor:
+            async for doc in cursor:
                 res.append(Playlist.from_collection(doc))
 
         return list(res)
 
-    def get_user_playlists_count(
+    async def get_user_playlists_count(
         self,
         user: User,
     ) -> int:
@@ -661,20 +660,20 @@ class PlaylistMethods:
 
         from tase.db.arangodb.graph.edges import Has
 
-        cursor = Playlist.execute_query(
+        async with await Playlist.execute_query(
             self._get_user_playlists_count_query,
             bind_vars={
                 "start_vertex": user.id,
                 "has": Has._collection_name,
                 "playlists": Playlist._collection_name,
             },
-        )
-        if cursor is not None and len(cursor):
-            return cursor.pop()
+        ) as cursor:
+            async for doc in cursor:
+                return doc
 
         return 0
 
-    def _get_playlist_and_audio(
+    async def _get_playlist_and_audio(
         self: ArangoGraphMethods,
         user: User,
         hit_download_url: str,
@@ -708,22 +707,22 @@ class PlaylistMethods:
         InvalidAudioForInlineMode
             If `Audio` vertex is not valid for inline mode
         """
-        playlist = self.get_user_playlist_by_key(user, playlist_key, filter_out_soft_deleted=True)
+        playlist = await self.get_user_playlist_by_key(user, playlist_key, filter_out_soft_deleted=True)
         if playlist is None:
             raise PlaylistDoesNotExists(user.key, playlist_key)
 
-        hit = self.find_hit_by_download_url(hit_download_url)
+        hit = await self.find_hit_by_download_url(hit_download_url)
         if hit is None:
             raise HitDoesNotExists(hit_download_url)
 
-        audio = self.get_audio_from_hit(hit)
+        audio = await self.get_audio_from_hit(hit)
         if audio is None:
             raise HitNoLinkedAudio(hit_download_url)
         if audio.audio_type != TelegramAudioType.AUDIO_FILE:
             raise InvalidAudioForInlineMode(audio.key)
         return playlist, audio
 
-    def add_audio_to_playlist(
+    async def add_audio_to_playlist(
         self: ArangoGraphMethods,
         user: User,
         playlist_key: str,
@@ -760,17 +759,17 @@ class PlaylistMethods:
         if user is None or playlist_key is None or hit_download_url is None:
             return False, False
 
-        playlist, audio = self._get_playlist_and_audio(user, hit_download_url, playlist_key)
+        playlist, audio = await self._get_playlist_and_audio(user, hit_download_url, playlist_key)
 
         from tase.db.arangodb.graph.edges import Has
 
-        has_edge = Has.get(Has.parse_key(playlist, audio))
+        has_edge = await Has.get(Has.parse_key(playlist, audio))
         if has_edge is not None:
             # Audio is already on the playlist
             return True, False
         else:
             try:
-                has_edge = Has.get_or_create_edge(playlist, audio)
+                has_edge = await Has.get_or_create_edge(playlist, audio)
             except (InvalidFromVertex, InvalidToVertex):
                 logger.error("ValueError: Could not create the `has` from `Playlist` vertex to `Audio` vertex")
                 return False, False
@@ -780,7 +779,7 @@ class PlaylistMethods:
                 else:
                     return False, False
 
-    def remove_audio_from_playlist(
+    async def remove_audio_from_playlist(
         self: ArangoGraphMethods,
         user: User,
         playlist_key: str,
@@ -824,20 +823,20 @@ class PlaylistMethods:
         if user is None or playlist_key is None or hit_download_url is None:
             return False, False
 
-        playlist, audio = self._get_playlist_and_audio(user, hit_download_url, playlist_key)
+        playlist, audio = await self._get_playlist_and_audio(user, hit_download_url, playlist_key)
 
         from tase.db.arangodb.graph.edges import Has
         from tase.db.arangodb.graph.edges import Had
 
-        has_edge = Has.get(Has.parse_key(playlist, audio))
+        has_edge = await Has.get(Has.parse_key(playlist, audio))
         if has_edge is not None:
             # Audio is already on the playlist
-            deleted = has_edge.delete()
+            deleted = await has_edge.delete()
             if not deleted:
                 raise EdgeDeletionFailed(Has.__class__.__name__)
 
             try:
-                had_edge = Had.get_or_create_edge(playlist, audio, has=has_edge, deleted_at=remove_timestamp)
+                had_edge = await Had.get_or_create_edge(playlist, audio, has=has_edge, deleted_at=remove_timestamp)
             except (InvalidFromVertex, InvalidToVertex):
                 logger.error("ValueError: Could not create the `had` from `Playlist` vertex to `Audio` vertex")
                 return False, False
@@ -850,14 +849,14 @@ class PlaylistMethods:
             # Audio does not belong to the playlist
             return True, False
 
-    def get_playlist_audios(
+    async def get_playlist_audios(
         self: ArangoGraphMethods,
         user: User,
         playlist_key: str,
         filter_by_valid_for_inline_search: bool = True,
         offset: int = 0,
         limit: int = 15,
-    ) -> Generator[Audio, None, None]:
+    ) -> Deque[Audio]:
         """
         Get `Playlist` audios.
 
@@ -874,9 +873,9 @@ class PlaylistMethods:
         limit : int, default : 15
             Number of `Audio`s to query
 
-        Yields
+        Returns
         -------
-        Audio
+        deque
             Audios that belong to the given playlist
 
         Raises
@@ -885,15 +884,16 @@ class PlaylistMethods:
             If user does not have a playlist with the given playlist_key
         """
         if user is None:
-            return None
+            return collections.deque()
 
-        playlist = self.get_user_playlist_by_key(user, playlist_key, filter_out_soft_deleted=True)
+        playlist = await self.get_user_playlist_by_key(user, playlist_key, filter_out_soft_deleted=True)
         if playlist is None:
             raise PlaylistDoesNotExists(user.key, playlist_key)
 
         from tase.db.arangodb.graph.edges import Has
 
-        cursor = Audio.execute_query(
+        res = collections.deque()
+        async with await Audio.execute_query(
             self._get_playlist_audios_for_inline_query if filter_by_valid_for_inline_search else self._get_playlist_audios_query,
             bind_vars={
                 "start_vertex": playlist.id,
@@ -902,18 +902,19 @@ class PlaylistMethods:
                 "offset": offset,
                 "limit": limit,
             },
-        )
-        if cursor is not None and len(cursor):
-            for doc in cursor:
-                yield Audio.from_collection(doc)
+        ) as cursor:
+            async for doc in cursor:
+                res.append(Audio.from_collection(doc))
 
-    def get_audio_playlists(
+        return res
+
+    async def get_audio_playlists(
         self: ArangoGraphMethods,
         user: User,
         hit_download_url: str,
         offset: int = 0,
         limit: int = 15,
-    ) -> Generator[Audio, None, None]:
+    ) -> Deque[Playlist]:
         """
         Get Playlists of a user that an audio belongs to.
 
@@ -930,7 +931,7 @@ class PlaylistMethods:
 
         Returns
         -------
-        Playlist
+        deque
             Playlists that contain the Audio
 
         Raises
@@ -940,16 +941,17 @@ class PlaylistMethods:
 
         """
         if user is None:
-            return None
+            return collections.deque()
 
-        hit = self.find_hit_by_download_url(hit_download_url)
-        audio = self.get_audio_from_hit(hit)
+        hit = await self.find_hit_by_download_url(hit_download_url)
+        audio = await self.get_audio_from_hit(hit)
         if audio is None:
             raise HitNoLinkedAudio(hit_download_url)
 
         from tase.db.arangodb.graph.edges import Has
 
-        cursor = Playlist.execute_query(
+        res = collections.deque()
+        async with await Playlist.execute_query(
             self._get_audio_playlists_query,
             bind_vars={
                 "start_vertex": audio.id,
@@ -959,12 +961,13 @@ class PlaylistMethods:
                 "offset": offset,
                 "limit": limit,
             },
-        )
-        if cursor is not None and len(cursor):
-            for doc in cursor:
-                yield Playlist.from_collection(doc)
+        ) as cursor:
+            async for doc in cursor:
+                res.append(Playlist.from_collection(doc))
 
-    def audio_in_favorite_playlist(
+        return res
+
+    async def audio_in_favorite_playlist(
         self: ArangoGraphMethods,
         user: User,
         *,
@@ -1005,15 +1008,15 @@ class PlaylistMethods:
             return None
 
         if hit_download_url is not None:
-            hit = self.find_hit_by_download_url(hit_download_url)
+            hit = await self.find_hit_by_download_url(hit_download_url)
             if hit is None:
                 raise HitDoesNotExists(hit_download_url)
 
-            audio = self.get_audio_from_hit(hit)
+            audio = await self.get_audio_from_hit(hit)
             if audio is None:
                 raise HitNoLinkedAudio(hit_download_url)
         else:
-            audio = self.get_audio_by_key(audio_vertex_key)
+            audio = await self.get_audio_by_key(audio_vertex_key)
             if audio is None:
                 raise AudioVertexDoesNotExist(audio_vertex_key)
 
@@ -1022,7 +1025,7 @@ class PlaylistMethods:
 
         from tase.db.arangodb.graph.edges import Has
 
-        cursor = Playlist.execute_query(
+        cursor = await Playlist.execute_query(
             self._audio_in_favorite_playlist_query,
             bind_vars={
                 "user_id": user.id,
@@ -1035,7 +1038,7 @@ class PlaylistMethods:
 
         return True if cursor is not None and len(cursor) else False
 
-    def toggle_favorite_playlist(
+    async def toggle_favorite_playlist(
         self,
         user: User,
         hit_download_url: str,
@@ -1059,11 +1062,11 @@ class PlaylistMethods:
         if user is None:
             return (False, False), False
 
-        fav_playlist = self.get_or_create_favorite_playlist(user)
+        fav_playlist = await self.get_or_create_favorite_playlist(user)
         if fav_playlist is None:
             return (True, False), False
 
-        in_fav_playlist = self.audio_in_favorite_playlist(
+        in_fav_playlist = await self.audio_in_favorite_playlist(
             user,
             hit_download_url=hit_download_url,
         )
@@ -1072,7 +1075,7 @@ class PlaylistMethods:
 
         if not in_fav_playlist:
             return (
-                self.add_audio_to_playlist(
+                await self.add_audio_to_playlist(
                     user,
                     fav_playlist.key,
                     hit_download_url,
@@ -1082,7 +1085,7 @@ class PlaylistMethods:
         else:
             remove_timestamp = get_now_timestamp()
             return (
-                self.remove_audio_from_playlist(
+                await self.remove_audio_from_playlist(
                     user,
                     fav_playlist.key,
                     hit_download_url,

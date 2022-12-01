@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import collections
-from typing import Optional, TYPE_CHECKING, List
+from typing import Optional, TYPE_CHECKING, List, Deque
 
-from tase.common.utils import generate_token_urlsafe, sync_timed
+from aioarango.models import PersistentIndex
+from tase.common.utils import generate_token_urlsafe, sync_timed, async_timed
 from tase.db.helpers import SearchMetaData
 from tase.errors import InvalidFromVertex, InvalidToVertex, EdgeCreationFailed
 from tase.my_logger import logger
-from ...base.index import PersistentIndex
 from ...helpers import HitCount
 
 if TYPE_CHECKING:
@@ -25,35 +25,35 @@ class Hit(BaseVertex):
     schema_version = 1
     _extra_indexes = [
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="rank",
             fields=[
                 "rank",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="score",
             fields=[
                 "score",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="query_date",
             fields=[
                 "query_date",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="hit_type",
             fields=[
                 "hit_type",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="download_url",
             fields=[
                 "download_url",
@@ -114,24 +114,24 @@ class HitMethods:
         "   return {audio_key, hit_type, count_}"
     )
 
-    @sync_timed
-    def generate_hit_download_urls(
+    @async_timed()
+    async def generate_hit_download_urls(
         self,
         size: int = 10,
-    ) -> List[str]:
+    ) -> Deque[str]:
         hits = collections.deque()
         for i in range(size):
             while True:
                 url = generate_token_urlsafe()
-                if url in hits or self.find_hit_by_download_url(url) or not len(url):
+                if url in hits or await self.find_hit_by_download_url(url) or not len(url):
                     continue
                 else:
                     hits.append(url)
                     break
 
-        return list(hits)
+        return hits
 
-    def create_hit(
+    async def create_hit(
         self: ArangoGraphMethods,
         query: Query,
         audio: Audio,
@@ -171,19 +171,19 @@ class HitMethods:
         hit = Hit.parse(query, audio, hit_type, search_metadata)
         if hit_download_url is None or not len(hit_download_url):
             while True:
-                if not self.find_hit_by_download_url(hit.download_url):
+                if not await self.find_hit_by_download_url(hit.download_url):
                     break
 
                 hit.download_url = generate_token_urlsafe()
         else:
             hit.download_url = hit_download_url
 
-        hit, successful = Hit.insert(hit)
+        hit, successful = await Hit.insert(hit)
         if hit and successful:
             try:
                 from tase.db.arangodb.graph.edges import Has
 
-                has_audio_edge = Has.get_or_create_edge(hit, audio)
+                has_audio_edge = await Has.get_or_create_edge(hit, audio)
                 if has_audio_edge is None:
                     raise EdgeCreationFailed(Has.__class__.__name__)
             except (InvalidFromVertex, InvalidToVertex):
@@ -193,7 +193,7 @@ class HitMethods:
 
         return None
 
-    def get_or_create_hit(
+    async def get_or_create_hit(
         self,
         query: Query,
         audio: Audio,
@@ -230,13 +230,13 @@ class HitMethods:
         if query is None or audio is None or hit_type is None:
             return None
 
-        hit = Hit.get(Hit.parse_key(query, audio))
+        hit = await Hit.get(Hit.parse_key(query, audio))
         if hit is None:
-            hit = self.create_hit(query, audio, hit_type, hit_download_url, search_metadata)
+            hit = await self.create_hit(query, audio, hit_type, hit_download_url, search_metadata)
 
         return hit
 
-    def find_hit_by_download_url(
+    async def find_hit_by_download_url(
         self,
         download_url: str,
     ) -> Optional[Hit]:
@@ -257,9 +257,9 @@ class HitMethods:
         if download_url is None:
             return None
 
-        return Hit.find_one({"download_url": download_url})
+        return await Hit.find_one({"download_url": download_url})
 
-    def count_hits(
+    async def count_hits(
         self,
         last_run_at: int,
         now: int,
@@ -286,7 +286,9 @@ class HitMethods:
         from tase.db.arangodb.graph.edges import Has
         from tase.db.arangodb.graph.vertices import Audio
 
-        cursor = Hit.execute_query(
+        res = collections.deque()
+
+        async with await Hit.execute_query(
             self._count_hits_query,
             bind_vars={
                 "hits": Hit._collection_name,
@@ -295,11 +297,8 @@ class HitMethods:
                 "has": Has._collection_name,
                 "audios": Audio._collection_name,
             },
-        )
-
-        res = collections.deque()
-        if cursor is not None and len(cursor):
-            for doc in cursor:
+        ) as cursor:
+            async for doc in cursor:
                 obj = HitCount.parse(doc)
                 if obj is not None:
                     res.append(obj)

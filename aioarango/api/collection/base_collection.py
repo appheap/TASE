@@ -1,10 +1,14 @@
-from typing import Optional, List, Union
+from typing import Optional, List, Union, TYPE_CHECKING
 
-from aioarango.api_methods import CollectionsMethods, IndexesMethods
+if TYPE_CHECKING:
+    from aioarango.api import Cursor
+
+from aioarango.api_methods import CollectionsMethods, IndexesMethods, DocumentsMethods
 from aioarango.connection import Connection
-from aioarango.errors import ArangoServerError, ErrorType
+from aioarango.enums import MethodType
+from aioarango.errors import ArangoServerError, ErrorType, DocumentRevisionMisMatchError, DocumentRevisionMatchError
 from aioarango.executor import API_Executor
-from aioarango.models import ArangoCollection, ComputedValue
+from aioarango.models import ArangoCollection, ComputedValue, Request, Response
 from aioarango.models.index import (
     BaseArangoIndex,
 )
@@ -20,6 +24,7 @@ class BaseCollection:
         "_connection",
         "_executor",
         "_collections_api",
+        "_documents_api",
         "_index_api",
         "_name",
         "_id_prefix",
@@ -40,6 +45,7 @@ class BaseCollection:
         self._id_prefix = name + "/"
 
         self._collections_api = CollectionsMethods(connection, executor)
+        self._documents_api = DocumentsMethods(connection, executor)
         self._index_api = IndexesMethods(connection, executor)
 
     @property
@@ -293,6 +299,135 @@ class BaseCollection:
         """
         response = await self._collections_api.get_collection_document_count(name=self.name)
         return response.count
+
+    async def has(
+        self,
+        document: Union[str, Json],
+        revision: Optional[str] = None,
+        check_for_revisions_match: Optional[bool] = None,
+        check_for_revisions_mismatch: Optional[bool] = None,
+        allow_dirty_read: bool = True,
+    ) -> Result[bool]:
+        """
+        Check if a document exists in the collection.
+
+        Parameters
+        ----------
+        document : str or Json
+            Document ID, key or body.
+        revision : str, default : None
+            Document revision to check. Overrides the value of "_rev" field in `document` if present.
+        check_for_revisions_match : bool, default : None
+            The given revision and the document revision in the database must match.
+        check_for_revisions_mismatch : bool, default : None
+            The given revision and the document revision in the database must not match.
+        allow_dirty_read : bool, default : False
+            Whether to allow reads from followers in a cluster.
+
+        Returns
+        -------
+        Result
+            Document, or None if not found.
+
+        Raises
+        ------
+        aioarango.errors.DocumentParseError
+            If `key` and `ID` are missing from the document body.
+        aioarango.errors.DocumentRevisionMisMatchError
+            If revisions mismatch.
+        aioarango.errors.DocumentRevisionMatchError
+            If revisions match.
+        aioarango.errors.ArangoServerError
+            If operation fails.
+        """
+        try:
+            _ = await self._documents_api.read_document_header(
+                collection_name=self.name,
+                id_prefix=self.id_prefix,
+                document=document,
+                revision=revision,
+                check_for_revisions_match=check_for_revisions_match,
+                check_for_revisions_mismatch=check_for_revisions_mismatch,
+                allow_dirty_read=allow_dirty_read,
+            )
+        except ArangoServerError as e:
+            if e.response.status_code == 412:
+                raise DocumentRevisionMisMatchError(e.response, e.request)
+            elif e.response.status_code == 304:
+                raise DocumentRevisionMatchError(e.response, e.request)
+            elif e.response.status_code == 404:
+                return False
+
+            raise e
+        else:
+            return True
+
+    async def find(
+        self,
+        filters: Json,
+        skip: Optional[int] = None,
+        limit: Optional[int] = None,
+    ) -> Result["Cursor"]:
+        """
+        Return all documents that match the given filters.
+
+        # fixme: this endpoint is not listed in the documentations!
+
+        Parameters
+        ----------
+        filters : Json
+            Document filters.
+        skip : int, optional
+            Number of documents to skip.
+        limit : int, optional
+            Max number of documents returned.
+
+        Returns
+        -------
+        Cursor
+            Document cursor.
+
+        Raises
+        ------
+        ValueError
+            If filters has invalid value or is not a dict.
+        aioarango.errors.ArangoServerError
+            If retrieval fails.
+        """
+        if not isinstance(filters, dict):
+            raise ValueError(f"`filters` must be dict: `{type(filters)}`")
+
+        if not dict:
+            raise ValueError(f"`filters` has invalid value: `{filters}`")
+
+        data: Json = {
+            "collection": self.name,
+            "example": filters,
+            "skip": skip,
+        }
+        if limit is not None:
+            data["limit"] = limit
+
+        request = Request(
+            method_type=MethodType.PUT,
+            endpoint="/_api/simple/by-example",
+            data=data,
+            read=self.name,
+        )
+
+        def response_handler(response: Response) -> "Cursor":
+            if not response.is_success:
+                raise ArangoServerError(response, request)
+
+            from aioarango.api import Cursor
+
+            return Cursor(
+                connection=self._connection,
+                executor=self._executor,
+                init_data=response.body,
+            )
+
+        return await self._executor.execute(request, response_handler)
 
     async def rename(
         self,

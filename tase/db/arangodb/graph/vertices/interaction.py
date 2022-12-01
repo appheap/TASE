@@ -6,6 +6,7 @@ from typing import Optional, TYPE_CHECKING, Tuple, List
 
 from pydantic import Field
 
+from aioarango.models import PersistentIndex
 from tase.errors import (
     InvalidFromVertex,
     InvalidToVertex,
@@ -16,7 +17,6 @@ from tase.errors import (
 from tase.my_logger import logger
 from .base_vertex import BaseVertex
 from .user import User
-from ...base.index import PersistentIndex
 from ...enums import ChatType, InteractionType
 from ...helpers import InteractionCount
 
@@ -29,21 +29,21 @@ class Interaction(BaseVertex):
     schema_version = 1
     _extra_indexes = [
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="type",
             fields=[
                 "type",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="chat_type",
             fields=[
                 "chat_type",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="is_active",
             fields=[
                 "is_active",
@@ -74,10 +74,10 @@ class Interaction(BaseVertex):
             chat_type=chat_type,
         )
 
-    def toggle(self) -> bool:
+    async def toggle(self) -> bool:
         self_copy: Interaction = self.copy(deep=True)
         self_copy.is_active = not self.is_active
-        return self.update(self_copy, reserve_non_updatable_fields=False)
+        return await self.update(self_copy, reserve_non_updatable_fields=False)
 
 
 class InteractionMethods:
@@ -107,7 +107,7 @@ class InteractionMethods:
         "   return {audio_key, interaction_type, count_, is_active}"
     )
 
-    def create_interaction(
+    async def create_interaction(
         self: ArangoGraphMethods,
         hit_download_url: str,
         user: User,
@@ -140,23 +140,23 @@ class InteractionMethods:
         if hit_download_url is None or user is None or bot_id is None or type_ is None or chat_type is None:
             return None
 
-        bot = self.get_user_by_telegram_id(bot_id)
+        bot = await self.get_user_by_telegram_id(bot_id)
         if bot is None:
             return None
 
-        hit = self.find_hit_by_download_url(hit_download_url)
+        hit = await self.find_hit_by_download_url(hit_download_url)
         if hit is None:
             return None
 
         try:
-            audio = self.get_audio_from_hit(hit)
+            audio = await self.get_audio_from_hit(hit)
         except ValueError:
             # happens when the `Hit` has more than linked `Audio` vertices
             return None
 
         while True:
             key = str(uuid.uuid4())
-            if Interaction.get(key) is None:
+            if await Interaction.get(key) is None:
                 break
 
         interaction = Interaction.parse(
@@ -168,7 +168,7 @@ class InteractionMethods:
             logger.error(f"could not parse interaction : {key} : {type_} : {chat_type}")
             return None
 
-        interaction, created = Interaction.insert(interaction)
+        interaction, created = await Interaction.insert(interaction)
         if not interaction or not created:
             logger.error(f"could not create interaction : {key} : {type_} : {chat_type}")
             return None
@@ -179,19 +179,19 @@ class InteractionMethods:
         # from tase.db.arangodb.graph.edges import FromBot
 
         try:
-            Has.get_or_create_edge(interaction, audio)
+            await Has.get_or_create_edge(interaction, audio)
         except (InvalidFromVertex, InvalidToVertex):
             logger.error("ValueError: Could not create `has` edge from `Interaction` vertex to `Audio` vertex")
             return None
 
         try:
-            FromHit.get_or_create_edge(interaction, hit)
+            await FromHit.get_or_create_edge(interaction, hit)
         except (InvalidFromVertex, InvalidToVertex):
             logger.error("ValueError: Could not create `from_hit` edge from `Interaction` vertex to `Hit` vertex")
             return None
 
         try:
-            Has.get_or_create_edge(user, interaction)
+            await Has.get_or_create_edge(user, interaction)
         except (InvalidFromVertex, InvalidToVertex):
             logger.error("ValueError: Could not create `has` edge from `User` vertex to `Interaction` vertex")
             return None
@@ -206,7 +206,7 @@ class InteractionMethods:
 
         return interaction
 
-    def get_audio_interaction_by_user(
+    async def get_audio_interaction_by_user(
         self: ArangoGraphMethods,
         user: User,
         hit_download_url: str,
@@ -241,11 +241,11 @@ class InteractionMethods:
         if user is None or hit_download_url is None:
             return None
 
-        hit = self.find_hit_by_download_url(hit_download_url)
+        hit = await self.find_hit_by_download_url(hit_download_url)
         if hit is None:
             raise HitDoesNotExists(hit_download_url)
 
-        audio = self.get_audio_from_hit(hit)
+        audio = await self.get_audio_from_hit(hit)
         if audio is None:
             raise HitNoLinkedAudio(hit_download_url)
 
@@ -253,7 +253,7 @@ class InteractionMethods:
 
         from tase.db.arangodb.graph.vertices import Audio
 
-        cursor = Interaction.execute_query(
+        async with await Interaction.execute_query(
             self._interaction_by_user_query,
             bind_vars={
                 "user_id": user.id,
@@ -263,14 +263,13 @@ class InteractionMethods:
                 "interactions": Interaction._collection_name,
                 "audios": Audio._collection_name,
             },
-        )
+        ) as cursor:
+            async for doc in cursor:
+                return Interaction.from_collection(doc)
 
-        if cursor is not None and len(cursor):
-            return Interaction.from_collection(cursor.pop())
-        else:
-            return None
+        return None
 
-    def audio_is_interacted_by_user(
+    async def audio_is_interacted_by_user(
         self: ArangoGraphMethods,
         user: User,
         interaction_type: InteractionType,
@@ -312,15 +311,15 @@ class InteractionMethods:
             return None
 
         if hit_download_url is not None:
-            hit = self.find_hit_by_download_url(hit_download_url)
+            hit = await self.find_hit_by_download_url(hit_download_url)
             if hit is None:
                 raise HitDoesNotExists(hit_download_url)
 
-            audio = self.get_audio_from_hit(hit)
+            audio = await self.get_audio_from_hit(hit)
             if audio is None:
                 raise HitNoLinkedAudio(hit_download_url)
         else:
-            audio = self.get_audio_by_key(audio_vertex_key)
+            audio = await self.get_audio_by_key(audio_vertex_key)
             if audio is None:
                 raise AudioVertexDoesNotExist(audio_vertex_key)
 
@@ -328,7 +327,7 @@ class InteractionMethods:
 
         from tase.db.arangodb.graph.vertices import Audio
 
-        cursor = Interaction.execute_query(
+        cursor = await Interaction.execute_query(
             self._is_audio_interacted_by_user_query,
             bind_vars={
                 "user_id": user.id,
@@ -342,7 +341,7 @@ class InteractionMethods:
 
         return True if cursor is not None and len(cursor) else False
 
-    def toggle_interaction(
+    async def toggle_interaction(
         self: ArangoGraphMethods,
         user: User,
         bot_id: int,
@@ -385,15 +384,15 @@ class InteractionMethods:
         if user is None or hit_download_url is None:
             return False, False
 
-        hit = self.find_hit_by_download_url(hit_download_url)
+        hit = await self.find_hit_by_download_url(hit_download_url)
         if hit is None:
             raise HitDoesNotExists(hit_download_url)
 
-        audio = self.get_audio_from_hit(hit)
+        audio = await self.get_audio_from_hit(hit)
         if audio is None:
             raise HitNoLinkedAudio(hit_download_url)
 
-        interaction_vertex = self.get_audio_interaction_by_user(
+        interaction_vertex = await self.get_audio_interaction_by_user(
             user,
             hit_download_url,
             interaction_type,
@@ -404,12 +403,12 @@ class InteractionMethods:
             # user has already interacted with the audio, remove the interaction
             from tase.db.arangodb.graph.edges import Has
 
-            successful = interaction_vertex.toggle()
+            successful = await interaction_vertex.toggle()
 
             return successful, has_interacted
         else:
             # user has not interacted with the audio, create the interaction
-            interaction = self.create_interaction(
+            interaction = await self.create_interaction(
                 hit_download_url,
                 user,
                 bot_id,
@@ -421,7 +420,7 @@ class InteractionMethods:
             else:
                 return False, has_interacted
 
-    def count_interactions(
+    async def count_interactions(
         self,
         last_run_at: int,
         now: int,
@@ -448,7 +447,9 @@ class InteractionMethods:
         from tase.db.arangodb.graph.edges import Has
         from tase.db.arangodb.graph.vertices import Audio
 
-        cursor = Interaction.execute_query(
+        res = collections.deque()
+
+        async with await Interaction.execute_query(
             self._count_interactions_query,
             bind_vars={
                 "interactions": Interaction._collection_name,
@@ -457,11 +458,8 @@ class InteractionMethods:
                 "has": Has._collection_name,
                 "audios": Audio._collection_name,
             },
-        )
-
-        res = collections.deque()
-        if cursor is not None and len(cursor):
-            for doc in cursor:
+        ) as cursor:
+            async for doc in cursor:
                 obj = InteractionCount.parse(doc)
                 if obj is not None:
                     res.append(obj)

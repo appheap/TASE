@@ -39,7 +39,7 @@ class RemoveFromPlaylistInlineButton(InlineButton):
         valid = True if hit_download_url is not None else False
 
         try:
-            db_playlists = handler.db.graph.get_audio_playlists(
+            db_playlists = await handler.db.graph.get_audio_playlists(
                 from_user,
                 hit_download_url,
                 offset=result.from_,
@@ -84,7 +84,7 @@ class RemoveFromPlaylistInlineButton(InlineButton):
 
         # remove the audio from the playlist
         try:
-            successful, removed = handler.db.graph.remove_audio_from_playlist(
+            successful, removed = await handler.db.graph.remove_audio_from_playlist(
                 from_user,
                 playlist_key,
                 hit_download_url,

@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from typing import Optional, Union
 
+from aioarango.models import PersistentIndex
 from .base_edge import BaseEdge, EdgeEndsValidator
 from ..vertices import Audio, Chat, User
-from ...base.index import PersistentIndex
 
 
 class ForwardedFrom(BaseEdge):
@@ -14,7 +14,7 @@ class ForwardedFrom(BaseEdge):
     schema_version = 1
     _extra_indexes = [
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="date",
             fields=[
                 "date",

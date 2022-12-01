@@ -26,7 +26,7 @@ class CancelTaskCommand(BaseCommand):
         from_user: graph_models.vertices.User,
         from_callback_query: bool,
     ) -> None:
-        latest_task = handler.db.document.get_latest_bot_task(
+        latest_task = await handler.db.document.get_latest_bot_task(
             from_user.user_id,
             handler.telegram_client.telegram_id,
         )
@@ -39,7 +39,7 @@ class CancelTaskCommand(BaseCommand):
                 disable_web_page_preview=True,
             )
         else:
-            canceled = handler.db.document.cancel_recent_bot_task(
+            canceled = await handler.db.document.cancel_recent_bot_task(
                 from_user.user_id,
                 handler.telegram_client.telegram_id,
                 latest_task.type,

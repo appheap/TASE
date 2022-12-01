@@ -67,12 +67,12 @@ class TelegramClientManager(mp.Process):
 
             await telegram_client.start()
 
-            await telegram_client.set_bot_commands(self.db.graph.get_bot_commands_list_for_telegram(self.db.graph.get_admins_and_owners()))
+            await telegram_client.set_bot_commands(self.db.graph.get_bot_commands_list_for_telegram(await self.db.graph.get_admins_and_owners()))
 
             me = await telegram_client.get_me()
             if me:
                 telegram_client.telegram_id = me.id
-                self.db.graph.get_interacted_user(me, update=True)
+                await self.db.graph.get_interacted_user(me, update=True)
 
             self.init_handlers(telegram_client)
             self.register_update_handlers(telegram_client)

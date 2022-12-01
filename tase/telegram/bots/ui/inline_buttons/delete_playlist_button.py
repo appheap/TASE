@@ -24,7 +24,7 @@ class DeletePlaylistInlineButton(InlineButton):
     ):
         await telegram_callback_query.answer("")
 
-        handler.db.document.create_bot_task(
+        await handler.db.document.create_bot_task(
             from_user.user_id,
             handler.telegram_client.telegram_id,
             BotTaskType.DELETE_PLAYLIST,

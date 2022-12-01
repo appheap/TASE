@@ -36,7 +36,7 @@ class IndexChannelCommand(BaseCommand):
         if len(username_list):
             channel_username = username_list[0]
 
-        chat = handler.db.graph.get_chat_by_username(channel_username)
+        chat = await handler.db.graph.get_chat_by_username(channel_username)
         if chat:
             try:
                 status, created = await IndexAudiosTask(kwargs={"chat_key": chat.key}).publish(handler.db)

@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Dict, List, Union
+from typing import Dict, List, Union, Deque
 
 import pyrogram
 from pydantic import BaseModel
@@ -31,14 +31,14 @@ class BaseHandler(BaseModel):
 
     async def update_audio_cache(
         self,
-        db_audios: Union[List[graph_models.vertices.Audio], List[elasticsearch_models.Audio]],
+        db_audios: Union[Deque[graph_models.vertices.Audio], Deque[elasticsearch_models.Audio]],
     ) -> Dict[int, graph_models.vertices.Chat]:
         """
         Update Audio file caches that are not been cached by this telegram client
 
         Parameters
         ----------
-        db_audios : Union[List[graph_models.vertices.Audio], List[elasticsearch_models.Audio]]
+        db_audios : Union[Deque[graph_models.vertices.Audio], Deque[elasticsearch_models.Audio]]
             List of audios to be checked
         Returns
         -------
@@ -48,11 +48,11 @@ class BaseHandler(BaseModel):
         chats_dict = {}
         for db_audio in db_audios:
             key = db_audio.key if isinstance(db_audio, graph_models.vertices.Audio) else db_audio.id
-            if not self.db.document.has_audio_by_key(self.telegram_client.telegram_id, key):
+            if not await self.db.document.has_audio_by_key(self.telegram_client.telegram_id, key):
                 chat_msg[db_audio.chat_id].append(db_audio.message_id)
 
             if not chats_dict.get(db_audio.chat_id, None):
-                db_chat = self.db.graph.get_chat_by_telegram_chat_id(db_audio.chat_id)
+                db_chat = await self.db.graph.get_chat_by_telegram_chat_id(db_audio.chat_id)
 
                 chats_dict[db_chat.chat_id] = db_chat
 
@@ -83,11 +83,11 @@ class BaseHandler(BaseModel):
         valid = False
         # todo: handle errors for invalid messages
         hit_download_url = text.split("dl_")[1]
-        hit = self.db.graph.find_hit_by_download_url(hit_download_url)
-        audio_vertex = self.db.graph.get_audio_from_hit(hit)
+        hit = await self.db.graph.find_hit_by_download_url(hit_download_url)
+        audio_vertex = await self.db.graph.get_audio_from_hit(hit)
 
         if audio_vertex is not None:
-            db_download = self.db.graph.create_interaction(
+            db_download = await self.db.graph.create_interaction(
                 hit_download_url,
                 from_user,
                 self.telegram_client.telegram_id,
@@ -95,20 +95,24 @@ class BaseHandler(BaseModel):
                 ChatType.BOT,
             )
 
-            audio_doc = self.db.document.get_audio_by_key(
+            audio_doc = await self.db.document.get_audio_by_key(
                 self.telegram_client.telegram_id,
                 audio_vertex.key,
             )
+            chat = await self.db.graph.get_chat_by_telegram_chat_id(audio_vertex.chat_id)
+
             if audio_doc:
                 file_id = audio_doc.file_id
             else:
-                chat = self.db.graph.get_chat_by_telegram_chat_id(audio_vertex.chat_id)
                 # fixme: find a better way of getting messages that have not been cached yet
                 messages = await client.get_messages(chat.username, [audio_vertex.message_id])
                 if not messages or not len(messages):
                     # todo: could not get the audio from telegram servers, what to do now?
                     logger.error("could not get the audio from telegram servers, what to do now?")
                     return
+
+                # update the audio in all databases
+                await self.db.update_or_create_audio(messages[0], self.telegram_client.telegram_id)
 
                 audio, audio_type = get_telegram_message_media_type(messages[0])
                 if audio is None or audio_type == TelegramAudioType.NON_AUDIO:
@@ -135,7 +139,7 @@ class BaseHandler(BaseModel):
                 get_audio_markup_keyboard,
             )
 
-            status = AudioKeyboardStatus.get_status(
+            status = await AudioKeyboardStatus.get_status(
                 self.db,
                 from_user,
                 hit_download_url=hit_download_url,

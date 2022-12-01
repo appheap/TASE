@@ -25,12 +25,12 @@ class CheckUsernameTask(BaseTask):
         db: DatabaseClient,
         telegram_client: TelegramClient = None,
     ):
-        self.task_in_worker(db)
+        await self.task_in_worker(db)
 
         username_key = self.kwargs.get("username_key", None)
-        username_vertex: graph_models.vertices.Username = db.graph.get_username_by_key(username_key)
+        username_vertex: graph_models.vertices.Username = await db.graph.get_username_by_key(username_key)
         if username_vertex is None or username_vertex.username is None or username_vertex.is_checked:
-            self.task_failed(db)
+            await self.task_failed(db)
             return
 
         logger.info(f"Checking: {username_vertex.username}")
@@ -42,17 +42,17 @@ class CheckUsernameTask(BaseTask):
             # UsernameInvalid: The username is invalid
             logger.info(f"Username `{username_vertex.username}` is invalid")
 
-            if username_vertex.check(True, get_now_timestamp(), False):
-                db.graph.update_mentions_edges_from_chat_to_username(username_vertex)
+            if await username_vertex.check(True, get_now_timestamp(), False):
+                await db.graph.update_mentions_edges_from_chat_to_username(username_vertex)
             else:
                 # todo: update wasn't successful, what now?
                 raise Exception("Unexpected error")
 
-            self.task_done(db)
+            await self.task_done(db)
 
         except FloodWait as e:
             # fixme: find a solution for this
-            self.task_failed(db)
+            await self.task_failed(db)
 
             # sleep_time = e.value + random.randint(5, 15)
             # logger.info(f"Sleeping for {sleep_time} seconds...")
@@ -61,19 +61,19 @@ class CheckUsernameTask(BaseTask):
 
         except Exception as e:
             logger.exception(e)
-            self.task_failed(db)
+            await self.task_failed(db)
         else:
             logger.info(f"Username `{username_vertex.username}` is valid")
 
-            mentioned_chat = db.graph.update_or_create_chat(tg_mentioned_chat)
+            mentioned_chat = await db.graph.update_or_create_chat(tg_mentioned_chat)
 
             if mentioned_chat:
                 # the username is valid, update the username and create new edge from the original chat to the
                 # mentioned chat
-                if username_vertex.check(True, get_now_timestamp(), True):
+                if await username_vertex.check(True, get_now_timestamp(), True):
                     # update `mentions` edges and `Username` vertices, Also, create new edges from `Username`
                     # vertices to `Chat` vertices and create edges from `Chat` to `Chat` vertices
-                    db.graph.create_and_check_mentions_edges_after_username_check(
+                    await db.graph.create_and_check_mentions_edges_after_username_check(
                         mentioned_chat,
                         username_vertex,
                     )
@@ -87,17 +87,17 @@ class CheckUsernameTask(BaseTask):
                             mentioned_chat.chat_id,
                             mentioned_chat.members_count,
                         )
-                        updated = mentioned_chat.update_audio_indexer_score(score)
+                        updated = await mentioned_chat.update_audio_indexer_score(score)
                         logger.debug(f"Channel {mentioned_chat.username} score: {score}")
 
-                    self.task_done(db)
+                    await self.task_done(db)
                 else:
                     # todo: update wasn't successful, what now?
-                    self.task_failed(db)
+                    await self.task_failed(db)
                     raise Exception("Unexpected error")
             else:
                 # fixme: this must not happen
-                self.task_failed(db)
+                await self.task_failed(db)
                 raise Exception("Unexpected error")
 
         finally:

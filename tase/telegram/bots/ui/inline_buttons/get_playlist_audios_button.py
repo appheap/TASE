@@ -37,7 +37,7 @@ class GetPlaylistAudioInlineButton(InlineButton):
         playlist_is_valid = False  # whether the requested playlist belongs to the user or not
 
         if result.is_first_page():
-            playlist = handler.db.graph.get_user_playlist_by_key(
+            playlist = await handler.db.graph.get_user_playlist_by_key(
                 from_user,
                 playlist_key,
                 filter_out_soft_deleted=True,
@@ -59,7 +59,7 @@ class GetPlaylistAudioInlineButton(InlineButton):
 
         if playlist_is_valid:
             try:
-                audio_vertices = handler.db.graph.get_playlist_audios(
+                audio_vertices = await handler.db.graph.get_playlist_audios(
                     from_user,
                     playlist_key,
                     offset=result.from_,
@@ -68,7 +68,6 @@ class GetPlaylistAudioInlineButton(InlineButton):
                 # since it is already been checked that the playlist belongs to the user, this exception will not occur
                 pass
             else:
-                audio_vertices = list(audio_vertices)
 
                 hit_download_urls = await populate_audio_items(
                     audio_vertices,
@@ -84,7 +83,7 @@ class GetPlaylistAudioInlineButton(InlineButton):
         await result.answer_query()
 
         if playlist_is_valid:
-            handler.db.graph.get_or_create_query(
+            await handler.db.graph.get_or_create_query(
                 handler.telegram_client.telegram_id,
                 from_user,
                 telegram_inline_query.query,
@@ -112,7 +111,7 @@ class GetPlaylistAudioInlineButton(InlineButton):
 
         if chat_type == ChatType.BOT:
             # fixme: only store audio inline messages for inline queries in the bot chat
-            updated = handler.db.document.set_audio_inline_message_id(
+            updated = await handler.db.document.set_audio_inline_message_id(
                 handler.telegram_client.telegram_id,
                 from_user.user_id,
                 inline_query_id,
@@ -123,7 +122,7 @@ class GetPlaylistAudioInlineButton(InlineButton):
                 # could not update the audio inline message, what now?
                 pass
 
-        interaction_vertex = handler.db.graph.create_interaction(
+        interaction_vertex = await handler.db.graph.create_interaction(
             hit_download_url,
             from_user,
             handler.telegram_client.telegram_id,

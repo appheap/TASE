@@ -1,12 +1,11 @@
 from re import Match
-from typing import List, Optional
+from typing import Optional
 
 import pyrogram
 
 from tase.db.arangodb.enums import InlineQueryType
 from tase.db.arangodb.graph.vertices import User
 from tase.db.arangodb.helpers import AudioKeyboardStatus
-from tase.db.elasticsearchdb import models as elasticsearch_models
 from tase.my_logger import logger
 from tase.telegram.bots.ui.inline_items import AudioItem, NoResultItem
 from tase.telegram.update_handlers.base import BaseHandler
@@ -49,15 +48,13 @@ class InlineSearch(OnInlineQuery):
                 if not es_audio_docs or not len(es_audio_docs) or not query_metadata:
                     found_any = False
 
-                es_audio_docs: List[elasticsearch_models.Audio] = es_audio_docs
-
-                chats_dict = handler.update_audio_cache(es_audio_docs)
+                chats_dict = await handler.update_audio_cache(es_audio_docs)
 
                 search_metadata_lst = []
                 audio_keys = []
 
                 for es_audio_doc in es_audio_docs:
-                    audio_doc = handler.db.document.get_audio_by_key(
+                    audio_doc = await handler.db.document.get_audio_by_key(
                         handler.telegram_client.telegram_id,
                         es_audio_doc.id,
                     )
@@ -72,10 +69,10 @@ class InlineSearch(OnInlineQuery):
                         )
                     )
                 if len(temp_res):
-                    hit_download_urls = handler.db.graph.generate_hit_download_urls(size=size)
+                    hit_download_urls = await handler.db.graph.generate_hit_download_urls(size=size)
 
                     for (audio_doc, es_audio_doc), hit_download_url in zip(temp_res, hit_download_urls):
-                        status = AudioKeyboardStatus.get_status(
+                        status = await AudioKeyboardStatus.get_status(
                             handler.db,
                             from_user,
                             audio_vertex_key=es_audio_doc.id,
@@ -107,8 +104,8 @@ class InlineSearch(OnInlineQuery):
 
         if found_any:
             # fixme
-            audio_vertices = list(handler.db.graph.get_audios_from_keys(audio_keys))
-            handler.db.graph.get_or_create_query(
+            audio_vertices = await handler.db.graph.get_audios_from_keys(audio_keys)
+            await handler.db.graph.get_or_create_query(
                 handler.telegram_client.telegram_id,
                 from_user,
                 telegram_inline_query.query,

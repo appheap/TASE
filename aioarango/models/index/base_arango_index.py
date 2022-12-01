@@ -1,11 +1,14 @@
 from __future__ import annotations
 
-from typing import List, Any, Dict, Optional
+from typing import List, Any, Dict, Optional, TYPE_CHECKING
 
 from pydantic import BaseModel, Field
 
 from aioarango.enums import IndexType
 from .index_figures import IndexFigures
+
+if TYPE_CHECKING:
+    from ...typings import ArangoIndex
 
 
 class BaseArangoIndex(BaseModel):
@@ -40,7 +43,7 @@ class BaseArangoIndex(BaseModel):
     def from_db(
         cls,
         obj: Dict[str, Any],
-    ) -> Optional[BaseArangoIndex]:
+    ) -> ArangoIndex:
         """
         Parse the object from a dictionary.
 
@@ -51,17 +54,17 @@ class BaseArangoIndex(BaseModel):
 
         Returns
         -------
-        BaseArangoIndex, optional
+        ArangoIndex
             Parse index if parsing was successful.
 
         Raises
         ------
         ValueError
-            If the `type` attribute of the dictionary in invalid.
+            If the `type` attribute of the dictionary in invalid or the input body has invalid value.
 
         """
-        if obj is None or not len(obj):
-            return None
+        if not obj:
+            raise ValueError(f"input body has invalid value: `{obj}`")
 
         if "type" in obj:
             try:

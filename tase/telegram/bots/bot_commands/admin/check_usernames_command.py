@@ -31,9 +31,9 @@ class CheckUsernamesCommand(BaseCommand):
         from_user: graph_models.vertices.User,
         from_callback_query: bool,
     ) -> None:
-        usernames = handler.db.graph.get_unchecked_usernames()
 
-        for idx, username in enumerate(usernames):
+        idx = 0
+        async for username in handler.db.graph.get_unchecked_usernames():
             # todo: blocking or non-blocking? which one is better suited for this case?
             try:
                 await CheckUsernameTask(
@@ -52,3 +52,4 @@ class CheckUsernamesCommand(BaseCommand):
                 if idx > 0 and idx % 10 == 0:
                     # fixme: sleep to avoid publishing many tasks while the others haven't been processed yet
                     await asyncio.sleep(10 * 15)
+                idx += 1

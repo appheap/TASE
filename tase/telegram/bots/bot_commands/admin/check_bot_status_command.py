@@ -39,12 +39,12 @@ class CheckBotStatusCommand(BaseCommand):
             disable_web_page_preview=True,
         )
 
-        new_users_task = asyncio.get_running_loop().run_in_executor(None, handler.db.graph.get_new_joined_users_count)
-        total_users_task = asyncio.get_running_loop().run_in_executor(None, handler.db.graph.get_total_users_count)
-        new_audios_task = asyncio.get_running_loop().run_in_executor(None, handler.db.graph.get_new_indexed_audio_files_count)
-        total_audios_task = asyncio.get_running_loop().run_in_executor(None, handler.db.graph.get_total_indexed_audio_files_count)
-        new_queries_task = asyncio.get_running_loop().run_in_executor(None, handler.db.graph.get_new_queries_count)
-        total_queries_task = asyncio.get_running_loop().run_in_executor(None, handler.db.graph.get_total_queries_count)
+        new_users_task = handler.db.graph.get_new_joined_users_count()
+        total_users_task = handler.db.graph.get_total_users_count()
+        new_audios_task = handler.db.graph.get_new_indexed_audio_files_count()
+        total_audios_task = handler.db.graph.get_total_indexed_audio_files_count()
+        new_queries_task = handler.db.graph.get_new_queries_count()
+        total_queries_task = handler.db.graph.get_total_queries_count()
 
         new_users, total_users, new_audios, total_audios, new_queries, total_queries = await asyncio.gather(
             *[

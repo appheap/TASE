@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import copy
-from typing import Optional, List, Tuple
+from typing import Optional, List, Tuple, Deque
 
 import pyrogram
 from elastic_transport import ObjectApiResponse
@@ -513,7 +513,7 @@ class AudioMethods:
         from_: int = 0,
         size: int = 10,
         filter_by_valid_for_inline_search: Optional[bool] = True,
-    ) -> Tuple[Optional[List[Audio]], Optional[ElasticQueryMetadata]]:
+    ) -> Tuple[Optional[Deque[Audio]], Optional[ElasticQueryMetadata]]:
         """
         Search among the audio files with the given query
 

@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+import collections
 import copy
-from typing import Optional, List, Generator, TYPE_CHECKING
+from typing import Optional, List, Generator, TYPE_CHECKING, Deque
 
 import pyrogram
-from arango import CursorEmptyError, CursorNextError
 
+from aioarango.models import PersistentIndex
 from tase.common.preprocessing import clean_text, empty_to_null
 from tase.common.utils import (
     datetime_to_timestamp,
@@ -28,7 +29,6 @@ from .base_vertex import BaseVertex
 from .hit import Hit
 from .interaction import Interaction
 from .user import User
-from ...base.index import PersistentIndex
 from ...helpers import BitRateType
 
 if TYPE_CHECKING:
@@ -41,133 +41,133 @@ class Audio(BaseVertex):
     schema_version = 1
     _extra_indexes = [
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="chat_id",
             fields=[
                 "chat_id",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="message_id",
             fields=[
                 "message_id",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="message_date",
             fields=[
                 "message_date",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="message_edit_date",
             fields=[
                 "message_edit_date",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="views",
             fields=[
                 "views",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="forward_date",
             fields=[
                 "forward_date",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="via_bot",
             fields=[
                 "via_bot",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="has_protected_content",
             fields=[
                 "has_protected_content",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="file_unique_id",
             fields=[
                 "file_unique_id",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="date",
             fields=[
                 "date",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="audio_type",
             fields=[
                 "audio_type",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="valid_for_inline_search",
             fields=[
                 "valid_for_inline_search",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="estimated_bit_rate_type",
             fields=[
                 "estimated_bit_rate_type",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="has_checked_forwarded_message",
             fields=[
                 "has_checked_forwarded_message",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="has_checked_forwarded_message_at",
             fields=[
                 "has_checked_forwarded_message_at",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="is_forwarded",
             fields=[
                 "is_forwarded",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="is_deleted",
             fields=[
                 "is_deleted",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="deleted_at",
             fields=[
                 "deleted_at",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="is_edited",
             fields=[
                 "is_edited",
@@ -360,7 +360,7 @@ class Audio(BaseVertex):
             is_edited=True if telegram_message.edit_date else False,
         )
 
-    def mark_as_deleted(self) -> bool:
+    async def mark_as_deleted(self) -> bool:
         """
         Mark the Audio the as deleted. This happens when the message is deleted in telegram.
 
@@ -373,9 +373,9 @@ class Audio(BaseVertex):
         self_copy = self.copy(deep=True)
         self_copy.is_deleted = True
         self_copy.deleted_at = get_now_timestamp()
-        return self.update(self_copy, reserve_non_updatable_fields=False)
+        return await self.update(self_copy, reserve_non_updatable_fields=False)
 
-    def mark_as_invalid(
+    async def mark_as_invalid(
         self,
         telegram_message: pyrogram.types.Message,
     ) -> bool:
@@ -398,7 +398,7 @@ class Audio(BaseVertex):
 
         self_copy = self.copy(deep=True)
         self_copy.audio_type = TelegramAudioType.NON_AUDIO
-        return self.update(self_copy, reserve_non_updatable_fields=True)
+        return await self.update(self_copy, reserve_non_updatable_fields=True)
 
 
 ######################################################################
@@ -453,7 +453,7 @@ class AudioMethods:
         "for audio in @audios" "   collect with count into total_indexed_audios_count" "   return total_indexed_audios_count"
     )
 
-    def create_audio(
+    async def create_audio(
         self: ArangoGraphMethods,
         telegram_message: pyrogram.types.Message,
     ) -> Optional[Audio]:
@@ -479,7 +479,7 @@ class AudioMethods:
             return None
 
         try:
-            audio, successful = Audio.insert(Audio.parse(telegram_message))
+            audio, successful = await Audio.insert(Audio.parse(telegram_message))
         except TelegramMessageWithNoAudio as e:
             # this message doesn't contain any valid audio file
             pass
@@ -507,9 +507,9 @@ class AudioMethods:
                 for hashtag, start_index, mention_source in hashtags:
                     from tase.db.arangodb.graph.edges import HasHashtag
 
-                    hashtag_vertex = self.get_or_create_hashtag(hashtag)
+                    hashtag_vertex = await self.get_or_create_hashtag(hashtag)
                     if hashtag_vertex:
-                        has_hashtag = HasHashtag.get_or_create_edge(
+                        has_hashtag = await HasHashtag.get_or_create_edge(
                             audio,
                             hashtag_vertex,
                             mention_source,
@@ -520,22 +520,22 @@ class AudioMethods:
                     else:
                         pass
 
-                chat = self.get_or_create_chat(telegram_message.chat)
+                chat = await self.get_or_create_chat(telegram_message.chat)
                 try:
                     from tase.db.arangodb.graph.edges import SentBy
 
-                    sent_by_edge = SentBy.get_or_create_edge(audio, chat)
+                    sent_by_edge = await SentBy.get_or_create_edge(audio, chat)
                     if sent_by_edge is None:
                         raise EdgeCreationFailed(SentBy.__class__.__name__)
                 except (InvalidFromVertex, InvalidToVertex):
                     pass
 
                 # since checking for audio file validation is done above, there is no need to it again.
-                file = self.get_or_create_file(telegram_message)
+                file = await self.get_or_create_file(telegram_message)
                 try:
                     from tase.db.arangodb.graph.edges import FileRef
 
-                    file_ref_edge = FileRef.get_or_create_edge(audio, file)
+                    file_ref_edge = await FileRef.get_or_create_edge(audio, file)
                     if file_ref_edge is None:
                         raise EdgeCreationFailed(FileRef.__class__.__name__)
                 except (InvalidFromVertex, InvalidToVertex):
@@ -543,9 +543,9 @@ class AudioMethods:
 
                 if audio.is_forwarded:
                     if telegram_message.forward_from:
-                        forwarded_from = self.get_or_create_user(telegram_message.forward_from)
+                        forwarded_from = await self.get_or_create_user(telegram_message.forward_from)
                     elif telegram_message.forward_from_chat:
-                        forwarded_from = self.get_or_create_chat(telegram_message.forward_from_chat)
+                        forwarded_from = await self.get_or_create_chat(telegram_message.forward_from_chat)
                     else:
                         forwarded_from = None
 
@@ -553,7 +553,7 @@ class AudioMethods:
                         try:
                             from tase.db.arangodb.graph.edges import ForwardedFrom
 
-                            forwarded_from_edge = ForwardedFrom.get_or_create_edge(audio, forwarded_from)
+                            forwarded_from_edge = await ForwardedFrom.get_or_create_edge(audio, forwarded_from)
                             if forwarded_from_edge is None:
                                 raise EdgeCreationFailed(ForwardedFrom.__class__.__name__)
                         except (InvalidFromVertex, InvalidToVertex):
@@ -562,11 +562,11 @@ class AudioMethods:
                     # todo: the `forwarded_from` edge from `audio` to the `original audio` must be checked later
 
                 if audio.via_bot:
-                    bot = self.get_or_create_user(telegram_message.via_bot)
+                    bot = await self.get_or_create_user(telegram_message.via_bot)
                     try:
                         from tase.db.arangodb.graph.edges import ViaBot
 
-                        via_bot_edge = ViaBot.get_or_create_edge(audio, bot)
+                        via_bot_edge = await ViaBot.get_or_create_edge(audio, bot)
                         if via_bot_edge is None:
                             raise EdgeCreationFailed(ViaBot.__class__.__name__)
                     except (InvalidFromVertex, InvalidToVertex):
@@ -576,7 +576,7 @@ class AudioMethods:
 
         return None
 
-    def get_or_create_audio(
+    async def get_or_create_audio(
         self,
         telegram_message: pyrogram.types.Message,
     ) -> Optional[Audio]:
@@ -602,13 +602,13 @@ class AudioMethods:
         if telegram_message is None:
             return None
 
-        audio = Audio.get(Audio.parse_key(telegram_message))
+        audio = await Audio.get(Audio.parse_key(telegram_message))
         if audio is None:
-            audio = self.create_audio(telegram_message)
+            audio = await self.create_audio(telegram_message)
 
         return audio
 
-    def update_or_create_audio(
+    async def update_or_create_audio(
         self,
         telegram_message: pyrogram.types.Message,
     ) -> Optional[Audio]:
@@ -633,14 +633,14 @@ class AudioMethods:
         if telegram_message is None:
             return None
 
-        audio: Optional[Audio] = Audio.get(Audio.parse_key(telegram_message))
+        audio: Optional[Audio] = await Audio.get(Audio.parse_key(telegram_message))
 
         if audio is not None:
             telegram_audio, audio_type = get_telegram_message_media_type(telegram_message)
             if telegram_audio is None or audio_type == TelegramAudioType.NON_AUDIO:
                 # this message doesn't contain any valid audio file, check if there is a previous audio in the database
                 # and check it as invalid audio.
-                successful = audio.mark_as_invalid(telegram_message)
+                successful = await audio.mark_as_invalid(telegram_message)
                 if not successful:
                     # fixme: could not mark the audio as invalid, why?
                     pass
@@ -648,23 +648,23 @@ class AudioMethods:
                 # update the audio and its edges
                 if telegram_message.empty:
                     # the message has been deleted, mark the audio as deleted in the database
-                    deleted = audio.mark_as_deleted()
+                    deleted = await audio.mark_as_deleted()
                     if not deleted:
                         # fixme: could not mark the audio as deleted, why?
                         pass
                 else:
                     # the message has not been `deleted`, update remaining attributes
                     try:
-                        updated = audio.update(Audio.parse(telegram_message))
+                        updated = await audio.update(Audio.parse(telegram_message))
                     except ValueError:
                         updated = False
 
         else:
-            audio = self.create_audio(telegram_message)
+            audio = await self.create_audio(telegram_message)
 
         return audio
 
-    def find_audio_by_download_url(
+    async def find_audio_by_download_url(
         self,
         download_url: str,
     ) -> Optional[Audio]:
@@ -685,9 +685,9 @@ class AudioMethods:
         if download_url is None:
             return None
 
-        return Audio.find_one({"download_url": download_url})
+        return await Audio.find_one({"download_url": download_url})
 
-    def get_audio_from_hit(
+    async def get_audio_from_hit(
         self,
         hit: Hit,
     ) -> Optional[Audio]:
@@ -714,28 +714,27 @@ class AudioMethods:
 
         from tase.db.arangodb.graph.edges import Has
 
-        cursor = Audio.execute_query(
+        res = collections.deque()
+        async with await Audio.execute_query(
             self._get_audio_from_hit_query,
             bind_vars={
                 "start_vertex": hit.id,
                 "audios": Audio._collection_name,
                 "has": Has._collection_name,
             },
-        )
-        if cursor is not None and len(cursor):
-            if len(cursor) > 1:
-                raise ValueError(f"Hit with id `{hit.id}` have more than one linked audios.")
-            else:
-                try:
-                    doc = cursor.pop()
-                except CursorEmptyError:
-                    pass
-                except Exception as e:
-                    logger.exception(e)
-                else:
-                    return Audio.from_collection(doc)
+        ) as cursor:
+            async for doc in cursor:
+                res.append(Audio.from_collection(doc))
 
-    def is_audio_valid_for_inline_mode(
+        if len(res) > 1:
+            raise ValueError(f"Hit with id `{hit.id}` have more than one linked audios.")
+
+        if res:
+            return res[0]
+
+        return None
+
+    async def is_audio_valid_for_inline_mode(
         self,
         *,
         hit_download_url: str = None,
@@ -763,7 +762,7 @@ class AudioMethods:
         from tase.db.arangodb.graph.edges import Has
 
         if hit_download_url is not None:
-            cursor = Audio.execute_query(
+            async with await Audio.execute_query(
                 self._check_audio_validity_for_inline_mode_by_hit_download_url,
                 bind_vars={
                     "hits": Hit._collection_name,
@@ -771,29 +770,23 @@ class AudioMethods:
                     "audios": Audio._collection_name,
                     "has": Has._collection_name,
                 },
-            )
-            if cursor is not None and len(cursor):
-                try:
-                    is_valid: bool = cursor.pop()
-                except CursorEmptyError:
-                    pass
-                except Exception as e:
-                    logger.exception(e)
-                else:
-                    return is_valid
+            ) as cursor:
+                async for doc in cursor:
+                    return doc
+
         else:
-            audio: Audio = Audio.get(audio_vertex_key)
+            audio: Audio = await Audio.get(audio_vertex_key)
             return audio.valid_for_inline_search if audio is not None else False
 
         return False
 
-    def get_user_download_history(
+    async def get_user_download_history(
         self,
         user: User,
         filter_by_valid_for_inline_search: bool = True,
         offset: int = 0,
         limit: int = 15,
-    ) -> Generator[Audio, None, None]:
+    ) -> Deque[Audio]:
         """
         Get `User` download history.
 
@@ -808,18 +801,19 @@ class AudioMethods:
         limit : int, default : 15
             Number of `Audio`s to query
 
-        Yields
-        ------
-        Audio
+        Returns
+        -------
+        deque
             Audios that the given user has downloaded
 
         """
         if user is None:
-            return
+            return collections.deque()
 
         from tase.db.arangodb.graph.edges import Has
 
-        cursor = Audio.execute_query(
+        res = collections.deque()
+        async with await Audio.execute_query(
             self._get_user_download_history_inline_query if filter_by_valid_for_inline_search else self._get_user_download_history_query,
             bind_vars={
                 "start_vertex": user.id,
@@ -830,15 +824,16 @@ class AudioMethods:
                 "offset": offset,
                 "limit": limit,
             },
-        )
-        if cursor is not None and len(cursor):
-            for doc in cursor:
-                yield Audio.from_collection(doc)
+        ) as cursor:
+            async for doc in cursor:
+                res.append(Audio.from_collection(doc))
 
-    def get_audios_from_keys(
+        return res
+
+    async def get_audios_from_keys(
         self,
         keys: List[str],
-    ) -> Generator[Audio, None, None]:
+    ) -> Deque[Audio]:
         """
         Get a list of Audios from a list of keys.
 
@@ -847,67 +842,53 @@ class AudioMethods:
         keys : List[str]
             List of keys to get the audios from.
 
-        Yields
-        ------
-        Audio
+        Returns
+        -------
+        Deque
             List of Audios if operation was successful, otherwise, return None
 
         """
         if keys is None or not len(keys):
-            return
+            return collections.deque()
 
-        cursor = Audio.execute_query(
+        res = collections.deque()
+        async with await Audio.execute_query(
             self._get_audios_by_keys,
             bind_vars={
                 "audios": Audio._collection_name,
                 "audio_keys": keys,
             },
-        )
-        if cursor is not None and len(cursor):
-            try:
-                audios_lst = cursor.pop()
-            except CursorEmptyError:
-                pass
-            except CursorNextError:
-                pass
-            except Exception as e:
-                logger.exception(e)
-            else:
+        ) as cursor:
+            async for audios_lst in cursor:
                 for doc in audios_lst:
-                    yield Audio.from_collection(doc)
+                    res.append(Audio.from_collection(doc))
 
-    def iter_audios(
+        return res
+
+    async def iter_audios(
         self,
         now: int,
     ) -> Generator[Audio, None, None]:
         if now is None:
             return
 
-        cursor = Audio.execute_query(
+        async with await Audio.execute_query(
             self._iter_audios_query,
             bind_vars={
                 "audios": Audio._collection_name,
                 "now": now,
             },
-        )
-        if cursor is not None and len(cursor):
-            try:
-                for doc in cursor:
-                    yield Audio.from_collection(doc)
-            except CursorEmptyError:
-                pass
-            except CursorNextError:
-                pass
-            except Exception as e:
-                logger.exception(e)
+        ) as cursor:
+            async for doc in cursor:
+                yield Audio.from_collection(doc)
 
-    def get_audio_by_key(
+    async def get_audio_by_key(
         self,
         key: str,
     ) -> Optional[Audio]:
-        return Audio.get(key)
+        return await Audio.get(key)
 
-    def get_new_indexed_audio_files_count(self) -> int:
+    async def get_new_indexed_audio_files_count(self) -> int:
         """
         Get the total number of indexed audio files in the last 24 hours
 
@@ -919,20 +900,19 @@ class AudioMethods:
         """
         checkpoint = get_now_timestamp() - 86400000
 
-        cursor = Audio.execute_query(
+        async with await Audio.execute_query(
             self._get_new_indexed_audios_count_query,
             bind_vars={
                 "audios": Audio._collection_name,
                 "checkpoint": checkpoint,
             },
-        )
-
-        if cursor is not None and len(cursor):
-            return int(cursor.pop())
+        ) as cursor:
+            async for doc in cursor:
+                return int(doc)
 
         return 0
 
-    def get_total_indexed_audio_files_count(self) -> int:
+    async def get_total_indexed_audio_files_count(self) -> int:
         """
         Get the total number of indexed audio files
 
@@ -942,14 +922,13 @@ class AudioMethods:
             Total number of indexed audio files
 
         """
-        cursor = Audio.execute_query(
+        async with await Audio.execute_query(
             self._get_total_indexed_audios_count_query,
             bind_vars={
                 "audios": Audio._collection_name,
             },
-        )
-
-        if cursor is not None and len(cursor):
-            return int(cursor.pop())
+        ) as cursor:
+            async for doc in cursor:
+                return int(doc)
 
         return 0

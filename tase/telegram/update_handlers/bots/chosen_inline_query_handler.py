@@ -29,7 +29,7 @@ class ChosenInlineQueryHandler(BaseHandler):
     ):
         logger.debug(f"on_chosen_inline_query: {chosen_inline_result}")
 
-        from_user = self.db.graph.get_interacted_user(chosen_inline_result.from_user)
+        from_user = await self.db.graph.get_interacted_user(chosen_inline_result.from_user)
 
         reg = re.search(
             "^#(?P<command>[a-zA-Z0-9_]+)(\s(?P<arg1>[a-zA-Z0-9_]+))?",
@@ -62,7 +62,7 @@ class ChosenInlineQueryHandler(BaseHandler):
 
             if chat_type == ChatType.BOT:
                 # fixme: only store audio inline messages for inline queries in the bot chat
-                updated = self.db.document.set_audio_inline_message_id(
+                updated = await self.db.document.set_audio_inline_message_id(
                     self.telegram_client.telegram_id,
                     from_user.user_id,
                     inline_query_id,
@@ -73,7 +73,7 @@ class ChosenInlineQueryHandler(BaseHandler):
                     # could not update the audio inline message, what now?
                     pass
 
-            interaction_vertex = self.db.graph.create_interaction(
+            interaction_vertex = await self.db.graph.create_interaction(
                 hit_download_url,
                 from_user,
                 self.telegram_client.telegram_id,

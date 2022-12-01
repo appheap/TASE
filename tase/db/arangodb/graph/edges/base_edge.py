@@ -2,9 +2,8 @@ from __future__ import annotations
 
 from typing import Dict, List, Type, Optional, Tuple, Any, Callable
 
-from arango import DocumentInsertError
-from arango.collection import EdgeCollection
-
+from aioarango.api import EdgeCollection
+from aioarango.errors import ArangoServerError
 from tase.db.arangodb.base import (
     BaseCollectionDocument,
     ToGraphBaseProcessor,
@@ -120,7 +119,7 @@ class BaseEdge(BaseCollectionDocument):
         return cls._get_vertices_collection_names(list(cls._from_vertex_collections))
 
     @classmethod
-    def link(
+    async def link(
         cls,
         from_vertex: BaseVertex,
         to_vertex: BaseVertex,
@@ -164,14 +163,15 @@ class BaseEdge(BaseCollectionDocument):
             if graph_doc is None:
                 return None, False
 
-            metadata = cls._collection.link(
+            # fixme: this method hasn't been implemented in `aioarango` yet.
+            metadata = await cls._collection.link(
                 from_vertex=from_vertex.id,
                 to_vertex=to_vertex.id,
                 data=graph_doc,
             )
             edge._update_metadata(metadata)
             successful = True
-        except DocumentInsertError as e:
+        except ArangoServerError as e:
             # Failed to insert the document
             logger.exception(f"{cls.__name__} : {e}")
         except NotImplementedError as e:
@@ -232,7 +232,7 @@ class BaseEdge(BaseCollectionDocument):
         return f"{from_vertex.key}:{to_vertex.key}"
 
     @classmethod
-    def create_edge(
+    async def create_edge(
         cls,
         from_vertex: BaseVertex,
         to_vertex: BaseVertex,
@@ -269,10 +269,10 @@ class BaseEdge(BaseCollectionDocument):
         if from_vertex is None or to_vertex is None:
             return None, False
 
-        return cls.insert(cls.parse(from_vertex, to_vertex, *args, **kwargs))
+        return await cls.insert(cls.parse(from_vertex, to_vertex, *args, **kwargs))
 
     @classmethod
-    def get_or_create_edge(
+    async def get_or_create_edge(
         cls,
         from_vertex: Optional[BaseVertex],
         to_vertex: Optional[BaseVertex],
@@ -309,15 +309,15 @@ class BaseEdge(BaseCollectionDocument):
         if from_vertex is None or to_vertex is None:
             return None
 
-        edge = cls.get(cls.parse_key(from_vertex, to_vertex, *args, **kwargs))
+        edge = await cls.get(cls.parse_key(from_vertex, to_vertex, *args, **kwargs))
         if not edge:
             # edge does not exist in the database, create it
-            edge, successful = cls.create_edge(from_vertex, to_vertex, *args, **kwargs)
+            edge, successful = await cls.create_edge(from_vertex, to_vertex, *args, **kwargs)
 
         return edge
 
     @classmethod
-    def update_or_create_edge(
+    async def update_or_create_edge(
         cls,
         from_vertex: BaseVertex,
         to_vertex: BaseVertex,
@@ -355,12 +355,12 @@ class BaseEdge(BaseCollectionDocument):
         if from_vertex is None or to_vertex is None:
             return None
 
-        edge = cls.get(cls.parse_key(from_vertex, to_vertex, *args, **kwargs))
+        edge = await cls.get(cls.parse_key(from_vertex, to_vertex, *args, **kwargs))
         if edge is not None:
             # edge exists in the database, update it
-            edge, successful = edge.update(cls.parse(from_vertex, to_vertex, *args, **kwargs))
+            edge, successful = await edge.update(cls.parse(from_vertex, to_vertex, *args, **kwargs))
         else:
             # edge does not exist in the database, create it
-            edge, successful = cls.create_edge(from_vertex, to_vertex, *args, **kwargs)
+            edge, successful = await cls.create_edge(from_vertex, to_vertex, *args, **kwargs)
 
         return edge

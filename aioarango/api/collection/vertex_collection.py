@@ -17,6 +17,7 @@ class VertexCollection(BaseCollection):
         "_connection",
         "_executor",
         "_collections_api",
+        "_documents_api",
         "_index_api",
         "_graph_name",
         "_graph_api",

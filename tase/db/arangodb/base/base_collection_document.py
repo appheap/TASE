@@ -3,26 +3,14 @@ from enum import Enum
 from itertools import chain
 from typing import Dict, Optional, Any, Type, Union, Tuple, TypeVar, List, Generator
 
-import arango
-from arango import (
-    DocumentInsertError,
-    DocumentRevisionError,
-    DocumentUpdateError,
-    DocumentReplaceError,
-    DocumentDeleteError,
-    DocumentGetError,
-    AQLQueryExecuteError,
-    CursorCountError,
-)
-from arango.aql import AQL
-from arango.collection import VertexCollection, EdgeCollection, StandardCollection
-from arango.cursor import Cursor
-from arango.result import Result
 from pydantic import BaseModel, Field, ValidationError
 
+from aioarango.api import VertexCollection, EdgeCollection, StandardCollection, AQL, Cursor
+from aioarango.enums import IndexType
+from aioarango.errors import ArangoServerError, DocumentRevisionMisMatchError, DocumentRevisionMatchError, CursorCountError
+from aioarango.models.index import PersistentIndex
+from aioarango.typings import ArangoIndex, Result
 from tase.common.utils import get_now_timestamp
-from tase.db.arangodb.base.index import BaseArangoIndex, PersistentIndex
-from tase.db.arangodb.enums import ArangoIndexType
 from tase.errors import NotSoftDeletableSubclass, NotBaseCollectionDocumentInstance
 from tase.my_logger import logger
 
@@ -192,16 +180,16 @@ class BaseCollectionAttributes(BaseModel):
     _base_do_not_update_fields: Optional[Tuple[str]] = ("created_at",)
     _extra_do_not_update_fields: Optional[Tuple[str]] = None
 
-    _base_indexes: List[BaseArangoIndex] = [
+    _base_indexes: List[ArangoIndex] = [
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="created_at",
             fields=[
                 "created_at",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="modified_at",
             fields=[
                 "modified_at",
@@ -209,7 +197,7 @@ class BaseCollectionAttributes(BaseModel):
         ),
     ]
 
-    _extra_indexes: Optional[List[BaseArangoIndex]] = []
+    _extra_indexes: Optional[List[ArangoIndex]] = []
 
     def to_collection(self) -> Optional[Dict[str, Any]]:
         """
@@ -259,7 +247,7 @@ class BaseCollectionAttributes(BaseModel):
             Python object converted from the database document dictionary
 
         """
-        if doc is None or not len(doc):
+        if not doc:
             return None
 
         for doc_processor in cls._from_graph_db_base_processors:
@@ -308,7 +296,7 @@ class BaseCollectionDocument(BaseCollectionAttributes):
         arbitrary_types_allowed = True
 
     @classmethod
-    def update_indexes(cls):
+    async def update_indexes(cls):
         """
         Update the indexes of a collection in the database
 
@@ -318,9 +306,8 @@ class BaseCollectionDocument(BaseCollectionAttributes):
             If the index creation fails
         """
         current_index_mapping = {}
-        for obj in cls._collection.indexes():
-            index = BaseArangoIndex.from_db(obj)
-            if index.type in (ArangoIndexType.PRIMARY, ArangoIndexType.EDGE):
+        for index in await cls._collection.indexes():
+            if index.type in (IndexType.PRIMARY, IndexType.EDGE):
                 continue
 
             current_index_mapping[index.name] = index
@@ -328,23 +315,18 @@ class BaseCollectionDocument(BaseCollectionAttributes):
         new_index_names = [index.name for index in chain(cls._base_indexes, cls._extra_indexes if cls._extra_indexes is not None else [])]
         for old_index in current_index_mapping.values():
             if old_index.name not in new_index_names:
-                try:
-                    logger.info(f"Deleting index `{old_index.name}` from `{cls._collection.name}` collection")
-                    cls._collection.delete_index(old_index.id)
-                except arango.exceptions.IndexDeleteError as e:
-                    logger.info(f"Deleting index `{old_index.name}` from `{cls._collection.name}` collection failed")
-                    logger.exception(e)
+                await cls._collection.delete_index(old_index.id, ignore_missing=True)
 
         for index in chain(cls._base_indexes, cls._extra_indexes if cls._extra_indexes is not None else []):
             try:
                 if index.name not in current_index_mapping:
                     logger.info(f"Adding index `{index.name}` to `{cls._collection.name}` collection")
-                    cls._collection._add_index(index.to_db())
+                    await cls._collection.add_index(index)
                 else:
-                    if current_index_mapping[index.name].version != index.version:
+                    if current_index_mapping[index.name].custom_version != index.custom_version:
                         logger.info(f"Updating index `{index.name}` in `{cls._collection.name}` collection")
-                        cls._collection.delete_index(current_index_mapping[index.name].id)
-                        cls._collection._add_index(index.to_db())
+                        await cls._collection.delete_index(current_index_mapping[index.name].id, ignore_missing=True)
+                        await cls._collection.add_index(index)
 
             except Exception as e:
                 temp = index.to_db()
@@ -352,7 +334,7 @@ class BaseCollectionDocument(BaseCollectionAttributes):
                 logger.exception(e)
 
     @classmethod
-    def insert(
+    async def insert(
         cls: Type[TBaseCollectionDocument],
         doc: TBaseCollectionDocument,
     ) -> Tuple[Optional[TBaseCollectionDocument], bool]:
@@ -380,9 +362,9 @@ class BaseCollectionDocument(BaseCollectionAttributes):
             if graph_doc is None:
                 return None, False
 
-            metadata = cls._collection.insert(graph_doc)
+            metadata = await cls._collection.insert(graph_doc)
             doc._update_metadata(metadata)
-        except DocumentInsertError as e:
+        except ArangoServerError as e:
             # Failed to insert the document
             logger.exception(f"{cls.__name__} : {e}")
         except Exception as e:
@@ -393,7 +375,7 @@ class BaseCollectionDocument(BaseCollectionAttributes):
         return doc, successful
 
     @classmethod
-    def get(
+    async def get(
         cls: Type[TBaseCollectionDocument],
         doc_key: str,
     ) -> Optional[TBaseCollectionDocument]:
@@ -415,24 +397,21 @@ class BaseCollectionDocument(BaseCollectionAttributes):
             return None
 
         try:
-            graph_doc = cls._collection.get(doc_key)
-            if graph_doc is not None:
-                return cls.from_collection(graph_doc)
-            else:
-                return None
-        except DocumentGetError as e:
-            # logger.exception(e)
-            pass
-        except DocumentRevisionError as e:
-            # logger.exception(e)
-            pass
+            graph_doc = await cls._collection.get(doc_key)
+            return cls.from_collection(graph_doc)
+        except DocumentRevisionMisMatchError as e:
+            logger.exception(e)
+        except DocumentRevisionMatchError as e:
+            logger.exception(e)
+        except ArangoServerError as e:
+            logger.exception(e)
         except Exception as e:
             logger.exception(e)
 
         return None
 
     @classmethod
-    def has(
+    async def has(
         cls: Type[TBaseCollectionDocument],
         doc_key: str,
     ) -> Optional[bool]:
@@ -454,15 +433,19 @@ class BaseCollectionDocument(BaseCollectionAttributes):
             return None
 
         try:
-            return cls._collection.has(doc_key)
-        except DocumentGetError as e:
-            # If check fails.
-            caught_error = True
-            # logger.exception(e)
-        except DocumentRevisionError as e:
+            return await cls._collection.has(doc_key)
+        except DocumentRevisionMisMatchError as e:
             # If revisions mismatch.
             caught_error = True
-            # logger.exception(e)
+            logger.exception(e)
+        except DocumentRevisionMatchError as e:
+            # If revisions match.
+            caught_error = True
+            logger.exception(e)
+        except ArangoServerError as e:
+            # If check fails.
+            caught_error = True
+            logger.exception(e)
         except Exception as e:
             caught_error = True
             logger.exception(e)
@@ -470,7 +453,7 @@ class BaseCollectionDocument(BaseCollectionAttributes):
         return None if caught_error else False
 
     @classmethod
-    def find(
+    async def find(
         cls: Type[TBaseCollectionDocument],
         filters: Dict[str, Any],
         offset: Optional[int] = 0,
@@ -513,15 +496,17 @@ class BaseCollectionDocument(BaseCollectionAttributes):
                 raise NotSoftDeletableSubclass(cls.__name__)
 
         try:
-            cursor = cls._collection.find(filters, skip=offset, limit=limit)
-            if cursor is not None and len(cursor):
-                for graph_doc in cursor:
+            async with await cls._collection.find(
+                filters,
+                skip=offset,
+                limit=limit,
+            ) as cursor:
+                async for graph_doc in cursor:
                     yield cls.from_collection(graph_doc)
-            else:
-                return
-        except AssertionError as e:
+
+        except ValueError as e:
             logger.exception(e)
-        except DocumentGetError as e:
+        except ArangoServerError as e:
             logger.exception(e)
         except Exception as e:
             logger.exception(e)
@@ -529,7 +514,7 @@ class BaseCollectionDocument(BaseCollectionAttributes):
         return
 
     @classmethod
-    def find_one(
+    async def find_one(
         cls: Type[TBaseCollectionDocument],
         filters: Dict[str, Any],
         filter_out_soft_deleted: Optional[bool] = None,
@@ -555,21 +540,14 @@ class BaseCollectionDocument(BaseCollectionAttributes):
             If the document calling this method uses the `filter_out_soft_deleted` argument and is not a subclass of
             `BaseSoftDeletableDocument`.
         """
-        documents = cls.find(
+        async for document in cls.find(
             filters,
             limit=1,
             filter_out_soft_deleted=filter_out_soft_deleted,
-        )
-        if documents is None:
-            return None
-        else:
-            documents = list(documents)
-            if not len(documents):
-                return None
-            else:
-                return documents[0]
+        ):
+            return document
 
-    def delete(
+    async def delete(
         self,
         soft_delete: Optional[bool] = False,
         is_exact_date: Optional[bool] = False,
@@ -607,14 +585,14 @@ class BaseCollectionDocument(BaseCollectionAttributes):
                 self_copy.is_soft_deleted = True
                 self_copy.is_soft_deleted_time_precise = is_exact_date
                 self_copy.soft_deleted_at = get_now_timestamp() if deleted_at is None else deleted_at
-                return self.update(self_copy, reserve_non_updatable_fields=False)
+                return await self.update(self_copy, reserve_non_updatable_fields=False)
             else:
                 raise NotSoftDeletableSubclass(self.__class__.__name__)
         else:
-            return self.delete_document(self)
+            return await self.delete_document(self)
 
     @classmethod
-    def delete_document(
+    async def delete_document(
         cls: Type[TBaseCollectionDocument],
         doc: Union[TBaseCollectionDocument, str],
     ) -> bool:
@@ -638,25 +616,23 @@ class BaseCollectionDocument(BaseCollectionAttributes):
         successful = False
         key = doc.key if isinstance(doc, BaseCollectionDocument) else doc
         try:
-            successful = cls._collection.delete(key, ignore_missing=True)
-        except DocumentDeleteError as e:
-            # Failed to delete the document
-            # logger.exception(f"{cls.__name__} : {e}")
-            pass
-        except DocumentRevisionError as e:
+            successful = await cls._collection.delete(key, ignore_missing=True)
+        except DocumentRevisionMisMatchError as e:
             # The expected and actual document revisions mismatched.
-            # logger.exception(f"{cls.__name__} : {e}")
-            pass
+            logger.exception(f"{cls.__name__} : {e}")
+        except ArangoServerError as e:
+            # Failed to delete the document
+            logger.exception(f"{cls.__name__} : {e}")
         except Exception as e:
             logger.exception(f"{cls.__name__} : {e}")
         return successful
 
-    def update(
+    async def update(
         self: TBaseCollectionDocument,
         doc: TBaseCollectionDocument,
         reserve_non_updatable_fields: bool = True,
-        check_rev: Optional[bool] = True,
-        sync: Optional[bool] = None,
+        check_for_revisions_match: Optional[bool] = True,
+        wait_for_sync: Optional[bool] = None,
         retry_on_failure: bool = True,
         run_depth: int = 1,
     ) -> bool:
@@ -669,9 +645,9 @@ class BaseCollectionDocument(BaseCollectionAttributes):
             Document used for updating the object in the database
         reserve_non_updatable_fields : bool
             Whether to keep the non-updatable fields from the old document or not
-        check_rev : bool, default: True
+        check_for_revisions_match : bool, default: True
             If set to True, revision of current document (if given) is compared against the revision of target document. Default to `True`.
-        sync : bool, default: None
+        wait_for_sync : bool, default: None
             sync: Block until operation is synchronized to disk. Default to `None`
         retry_on_failure : bool, default : True
             Whether to retry the operation if it fails due to `revision` mismatch
@@ -706,42 +682,38 @@ class BaseCollectionDocument(BaseCollectionAttributes):
 
             graph_doc["modified_at"] = get_now_timestamp()
 
-            metadata = self._collection.update(
+            metadata = await self._collection.update(
                 graph_doc,
-                check_rev=check_rev,
-                keep_none=True,
-                sync=sync,
-                silent=False,
-                return_old=False,
-                return_new=False,
+                check_for_revisions_match=check_for_revisions_match,
+                wait_for_sync=wait_for_sync,
             )
             doc._update_metadata(metadata)
             self.__dict__.update(doc.__dict__)
             # copy_attrs_from_new_document(self, doc)
-        except DocumentUpdateError as e:
+        except DocumentRevisionMisMatchError as e:
+            logger.error(f"{self.__class__.__name__}: `{self.key}` : DocumentRevisionError")
+            # The expected and actual document revisions mismatched.
+            successful = await self._retry_update(
+                check_for_revisions_match,
+                doc,
+                reserve_non_updatable_fields,
+                retry_on_failure,
+                run_depth,
+                successful,
+                wait_for_sync,
+            )
+        except ArangoServerError as e:
             # Failed to update document.
             logger.error(f"{self.__class__.__name__}: `{self.key}` : DocumentUpdateError")
             # The expected and actual document revisions mismatched.
-            successful = self._retry_update(
-                check_rev,
+            successful = await self._retry_update(
+                check_for_revisions_match,
                 doc,
                 reserve_non_updatable_fields,
                 retry_on_failure,
                 run_depth,
                 successful,
-                sync,
-            )
-        except DocumentRevisionError as e:
-            logger.error(f"{self.__class__.__name__}: `{self.key}` : DocumentRevisionError")
-            # The expected and actual document revisions mismatched.
-            successful = self._retry_update(
-                check_rev,
-                doc,
-                reserve_non_updatable_fields,
-                retry_on_failure,
-                run_depth,
-                successful,
-                sync,
+                wait_for_sync,
             )
         except Exception as e:
             logger.exception(f"{self.__class__.__name__} : {e}")
@@ -749,28 +721,28 @@ class BaseCollectionDocument(BaseCollectionAttributes):
             successful = True
         return successful
 
-    def _retry_update(
+    async def _retry_update(
         self,
-        check_rev: bool,
+        check_for_revisions_match: bool,
         doc: TBaseCollectionDocument,
         reserve_non_updatable_fields: bool,
         retry_on_failure: bool,
         run_depth: int,
         successful: bool,
-        sync: bool,
+        wait_for_sync: bool,
     ):
         if retry_on_failure:
             logger.error(f"Retry #{run_depth}")
             # todo: sleep for a while before retrying
             time.sleep(run_depth * 20 / 1000)
 
-            latest_doc = self.get(self.key)
+            latest_doc = await self.get(self.key)
             if latest_doc is not None:
-                successful = latest_doc.update(
+                successful = await latest_doc.update(
                     doc,
                     reserve_non_updatable_fields=reserve_non_updatable_fields,
-                    check_rev=check_rev,
-                    sync=sync,
+                    check_for_revisions_match=check_for_revisions_match,
+                    wait_for_sync=wait_for_sync,
                     retry_on_failure=retry_on_failure,
                     run_depth=run_depth + 1,
                 )
@@ -780,7 +752,7 @@ class BaseCollectionDocument(BaseCollectionAttributes):
         return successful
 
     @classmethod
-    def replace(
+    async def replace(
         cls: Type[TBaseCollectionDocument],
         old_doc: TBaseCollectionDocument,
         doc: TBaseCollectionDocument,
@@ -817,16 +789,14 @@ class BaseCollectionDocument(BaseCollectionAttributes):
             if graph_doc is None:
                 return None, False
 
-            metadata = cls._collection.replace(graph_doc)
+            metadata = await cls._collection.replace(graph_doc)
             doc._update_metadata(metadata)
-        except DocumentReplaceError as e:
-            # Failed to replace document.
-            # logger.exception(f"{cls.__name__} : {e}")
-            pass
-        except DocumentRevisionError as e:
+        except DocumentRevisionMisMatchError as e:
             # The expected and actual document revisions mismatched.
-            # logger.exception(f"{cls.__name__} : {e}")
-            pass
+            logger.exception(f"{cls.__name__} : {e}")
+        except ArangoServerError as e:
+            # Failed to replace document.
+            logger.exception(f"{cls.__name__} : {e}")
         except Exception as e:
             logger.exception(f"{cls.__name__} : {e}")
         else:
@@ -900,7 +870,7 @@ class BaseCollectionDocument(BaseCollectionAttributes):
         return self
 
     @classmethod
-    def execute_query(
+    async def execute_query(
         cls: Type[TBaseCollectionDocument],
         query: str,
         bind_vars: Dict[str, Any],
@@ -946,19 +916,16 @@ class BaseCollectionDocument(BaseCollectionAttributes):
                     value = str(value)
                 query = query.replace(f"@{key}", value)
 
-            cursor = cls._aql.execute(
+            cursor = await cls._aql.execute(
                 query,
                 # bind_vars=bind_vars,
                 count=True,
                 ttl=36000,  # fix this
             )
-            if cursor is None or not len(cursor):
-                return None
-
-        except AQLQueryExecuteError as e:
+        except CursorCountError as e:
             logger.error(query)
             logger.exception(e)
-        except CursorCountError as e:
+        except ArangoServerError as e:
             logger.error(query)
             logger.exception(e)
         except Exception as e:

@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from typing import Optional, Union
 
+from aioarango.models import PersistentIndex
 from .base_edge import BaseEdge, EdgeEndsValidator
 from ..vertices import Audio, Playlist, Query, Hashtag
-from ...base.index import PersistentIndex
 from ...enums import MentionSource
 
 
@@ -13,14 +13,14 @@ class HasHashtag(BaseEdge):
     schema_version = 1
     _extra_indexes = [
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="is_direct_mention",
             fields=[
                 "is_direct_mention",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="mention_source",
             fields=[
                 "mention_source",

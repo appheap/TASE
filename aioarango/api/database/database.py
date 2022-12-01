@@ -521,7 +521,7 @@ class Database:
         aioarango.errors.ArangoServerError
             If operation fails.
         """
-        return name in await self._api.list_all_graphs()
+        return any(graph.name == name for graph in await self._api.list_all_graphs())
 
     async def graphs(self) -> Result[List[GraphInfo]]:
         """

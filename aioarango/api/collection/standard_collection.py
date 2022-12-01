@@ -16,6 +16,7 @@ class StandardCollection(BaseCollection):
         "_connection",
         "_executor",
         "_collections_api",
+        "_documents_api",
         "_index_api",
         "_documents_api",
         "_name",

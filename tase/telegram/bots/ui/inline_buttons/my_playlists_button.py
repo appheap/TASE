@@ -37,7 +37,7 @@ class MyPlaylistsInlineButton(InlineButton):
                 count=True,
             )
         else:
-            populate_playlist_list(
+            await populate_playlist_list(
                 from_user,
                 handler,
                 result,
@@ -64,13 +64,13 @@ class MyPlaylistsInlineButton(InlineButton):
         if playlist_key == "add_a_new_playlist":
             # start creating a new playlist
             # todo: fix this duplicate code
-            handler.db.document.create_bot_task(
+            await handler.db.document.create_bot_task(
                 from_user.user_id,
                 handler.telegram_client.telegram_id,
                 BotTaskType.CREATE_NEW_PLAYLIST,
             )
 
-        await client.send_message(
-            from_user.user_id,
-            text="Enter your playlist title. Enter your playlist description in the next line\nYou can cancel anytime by sending /cancel",
-        )
+            await client.send_message(
+                from_user.user_id,
+                text="Enter your playlist title. Enter your playlist description in the next line\nYou can cancel anytime by sending /cancel",
+            )

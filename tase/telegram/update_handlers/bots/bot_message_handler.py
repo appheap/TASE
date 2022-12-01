@@ -96,7 +96,7 @@ class BotMessageHandler(BaseHandler):
         """
         logger.debug(f"base_downloads_handler: {message.text}")
 
-        from_user = self.db.graph.get_interacted_user(message.from_user)
+        from_user = await self.db.graph.get_interacted_user(message.from_user)
         await self.download_audio(
             client,
             from_user,
@@ -114,16 +114,16 @@ class BotMessageHandler(BaseHandler):
         logger.info(f"search_query_handler: {message.text}")
         query = message.text
 
-        from_user = self.db.graph.get_interacted_user(message.from_user)
+        from_user = await self.db.graph.get_interacted_user(message.from_user)
 
         if from_user.chosen_language_code is None or not len(from_user.chosen_language_code):
             await BaseCommand.run_command(client, message, self, BotCommandType.LANGUAGE)
             return
 
         # check if this message is reply to any bot task
-        if BotTaskChecker.check(
+        if await BotTaskChecker.check(
             self.db,
-            self.db.document.get_latest_bot_task(
+            await self.db.document.get_latest_bot_task(
                 from_user.user_id,
                 self.telegram_client.telegram_id,
             ),
@@ -147,7 +147,7 @@ class BotMessageHandler(BaseHandler):
                 if not es_audio_docs or not len(es_audio_docs) or query_metadata is None:
                     found_any = False
                 else:
-                    hit_download_urls = self.db.graph.generate_hit_download_urls(size=10)
+                    hit_download_urls = await self.db.graph.generate_hit_download_urls(size=10)
                     found_any = True
 
         if found_any:
@@ -175,10 +175,10 @@ class BotMessageHandler(BaseHandler):
         )
 
         if found_any:
-            audio_vertices = list(self.db.graph.get_audios_from_keys([doc.id for doc in es_audio_docs]))
+            audio_vertices = await self.db.graph.get_audios_from_keys([doc.id for doc in es_audio_docs])
             search_metadata_lst = [es_audio_doc.search_metadata for es_audio_doc in es_audio_docs]
 
-            db_query, hits = self.db.graph.get_or_create_query(
+            db_query, hits = await self.db.graph.get_or_create_query(
                 self.telegram_client.telegram_id,
                 from_user,
                 query,
@@ -198,7 +198,7 @@ class BotMessageHandler(BaseHandler):
     ):
         # logger.info(f"bot_message_handler: {message}")
 
-        from_user = self.db.graph.get_interacted_user(message.from_user, update=True)
+        from_user = await self.db.graph.get_interacted_user(message.from_user, update=True)
 
         if message.via_bot and message.via_bot.id == self.telegram_client.telegram_id:
             # messages that are from this bot are not considered as a contribution
@@ -233,7 +233,7 @@ class BotMessageHandler(BaseHandler):
                 pass
 
         if message.forward_from_chat:
-            self.db.graph.update_or_create_chat(message.forward_from_chat)
+            await self.db.graph.update_or_create_chat(message.forward_from_chat)
 
             if message.forward_from_chat.username:
                 texts_to_check.add(f"@{message.forward_from_chat.username}")
@@ -252,7 +252,7 @@ class BotMessageHandler(BaseHandler):
 
         for username in find_telegram_usernames(texts_to_check, return_start_index=False):
             logger.debug(f"username `{username}` was found")
-            username_vertex = self.db.graph.get_or_create_username(
+            username_vertex = await self.db.graph.get_or_create_username(
                 username,
                 create_mention_edge=False,
             )
@@ -268,6 +268,6 @@ class BotMessageHandler(BaseHandler):
             )
 
         if message.forward_from:
-            self.db.graph.update_or_create_user(message.forward_from)
+            await self.db.graph.update_or_create_user(message.forward_from)
 
     #######################################################################################################

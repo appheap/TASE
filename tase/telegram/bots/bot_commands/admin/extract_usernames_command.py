@@ -36,7 +36,7 @@ class ExtractUsernamesCommand(BaseCommand):
         if len(username_list):
             channel_username = username_list[0]
 
-        db_chat = handler.db.graph.get_chat_by_username(channel_username)
+        db_chat = await handler.db.graph.get_chat_by_username(channel_username)
         if not db_chat:
             # todo: translate me
             await message.reply_text(f"This channel `{channel_username}` does not exist in the Database!")

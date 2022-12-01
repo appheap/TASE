@@ -31,12 +31,10 @@ class DownloadHistoryInlineButton(InlineButton):
         query_date: int,
         reg: Optional[Match] = None,
     ):
-        audio_vertices = handler.db.graph.get_user_download_history(
+        audio_vertices = await handler.db.graph.get_user_download_history(
             from_user,
             offset=result.from_,
         )
-
-        audio_vertices = list(audio_vertices)
 
         hit_download_urls = await populate_audio_items(
             audio_vertices,
@@ -51,7 +49,7 @@ class DownloadHistoryInlineButton(InlineButton):
 
         await result.answer_query()
 
-        handler.db.graph.get_or_create_query(
+        await handler.db.graph.get_or_create_query(
             handler.telegram_client.telegram_id,
             from_user,
             telegram_inline_query.query,
@@ -79,7 +77,7 @@ class DownloadHistoryInlineButton(InlineButton):
 
         if chat_type == ChatType.BOT:
             # fixme: only store audio inline messages for inline queries in the bot chat
-            updated = handler.db.document.set_audio_inline_message_id(
+            updated = await handler.db.document.set_audio_inline_message_id(
                 handler.telegram_client.telegram_id,
                 from_user.user_id,
                 inline_query_id,
@@ -90,7 +88,7 @@ class DownloadHistoryInlineButton(InlineButton):
                 # could not update the inline message document, what now?
                 pass
 
-        interaction_vertex = handler.db.graph.create_interaction(
+        interaction_vertex = await handler.db.graph.create_interaction(
             hit_download_url,
             from_user,
             handler.telegram_client.telegram_id,

@@ -1,9 +1,9 @@
-from typing import List
+from typing import Deque
 
 import pyrogram
 from pyrogram.types import InlineKeyboardMarkup
 
-from tase.common.utils import sync_timed
+from tase.common.utils import async_timed
 from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.enums import ChatType
 from tase.db.arangodb.helpers import AudioKeyboardStatus
@@ -17,8 +17,8 @@ from tase.telegram.bots.ui.inline_items import (
 from tase.telegram.update_handlers.base import BaseHandler
 
 
-@sync_timed
-def populate_playlist_list(
+@async_timed()
+async def populate_playlist_list(
     from_user: graph_models.vertices.User,
     handler: BaseHandler,
     result: CustomInlineQueryResult,
@@ -43,18 +43,18 @@ def populate_playlist_list(
 
     """
     playlists = (
-        handler.db.graph.get_user_valid_playlists(
+        await handler.db.graph.get_user_valid_playlists(
             from_user,
             offset=result.from_,
         )
         if filter_by_capacity
-        else handler.db.graph.get_user_playlists(
+        else await handler.db.graph.get_user_playlists(
             from_user,
             offset=result.from_,
         )
     )
 
-    user_playlist_count = handler.db.graph.get_user_playlists_count(from_user)
+    user_playlist_count = await handler.db.graph.get_user_playlists_count(from_user)
 
     if result.is_first_page() and user_playlist_count < 11:
         # a total number of 10 playlists is allowed for each user (favorite playlist excluded)
@@ -76,20 +76,20 @@ def populate_playlist_list(
         )
 
 
-@sync_timed
+@async_timed()
 async def populate_audio_items(
-    audio_vertices: List[graph_models.vertices.Audio],
+    audio_vertices: Deque[graph_models.vertices.Audio],
     from_user: graph_models.vertices.User,
     handler: BaseHandler,
     result: CustomInlineQueryResult,
     telegram_inline_query: pyrogram.types.InlineQuery,
-) -> List[str]:
+) -> Deque[str]:
     """
     Populate a list of `AudioItem` objects
 
     Parameters
     ----------
-    audio_vertices : List[graph_models.vertices.Audio]
+    audio_vertices : Deque[graph_models.vertices.Audio]
         List of `Audio` vertices to use for creating the `Query` vertex
     from_user : graph_models.vertices.User
         `User` to create the query for
@@ -101,12 +101,12 @@ async def populate_audio_items(
         Telegram Inline Query object
     """
     # todo: fix this
-    chats_dict = handler.update_audio_cache(audio_vertices)
+    chats_dict = await handler.update_audio_cache(audio_vertices)
 
-    hit_download_urls = handler.db.graph.generate_hit_download_urls(size=len(audio_vertices))
+    hit_download_urls = await handler.db.graph.generate_hit_download_urls(size=len(audio_vertices))
 
     for audio_vertex, hit_download_url in zip(audio_vertices, hit_download_urls):
-        audio_doc = handler.db.document.get_audio_by_key(
+        audio_doc = await handler.db.document.get_audio_by_key(
             handler.telegram_client.telegram_id,
             audio_vertex.key,
         )
@@ -115,7 +115,7 @@ async def populate_audio_items(
         if not audio_doc:
             continue
 
-        status = AudioKeyboardStatus.get_status(
+        status = await AudioKeyboardStatus.get_status(
             handler.db,
             from_user,
             audio_vertex_key=audio_vertex.key,

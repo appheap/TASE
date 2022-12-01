@@ -13,7 +13,7 @@ from tase.errors import PlaylistDoesNotExists
 
 class BotTaskChecker(BaseModel):
     @classmethod
-    def check(
+    async def check(
         cls,
         db: DatabaseClient,
         bot_task: BotTask,
@@ -70,14 +70,14 @@ class BotTaskChecker(BaseModel):
 
             # if the inputs are valid, change the status of the task to `done`
             if error_message is None:
-                db_playlist = db.graph.get_or_create_playlist(
+                db_playlist = await db.graph.get_or_create_playlist(
                     from_user,
                     title,
                     description,
                 )
                 if db_playlist:
-                    bot_task.update_status(BotTaskStatus.DONE)
-                    message.reply_text("Successfully created the playlist.")
+                    await bot_task.update_status(BotTaskStatus.DONE)
+                    await message.reply_text("Successfully created the playlist.")
 
                     hit_download_url = bot_task.state_dict.get("hit_download_url", None)
                     if hit_download_url is not None:
@@ -90,30 +90,30 @@ class BotTaskChecker(BaseModel):
                         # todo: update these messages
                         if successful:
                             if created:
-                                message.reply_text(
+                                await message.reply_text(
                                     "Added to the playlist",
                                 )
                             else:
-                                message.reply_text(
+                                await message.reply_text(
                                     "It's already on the playlist",
                                 )
                         else:
-                            message.reply_text(
+                            await message.reply_text(
                                 "Did not add to the playlist",
                             )
 
                 else:
                     # todo: make this translatable
-                    bot_task.update_status(BotTaskStatus.FAILED)
-                    message.reply_text("An error has occurred")
+                    await bot_task.update_status(BotTaskStatus.FAILED)
+                    await message.reply_text("An error has occurred")
 
             else:
-                message.reply_text(error_message)
+                await message.reply_text(error_message)
 
                 if bot_task.retry_count + 1 >= bot_task.max_retry_count:
-                    message.reply_text("Failed to create the Playlist")
+                    await message.reply_text("Failed to create the Playlist")
 
-                bot_task.update_retry_count()
+                await bot_task.update_retry_count()
 
         elif bot_task.type == BotTaskType.EDIT_PLAYLIST_TITLE:
             title = message.text
@@ -126,21 +126,21 @@ class BotTaskChecker(BaseModel):
             else:
                 if error_message is None:
                     # update playlist title
-                    playlist = db.graph.get_user_playlist_by_key(
+                    playlist = await db.graph.get_user_playlist_by_key(
                         from_user,
                         playlist_key,
                         filter_out_soft_deleted=True,
                     )
                     if playlist:
-                        playlist.update_title(title)
-                        bot_task.update_status(BotTaskStatus.DONE)
-                        message.reply_text("Successfully updated the playlist.")
+                        await playlist.update_title(title)
+                        await bot_task.update_status(BotTaskStatus.DONE)
+                        await message.reply_text("Successfully updated the playlist.")
                     else:
-                        bot_task.update_status(BotTaskStatus.FAILED)
-                        message.reply_text("The target playlist does not exist!")
+                        await bot_task.update_status(BotTaskStatus.FAILED)
+                        await message.reply_text("The target playlist does not exist!")
                 else:
-                    message.reply_text(error_message)
-                    bot_task.update_retry_count()
+                    await message.reply_text(error_message)
+                    await bot_task.update_retry_count()
 
         elif bot_task.type == BotTaskType.EDIT_PLAYLIST_DESCRIPTION:
             description = message.text
@@ -153,22 +153,22 @@ class BotTaskChecker(BaseModel):
             else:
                 if error_message is None:
                     # update playlist description
-                    playlist = db.graph.get_user_playlist_by_key(
+                    playlist = await db.graph.get_user_playlist_by_key(
                         from_user,
                         playlist_key,
                         filter_out_soft_deleted=True,
                     )
                     if playlist:
-                        playlist.update_description(description)
-                        bot_task.update_status(BotTaskStatus.DONE)
-                        message.reply_text("Successfully updated the playlist.")
+                        await playlist.update_description(description)
+                        await bot_task.update_status(BotTaskStatus.DONE)
+                        await message.reply_text("Successfully updated the playlist.")
                     else:
-                        bot_task.update_status(BotTaskStatus.FAILED)
-                        message.reply_text("The target playlist does not exist!")
+                        await bot_task.update_status(BotTaskStatus.FAILED)
+                        await message.reply_text("The target playlist does not exist!")
 
                 else:
-                    message.reply_text(error_message)
-                    bot_task.update_retry_count()
+                    await message.reply_text(error_message)
+                    await bot_task.update_retry_count()
 
         elif bot_task.type == BotTaskType.DELETE_PLAYLIST:
             playlist_key = bot_task.state_dict.get("playlist_key", None)
@@ -187,18 +187,18 @@ class BotTaskChecker(BaseModel):
                             deleted_at,
                         )
                     except PlaylistDoesNotExists:
-                        bot_task.update_status(BotTaskStatus.FAILED)
-                        message.reply_text("The target playlist does not exist!")
+                        await bot_task.update_status(BotTaskStatus.FAILED)
+                        await message.reply_text("The target playlist does not exist!")
                     else:
                         if deleted:
-                            bot_task.update_status(BotTaskStatus.DONE)
-                            message.reply_text("Successfully Deleted The Playlist")
+                            await bot_task.update_status(BotTaskStatus.DONE)
+                            await message.reply_text("Successfully Deleted The Playlist")
                         else:
-                            message.reply_text("Could not delete the playlist")
+                            await message.reply_text("Could not delete the playlist")
                 else:
                     # message sent does not equal to the result, send an error
-                    message.reply_text("Confirmation code is wrong")
-                    bot_task.update_retry_count()
+                    await message.reply_text("Confirmation code is wrong")
+                    await bot_task.update_retry_count()
 
         else:
             # check for other types of bot tasks

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Optional, Union
 
+from aioarango.models import PersistentIndex
 from tase.errors import ParamNotProvided
 from .base_edge import BaseEdge, EdgeEndsValidator
 from .has import Has
@@ -11,7 +12,6 @@ from ..vertices import (
     User,
     Keyword,
 )
-from ...base.index import PersistentIndex
 
 
 class Had(BaseEdge):
@@ -19,21 +19,21 @@ class Had(BaseEdge):
     schema_version = 1
     _extra_indexes = [
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="deleted_at",
             fields=[
                 "deleted_at",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="metadata_created_at",
             fields=[
                 "metadata_created_at",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="metadata_modified_at",
             fields=[
                 "metadata_modified_at",

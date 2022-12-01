@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import collections
-from typing import Optional, Union, List, Tuple, Generator, TYPE_CHECKING
+from typing import Optional, Union, List, Tuple, TYPE_CHECKING, Deque
 
 import pyrogram
 
-from tase.common.utils import get_now_timestamp, sync_timed
+from aioarango.models import PersistentIndex
+from tase.common.utils import get_now_timestamp, async_timed
 from tase.db.helpers import SearchMetaData
 from tase.errors import InvalidToVertex, InvalidFromVertex, EdgeCreationFailed
 from tase.my_logger import logger
@@ -13,7 +14,6 @@ from . import Audio, Hit
 from .base_vertex import BaseVertex
 from .chat import ChatType
 from .user import User
-from ...base.index import PersistentIndex
 
 if TYPE_CHECKING:
     from .. import ArangoGraphMethods
@@ -26,14 +26,14 @@ class Query(BaseVertex):
     schema_version = 1
     _extra_indexes = [
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="query",
             fields=[
                 "query",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="query_date",
             fields=[
                 "query_date",
@@ -141,21 +141,21 @@ class QueryMethods:
         "return non_inline_count + inline_count"
     )
 
-    @sync_timed
-    def create_query(
+    @async_timed()
+    async def create_query(
         self: ArangoGraphMethods,
         bot_id: int,
         user: User,
         query: str,
         query_date: int,
-        audio_vertices: List[Audio],
+        audio_vertices: Deque[Audio],
         query_metadata: Optional[ElasticQueryMetadata] = None,
         search_metadata_list: Optional[List[SearchMetaData]] = None,
         # following parameters are meant to be used with inline query
         telegram_inline_query: Optional[pyrogram.types.InlineQuery] = None,
         inline_query_type: Optional[InlineQueryType] = None,
         next_offset: Optional[str] = None,
-        hit_download_urls: List[str] = None,
+        hit_download_urls: Deque[str] = None,
     ) -> Tuple[Optional[Query], Optional[List[Hit]]]:
         """
         Create a Query along with necessary vertices and edges.
@@ -170,7 +170,7 @@ class QueryMethods:
             Query string
         query_date : int
             Timestamp of making the query
-        audio_vertices : List[Audio]
+        audio_vertices : Deque[Audio]
             List of audios this query matches to
         query_metadata : ElasticQueryMetadata, default : None
             Metadata of this query that on ElasticSearch.
@@ -182,7 +182,7 @@ class QueryMethods:
             Type of the inline query if the query is inline
         next_offset : str, default : None
             Next offset of query if the query is inline and has more results that will be paginated
-        hit_download_urls : list of str, default : None
+        hit_download_urls : deque of str, default : None
             List of hit download URLs to initialize hits with
 
         Returns
@@ -198,11 +198,11 @@ class QueryMethods:
         if bot_id is None or user is None or query is None or query_date is None:
             return None, None
 
-        bot = self.get_user_by_telegram_id(bot_id)
+        bot = await self.get_user_by_telegram_id(bot_id)
         if bot is None:
             return None, None
 
-        db_query, successful = Query.insert(
+        db_query, successful = await Query.insert(
             Query.parse(
                 bot,
                 user,
@@ -222,7 +222,7 @@ class QueryMethods:
 
             # link the user to this query
             try:
-                has_made_edge = HasMade.get_or_create_edge(user, db_query)
+                has_made_edge = await HasMade.get_or_create_edge(user, db_query)
             except (InvalidFromVertex, InvalidToVertex):
                 logger.error("ValueError: Could not create the `has_made` edge")
             else:
@@ -230,7 +230,7 @@ class QueryMethods:
                     raise EdgeCreationFailed(HasMade.__class__.__name__)
 
             try:
-                to_bot_edge = ToBot.get_or_create_edge(db_query, bot)
+                to_bot_edge = await ToBot.get_or_create_edge(db_query, bot)
             except (InvalidFromVertex, InvalidToVertex):
                 logger.error("ValueError: Could not create the `to_bot` edge")
             else:
@@ -262,7 +262,7 @@ class QueryMethods:
                     # todo: what now?
                     continue
 
-                hit = self.get_or_create_hit(
+                hit = await self.get_or_create_hit(
                     db_query,
                     audio_vertex,
                     hit_type,
@@ -275,7 +275,7 @@ class QueryMethods:
                 hits.append(hit)
 
                 try:
-                    has_hit_edge = Has.get_or_create_edge(db_query, hit)
+                    has_hit_edge = await Has.get_or_create_edge(db_query, hit)
                 except (InvalidFromVertex, InvalidToVertex):
                     pass
                 else:
@@ -286,21 +286,21 @@ class QueryMethods:
 
         return None, None
 
-    @sync_timed
-    def get_or_create_query(
+    @async_timed()
+    async def get_or_create_query(
         self,
         bot_id: int,
         user: User,
         query: str,
         query_date: int,
-        audio_vertices: List[Audio],
+        audio_vertices: Deque[Audio],
         query_metadata: Optional[ElasticQueryMetadata] = None,
         search_metadata_list: Optional[List[SearchMetaData]] = None,
         # following parameters are meant to be used with inline query
         telegram_inline_query: Optional[pyrogram.types.InlineQuery] = None,
         inline_query_type: Optional[InlineQueryType] = None,
         next_offset: Optional[str] = None,
-        hit_download_urls: List[str] = None,
+        hit_download_urls: Deque[str] = None,
     ) -> Tuple[Optional[Query], Optional[List[Hit]]]:
         """
         Get Query if it exists in the database, otherwise, create a Query along with necessary vertices and
@@ -316,7 +316,7 @@ class QueryMethods:
             Query string
         query_date : int
             Timestamp of making the query
-        audio_vertices : List[Audio]
+        audio_vertices : Deque[Audio]
             List of audios this query matches to
         query_metadata : ElasticQueryMetadata, default : None
             Metadata of this query that on ElasticSearch.
@@ -328,7 +328,7 @@ class QueryMethods:
             Type of the inline query if the query is inline
         next_offset : str, default : None
             Next offset of query if the query is inline and has more results that will be paginated
-        hit_download_urls : list of str, default : None
+        hit_download_urls : deque of str, default : None
             List of hit download URLs to initialize hits with
 
         Returns
@@ -344,9 +344,9 @@ class QueryMethods:
         if bot_id is None or user is None or query is None or query_date is None:
             return None, None
 
-        db_query = Query.get(Query.parse_key(bot_id, user, query_date))
+        db_query = await Query.get(Query.parse_key(bot_id, user, query_date))
         if db_query is None:
-            db_query, hits = self.create_query(
+            db_query, hits = await self.create_query(
                 bot_id,
                 user,
                 query,
@@ -361,12 +361,12 @@ class QueryMethods:
             )
             return db_query, hits
         else:
-            return db_query, list(self.get_query_hits(db_query))
+            return db_query, await self.get_query_hits(db_query)
 
-    def get_query_hits(
+    async def get_query_hits(
         self,
         query: Query,
-    ) -> Generator[Hit, None, None]:
+    ) -> List[Hit]:
         """
         Get an `Audio` vertex from the given `Hit` vertex
 
@@ -381,23 +381,25 @@ class QueryMethods:
             List of hits if operation was successful, otherwise, return None
         """
         if query is None:
-            return
+            return []
 
         from tase.db.arangodb.graph.edges import Has
 
-        cursor = Hit.execute_query(
+        res = collections.deque()
+        async with await Hit.execute_query(
             self._get_query_hits_query,
             bind_vars={
                 "start_vertex": query.id,
                 "queries": Query._collection_name,
                 "has": Has._collection_name,
             },
-        )
-        if cursor is not None and len(cursor):
-            for doc in cursor:
-                yield Hit.from_collection(doc)
+        ) as cursor:
+            async for doc in cursor:
+                res.append(Hit.from_collection(doc))
 
-    def get_new_queries_count(self) -> int:
+        return list(res)
+
+    async def get_new_queries_count(self) -> int:
         """
         Get the total number of queries made in the last 24 hours
 
@@ -409,20 +411,19 @@ class QueryMethods:
         """
         checkpoint = get_now_timestamp() - 86400000
 
-        cursor = Query.execute_query(
+        async with await Query.execute_query(
             self._get_new_queries_count,
             bind_vars={
                 "queries": Query._collection_name,
                 "checkpoint": checkpoint,
             },
-        )
-
-        if cursor is not None and len(cursor):
-            return int(cursor.pop())
+        ) as cursor:
+            async for doc in cursor:
+                return int(doc)
 
         return 0
 
-    def get_total_queries_count(self) -> int:
+    async def get_total_queries_count(self) -> int:
         """
         Get the total number of queries made
 
@@ -432,14 +433,13 @@ class QueryMethods:
             Total number of queries
 
         """
-        cursor = Query.execute_query(
+        async with await Query.execute_query(
             self._get_total_queries_count,
             bind_vars={
                 "queries": Query._collection_name,
             },
-        )
-
-        if cursor is not None and len(cursor):
-            return int(cursor.pop())
+        ) as cursor:
+            async for doc in cursor:
+                return int(doc)
 
         return 0

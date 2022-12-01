@@ -8,10 +8,10 @@ import pyrogram
 from pydantic import Field
 from pyrogram.types import BotCommandScopeChat, BotCommandScopeDefault
 
+from aioarango.models import PersistentIndex
 from tase.common.utils import prettify, get_now_timestamp
 from tase.my_logger import logger
 from .base_vertex import BaseVertex
-from ...base.index import PersistentIndex
 
 if TYPE_CHECKING:
     from .. import ArangoGraphMethods
@@ -30,7 +30,7 @@ class User(BaseVertex):
     schema_version = 1
     _extra_indexes = [
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="user_id",
             fields=[
                 "user_id",
@@ -38,98 +38,98 @@ class User(BaseVertex):
             unique=True,
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="is_deleted",
             fields=[
                 "is_deleted",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="is_bot",
             fields=[
                 "is_bot",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="is_verified",
             fields=[
                 "is_verified",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="is_restricted",
             fields=[
                 "is_restricted",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="is_scam",
             fields=[
                 "is_scam",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="is_fake",
             fields=[
                 "is_fake",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="is_support",
             fields=[
                 "is_support",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="is_premium",
             fields=[
                 "is_premium",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="username",
             fields=[
                 "username",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="language_code",
             fields=[
                 "language_code",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="dc_id",
             fields=[
                 "dc_id",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="chosen_language_code",
             fields=[
                 "chosen_language_code",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="role",
             fields=[
                 "role",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="has_interacted_with_bot",
             fields=[
                 "has_interacted_with_bot",
@@ -230,7 +230,7 @@ class User(BaseVertex):
             created_from_telegram_chat=created_from_telegram_chat,
         )
 
-    def update_chosen_language(
+    async def update_chosen_language(
         self,
         chosen_language_code: str,
     ) -> bool:
@@ -239,9 +239,9 @@ class User(BaseVertex):
 
         self_copy = self.copy(deep=True)
         self_copy.chosen_language_code = chosen_language_code
-        return self.update(self_copy, reserve_non_updatable_fields=False)
+        return await self.update(self_copy, reserve_non_updatable_fields=False)
 
-    def update_role(
+    async def update_role(
         self,
         role: UserRole,
     ) -> bool:
@@ -250,9 +250,9 @@ class User(BaseVertex):
 
         self_copy = self.copy(deep=True)
         self_copy.role = role
-        return self.update(self_copy, reserve_non_updatable_fields=False)
+        return await self.update(self_copy, reserve_non_updatable_fields=False)
 
-    def update_has_interacted_with_bot(
+    async def update_has_interacted_with_bot(
         self,
         new_value: bool,
     ) -> bool:
@@ -261,7 +261,7 @@ class User(BaseVertex):
 
         self_copy: User = self.copy(deep=True)
         self_copy.has_interacted_with_bot = new_value
-        return self.update(self_copy, reserve_non_updatable_fields=False)
+        return await self.update(self_copy, reserve_non_updatable_fields=False)
 
 
 class UserMethods:
@@ -278,17 +278,17 @@ class UserMethods:
         "for user in @users" "   filter user.has_interacted_with_bot == true" "   collect with count into total_users_count" "   return total_users_count"
     )
 
-    def _get_or_create_favorite_playlist(
+    async def _get_or_create_favorite_playlist(
         self: ArangoGraphMethods,
         user: User,
     ):
         if not user.is_bot:
-            fav_playlist = self.get_or_create_favorite_playlist(user)
+            fav_playlist = await self.get_or_create_favorite_playlist(user)
             if not fav_playlist:
                 # fixme: could not create/get favorite playlist.
                 logger.error(f"could not create/get favorite playlist for user: {prettify(user)}")
 
-    def create_user(
+    async def create_user(
         self: ArangoGraphMethods,
         telegram_user: Union[pyrogram.types.User, pyrogram.types.Chat],
     ) -> Optional[User]:
@@ -308,14 +308,14 @@ class UserMethods:
         if telegram_user is None:
             return None
 
-        user, successful = User.insert(User.parse(telegram_user))
+        user, successful = await User.insert(User.parse(telegram_user))
         if user and successful:
-            self._get_or_create_favorite_playlist(user)
+            await self._get_or_create_favorite_playlist(user)
             return user
 
         return None
 
-    def get_or_create_user(
+    async def get_or_create_user(
         self: ArangoGraphMethods,
         telegram_user: Union[pyrogram.types.User, pyrogram.types.Chat],
     ) -> Optional[User]:
@@ -335,20 +335,20 @@ class UserMethods:
         if telegram_user is None:
             return None
 
-        user = User.get(User.parse_key(telegram_user))
+        user = await User.get(User.parse_key(telegram_user))
         if not user:
             # user does not exist in the database, create it
-            user = self.create_user(telegram_user)
+            user = await self.create_user(telegram_user)
 
         else:
             # check if the user vertex was created from a telegram chat object, if that is the case, then update the
             # user with the new object before returning
             if user.created_from_telegram_chat and isinstance(telegram_user, pyrogram.types.User):
-                self.update_or_create_user(telegram_user)
+                await self.update_or_create_user(telegram_user)
 
         return user
 
-    def get_interacted_user(
+    async def get_interacted_user(
         self,
         telegram_user: pyrogram.types.User,
         update: bool = False,
@@ -373,13 +373,13 @@ class UserMethods:
         if telegram_user is None:
             return None
 
-        user = self.update_or_create_user(telegram_user) if update else self.get_or_create_user(telegram_user)
+        user = await self.update_or_create_user(telegram_user) if update else await self.get_or_create_user(telegram_user)
         if user and not user.has_interacted_with_bot:
-            user.update_has_interacted_with_bot(True)
+            await user.update_has_interacted_with_bot(True)
 
         return user
 
-    def update_or_create_user(
+    async def update_or_create_user(
         self: ArangoGraphMethods,
         telegram_user: Union[pyrogram.types.User, pyrogram.types.Chat],
     ) -> Optional[User]:
@@ -400,17 +400,17 @@ class UserMethods:
         if telegram_user is None:
             return None
 
-        user: User = User.get(User.parse_key(telegram_user))
+        user: User = await User.get(User.parse_key(telegram_user))
         if user is not None:
             # user exists in the database, update it
-            updated = user.update(User.parse(telegram_user))
+            updated = await user.update(User.parse(telegram_user))
         else:
             # user does not exist in the database, create it
-            user = self.create_user(telegram_user)
+            user = await self.create_user(telegram_user)
 
         return user
 
-    def get_user_by_telegram_id(
+    async def get_user_by_telegram_id(
         self,
         user_id: int,
     ) -> Optional[User]:
@@ -431,19 +431,18 @@ class UserMethods:
         if user_id is None:
             return None
 
-        return User.get(str(user_id))
+        return await User.get(str(user_id))
 
-    def get_admins_and_owners(self) -> List[User]:
-        cursor = User.execute_query(
+    async def get_admins_and_owners(self) -> List[User]:
+        res = collections.deque()
+        async with await User.execute_query(
             self._get_admin_and_owners_query,
             bind_vars={
                 "users": User._collection_name,
                 "roles_list": [UserRole.OWNER.value, UserRole.ADMIN.value],
             },
-        )
-        res = collections.deque()
-        if cursor is not None and len(cursor):
-            for doc in cursor:
+        ) as cursor:
+            async for doc in cursor:
                 res.append(User.from_collection(doc))
 
         return list(res)
@@ -505,7 +504,7 @@ class UserMethods:
 
         return list(res)
 
-    def get_user_by_username(
+    async def get_user_by_username(
         self,
         username: str,
     ) -> Optional[User]:
@@ -526,9 +525,9 @@ class UserMethods:
         if username is None:
             return None
 
-        return User.find_one({"username": username.lower()})
+        return await User.find_one({"username": username.lower()})
 
-    def get_new_joined_users_count(self) -> int:
+    async def get_new_joined_users_count(self) -> int:
         """
         Get the total number of joined users in the last 24 hours
 
@@ -540,20 +539,19 @@ class UserMethods:
         """
         checkpoint = get_now_timestamp() - 86400000
 
-        cursor = User.execute_query(
+        async with await User.execute_query(
             self._get_new_joined_users_count_query,
             bind_vars={
                 "users": User._collection_name,
                 "checkpoint": checkpoint,
             },
-        )
-
-        if cursor is not None and len(cursor):
-            return int(cursor.pop())
+        ) as cursor:
+            async for doc in cursor:
+                return int(doc)
 
         return 0
 
-    def get_total_users_count(self) -> int:
+    async def get_total_users_count(self) -> int:
         """
         Get the total number of users who have interacted with the bot
 
@@ -563,14 +561,13 @@ class UserMethods:
             Total number of users who have interacted with the bot
 
         """
-        cursor = User.execute_query(
+        async with await User.execute_query(
             self._get_total_interacted_users_count,
             bind_vars={
                 "users": User._collection_name,
             },
-        )
-
-        if cursor is not None and len(cursor):
-            return int(cursor.pop())
+        ) as cursor:
+            async for doc in cursor:
+                return int(doc)
 
         return 0
