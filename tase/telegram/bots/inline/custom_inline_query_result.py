@@ -1,4 +1,5 @@
-from typing import Any, List, Optional
+import collections
+from typing import Any, List, Optional, Deque
 
 import pyrogram
 from pydantic import BaseModel, Field
@@ -8,7 +9,7 @@ from tase.my_logger import logger
 
 
 class CustomInlineQueryResult(BaseModel):
-    results: List[pyrogram.types.InlineQueryResult] = Field(default_factory=list)
+    results: Deque[pyrogram.types.InlineQueryResult] = Field(default_factory=collections.deque)
     cache_time: int = Field(default=1)
     from_: int = Field(default=0)
     last_result_total_item_count: int = Field(default=0)
@@ -64,7 +65,8 @@ class CustomInlineQueryResult(BaseModel):
         results: List[pyrogram.types.InlineQueryResult],
         count: bool = False,
     ) -> None:
-        self.results = results
+        self.results.clear()
+        self.results.extend(results)
 
         if count:
             self.countable_items_length += len(self.results)
@@ -87,7 +89,7 @@ class CustomInlineQueryResult(BaseModel):
         #     raise Exception("results cannot be empty")
         try:
             await self.telegram_inline_query.answer(
-                self.results,
+                list(self.results),
                 cache_time=self.cache_time,
                 next_offset=self.get_next_offset(),
             )
