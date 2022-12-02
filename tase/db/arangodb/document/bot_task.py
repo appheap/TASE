@@ -3,13 +3,11 @@ from __future__ import annotations
 import uuid
 from typing import Optional
 
-from arango import CursorEmptyError
 from pydantic import Field
 
+from aioarango.models import PersistentIndex
 from tase.errors import UpdateRetryCountFailed
-from tase.my_logger import logger
 from .base_document import BaseDocument
-from ..base.index import PersistentIndex
 from ..enums import BotTaskType, BotTaskStatus
 
 
@@ -18,28 +16,28 @@ class BotTask(BaseDocument):
     schema_version = 1
     _extra_indexes = [
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="user_id",
             fields=[
                 "user_id",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="bot_id",
             fields=[
                 "bot_id",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="type",
             fields=[
                 "type",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="status",
             fields=[
                 "status",
@@ -57,7 +55,7 @@ class BotTask(BaseDocument):
     status: BotTaskStatus = Field(default=BotTaskStatus.CREATED)
     state_dict: dict = Field(default=dict())  # todo: is it necessary?
 
-    def update_status(
+    async def update_status(
         self,
         status: BotTaskStatus,
     ) -> bool:
@@ -79,9 +77,9 @@ class BotTask(BaseDocument):
 
         self_copy = self.copy(deep=True)
         self_copy.status = status
-        return self.update(self_copy, reserve_non_updatable_fields=True)
+        return await self.update(self_copy, reserve_non_updatable_fields=True)
 
-    def update_retry_count(self) -> bool:
+    async def update_retry_count(self) -> bool:
         """
         Update `retry_count` field of the task and set the task as `FAILED` if it exceeds the `max_retry_count` value.
 
@@ -102,9 +100,9 @@ class BotTask(BaseDocument):
         self.retry_count = new_retry_count
 
         # todo: do this as a db transaction
-        if self.update(self_copy, reserve_non_updatable_fields=False):
+        if await self.update(self_copy, reserve_non_updatable_fields=False):
             if new_retry_count >= self.max_retry_count:
-                return self.update_status(BotTaskStatus.FAILED)
+                return await self.update_status(BotTaskStatus.FAILED)
             return True
         else:
             raise UpdateRetryCountFailed()
@@ -131,7 +129,7 @@ class BotTask(BaseDocument):
 
         return bot_task
 
-    def update_task_state_dict(
+    async def update_task_state_dict(
         self,
         new_task_state: dict,
     ) -> bool:
@@ -153,7 +151,7 @@ class BotTask(BaseDocument):
 
         self_copy = self.copy(deep=True)
         self_copy.state_dict = new_task_state
-        return self.update(self_copy, reserve_non_updatable_fields=True)
+        return await self.update(self_copy, reserve_non_updatable_fields=True)
 
 
 class BotTaskMethods:
@@ -175,7 +173,7 @@ class BotTaskMethods:
         "   return doc_task"
     )
 
-    def create_bot_task(
+    async def create_bot_task(
         self,
         user_id: int,
         bot_id: int,
@@ -205,13 +203,13 @@ class BotTaskMethods:
             BotTask document if the creation was successful, otherwise, return None
         """
         if cancel_recent_task:
-            self.cancel_recent_bot_task(
+            await self.cancel_recent_bot_task(
                 user_id,
                 bot_id,
                 task_type,
             )
 
-        task, successful = BotTask.insert(
+        task, successful = await BotTask.insert(
             BotTask.parse(
                 user_id,
                 bot_id,
@@ -224,7 +222,7 @@ class BotTaskMethods:
 
         return None
 
-    def cancel_recent_bot_task(
+    async def cancel_recent_bot_task(
         self,
         user_id: int,
         bot_id: int,
@@ -250,7 +248,7 @@ class BotTaskMethods:
         if user_id is None or bot_id is None or task_type is None:
             return False
 
-        cursor = BotTask.execute_query(
+        cursor = await BotTask.execute_query(
             self._cancel_recent_bot_tasks_query,
             bind_vars={
                 "doc_bot_tasks": BotTask._collection_name,
@@ -261,12 +259,9 @@ class BotTaskMethods:
                 "new_status": BotTaskStatus.CANCELED.value,
             },
         )
-        if cursor is not None:
-            return True
-        else:
-            return False
+        return cursor is not None
 
-    def get_latest_bot_task(
+    async def get_latest_bot_task(
         self,
         user_id: int,
         bot_id: int,
@@ -289,7 +284,7 @@ class BotTaskMethods:
         if user_id is None or bot_id is None:
             return
 
-        cursor = BotTask.execute_query(
+        async with await BotTask.execute_query(
             self._get_latest_bot_task_query,
             bind_vars={
                 "doc_bot_tasks": BotTask._collection_name,
@@ -297,14 +292,8 @@ class BotTaskMethods:
                 "bot_id": bot_id,
                 "status": BotTaskStatus.CREATED.value,
             },
-        )
-        if cursor is not None and len(cursor):
-            try:
-                bot_task = BotTask.from_collection(cursor.pop())
-                return bot_task
-            except CursorEmptyError:
-                pass
-            except Exception as e:
-                logger.exception(e)
+        ) as cursor:
+            async for doc in cursor:
+                return BotTask.from_collection(doc)
 
         return None

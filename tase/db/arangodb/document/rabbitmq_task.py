@@ -5,8 +5,8 @@ from typing import Optional
 
 from pydantic import Field
 
+from aioarango.models import PersistentIndex
 from .base_document import BaseDocument
-from ..base.index import PersistentIndex
 from ..enums import RabbitMQTaskStatus, RabbitMQTaskType
 
 
@@ -15,14 +15,14 @@ class RabbitMQTask(BaseDocument):
     schema_version = 1
     _extra_indexes = [
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="type",
             fields=[
                 "type",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="status",
             fields=[
                 "status",
@@ -52,7 +52,7 @@ class RabbitMQTask(BaseDocument):
 
         return bot_task
 
-    def update_status(
+    async def update_status(
         self,
         status: RabbitMQTaskStatus,
     ) -> bool:
@@ -74,9 +74,9 @@ class RabbitMQTask(BaseDocument):
 
         self_copy = self.copy(deep=True)
         self_copy.status = status
-        return self.update(self_copy, reserve_non_updatable_fields=True)
+        return await self.update(self_copy, reserve_non_updatable_fields=True)
 
-    def update_task_state_dict(
+    async def update_task_state_dict(
         self,
         new_task_state: dict,
     ) -> bool:
@@ -98,7 +98,7 @@ class RabbitMQTask(BaseDocument):
 
         self_copy = self.copy(deep=True)
         self_copy.state_dict = new_task_state
-        return self.update(self_copy, reserve_non_updatable_fields=True)
+        return await self.update(self_copy, reserve_non_updatable_fields=True)
 
 
 class RabbitMQTaskMethods:
@@ -121,7 +121,7 @@ class RabbitMQTaskMethods:
         "   return NEW"
     )
 
-    def get_rabbitmq_task_by_key(
+    async def get_rabbitmq_task_by_key(
         self,
         key: str,
     ) -> Optional[RabbitMQTask]:
@@ -142,9 +142,9 @@ class RabbitMQTaskMethods:
         if key is None:
             return None
 
-        return RabbitMQTask.get(key)
+        return await RabbitMQTask.get(key)
 
-    def create_rabbitmq_task(
+    async def create_rabbitmq_task(
         self,
         task_type: RabbitMQTaskType,
         state_dict: dict = None,
@@ -171,11 +171,11 @@ class RabbitMQTaskMethods:
             return None
 
         if cancel_active_tasks:
-            self.cancel_active_rabbitmq_tasks(
+            await self.cancel_active_rabbitmq_tasks(
                 task_type,
             )
 
-        task, successful = RabbitMQTask.insert(
+        task, successful = await RabbitMQTask.insert(
             RabbitMQTask.parse(
                 task_type,
                 state_dict,
@@ -186,7 +186,7 @@ class RabbitMQTaskMethods:
 
         return None
 
-    def get_active_rabbitmq_task(
+    async def get_active_rabbitmq_task(
         self,
         task_type: RabbitMQTaskType,
         state_dict: dict = None,
@@ -197,7 +197,7 @@ class RabbitMQTaskMethods:
         if state_dict is None:
             state_dict = {}
 
-        cursor = RabbitMQTask.execute_query(
+        async with await RabbitMQTask.execute_query(
             self._get_active_rabbitmq_task_query,
             bind_vars={
                 "rabbitmq_tasks": RabbitMQTask._collection_name,
@@ -210,21 +210,21 @@ class RabbitMQTaskMethods:
                 "input_attr_list": list(state_dict.keys()),
                 "input_value_list": list(state_dict.values()),
             },
-        )
-        if cursor is not None and len(cursor):
-            return RabbitMQTask.from_collection(cursor.pop())
+        ) as cursor:
+            async for doc in cursor:
+                RabbitMQTask.from_collection(doc)
 
         return None
 
-    def cancel_all_active_tasks(self) -> None:
+    async def cancel_all_active_tasks(self) -> None:
         """
         Cancel all active RabbitMQ tasks that their status are `created`, `in_queue`, or `in_worker`.
 
         """
         for task_type in list(RabbitMQTaskType):
-            self.cancel_active_rabbitmq_tasks(task_type)
+            await self.cancel_active_rabbitmq_tasks(task_type)
 
-    def cancel_active_rabbitmq_tasks(
+    async def cancel_active_rabbitmq_tasks(
         self,
         task_type: RabbitMQTaskType,
     ) -> bool:
@@ -244,7 +244,7 @@ class RabbitMQTaskMethods:
         if task_type is None or task_type == RabbitMQTaskType.UNKNOWN:
             return False
 
-        cursor = RabbitMQTask.execute_query(
+        cursor = await RabbitMQTask.execute_query(
             self._cancel_active_rabbitmq_tasks_query,
             bind_vars={
                 "rabbitmq_tasks": RabbitMQTask._collection_name,
@@ -257,7 +257,4 @@ class RabbitMQTaskMethods:
                 "new_status": RabbitMQTaskStatus.CANCELED.value,
             },
         )
-        if cursor is not None:
-            return True
-        else:
-            return False
+        return cursor is not None

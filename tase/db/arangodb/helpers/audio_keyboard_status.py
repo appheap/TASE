@@ -15,7 +15,7 @@ class AudioKeyboardStatus(BaseModel):
     is_in_favorite_playlist: Optional[bool]
 
     @classmethod
-    def get_status(
+    async def get_status(
         cls,
         db: DatabaseClient,
         from_user: graph_models.vertices.User,
@@ -28,25 +28,25 @@ class AudioKeyboardStatus(BaseModel):
 
         from tase.db.arangodb.enums import InteractionType
 
-        valid_for_inline = db.graph.is_audio_valid_for_inline_mode(
+        valid_for_inline = await db.graph.is_audio_valid_for_inline_mode(
             hit_download_url=hit_download_url,
             audio_vertex_key=audio_vertex_key,
         )
 
         return AudioKeyboardStatus(
-            is_liked=db.graph.audio_is_interacted_by_user(
+            is_liked=await db.graph.audio_is_interacted_by_user(
                 from_user,
                 InteractionType.LIKE,
                 hit_download_url=hit_download_url,
                 audio_vertex_key=audio_vertex_key,
             ),
-            is_disliked=db.graph.audio_is_interacted_by_user(
+            is_disliked=await db.graph.audio_is_interacted_by_user(
                 from_user,
                 InteractionType.DISLIKE,
                 hit_download_url=hit_download_url,
                 audio_vertex_key=audio_vertex_key,
             ),
-            is_in_favorite_playlist=db.graph.audio_in_favorite_playlist(
+            is_in_favorite_playlist=await db.graph.audio_in_favorite_playlist(
                 from_user,
                 hit_download_url=hit_download_url,
                 audio_vertex_key=audio_vertex_key,

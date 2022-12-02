@@ -37,7 +37,7 @@ class ToggleLikeAudioInlineButton(InlineButton):
         chat_type = ChatType(int(result_id_list[2]))
 
         try:
-            successful, has_liked = handler.db.graph.toggle_interaction(
+            successful, has_liked = await handler.db.graph.toggle_interaction(
                 from_user,
                 handler.telegram_client.telegram_id,
                 hit_download_url,
@@ -56,14 +56,14 @@ class ToggleLikeAudioInlineButton(InlineButton):
         else:
             # todo: update these messages
             if successful:
-                is_disliked = handler.db.graph.audio_is_interacted_by_user(
+                is_disliked = await handler.db.graph.audio_is_interacted_by_user(
                     from_user,
                     InteractionType.DISLIKE,
                     hit_download_url=hit_download_url,
                 )
                 update_dislike_button = False
                 if not has_liked and is_disliked:
-                    handler.db.graph.toggle_interaction(
+                    await handler.db.graph.toggle_interaction(
                         from_user,
                         handler.telegram_client.telegram_id,
                         hit_download_url,
@@ -89,14 +89,14 @@ class ToggleLikeAudioInlineButton(InlineButton):
                     except Exception as e:
                         pass
                 elif telegram_callback_query.inline_message_id:
-                    audio_inline_message = handler.db.document.find_audio_inline_message_by_message_inline_id(
+                    audio_inline_message = await handler.db.document.find_audio_inline_message_by_message_inline_id(
                         handler.telegram_client.telegram_id,
                         from_user.user_id,
                         telegram_callback_query.inline_message_id,
                         hit_download_url,
                     )
                     if audio_inline_message:
-                        status = AudioKeyboardStatus.get_status(
+                        status = await AudioKeyboardStatus.get_status(
                             handler.db,
                             from_user,
                             hit_download_url=hit_download_url,

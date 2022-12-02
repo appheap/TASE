@@ -64,14 +64,14 @@ class BaseTask(BaseModel):
             return None, False
 
         state_dict = self.kwargs if len(self.kwargs) else None
-        active_task = db.document.get_active_rabbitmq_task(
+        active_task = await db.document.get_active_rabbitmq_task(
             self.type,
             state_dict,
         )
         status = None
         created = False
         if active_task is None:
-            new_task = db.document.create_rabbitmq_task(
+            new_task = await db.document.create_rabbitmq_task(
                 self.type,
                 state_dict,
             )
@@ -113,9 +113,9 @@ class BaseTask(BaseModel):
                     )
             except Exception as e:
                 logger.exception(e)
-                new_task.update_status(RabbitMQTaskStatus.FAILED)
+                await new_task.update_status(RabbitMQTaskStatus.FAILED)
             else:
-                new_task.update_status(RabbitMQTaskStatus.IN_QUEUE)
+                await new_task.update_status(RabbitMQTaskStatus.IN_QUEUE)
 
             status = new_task.status
             created = True
@@ -198,32 +198,32 @@ class BaseTask(BaseModel):
     ):
         raise NotImplementedError
 
-    def task_in_worker(
+    async def task_in_worker(
         self,
         db: DatabaseClient,
     ) -> bool:
-        task = db.document.get_rabbitmq_task_by_key(self.task_key)
+        task = await db.document.get_rabbitmq_task_by_key(self.task_key)
         if task:
-            return task.update_status(RabbitMQTaskStatus.IN_WORKER)
+            return await task.update_status(RabbitMQTaskStatus.IN_WORKER)
 
         return False
 
-    def task_done(
+    async def task_done(
         self,
         db: DatabaseClient,
     ) -> bool:
-        task = db.document.get_rabbitmq_task_by_key(self.task_key)
+        task = await db.document.get_rabbitmq_task_by_key(self.task_key)
         if task:
-            return task.update_status(RabbitMQTaskStatus.DONE)
+            return await task.update_status(RabbitMQTaskStatus.DONE)
 
         return False
 
-    def task_failed(
+    async def task_failed(
         self,
         db: DatabaseClient,
     ) -> bool:
-        task = db.document.get_rabbitmq_task_by_key(self.task_key)
+        task = await db.document.get_rabbitmq_task_by_key(self.task_key)
         if task:
-            return task.update_status(RabbitMQTaskStatus.FAILED)
+            return await task.update_status(RabbitMQTaskStatus.FAILED)
 
         return False

@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+import collections
 import time
 from enum import Enum
-from typing import Optional, Tuple, TypeVar, Dict, Any, Type, List
+from typing import Optional, Tuple, TypeVar, Dict, Any, Type, List, Deque
 
 import elasticsearch
 from elastic_transport import ObjectApiResponse
-from elasticsearch import ConflictError, Elasticsearch, NotFoundError, AsyncElasticsearch
+from elasticsearch import ConflictError, NotFoundError, AsyncElasticsearch
 from pydantic import BaseModel, Field, ValidationError
 
 from tase.common.utils import get_now_timestamp
@@ -504,7 +505,7 @@ class BaseDocument(BaseModel):
         from_: int = 0,
         size: int = 10,
         filter_by_valid_for_inline_search: Optional[bool] = True,
-    ) -> Tuple[Optional[List[TBaseDocument]], Optional[ElasticQueryMetadata]]:
+    ) -> Tuple[Optional[Deque[TBaseDocument]], Optional[ElasticQueryMetadata]]:
         """
         Search among the documents with the given query
 
@@ -529,7 +530,7 @@ class BaseDocument(BaseModel):
         if query is None or from_ is None or size is None:
             return None, None
 
-        db_docs = []
+        db_docs = collections.deque()
         try:
             res: ObjectApiResponse = await cls._es.search(
                 index=cls._index_name,

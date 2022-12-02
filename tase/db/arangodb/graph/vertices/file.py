@@ -4,11 +4,11 @@ from typing import Optional
 
 import pyrogram
 
+from aioarango.models import PersistentIndex
 from tase.db.db_utils import get_telegram_message_media_type
 from tase.errors import TelegramMessageWithNoAudio
 from tase.my_logger import logger
 from .base_vertex import BaseVertex
-from ...base.index import PersistentIndex
 from ...enums import TelegramAudioType
 
 
@@ -17,7 +17,7 @@ class File(BaseVertex):
     schema_version = 1
     _extra_indexes = [
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="file_unique_id",
             fields=[
                 "file_unique_id",
@@ -99,7 +99,7 @@ class File(BaseVertex):
 
 
 class FileMethods:
-    def create_file(
+    async def create_file(
         self,
         telegram_message: pyrogram.types.Message,
     ) -> Optional[File]:
@@ -121,7 +121,7 @@ class FileMethods:
             return None
 
         try:
-            file, successful = File.insert(File.parse(telegram_message))
+            file, successful = await File.insert(File.parse(telegram_message))
         except TelegramMessageWithNoAudio:
             pass
         except Exception as e:
@@ -132,7 +132,7 @@ class FileMethods:
 
         return None
 
-    def get_or_create_file(
+    async def get_or_create_file(
         self,
         telegram_message: pyrogram.types.Message,
     ) -> Optional[File]:
@@ -160,18 +160,18 @@ class FileMethods:
         file = None
 
         try:
-            file = File.get(File.parse_key(telegram_message))
+            file = await File.get(File.parse_key(telegram_message))
         except TelegramMessageWithNoAudio:
             pass
         except Exception as e:
             logger.exception(e)
         else:
             if file is None:
-                file = self.create_file(telegram_message)
+                file = await self.create_file(telegram_message)
 
         return file
 
-    def update_or_create_file(
+    async def update_or_create_file(
         self,
         telegram_message: pyrogram.types.Message,
     ) -> Optional[File]:
@@ -193,11 +193,11 @@ class FileMethods:
             return None
 
         try:
-            file = File.get(File.parse_key(telegram_message))
+            file = await File.get(File.parse_key(telegram_message))
             if file is None:
-                return self.create_file(telegram_message)
+                return await self.create_file(telegram_message)
             else:
-                successful = file.update(File.parse(telegram_message))
+                successful = await file.update(File.parse(telegram_message))
                 if successful:
                     return file
                 else:

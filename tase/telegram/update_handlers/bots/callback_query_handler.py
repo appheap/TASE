@@ -25,7 +25,7 @@ class CallbackQueryHandler(BaseHandler):
         callback_query: pyrogram.types.CallbackQuery,
     ):
         logger.debug(f"on_callback_query: {callback_query}")
-        db_user = self.db.graph.get_interacted_user(callback_query.from_user)
+        db_user = await self.db.graph.get_interacted_user(callback_query.from_user)
 
         button_type_value, data, chat_type_value = callback_query.data.split("->")
         button = InlineButton.find_button_by_type_value(button_type_value)

@@ -39,7 +39,7 @@ class ToggleFavoritePlaylistInlineButton(InlineButton):
 
         # add the audio to the playlist
         try:
-            (successful, created,), in_favorite_playlist = handler.db.graph.toggle_favorite_playlist(
+            (successful, created,), in_favorite_playlist = await handler.db.graph.toggle_favorite_playlist(
                 from_user,
                 hit_download_url,
             )
@@ -65,14 +65,14 @@ class ToggleFavoritePlaylistInlineButton(InlineButton):
 
                         await telegram_callback_query.edit_message_reply_markup(reply_markup)
                     elif telegram_callback_query.inline_message_id:
-                        audio_inline_message = handler.db.document.find_audio_inline_message_by_message_inline_id(
+                        audio_inline_message = await handler.db.document.find_audio_inline_message_by_message_inline_id(
                             handler.telegram_client.telegram_id,
                             from_user.user_id,
                             telegram_callback_query.inline_message_id,
                             hit_download_url,
                         )
                         if audio_inline_message:
-                            status = AudioKeyboardStatus.get_status(
+                            status = await AudioKeyboardStatus.get_status(
                                 handler.db,
                                 from_user,
                                 hit_download_url=hit_download_url,

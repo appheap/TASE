@@ -3,8 +3,8 @@ from __future__ import annotations
 from hashlib import sha1
 from typing import Optional
 
+from aioarango.models import PersistentIndex
 from .base_vertex import BaseVertex
-from ...base.index import PersistentIndex
 
 
 class Hashtag(BaseVertex):
@@ -12,7 +12,7 @@ class Hashtag(BaseVertex):
     _collection_name = "hashtags"
     _extra_indexes = [
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="hashtag",
             fields=[
                 "hashtag",
@@ -52,7 +52,7 @@ class Hashtag(BaseVertex):
 
 
 class HashTagMethods:
-    def create_hashtag(
+    async def create_hashtag(
         self,
         hashtag: str,
     ) -> Optional[Hashtag]:
@@ -73,13 +73,13 @@ class HashTagMethods:
         if hashtag is None:
             return None
 
-        hashtag_vertex, successful = Hashtag.insert(Hashtag.parse(hashtag))
+        hashtag_vertex, successful = await Hashtag.insert(Hashtag.parse(hashtag))
         if hashtag_vertex and successful:
             return hashtag_vertex
 
         return None
 
-    def get_or_create_hashtag(
+    async def get_or_create_hashtag(
         self,
         hashtag: str,
     ) -> Optional[Hashtag]:
@@ -100,13 +100,13 @@ class HashTagMethods:
         if hashtag is None:
             return None
 
-        hashtag_vertex = Hashtag.get(Hashtag.parse_key(hashtag))
+        hashtag_vertex = await Hashtag.get(Hashtag.parse_key(hashtag))
         if hashtag_vertex is None:
-            hashtag_vertex = self.create_hashtag(hashtag)
+            hashtag_vertex = await self.create_hashtag(hashtag)
 
         return hashtag_vertex
 
-    def update_or_create_hashtag(
+    async def update_or_create_hashtag(
         self,
         hashtag: str,
     ) -> Optional[Hashtag]:
@@ -127,10 +127,10 @@ class HashTagMethods:
         if hashtag is None:
             return None
 
-        hashtag_vertex = Hashtag.get(Hashtag.parse_key(hashtag))
+        hashtag_vertex = await Hashtag.get(Hashtag.parse_key(hashtag))
         if hashtag_vertex is None:
-            hashtag_vertex = self.create_hashtag(hashtag)
+            hashtag_vertex = await self.create_hashtag(hashtag)
         else:
-            hashtag_vertex.update(Hashtag.parse(hashtag))
+            await hashtag_vertex.update(Hashtag.parse(hashtag))
 
         return hashtag_vertex

@@ -79,3 +79,30 @@ class AudioCaptionData(BaseTemplateData):
             quality_string=es_audio_doc.estimated_bit_rate_type.get_bit_rate_string(True),
             lang_code=user.chosen_language_code,
         )
+
+    @staticmethod
+    def parse_from_audio_vertex(
+        audio_vertex: graph_models.vertices.Audio,
+        user: graph_models.vertices.User,
+        chat: graph_models.vertices.Chat,
+        bot_url: str,  # todo: get bot_url from config
+        include_source: bool = True,  # todo: where to get this variable?
+    ) -> Optional[AudioCaptionData]:
+        if audio_vertex is None or user is None or chat is None or bot_url is None:
+            return None
+
+        return AudioCaptionData(
+            title=clean_audio_item_text(audio_vertex.raw_title),
+            performer=clean_audio_item_text(audio_vertex.raw_performer),
+            file_name=textwrap.shorten(
+                clean_audio_item_text(audio_vertex.raw_file_name, is_file_name=True),
+                width=40,
+                placeholder="...",
+            ),
+            source=f"<a href ='https://t.me/{chat.username}/{audio_vertex.message_id}'>{chat.username}</a>",
+            include_source=include_source,
+            bot_url=bot_url,
+            plant=random.choice(emoji.plants_list),
+            quality_string=audio_vertex.estimated_bit_rate_type.get_bit_rate_string(True),
+            lang_code=user.chosen_language_code,
+        )

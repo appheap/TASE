@@ -4,12 +4,12 @@ from typing import Optional, Generator, Tuple
 
 from pydantic import Field
 
+from aioarango.models import PersistentIndex
 from tase.common.utils import get_now_timestamp
 from tase.errors import InvalidFromVertex, InvalidToVertex
 from tase.my_logger import logger
 from . import Chat
 from .base_vertex import BaseVertex
-from ...base.index import PersistentIndex
 from ...enums import MentionSource
 
 
@@ -23,7 +23,7 @@ class Username(BaseVertex):
     schema_version = 1
     _extra_indexes = [
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="username",
             fields=[
                 "username",
@@ -31,21 +31,21 @@ class Username(BaseVertex):
             unique=True,
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="is_checked",
             fields=[
                 "is_checked",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="checked_at",
             fields=[
                 "checked_at",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="is_valid",
             fields=[
                 "is_valid",
@@ -78,7 +78,7 @@ class Username(BaseVertex):
     ) -> str:
         return username.lower()
 
-    def check(
+    async def check(
         self,
         is_checked: bool,
         checked_at: int,
@@ -109,7 +109,7 @@ class Username(BaseVertex):
         self_copy.checked_at = checked_at
         self_copy.is_valid = is_valid
 
-        return self.update(self_copy)
+        return await self.update(self_copy)
 
 
 class UsernameMethods:
@@ -147,7 +147,7 @@ class UsernameMethods:
         "   return {username_:username, mentioned_chat_:mentioned_chat[0], count_:unchecked_mentions_count[0]}"
     )
 
-    def get_username(
+    async def get_username(
         self,
         username: str,
     ) -> Optional[Username]:
@@ -168,9 +168,9 @@ class UsernameMethods:
         if username is None:
             return None
 
-        return Username.get(Username.parse_key(username))
+        return await Username.get(Username.parse_key(username))
 
-    def get_username_by_key(
+    async def get_username_by_key(
         self,
         key: str,
     ) -> Optional[Username]:
@@ -191,9 +191,9 @@ class UsernameMethods:
         if key is None:
             return None
 
-        return Username.get(key)
+        return await Username.get(key)
 
-    def create_username(
+    async def create_username(
         self,
         username: str,
     ) -> Optional[Username]:
@@ -214,13 +214,13 @@ class UsernameMethods:
         if username is None or not len(username):
             return None
 
-        db_username, successful = Username.insert(Username.parse(username))
+        db_username, successful = await Username.insert(Username.parse(username))
         if db_username and successful:
             return db_username
         else:
             return None
 
-    def get_or_create_username(
+    async def get_or_create_username(
         self,
         username: str,
         chat: Chat = None,
@@ -263,9 +263,9 @@ class UsernameMethods:
         if username is None or not len(username):
             return None
 
-        db_username = Username.get(Username.parse_key(username))
+        db_username = await Username.get(Username.parse_key(username))
         if db_username is None:
-            db_username = self.create_username(username)
+            db_username = await self.create_username(username)
 
         if db_username and create_mention_edge:
             if (
@@ -294,7 +294,7 @@ class UsernameMethods:
             if create_mention_edge_:
                 # mentioned username is not self-mention, create the edge from `Chat` vertex to `Username` vertex
                 try:
-                    Mentions.get_or_create_edge(
+                    await Mentions.get_or_create_edge(
                         chat,
                         db_username,
                         is_direct_mention,
@@ -308,7 +308,7 @@ class UsernameMethods:
 
         return db_username
 
-    def get_unchecked_usernames(
+    async def get_unchecked_usernames(
         self,
         limit: int = 200,
     ) -> Generator[Username, None, None]:
@@ -331,7 +331,7 @@ class UsernameMethods:
 
         from tase.db.arangodb.graph.edges import Mentions
 
-        cursor = Username.execute_query(
+        async with await Username.execute_query(
             self._get_unchecked_usernames_query,
             bind_vars={
                 "usernames": Username._collection_name,
@@ -340,13 +340,11 @@ class UsernameMethods:
                 "now": now,
                 "limit_": limit,
             },
-        )
-
-        if cursor is not None and len(cursor):
-            for doc in cursor:
+        ) as cursor:
+            async for doc in cursor:
                 yield Username.from_collection(doc)
 
-    def get_checked_usernames_with_unchecked_mentions(
+    async def get_checked_usernames_with_unchecked_mentions(
         self,
         limit: int = 100,
     ) -> Generator[Tuple[Username, Chat], None, None]:
@@ -371,7 +369,7 @@ class UsernameMethods:
         from tase.db.arangodb.graph.edges import Mentions
         from tase.db.arangodb.graph.edges import Has
 
-        cursor = Username.execute_query(
+        async with await Username.execute_query(
             self._get_checked_usernames_with_unchecked_mentions,
             bind_vars={
                 "usernames": Username._collection_name,
@@ -381,10 +379,8 @@ class UsernameMethods:
                 "now": now,
                 "limit_": limit,
             },
-        )
-
-        if cursor is not None and len(cursor):
-            for doc in cursor:
+        ) as cursor:
+            async for doc in cursor:
                 count = int(doc.get("count_", None))
                 if count > 0:
                     username = Username.from_collection(doc.get("username_", None))

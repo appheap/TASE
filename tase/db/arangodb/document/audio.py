@@ -4,9 +4,9 @@ from typing import Optional
 
 import pyrogram
 
+from aioarango.models import PersistentIndex
 from tase.errors import TelegramMessageWithNoAudio
 from .base_document import BaseDocument
-from ..base.index import PersistentIndex
 from ..enums import TelegramAudioType
 from ...db_utils import get_telegram_message_media_type
 
@@ -16,28 +16,28 @@ class Audio(BaseDocument):
     schema_version = 1
     _extra_indexes = [
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="file_id",
             fields=[
                 "file_id",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="file_unique_id",
             fields=[
                 "file_unique_id",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="chat_id",
             fields=[
                 "chat_id",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="message_id",
             fields=[
                 "message_id",
@@ -127,7 +127,7 @@ class Audio(BaseDocument):
 
 
 class AudioMethods:
-    def create_audio(
+    async def create_audio(
         self,
         telegram_message: pyrogram.types.Message,
         telegram_client_id: int,
@@ -157,8 +157,8 @@ class AudioMethods:
             return None
 
         try:
-            audio, successful = Audio.insert(Audio.parse(telegram_message, telegram_client_id))
-        except ValueError:
+            audio, successful = await Audio.insert(Audio.parse(telegram_message, telegram_client_id))
+        except TelegramMessageWithNoAudio:
             # the message does not contain any valid audio file
             pass
         else:
@@ -167,7 +167,7 @@ class AudioMethods:
 
         return None
 
-    def get_or_create_audio(
+    async def get_or_create_audio(
         self,
         telegram_message: pyrogram.types.Message,
         telegram_client_id: int,
@@ -192,13 +192,13 @@ class AudioMethods:
         if telegram_message is None:
             return None
 
-        audio = Audio.get(Audio.parse_key(telegram_message, telegram_client_id))
+        audio = await Audio.get(Audio.parse_key(telegram_message, telegram_client_id))
         if audio is None:
-            audio = self.create_audio(telegram_message, telegram_client_id)
+            audio = await self.create_audio(telegram_message, telegram_client_id)
 
         return audio
 
-    def update_or_create_audio(
+    async def update_or_create_audio(
         self,
         telegram_message: pyrogram.types.Message,
         telegram_client_id: int,
@@ -224,21 +224,21 @@ class AudioMethods:
             return None
 
         try:
-            audio = Audio.get(Audio.parse_key(telegram_message, telegram_client_id))
+            audio = await Audio.get(Audio.parse_key(telegram_message, telegram_client_id))
         except ValueError:
             audio = None
         else:
             if audio is None:
-                audio = self.create_audio(telegram_message, telegram_client_id)
+                audio = await self.create_audio(telegram_message, telegram_client_id)
             else:
                 try:
-                    updated = audio.update(Audio.parse(telegram_message, telegram_client_id))
+                    updated = await audio.update(Audio.parse(telegram_message, telegram_client_id))
                 except ValueError:
                     updated = False
 
         return audio
 
-    def get_audio_by_key(
+    async def get_audio_by_key(
         self,
         telegram_client_id: int,
         audio_key: str,
@@ -262,9 +262,9 @@ class AudioMethods:
         if telegram_client_id is None or audio_key is None:
             return None
 
-        return Audio.get(f"{telegram_client_id}:{audio_key}")
+        return await Audio.get(f"{telegram_client_id}:{audio_key}")
 
-    def has_audio_by_key(
+    async def has_audio_by_key(
         self,
         telegram_client_id: int,
         audio_key: str,
@@ -288,4 +288,4 @@ class AudioMethods:
         if telegram_client_id is None or audio_key is None:
             return False
 
-        return Audio.has(f"{telegram_client_id}:{audio_key}")
+        return await Audio.has(f"{telegram_client_id}:{audio_key}")

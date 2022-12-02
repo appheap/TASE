@@ -8,15 +8,6 @@ from tase.configs import TASEConfig
 from tase.db import DatabaseClient
 from tase.errors import NotEnoughRamError
 from tase.scheduler import SchedulerWorkerProcess
-from tase.scheduler.jobs import (
-    CountInteractionsJob,
-    CountHitsJob,
-    IndexAudiosJob,
-    ExtractUsernamesJob,
-    CheckUsernamesJob,
-    CheckUsernamesWithUncheckedMentionsJob,
-    DummyJob,
-)
 from tase.telegram.client import TelegramClient
 from tase.telegram.client.telegram_client_manager import TelegramClientManager
 
@@ -55,15 +46,14 @@ class TASE:
                 self.database_client = DatabaseClient(
                     elasticsearch_config=tase_config.elastic_config,
                     arangodb_config=tase_config.arango_db_config,
-                    update_arango_indexes=True,
                 )
-                await self.database_client.init_databases()
+                await self.database_client.init_databases(update_arango_indexes=True)
 
                 scheduler = SchedulerWorkerProcess(tase_config)
                 scheduler.start()
 
                 # cancel active task from the last run
-                self.database_client.document.cancel_all_active_tasks()
+                await self.database_client.document.cancel_all_active_tasks()
 
                 try:
                     await asyncio.sleep(30)

@@ -3,8 +3,8 @@ from __future__ import annotations
 from hashlib import sha1
 from typing import Optional
 
+from aioarango.models import PersistentIndex
 from .base_vertex import BaseVertex
-from ...base.index import PersistentIndex
 
 
 class Keyword(BaseVertex):
@@ -12,7 +12,7 @@ class Keyword(BaseVertex):
     schema_version = 1
     _extra_indexes = [
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="keyword",
             fields=[
                 "keyword",

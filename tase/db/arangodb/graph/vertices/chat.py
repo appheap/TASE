@@ -1,16 +1,16 @@
 from __future__ import annotations
 
+import collections
 from typing import Optional, List, Tuple, Generator, TYPE_CHECKING
 
 import pyrogram
-from arango import CursorEmptyError
 
+from aioarango.models import PersistentIndex
 from tase.common.utils import prettify, get_now_timestamp
 from tase.db.arangodb import graph as graph_models
 from tase.errors import InvalidFromVertex, InvalidToVertex
 from tase.my_logger import logger
 from .base_vertex import BaseVertex
-from ...base.index import PersistentIndex
 
 if TYPE_CHECKING:
     from .. import ArangoGraphMethods
@@ -29,7 +29,7 @@ class Chat(BaseVertex):
     schema_version = 1
     _extra_indexes = [
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="chat_id",
             fields=[
                 "chat_id",
@@ -37,98 +37,98 @@ class Chat(BaseVertex):
             unique=True,
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="is_public",
             fields=[
                 "is_public",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="chat_type",
             fields=[
                 "chat_type",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="is_verified",
             fields=[
                 "is_verified",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="is_restricted",
             fields=[
                 "is_restricted",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="is_scam",
             fields=[
                 "is_scam",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="is_fake",
             fields=[
                 "is_fake",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="is_support",
             fields=[
                 "is_support",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="username",
             fields=[
                 "username",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="dc_id",
             fields=[
                 "dc_id",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="has_protected_content",
             fields=[
                 "has_protected_content",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="members_count",
             fields=[
                 "members_count",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="audio_indexer_metadata_last_run_at",
             fields=[
                 "audio_indexer_metadata.last_run_at",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="audio_doc_indexer_metadata_last_run_at",
             fields=[
                 "audio_doc_indexer_metadata.last_run_at",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="username_extractor_metadata_last_run_at",
             fields=[
                 "username_extractor_metadata.last_run_at",
@@ -258,7 +258,7 @@ class Chat(BaseVertex):
 
         return is_public
 
-    def update_username_extractor_metadata(
+    async def update_username_extractor_metadata(
         self,
         metadata: UsernameExtractorMetadata,
     ) -> bool:
@@ -284,13 +284,13 @@ class Chat(BaseVertex):
         updated_metadata = self_copy.username_extractor_metadata.update_metadata(metadata)
         updated_metadata.update_score()
 
-        return self.update(
+        return await self.update(
             self_copy,
             reserve_non_updatable_fields=False,
             retry_on_failure=True,
         )
 
-    def update_audio_indexer_metadata(
+    async def update_audio_indexer_metadata(
         self,
         metadata: AudioIndexerMetadata,
     ) -> bool:
@@ -316,13 +316,13 @@ class Chat(BaseVertex):
         updated_metadata = self_copy.audio_indexer_metadata.update_metadata(metadata)
         updated_metadata.update_score()
 
-        return self.update(
+        return await self.update(
             self_copy,
             reserve_non_updatable_fields=False,
             retry_on_failure=True,
         )
 
-    def update_audio_doc_indexer_metadata(
+    async def update_audio_doc_indexer_metadata(
         self,
         metadata: AudioDocIndexerMetadata,
     ) -> bool:
@@ -350,13 +350,13 @@ class Chat(BaseVertex):
         updated_metadata = self_copy.audio_doc_indexer_metadata.update_metadata(metadata)
         updated_metadata.update_score()
 
-        return self.update(
+        return await self.update(
             self_copy,
             reserve_non_updatable_fields=False,
             retry_on_failure=True,
         )
 
-    def update_audio_indexer_score(
+    async def update_audio_indexer_score(
         self,
         score: float,
     ) -> bool:
@@ -381,13 +381,13 @@ class Chat(BaseVertex):
             self_copy.audio_indexer_metadata = AudioIndexerMetadata()
         self_copy.audio_indexer_metadata.score = score
 
-        return self.update(
+        return await self.update(
             self_copy,
             reserve_non_updatable_fields=False,
             retry_on_failure=True,
         )
 
-    def update_audio_doc_indexer_score(
+    async def update_audio_doc_indexer_score(
         self,
         score: float,
     ) -> bool:
@@ -412,13 +412,13 @@ class Chat(BaseVertex):
             self_copy.audio_doc_indexer_metadata = AudioDocIndexerMetadata()
         self_copy.audio_doc_indexer_metadata.score = score
 
-        return self.update(
+        return await self.update(
             self_copy,
             reserve_non_updatable_fields=False,
             retry_on_failure=True,
         )
 
-    def update_username_extractor_score(
+    async def update_username_extractor_score(
         self,
         score: float,
     ) -> bool:
@@ -443,7 +443,7 @@ class Chat(BaseVertex):
             self_copy.username_extractor_metadata = UsernameExtractorMetadata()
         self_copy.username_extractor_metadata.score = score
 
-        return self.update(
+        return await self.update(
             self_copy,
             reserve_non_updatable_fields=False,
             retry_on_failure=True,
@@ -496,7 +496,7 @@ class ChatMethods:
         "   return chat"
     )
 
-    def _create_chat(
+    async def _create_chat(
         self: ArangoGraphMethods,
         telegram_chat: pyrogram.types.Chat,
     ) -> Optional[Chat]:
@@ -522,13 +522,13 @@ class ChatMethods:
 
         from tase.db.arangodb.graph.edges import LinkedChat
 
-        chat, successful = Chat.insert(Chat.parse(telegram_chat))
+        chat, successful = await Chat.insert(Chat.parse(telegram_chat))
         if chat and successful:
             if telegram_chat.linked_chat:
-                linked_chat = self.get_or_create_chat(telegram_chat.linked_chat)
+                linked_chat = await self.get_or_create_chat(telegram_chat.linked_chat)
                 if linked_chat:
                     try:
-                        LinkedChat.get_or_create_edge(chat, linked_chat)
+                        await LinkedChat.get_or_create_edge(chat, linked_chat)
                     except (InvalidFromVertex, InvalidToVertex):
                         pass
                 else:
@@ -536,13 +536,13 @@ class ChatMethods:
                     logger.error(f"Could not create linked_chat: {prettify(telegram_chat.linked_chat)}")
 
             if chat.username:
-                self._create_chat_linked_username(chat)
+                await self._create_chat_linked_username(chat)
 
             return chat
 
         return None
 
-    def get_or_create_chat(
+    async def get_or_create_chat(
         self,
         telegram_chat: pyrogram.types.Chat,
     ) -> Optional[Chat]:
@@ -563,14 +563,14 @@ class ChatMethods:
         if telegram_chat is None:
             return None
 
-        chat = Chat.get(Chat.parse_key(telegram_chat))
+        chat = await Chat.get(Chat.parse_key(telegram_chat))
         if chat is None:
             # chat does not exist in the database, create it
-            chat = self._create_chat(telegram_chat)
+            chat = await self._create_chat(telegram_chat)
 
         return chat
 
-    def update_or_create_chat(
+    async def update_or_create_chat(
         self: ArangoGraphMethods,
         telegram_chat: pyrogram.types.Chat,
     ) -> Optional[Chat]:
@@ -591,33 +591,33 @@ class ChatMethods:
         if telegram_chat is None:
             return None
 
-        chat = Chat.get(Chat.parse_key(telegram_chat))
+        chat = await Chat.get(Chat.parse_key(telegram_chat))
         if chat is not None:
-            successful = chat.update(Chat.parse(telegram_chat))
+            successful = await chat.update(Chat.parse(telegram_chat))
             if successful:
-                self._update_linked_chat(chat, telegram_chat)
-                self._update_linked_username(chat, telegram_chat)
+                await self._update_linked_chat(chat, telegram_chat)
+                await self._update_linked_username(chat, telegram_chat)
 
         else:
-            chat: Chat = self._create_chat(telegram_chat)
+            chat: Chat = await self._create_chat(telegram_chat)
 
         return chat
 
-    def _create_chat_linked_username(
+    async def _create_chat_linked_username(
         self: ArangoGraphMethods,
         chat: Chat,
     ) -> bool:
-        usernames_vertex = self.get_or_create_username(
+        usernames_vertex = await self.get_or_create_username(
             chat.username,
             create_mention_edge=False,
         )
         if usernames_vertex:
             if not usernames_vertex.is_checked:
-                usernames_vertex.check(True, get_now_timestamp(), True)
+                await usernames_vertex.check(True, get_now_timestamp(), True)
 
             from tase.db.arangodb.graph.edges import Has
 
-            has_edge = Has.get_or_create_edge(chat, usernames_vertex)
+            has_edge = await Has.get_or_create_edge(chat, usernames_vertex)
             if not has_edge:
                 logger.error(f"could not create `has` edge from `chat` with key `{chat.key}` to `username` with key `{usernames_vertex.key}`")
                 return False
@@ -627,7 +627,7 @@ class ChatMethods:
 
         return True
 
-    def _update_linked_username(
+    async def _update_linked_username(
         self: ArangoGraphMethods,
         chat: Chat,
         telegram_chat: pyrogram.types.Chat,
@@ -635,17 +635,17 @@ class ChatMethods:
         if chat is None or telegram_chat is None:
             return
 
-        def remove_old_links(username_vertex_, has_edge_):
-            deleted = has_edge_.delete()
+        async def remove_old_links(username_vertex_, has_edge_):
+            deleted = await has_edge_.delete()
             if not deleted:
                 logger.error(f"could not delete the `has` edge from chat with key `{chat.key}` to username with key `{username_vertex_.key}`")
             else:
-                if not username_vertex_.check(False, get_now_timestamp(), False):
+                if not await username_vertex_.check(False, get_now_timestamp(), False):
                     logger.error(f"could not check username with key `{username_vertex_.key}`")
 
         if telegram_chat.username:
             try:
-                username_vertex, has_edge = self.get_chat_username_with_edge(chat)
+                username_vertex, has_edge = await self.get_chat_username_with_edge(chat)
             except ValueError as e:
                 # chat has more than one username linked with it
                 logger.exception(e)
@@ -657,27 +657,27 @@ class ChatMethods:
                     if username_vertex.username != telegram_chat.username.lower():
                         # the username of the chat has changed since last time, remove the link between the
                         # chat and the old username and set the username's `is_checked` property as `False`
-                        if self._create_chat_linked_username(chat):
-                            remove_old_links(username_vertex, has_edge)
+                        if await self._create_chat_linked_username(chat):
+                            await remove_old_links(username_vertex, has_edge)
                     else:
                         # username has not changed since last, no need to update anything
                         pass
 
                 else:
                     # the chat did not have any usernames before, create it now
-                    self._create_chat_linked_username(chat)
+                    await self._create_chat_linked_username(chat)
         else:
             # the chat doesn't have any linked username, check if it had any before and delete the link
             try:
-                username_vertex, has_edge = self.get_chat_username_with_edge(chat)
+                username_vertex, has_edge = await self.get_chat_username_with_edge(chat)
             except ValueError as e:
                 # chat has more than one username linked with it
                 logger.exception(e)
             else:
                 if username_vertex and has_edge:
-                    remove_old_links(username_vertex, has_edge)
+                    await remove_old_links(username_vertex, has_edge)
 
-    def _update_linked_chat(
+    async def _update_linked_chat(
         self,
         chat: Chat,
         telegram_chat: pyrogram.types.Chat,
@@ -691,7 +691,7 @@ class ChatMethods:
                 (
                     linked_chat,
                     linked_chat_edge,
-                ) = self.get_chat_linked_chat_with_edge(chat)
+                ) = await self.get_chat_linked_chat_with_edge(chat)
             except ValueError as e:
                 logger.exception(e)
             else:
@@ -701,22 +701,22 @@ class ChatMethods:
                     # chat has linked chat already, check if it needs to create/update the existing one or delete the old one and add a new one.
                     if linked_chat.chat_id == telegram_chat.linked_chat.id:
                         # update the linked chat
-                        updated = linked_chat.update(Chat.parse(telegram_chat.linked_chat))
+                        updated = await linked_chat.update(Chat.parse(telegram_chat.linked_chat))
                     else:
                         # delete the old link
-                        linked_chat_edge.delete()
+                        await linked_chat_edge.delete()
 
                         # create the new link and new chat
-                        linked_chat = self.update_or_create_chat(telegram_chat.linked_chat)
+                        linked_chat = await self.update_or_create_chat(telegram_chat.linked_chat)
                         try:
-                            LinkedChat.get_or_create_edge(chat, linked_chat)
+                            await LinkedChat.get_or_create_edge(chat, linked_chat)
                         except (InvalidFromVertex, InvalidToVertex):
                             pass
                 else:
                     # chat did not have any linked chat before, create it
-                    linked_chat = self.get_or_create_chat(telegram_chat.linked_chat)
+                    linked_chat = await self.get_or_create_chat(telegram_chat.linked_chat)
                     try:
-                        LinkedChat.get_or_create_edge(chat, linked_chat)
+                        await LinkedChat.get_or_create_edge(chat, linked_chat)
                     except (InvalidFromVertex, InvalidToVertex):
                         pass
 
@@ -726,15 +726,15 @@ class ChatMethods:
                 (
                     linked_chat,
                     linked_chat_edge,
-                ) = self.get_chat_linked_chat_with_edge(chat)
+                ) = await self.get_chat_linked_chat_with_edge(chat)
             except ValueError as e:
                 logger.exception(e)
             else:
                 if linked_chat and linked_chat_edge:
                     # chat had linked chat before, remove the link
-                    linked_chat_edge.delete()
+                    await linked_chat_edge.delete()
 
-    def get_chat_linked_chat_with_edge(
+    async def get_chat_linked_chat_with_edge(
         self,
         chat: Chat,
     ) -> Tuple[Optional[Chat], Optional[graph_models.edges.LinkedChat]]:
@@ -762,32 +762,31 @@ class ChatMethods:
 
         from tase.db.arangodb.graph.edges import LinkedChat
 
-        cursor = Chat.execute_query(
+        results = collections.deque()
+
+        async with await Chat.execute_query(
             self._get_chat_linked_chat_with_edge_query,
             bind_vars={
                 "start_vertex": chat.id,
                 "linked_chat": LinkedChat._collection_name,
                 "chat": Chat._collection_name,
             },
-        )
-        if cursor is not None and len(cursor):
-            if len(cursor) > 1:
-                raise ValueError(f"Chat with id `{chat.id}` have more than one linked chats.")
-            else:
-                try:
-                    doc = cursor.pop()
-                except CursorEmptyError:
-                    pass
-                except Exception as e:
-                    logger.exception(e)
-                else:
-                    linked_chat: Chat = Chat.from_collection(doc["linked_chat"])
-                    edge: LinkedChat = LinkedChat.from_collection(doc["edge"])
-                    return linked_chat, edge
+        ) as cursor:
+            async for doc in cursor:
+                linked_chat: Chat = Chat.from_collection(doc["linked_chat"])
+                edge: LinkedChat = LinkedChat.from_collection(doc["edge"])
+
+                results.append((linked_chat, edge))
+
+        if len(results) > 1:
+            raise ValueError(f"Chat with id `{chat.id}` have more than one linked chats.")
+
+        if results:
+            return results[0]
 
         return None, None
 
-    def get_chat_username_with_edge(
+    async def get_chat_username_with_edge(
         self,
         chat: Chat,
     ) -> Tuple[Optional[graph_models.vertices.Username], Optional[graph_models.edges.Has]]:
@@ -816,32 +815,31 @@ class ChatMethods:
         from tase.db.arangodb.graph.edges import Has
         from tase.db.arangodb.graph.vertices import Username
 
-        cursor = Chat.execute_query(
+        results = collections.deque()
+
+        async with await Chat.execute_query(
             self._get_chat_username_with_edge_query,
             bind_vars={
                 "start_vertex": chat.id,
                 "has": Has._collection_name,
                 "usernames": Username._collection_name,
             },
-        )
-        if cursor is not None and len(cursor):
-            if len(cursor) > 1:
-                raise ValueError(f"Chat with id `{chat.id}` have more than one usernames.")
-            else:
-                try:
-                    doc = cursor.pop()
-                except CursorEmptyError:
-                    pass
-                except Exception as e:
-                    logger.exception(e)
-                else:
-                    username: Username = Username.from_collection(doc["username"])
-                    edge: Has = Has.from_collection(doc["edge"])
-                    return username, edge
+        ) as cursor:
+            async for doc in cursor:
+                username: Username = Username.from_collection(doc["username"])
+                edge: Has = Has.from_collection(doc["edge"])
+
+                results.append((username, edge))
+
+        if len(results) > 1:
+            raise ValueError(f"Chat with id `{chat.id}` have more than one usernames.")
+
+        if results:
+            return results[0]
 
         return None, None
 
-    def get_chats_sorted_by_username_extractor_score(
+    async def get_chats_sorted_by_username_extractor_score(
         self,
         filter_by_indexed_chats: bool = True,
     ) -> Generator[Chat, None, None]:
@@ -861,7 +859,7 @@ class ChatMethods:
         # todo: only public channels can be indexed for now. add support for other types if necessary
         chat_type = ChatType.CHANNEL.value
 
-        cursor = Chat.execute_query(
+        async with await Chat.execute_query(
             self._get_chats_sorted_by_username_extractor_score_query
             if filter_by_indexed_chats
             else self._get_not_extracted_chats_sorted_by_members_count_query,
@@ -869,12 +867,11 @@ class ChatMethods:
                 "chats": Chat._collection_name,
                 "chat_type": chat_type,
             },
-        )
-        if cursor is not None and len(cursor):
-            for doc in cursor:
+        ) as cursor:
+            async for doc in cursor:
                 yield Chat.from_collection(doc)
 
-    def get_chats_sorted_by_audio_indexer_score(
+    async def get_chats_sorted_by_audio_indexer_score(
         self,
         filter_by_indexed_chats: bool = True,
     ) -> Generator[Chat, None, None]:
@@ -894,18 +891,17 @@ class ChatMethods:
         # todo: only public channels can be indexed for now. add support for other types if necessary
         chat_type = ChatType.CHANNEL.value
 
-        cursor = Chat.execute_query(
+        async with await Chat.execute_query(
             self._get_chats_sorted_by_audio_indexer_score_query if filter_by_indexed_chats else self._get_not_indexed_chats_sorted_by_members_count_query,
             bind_vars={
                 "chats": Chat._collection_name,
                 "chat_type": chat_type,
             },
-        )
-        if cursor is not None and len(cursor):
-            for doc in cursor:
+        ) as cursor:
+            async for doc in cursor:
                 yield Chat.from_collection(doc)
 
-    def get_chats_sorted_by_audio_doc_indexer_score(
+    async def get_chats_sorted_by_audio_doc_indexer_score(
         self,
     ) -> Generator[Chat, None, None]:
         """
@@ -919,18 +915,17 @@ class ChatMethods:
         # todo: only public channels can be indexed for now. add support for other types if necessary
         chat_type = ChatType.CHANNEL.value
 
-        cursor = Chat.execute_query(
+        async with await Chat.execute_query(
             self._get_chats_sorted_by_audio_doc_indexer_score,
             bind_vars={
                 "chats": Chat._collection_name,
                 "chat_type": chat_type,
             },
-        )
-        if cursor is not None and len(cursor):
-            for doc in cursor:
+        ) as cursor:
+            async for doc in cursor:
                 yield Chat.from_collection(doc)
 
-    def get_chat_by_telegram_chat_id(
+    async def get_chat_by_telegram_chat_id(
         self,
         chat_id: int,
     ) -> Optional[Chat]:
@@ -951,9 +946,9 @@ class ChatMethods:
         if chat_id is None:
             return None
 
-        return Chat.get(str(chat_id))
+        return await Chat.get(str(chat_id))
 
-    def get_chat_by_username(
+    async def get_chat_by_username(
         self,
         username: str,
     ) -> Optional[Chat]:
@@ -974,9 +969,9 @@ class ChatMethods:
         if username is None:
             return None
 
-        return Chat.find_one({"username": username.lower()})
+        return await Chat.find_one({"username": username.lower()})
 
-    def get_chat_by_key(
+    async def get_chat_by_key(
         self,
         key: str,
     ) -> Optional[Chat]:
@@ -997,4 +992,4 @@ class ChatMethods:
         if key is None:
             return None
 
-        return Chat.get(key)
+        return await Chat.get(key)

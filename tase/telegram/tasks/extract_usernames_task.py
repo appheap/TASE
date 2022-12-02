@@ -35,7 +35,7 @@ class ExtractUsernamesTask(BaseTask):
         db: DatabaseClient,
         telegram_client: TelegramClient = None,
     ):
-        self.task_in_worker(db)
+        await self.task_in_worker(db)
 
         chat_key = self.kwargs.get("chat_key", None)
 
@@ -43,10 +43,10 @@ class ExtractUsernamesTask(BaseTask):
         if chat_key is None:
             channel_username: str = self.kwargs.get("channel_username", None)
             if channel_username is None:
-                self.task_failed(db)
+                await self.task_failed(db)
                 return
 
-            chat = db.graph.get_chat_by_username(channel_username)
+            chat = await db.graph.get_chat_by_username(channel_username)
             if chat:
                 self.chat_username = chat.username.lower() if chat.username else None
                 chat_id = chat.chat_id
@@ -58,9 +58,9 @@ class ExtractUsernamesTask(BaseTask):
                 title = channel_username
 
         else:
-            chat: Chat = db.graph.get_chat_by_key(chat_key)
+            chat: Chat = await db.graph.get_chat_by_key(chat_key)
             if chat is None:
-                self.task_failed(db)
+                await self.task_failed(db)
                 return
 
             self.chat_username = chat.username.lower() if chat.username else None
@@ -74,7 +74,7 @@ class ExtractUsernamesTask(BaseTask):
             and not get_now_timestamp() - chat.username_extractor_metadata.last_run_at > 7 * 24 * 60 * 60 * 1000
         ):
             logger.info(f"Cancelled extracting usernames from chat `{chat.title}`")
-            self.task_failed(db)
+            await self.task_failed(db)
             return
 
         chat = await self.get_updated_chat(telegram_client, db, is_chat, chat_id, chat if is_chat else None)
@@ -86,7 +86,7 @@ class ExtractUsernamesTask(BaseTask):
 
             if self.metadata is None:
                 await self.wait()
-                self.task_failed(db)
+                await self.task_failed(db)
                 return
 
             self.metadata.reset_counters()
@@ -100,14 +100,14 @@ class ExtractUsernamesTask(BaseTask):
 
             # check gathered usernames if they match the current policy of indexing and them to the Database
             logger.info(f"Metadata: {prettify(self.metadata)}")
-            self.chat.update_username_extractor_metadata(self.metadata)
+            await self.chat.update_username_extractor_metadata(self.metadata)
 
             await self.wait()
-            self.task_done(db)
+            await self.task_done(db)
         else:
             logger.error(f"Error occurred: `{title}`")
             await self.wait()
-            self.task_failed(db)
+            await self.task_failed(db)
 
     @classmethod
     async def wait(
@@ -145,22 +145,22 @@ class ExtractUsernamesTask(BaseTask):
                 tg_chat = await telegram_client.get_chat(chat_id)
             except ValueError as e:
                 # In case the chat invite link points to a chat that this telegram client hasn't joined yet.
-                self.task_failed(db)
+                await self.task_failed(db)
                 logger.exception(e)
             except KeyError as e:
-                self.task_failed(db)
+                await self.task_failed(db)
                 logger.exception(e)
             except FloodWait as e:
-                self.task_failed(db)
+                await self.task_failed(db)
                 logger.exception(e)
                 # self.wait(e.value + random.randint(5, 15))
             except Exception as e:
-                self.task_failed(db)
+                await self.task_failed(db)
                 logger.exception(e)
             else:
-                new_chat = db.graph.update_or_create_chat(tg_chat)
+                new_chat = await db.graph.update_or_create_chat(tg_chat)
                 if not new_chat:
-                    self.task_failed(db)
+                    await self.task_failed(db)
                 else:
                     successful = True
 
@@ -186,7 +186,7 @@ class ExtractUsernamesTask(BaseTask):
 
             self.metadata.message_count += 1
 
-            self.find_usernames_in_text(
+            await self.find_usernames_in_text(
                 message.text if message.text else message.caption,
                 True,
                 message,
@@ -195,7 +195,7 @@ class ExtractUsernamesTask(BaseTask):
 
             if message.entities:
                 for entity in message.entities:
-                    self.find_usernames_in_text(
+                    await self.find_usernames_in_text(
                         entity.url,
                         True,
                         message,
@@ -204,7 +204,7 @@ class ExtractUsernamesTask(BaseTask):
 
             if message.caption_entities:
                 for entity in message.caption_entities:
-                    self.find_usernames_in_text(
+                    await self.find_usernames_in_text(
                         entity.url,
                         True,
                         message,
@@ -214,13 +214,13 @@ class ExtractUsernamesTask(BaseTask):
             if message.reply_markup and message.reply_markup.inline_keyboard:
                 for inline_keyboard_button_lst in message.reply_markup.inline_keyboard:
                     for inline_keyboard_button in inline_keyboard_button_lst:
-                        self.find_usernames_in_text(
+                        await self.find_usernames_in_text(
                             inline_keyboard_button.text,
                             True,
                             message,
                             MentionSource.INLINE_KEYBOARD_TEXT,
                         )
-                        self.find_usernames_in_text(
+                        await self.find_usernames_in_text(
                             inline_keyboard_button.url,
                             True,
                             message,
@@ -229,7 +229,7 @@ class ExtractUsernamesTask(BaseTask):
 
             if message.forward_from_chat and message.forward_from_chat.username:
                 # fixme: it's a public channel or a public supergroup or a user or a bot
-                self.find_usernames_in_text(
+                await self.find_usernames_in_text(
                     f"@{message.forward_from_chat.username}",
                     True,
                     message,
@@ -237,7 +237,7 @@ class ExtractUsernamesTask(BaseTask):
                 )
 
                 # check the forwarded chat's description/bio for usernames
-                self.find_usernames_in_text(
+                await self.find_usernames_in_text(
                     [
                         message.forward_from_chat.description,
                         message.forward_from_chat.bio,
@@ -248,7 +248,7 @@ class ExtractUsernamesTask(BaseTask):
                 )
 
             if message.audio:
-                self.find_usernames_in_text(
+                await self.find_usernames_in_text(
                     [
                         message.audio.title,
                         message.audio.performer,
@@ -263,7 +263,7 @@ class ExtractUsernamesTask(BaseTask):
                     ],
                 )
             if message.document:
-                self.find_usernames_in_text(
+                await self.find_usernames_in_text(
                     message.document.file_name,
                     False,
                     message,
@@ -271,11 +271,11 @@ class ExtractUsernamesTask(BaseTask):
                 )
 
             if message.video:
-                self.find_usernames_in_text(
-                        message.video.file_name,
-                        False,
-                        message,
-                        MentionSource.DOCUMENT_FILE_NAME,
+                await self.find_usernames_in_text(
+                    message.video.file_name,
+                    False,
+                    message,
+                    MentionSource.DOCUMENT_FILE_NAME,
                 )
 
             if message.id > self.metadata.last_message_offset_id:
@@ -287,7 +287,7 @@ class ExtractUsernamesTask(BaseTask):
 
             idx += 1
 
-    def find_usernames_in_text(
+    async def find_usernames_in_text(
         self,
         text: Union[str, List[Union[str, None]]],
         is_direct_mention: bool,
@@ -297,9 +297,9 @@ class ExtractUsernamesTask(BaseTask):
         if message is None or mention_source is None:
             return None
 
-        def find(text_: str, mention_source_: MentionSource):
+        async def find(text_: str, mention_source_: MentionSource):
             for username, match_start in find_telegram_usernames(text_):
-                self.add_username(
+                await self.add_username(
                     username,
                     is_direct_mention,
                     message,
@@ -313,17 +313,17 @@ class ExtractUsernamesTask(BaseTask):
                     raise Exception(f"mention_source and text must of the the same size: {len(mention_source)} != " f"{len(text)}")
                 for text__, mention_source_ in zip(text, mention_source):
                     if text__ is not None and mention_source_ is not None:
-                        find(text__, mention_source_)
+                        await find(text__, mention_source_)
             else:
                 for text__ in text:
                     if text__ is not None:
-                        find(text__, mention_source)
+                        await find(text__, mention_source)
 
         else:
             if text is not None:
-                find(text, mention_source)
+                await find(text, mention_source)
 
-    def add_username(
+    async def add_username(
         self,
         username: str,
         is_direct_mention: bool,
@@ -358,7 +358,7 @@ class ExtractUsernamesTask(BaseTask):
                 self.metadata.indirect_raw_mention_count += 1
 
         mentioned_at = datetime_to_timestamp(message.date)
-        username_vertex = self.db.graph.get_or_create_username(
+        username_vertex = await self.db.graph.get_or_create_username(
             username,
             self.chat,
             is_direct_mention,

@@ -38,7 +38,7 @@ class StartCommand(BaseCommand):
             )
         elif len(message.command) == 2:
             arg = message.command[1]
-            from_user = handler.db.graph.get_interacted_user(message.from_user)
+            from_user = await handler.db.graph.get_interacted_user(message.from_user)
             if "dl_" in arg:
                 await handler.download_audio(
                     client,

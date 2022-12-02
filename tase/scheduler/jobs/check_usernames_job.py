@@ -29,12 +29,12 @@ class CheckUsernamesJob(BaseJob):
         db: tase.db.DatabaseClient,
         telegram_client: TelegramClient = None,
     ) -> None:
-        self.task_in_worker(db)
-        usernames = db.graph.get_unchecked_usernames()
+        await self.task_in_worker(db)
 
         failed = False
 
-        for idx, username in enumerate(usernames):
+        idx = 0
+        async for username in db.graph.get_unchecked_usernames():
             # todo: blocking or non-blocking? which one is better suited for this case?
             try:
                 await CheckUsernameTask(
@@ -51,7 +51,9 @@ class CheckUsernamesJob(BaseJob):
                     # fixme: sleep to avoid publishing many tasks while the others haven't been processed yet
                     await asyncio.sleep(10 * random.randint(10, 15))
 
+                idx += 1
+
         if failed:
-            self.task_failed(db)
+            await self.task_failed(db)
         else:
-            self.task_done(db)
+            await self.task_done(db)

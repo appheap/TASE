@@ -3,8 +3,8 @@ from __future__ import annotations
 from hashlib import sha1
 from typing import Optional
 
+from aioarango.models import PersistentIndex
 from .base_document import BaseDocument
-from ..base.index import PersistentIndex
 
 
 class AudioInlineMessage(BaseDocument):
@@ -12,35 +12,35 @@ class AudioInlineMessage(BaseDocument):
     schema_version = 1
     _extra_indexes = [
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="bot_id",
             fields=[
                 "bot_id",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="user_id",
             fields=[
                 "user_id",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="inline_query_id",
             fields=[
                 "inline_query_id",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="inline_message_id",
             fields=[
                 "inline_message_id",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="hit_download_url",
             fields=[
                 "hit_download_url",
@@ -95,7 +95,7 @@ class AudioInlineMessage(BaseDocument):
             inline_message_id=inline_message_id,
         )
 
-    def set_inline_message_id(
+    async def set_inline_message_id(
         self,
         inline_message_id: str,
     ) -> bool:
@@ -105,14 +105,14 @@ class AudioInlineMessage(BaseDocument):
         self_copy: AudioInlineMessage = self.copy(deep=True)
         self_copy.inline_message_id = inline_message_id
 
-        return self.update(
+        return await self.update(
             self_copy,
             reserve_non_updatable_fields=False,
         )
 
 
 class AudioInlineMessageMethods:
-    def create_audio_inline_message(
+    async def create_audio_inline_message(
         self,
         bot_id: int,
         user_id: int,
@@ -120,7 +120,7 @@ class AudioInlineMessageMethods:
         hit_download_url: str,
         inline_message_id: str = None,
     ) -> Optional[AudioInlineMessage]:
-        doc, successful = AudioInlineMessage.insert(
+        doc, successful = await AudioInlineMessage.insert(
             AudioInlineMessage.parse(
                 bot_id,
                 user_id,
@@ -134,7 +134,7 @@ class AudioInlineMessageMethods:
 
         return None
 
-    def get_or_create_audio_inline_message(
+    async def get_or_create_audio_inline_message(
         self,
         bot_id: int,
         user_id: int,
@@ -142,7 +142,7 @@ class AudioInlineMessageMethods:
         hit_download_url: str,
         inline_message_id: str = None,
     ) -> Optional[AudioInlineMessage]:
-        audio_inline_message = AudioInlineMessage.get(
+        audio_inline_message = await AudioInlineMessage.get(
             AudioInlineMessage.parse_key(
                 bot_id,
                 user_id,
@@ -151,7 +151,7 @@ class AudioInlineMessageMethods:
             )
         )
         if audio_inline_message is None:
-            audio_inline_message = self.create_audio_inline_message(
+            audio_inline_message = await self.create_audio_inline_message(
                 bot_id,
                 user_id,
                 inline_query_id,
@@ -161,7 +161,7 @@ class AudioInlineMessageMethods:
 
         return audio_inline_message
 
-    def find_audio_inline_message(
+    async def find_audio_inline_message(
         self,
         bot_id: int,
         user_id: int,
@@ -171,7 +171,7 @@ class AudioInlineMessageMethods:
         if bot_id is None or user_id is None or inline_query_id is None:
             return None
 
-        return AudioInlineMessage.get(
+        return await AudioInlineMessage.get(
             AudioInlineMessage.parse_key(
                 bot_id,
                 user_id,
@@ -180,7 +180,7 @@ class AudioInlineMessageMethods:
             )
         )
 
-    def set_audio_inline_message_id(
+    async def set_audio_inline_message_id(
         self,
         bot_id: int,
         user_id: int,
@@ -190,7 +190,7 @@ class AudioInlineMessageMethods:
     ) -> bool:
         if bot_id is None or user_id is None or inline_query_id is None:
             return False
-        audio_inline_message = self.get_or_create_audio_inline_message(
+        audio_inline_message = await self.get_or_create_audio_inline_message(
             bot_id,
             user_id,
             inline_query_id,
@@ -198,11 +198,11 @@ class AudioInlineMessageMethods:
             inline_message_id,
         )
         if audio_inline_message:
-            return audio_inline_message.set_inline_message_id(inline_message_id)
+            return await audio_inline_message.set_inline_message_id(inline_message_id)
 
         return False
 
-    def find_audio_inline_message_by_message_inline_id(
+    async def find_audio_inline_message_by_message_inline_id(
         self,
         bot_id: int,
         user_id: int,
@@ -212,7 +212,7 @@ class AudioInlineMessageMethods:
         if bot_id is None or user_id is None or inline_message_id is None or not len(inline_message_id):
             return None
 
-        return AudioInlineMessage.find_one(
+        return await AudioInlineMessage.find_one(
             filters={
                 "bot_id": bot_id,
                 "user_id": user_id,

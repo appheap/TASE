@@ -39,7 +39,7 @@ class DemoteUserCommand(BaseCommand):
         if len(username_list):
             username = username_list[0]
 
-        user = handler.db.graph.get_user_by_username(username)
+        user = await handler.db.graph.get_user_by_username(username)
 
         if user:
             if user.has_interacted_with_bot:
@@ -60,7 +60,7 @@ class DemoteUserCommand(BaseCommand):
                         )
 
                     elif user.role == UserRole.ADMIN:
-                        updated = user.update_role(UserRole.SEARCHER)
+                        updated = await user.update_role(UserRole.SEARCHER)
                         if updated:
                             await message.reply_text(
                                 "Successfully demoted the user",

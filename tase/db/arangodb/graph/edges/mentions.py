@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from typing import Optional, Union
 
+from aioarango.models import PersistentIndex
 from tase.errors import InvalidFromVertex, InvalidToVertex
 from tase.my_logger import logger
 from . import Has
 from .base_edge import BaseEdge, EdgeEndsValidator
 from ..vertices import Chat, Username
-from ...base.index import PersistentIndex
 from ...enums import MentionSource, ChatType
 
 
@@ -20,35 +20,35 @@ class Mentions(BaseEdge):
     schema_version = 1
     _extra_indexes = [
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="is_direct_mention",
             fields=[
                 "is_direct_mention",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="mentioned_at",
             fields=[
                 "mentioned_at",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="mention_source",
             fields=[
                 "mention_source",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="checked_at",
             fields=[
                 "checked_at",
             ],
         ),
         PersistentIndex(
-            version=1,
+            custom_version=1,
             name="is_checked",
             fields=[
                 "is_checked",
@@ -127,7 +127,7 @@ class Mentions(BaseEdge):
             is_checked=False if isinstance(to_vertex, Username) else None,
         )
 
-    def check(
+    async def check(
         self,
         is_checked: bool,
         checked_at: Optional[int],
@@ -136,7 +136,7 @@ class Mentions(BaseEdge):
         self_copy.is_checked = is_checked
         self_copy.checked_at = checked_at
 
-        return self.update(self_copy, reserve_non_updatable_fields=False)
+        return await self.update(self_copy, reserve_non_updatable_fields=False)
 
 
 class MentionsMethods:
@@ -160,7 +160,7 @@ class MentionsMethods:
         "   return NEW"
     )
 
-    def create_and_check_mentions_edges_after_username_check(
+    async def create_and_check_mentions_edges_after_username_check(
         self,
         mentioned_chat: Chat,
         username: Username,
@@ -180,7 +180,7 @@ class MentionsMethods:
         if mentioned_chat is None or username is None:
             return None
 
-        cursor = Mentions.execute_query(
+        async with await Mentions.execute_query(
             self._create_and_check_mentions_edges_query,
             bind_vars={
                 "start_vertex": username.id,
@@ -188,9 +188,8 @@ class MentionsMethods:
                 "mentions": Mentions._collection_name,
                 "checked_at": username.checked_at,
             },
-        )
-        if cursor is not None and len(cursor):
-            for doc_dict in cursor:
+        ) as cursor:
+            async for doc_dict in cursor:
                 mentions_edge: Mentions = Mentions.from_collection(doc_dict["mention_"])
                 source_chat: Chat = Chat.from_collection(doc_dict["chat"])
 
@@ -200,7 +199,7 @@ class MentionsMethods:
 
                         try:
                             # create the edge from `Username` vertex to mentioned `Chat` vertex
-                            has_edge = Has.get_or_create_edge(
+                            has_edge = await Has.get_or_create_edge(
                                 mentioned_chat,
                                 username,
                             )
@@ -208,7 +207,7 @@ class MentionsMethods:
                                 logger.error(f"could not create `has` edge from `username` to `chat` vertex. [username:`{username.username}`]")
 
                             # create the edge from `Chat` vertex to mentioned `Chat` vertex
-                            Mentions.get_or_create_edge(
+                            await Mentions.get_or_create_edge(
                                 source_chat,
                                 mentioned_chat,
                                 mentions_edge.is_direct_mention,
@@ -248,12 +247,12 @@ class MentionsMethods:
                             elif mentioned_chat.chat_type == ChatType.CHANNEL:
                                 metadata.indirect_valid_channel_mention_count += 1
 
-                        successful = source_chat.update_username_extractor_metadata(metadata)
+                        successful = await source_chat.update_username_extractor_metadata(metadata)
                         if not successful:
                             # todo: the update wasn't successful, uncheck the edge so it could be updated later
-                            mentions_edge.check(False, None)
+                            await mentions_edge.check(False, None)
 
-    def update_mentions_edges_from_chat_to_username(
+    async def update_mentions_edges_from_chat_to_username(
         self,
         username: Username,
     ) -> bool:
@@ -273,7 +272,7 @@ class MentionsMethods:
         if username is None or not isinstance(username, Username):
             return False
 
-        cursor = Mentions.execute_query(
+        cursor = await Mentions.execute_query(
             self._update_mentions_edges_from_chat_to_username_query,
             bind_vars={
                 "start_vertex": username.id,

@@ -1,6 +1,6 @@
 import textwrap
 from datetime import timedelta, datetime
-from typing import Dict, List
+from typing import Dict, Deque
 
 from jinja2 import Template
 
@@ -90,8 +90,8 @@ class QueryResultsData(BaseTemplateData):
         cls,
         query: str,
         lang_code: str,
-        es_audio_docs: List[elasticsearch_models.Audio],
-        hit_download_urls: List[str],
+        es_audio_docs: Deque[elasticsearch_models.Audio],
+        hit_download_urls: Deque[str],
     ):
         items = [
             cls.process_item(index, es_audio_doc, hit_download_url)

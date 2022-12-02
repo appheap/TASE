@@ -35,7 +35,7 @@ class DummyCommand(BaseCommand):
             kwargs = {f"key_{i}": arg for i, arg in enumerate(message.command[1:])}
 
         try:
-            status, created = DummyTask(kwargs=kwargs).publish(handler.db)
+            status, created = await DummyTask(kwargs=kwargs).publish(handler.db)
         except NotEnoughRamError:
             await message.reply_text(
                 f"`DummyTask` was cancelled due to high memory usage",

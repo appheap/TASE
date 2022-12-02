@@ -18,7 +18,7 @@ class DummyTask(BaseTask):
         db: DatabaseClient,
         telegram_client: TelegramClient = None,
     ):
-        self.task_in_worker(db)
+        await self.task_in_worker(db)
 
         logger.info(f"Running Dummy Task with client: {0}")
         # logger.info(f"Running Dummy Task with client: {telegram_client.name}")
@@ -30,4 +30,4 @@ class DummyTask(BaseTask):
         logger.info(f"{self.type.value} : {self.kwargs}")
         logger.info("")
 
-        self.task_done(db)
+        await self.task_done(db)

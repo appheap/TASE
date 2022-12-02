@@ -36,7 +36,7 @@ class AddToPlaylistInlineButton(InlineButton):
         query_date: int,
         reg: Optional[Match] = None,
     ):
-        populate_playlist_list(
+        await populate_playlist_list(
             from_user,
             handler,
             result,
@@ -63,7 +63,7 @@ class AddToPlaylistInlineButton(InlineButton):
 
         if playlist_key == "add_a_new_playlist":
             # start creating a new playlist
-            handler.db.document.create_bot_task(
+            await handler.db.document.create_bot_task(
                 from_user.user_id,
                 handler.telegram_client.telegram_id,
                 BotTaskType.CREATE_NEW_PLAYLIST,
@@ -79,7 +79,7 @@ class AddToPlaylistInlineButton(InlineButton):
         else:
             # add the audio to the playlist
             try:
-                successful, created = handler.db.graph.add_audio_to_playlist(
+                successful, created = await handler.db.graph.add_audio_to_playlist(
                     from_user,
                     playlist_key,
                     hit_download_url,

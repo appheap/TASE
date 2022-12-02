@@ -29,13 +29,13 @@ class IndexAudiosTask(BaseTask):
         db: DatabaseClient,
         telegram_client: TelegramClient = None,
     ):
-        self.task_in_worker(db)
+        await self.task_in_worker(db)
 
         chat_key = self.kwargs.get("chat_key", None)
 
-        chat: Chat = db.graph.get_chat_by_key(chat_key)
+        chat: Chat = await db.graph.get_chat_by_key(chat_key)
         if chat is None:
-            self.task_failed(db)
+            await self.task_failed(db)
             return
 
         if chat.audio_indexer_metadata is None or get_now_timestamp() - chat.audio_indexer_metadata.last_run_at > 14 * 24 * 60 * 60 * 1000:
@@ -50,10 +50,10 @@ class IndexAudiosTask(BaseTask):
 
                 logger.info(f"Finished indexing audio files from `{chat.title}`")
                 await self.wait()
-                self.task_done(db)
+                await self.task_done(db)
         else:
             logger.info(f"Cancelled indexing of {chat.title}")
-            self.task_failed(db)
+            await self.task_failed(db)
 
     @classmethod
     async def wait(
@@ -81,24 +81,24 @@ class IndexAudiosTask(BaseTask):
                 tg_chat = await telegram_client.get_chat(chat.username if chat.username else chat.invite_link)
             except ValueError as e:
                 # In case the chat invite link points to a chat that this telegram client hasn't joined yet.
-                self.task_failed(db)
+                await self.task_failed(db)
                 logger.exception(e)
             except KeyError as e:
-                self.task_failed(db)
+                await self.task_failed(db)
                 logger.exception(e)
             except FloodWait as e:
-                self.task_failed(db)
+                await self.task_failed(db)
                 logger.exception(e)
                 await self.wait()
                 # self.wait(e.value + random.randint(5, 15))
             except Exception as e:
-                self.task_failed(db)
+                await self.task_failed(db)
                 logger.exception(e)
             else:
-                new_chat = db.graph.update_or_create_chat(tg_chat)
+                new_chat = await db.graph.update_or_create_chat(tg_chat)
                 await self.wait()
                 if not new_chat:
-                    self.task_failed(db)
+                    await self.task_failed(db)
                 else:
                     successful = True
 
@@ -130,7 +130,7 @@ class IndexAudiosTask(BaseTask):
                 metadata: AudioDocIndexerMetadata = AudioDocIndexerMetadata()
 
         if metadata is None:
-            self.task_failed(db)
+            await self.task_failed(db)
             return False
 
         metadata.reset_counters()
@@ -165,7 +165,7 @@ class IndexAudiosTask(BaseTask):
                 idx += 1
 
             if index_audio:
-                chat.update_audio_indexer_metadata(metadata)
+                await chat.update_audio_indexer_metadata(metadata)
 
                 if calculate_score and chat.chat_type == ChatType.CHANNEL and chat.is_public:
                     # sleep for a while
@@ -176,14 +176,14 @@ class IndexAudiosTask(BaseTask):
                         chat.chat_id,
                         chat.members_count,
                     )
-                    updated = chat.update_audio_indexer_score(score)
+                    updated = await chat.update_audio_indexer_score(score)
                     logger.info(f"Channel {chat.username} score: {score}")
             else:
-                chat.update_audio_doc_indexer_metadata(metadata)
+                await chat.update_audio_doc_indexer_metadata(metadata)
 
             logger.info(f"{prettify(metadata)}")
         except Exception as e:
-            self.task_failed(db)
+            await self.task_failed(db)
             logger.error("Got an exception")
             logger.debug(e)
 
