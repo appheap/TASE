@@ -409,6 +409,7 @@ class BaseDocument(BaseModel):
                 response = await cls._es.create(
                     index=cls._index_name,
                     id=id,
+                    refresh=False,
                     document=doc,
                 )
                 successful = True
@@ -471,6 +472,7 @@ class BaseDocument(BaseModel):
                 response = await self._es.update(
                     index=self._index_name,
                     id=id,
+                    refresh=False,
                     doc=doc,
                 )
                 self.__dict__.update(document.__dict__)

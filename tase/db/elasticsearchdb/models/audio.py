@@ -276,7 +276,7 @@ class Audio(BaseDocument):
                             "query": query,
                             "fuzziness": "AUTO",
                             "type": "best_fields",
-                            "minimum_should_match": "65%",
+                            "minimum_should_match": "75%",
                             "fields": cls._search_fields,
                         }
                     },
@@ -293,7 +293,7 @@ class Audio(BaseDocument):
                             "query": query,
                             "fuzziness": "AUTO",
                             "type": "best_fields",
-                            "minimum_should_match": "65%",
+                            "minimum_should_match": "75%",
                             "fields": cls._search_fields,
                         }
                     },

@@ -114,11 +114,11 @@ class Username(BaseVertex):
 
 class UsernameMethods:
     _get_unchecked_usernames_query = (
-        "for username in @usernames"
+        "for username in @@usernames"
         "   filter username.is_checked == false and username.modified_at < @now"
         "   sort username.created_at asc"
         "   let mention_count = ("
-        "       for v,e in 1..1 inbound username graph '@graph_name' options {order: 'dfs', edgeCollections: ['@mentions'], vertexCollections: ['@chats']}"
+        "       for v,e in 1..1 inbound username graph @graph_name options {order: 'dfs', edgeCollections: [@mentions], vertexCollections: [@chats]}"
         "           filter e.is_checked == false"
         "           collect with count into count_"
         "           return count_"
@@ -129,11 +129,11 @@ class UsernameMethods:
     )
 
     _get_checked_usernames_with_unchecked_mentions = (
-        "for username in @usernames"
+        "for username in @@usernames"
         "   filter username.is_checked == true and username.modified_at < @now"
         "   sort username.created_at desc"
         "   let unchecked_mentions_count = ("
-        "       for chat, mention_e in 1..1 inbound username graph '@graph_name' options {order: 'dfs', edgeCollections: ['@mentions'], vertexCollections: ['@chats']}"
+        "       for chat, mention_e in 1..1 inbound username graph @graph_name options {order: 'dfs', edgeCollections: [@mentions], vertexCollections: [@chats]}"
         "           filter mention_e.modified_at < @now and mention_e.is_checked == false"
         "           collect with count into count_"
         "           return count_"
@@ -141,7 +141,7 @@ class UsernameMethods:
         "   sort unchecked_mentions_count[0] desc"
         "   limit @limit_"
         "   let mentioned_chat = ("
-        "       for chat, e in 1..1 inbound username graph '@graph_name' options {order: 'dfs', edgeCollections: ['@has'], vertexCollections: ['@chats']}"
+        "       for chat, e in 1..1 inbound username graph @graph_name options {order: 'dfs', edgeCollections: [@has], vertexCollections: [@chats]}"
         "           return chat"
         "       )"
         "   return {username_:username, mentioned_chat_:mentioned_chat[0], count_:unchecked_mentions_count[0]}"
@@ -334,7 +334,7 @@ class UsernameMethods:
         async with await Username.execute_query(
             self._get_unchecked_usernames_query,
             bind_vars={
-                "usernames": Username._collection_name,
+                "@usernames": Username._collection_name,
                 "mentions": Mentions._collection_name,
                 "chats": Chat._collection_name,
                 "now": now,
@@ -372,7 +372,7 @@ class UsernameMethods:
         async with await Username.execute_query(
             self._get_checked_usernames_with_unchecked_mentions,
             bind_vars={
-                "usernames": Username._collection_name,
+                "@usernames": Username._collection_name,
                 "mentions": Mentions._collection_name,
                 "chats": Chat._collection_name,
                 "has": Has._collection_name,

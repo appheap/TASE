@@ -4,7 +4,7 @@ import collections
 from typing import Optional, TYPE_CHECKING, List, Deque
 
 from aioarango.models import PersistentIndex
-from tase.common.utils import generate_token_urlsafe, sync_timed, async_timed
+from tase.common.utils import generate_token_urlsafe, async_timed
 from tase.db.helpers import SearchMetaData
 from tase.errors import InvalidFromVertex, InvalidToVertex, EdgeCreationFailed
 from tase.my_logger import logger
@@ -105,9 +105,9 @@ class Hit(BaseVertex):
 
 class HitMethods:
     _count_hits_query = (
-        "for hit in @hits"
+        "for hit in @@hits"
         "   filter hit.created_at >= @last_run_at and hit.created_at < @now"
-        "   for v,e in 1..1 outbound hit graph '@graph_name' options {order: 'dfs', edgeCollections:['@has'], vertexCollections:['@audios']}"
+        "   for v,e in 1..1 outbound hit graph @graph_name options {order: 'dfs', edgeCollections:[@has], vertexCollections:[@audios]}"
         "       collect audio_key = v._key, hit_type = hit.hit_type"
         "       aggregate count_ = length(0)"
         "       sort count_ desc, hit_type asc"
@@ -291,7 +291,7 @@ class HitMethods:
         async with await Hit.execute_query(
             self._count_hits_query,
             bind_vars={
-                "hits": Hit._collection_name,
+                "@hits": Hit._collection_name,
                 "last_run_at": last_run_at,
                 "now": now,
                 "has": Has._collection_name,

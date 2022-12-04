@@ -156,17 +156,17 @@ class BotTask(BaseDocument):
 
 class BotTaskMethods:
     _cancel_recent_bot_tasks_query = (
-        "for doc_task in @doc_bot_tasks"
+        "for doc_task in @@doc_bot_tasks"
         "   sort doc_task.modified_at desc"
         "   filter doc_task.type == @type and doc_task.status == @status and doc_task.user_id == @user_id and doc_task.bot_id == @bot_id"
         "   update doc_task with {"
         "       status: @new_status"
-        "   } in @doc_bot_tasks options {mergeObjects: true}"
+        "   } in @@doc_bot_tasks options {mergeObjects: true}"
         "   return NEW"
     )
 
     _get_latest_bot_task_query = (
-        "for doc_task in @doc_bot_tasks"
+        "for doc_task in @@doc_bot_tasks"
         "   filter doc_task.status == @status and doc_task.user_id == @user_id and doc_task.bot_id == @bot_id"
         "   sort doc_task.modified_at desc"
         "   limit 1"
@@ -251,7 +251,7 @@ class BotTaskMethods:
         cursor = await BotTask.execute_query(
             self._cancel_recent_bot_tasks_query,
             bind_vars={
-                "doc_bot_tasks": BotTask._collection_name,
+                "@doc_bot_tasks": BotTask._collection_name,
                 "type": task_type.value,
                 "user_id": user_id,
                 "bot_id": bot_id,
@@ -287,7 +287,7 @@ class BotTaskMethods:
         async with await BotTask.execute_query(
             self._get_latest_bot_task_query,
             bind_vars={
-                "doc_bot_tasks": BotTask._collection_name,
+                "@doc_bot_tasks": BotTask._collection_name,
                 "user_id": user_id,
                 "bot_id": bot_id,
                 "status": BotTaskStatus.CREATED.value,

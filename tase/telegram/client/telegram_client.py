@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 from enum import Enum
-from typing import Coroutine, Iterable, List, Optional, Union, Dict, Any, AsyncGenerator
+from typing import Coroutine, Iterable, List, Optional, Union, Dict, Any, AsyncGenerator, TYPE_CHECKING
 
 import pyrogram
 from pyrogram.errors import PeerIdInvalid
@@ -11,7 +11,9 @@ from pyrogram.handlers.handler import Handler
 from tase.configs import ClientConfig, ClientTypes
 from tase.my_logger import logger
 from tase.telegram.client.raw_methods import search_messages
-from tase.telegram.update_handlers.base import BaseHandler
+
+if TYPE_CHECKING:
+    from tase.telegram.update_handlers.base import BaseHandler
 
 
 class UserClientRoles(Enum):

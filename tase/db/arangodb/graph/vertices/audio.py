@@ -406,51 +406,59 @@ class Audio(BaseVertex):
 
 class AudioMethods:
     _get_audio_from_hit_query = (
-        "for v,e in 1..1 outbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@has'], vertexCollections:['@audios']}"
+        "for v,e in 1..1 outbound @start_vertex graph @graph_name options {order:'dfs', edgeCollections:[@has], vertexCollections:[@audios]}"
         "   limit 1"
         "   return v"
     )
 
     _check_audio_validity_for_inline_mode_by_hit_download_url = (
-        "for hit in @hits"
-        "   filter hit.download_url == '@hit_download_url'"
-        "   for v,e in 1..1 outbound hit graph '@graph_name' options {order:'dfs', edgeCollections:['@has'], vertexCollections:['@audios']}"
+        "for hit in @@hits"
+        "   filter hit.download_url == @hit_download_url"
+        "   for v,e in 1..1 outbound hit graph @graph_name options {order:'dfs', edgeCollections:[@has], vertexCollections:[@audios]}"
         "       limit 1"
         "       return v.valid_for_inline_search"
     )
 
+    _get_audio_by_hit_download_url = (
+        "for hit in @@hits"
+        "   filter hit.download_url == @hit_download_url"
+        "   for v,e in 1..1 outbound hit graph @graph_name options {order:'dfs', edgeCollections:[@has], vertexCollections:[@audios]}"
+        "       limit 1"
+        "       return v"
+    )
+
     _get_user_download_history_query = (
-        "for dl_v,dl_e in 1..1 outbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@has'], vertexCollections:['@interactions']}"
+        "for dl_v,dl_e in 1..1 outbound @start_vertex graph @graph_name options {order:'dfs', edgeCollections:[@has], vertexCollections:[@interactions]}"
         "   filter dl_v.type == @interaction_type"
         "   sort dl_e.created_at DESC"
-        "   for aud_v,has_e in 1..1 outbound dl_v graph '@graph_name' options {order:'dfs', edgeCollections:['@has'], vertexCollections:['@audios']}"
+        "   for aud_v,has_e in 1..1 outbound dl_v graph @graph_name options {order:'dfs', edgeCollections:[@has], vertexCollections:[@audios]}"
         "       limit @offset, @limit"
         "       return aud_v"
     )
 
     _get_user_download_history_inline_query = (
-        "for dl_v,dl_e in 1..1 outbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@has'], vertexCollections:['@interactions']}"
+        "for dl_v,dl_e in 1..1 outbound @start_vertex graph @graph_name options {order:'dfs', edgeCollections:[@has], vertexCollections:[@interactions]}"
         "   filter dl_v.type == @interaction_type"
         "   sort dl_e.created_at DESC"
-        "   for aud_v,has_e in 1..1 outbound dl_v graph '@graph_name' options {order:'dfs', edgeCollections:['@has'], vertexCollections:['@audios']}"
+        "   for aud_v,has_e in 1..1 outbound dl_v graph @graph_name options {order:'dfs', edgeCollections:[@has], vertexCollections:[@audios]}"
         "       filter aud_v.valid_for_inline_search == true"
         "       limit @offset, @limit"
         "       return aud_v"
     )
 
-    _get_audios_by_keys = "return document(@audios, @audio_keys)"
+    _get_audios_by_keys = "return document(@@audios, @audio_keys)"
 
-    _iter_audios_query = "for audio in @audios" "   filter audio.modified_at <= @now" "   sort audio.created_at asc" "   return audio"
+    _iter_audios_query = "for audio in @@audios" "   filter audio.modified_at <= @now" "   sort audio.created_at asc" "   return audio"
 
     _get_new_indexed_audios_count_query = (
-        "for audio in @audios"
+        "for audio in @@audios"
         "   filter audio.created_at >= @checkpoint"
         "   collect with count into new_indexed_audios_count"
         "   return new_indexed_audios_count"
     )
 
     _get_total_indexed_audios_count_query = (
-        "for audio in @audios" "   collect with count into total_indexed_audios_count" "   return total_indexed_audios_count"
+        "for audio in @@audios" "   collect with count into total_indexed_audios_count" "   return total_indexed_audios_count"
     )
 
     async def create_audio(
@@ -765,7 +773,7 @@ class AudioMethods:
             async with await Audio.execute_query(
                 self._check_audio_validity_for_inline_mode_by_hit_download_url,
                 bind_vars={
-                    "hits": Hit._collection_name,
+                    "@hits": Hit._collection_name,
                     "hit_download_url": hit_download_url,
                     "audios": Audio._collection_name,
                     "has": Has._collection_name,
@@ -779,6 +787,43 @@ class AudioMethods:
             return audio.valid_for_inline_search if audio is not None else False
 
         return False
+
+    async def get_audio_from_hit_download_url(
+        self,
+        hit_download_url: str = None,
+    ) -> Optional[Audio]:
+        """
+        Get the audio vertex connected to a hit vertex with the given download URL.
+
+        Parameters
+        ----------
+        hit_download_url : str
+            Download URL of a hit vertex connected to the audio vertex
+
+        Returns
+        -------
+        Audio, optional
+            Audio vertex connected to the hit vertex with the given download URL.
+
+        """
+        if not hit_download_url:
+            return None
+
+        from tase.db.arangodb.graph.edges import Has
+
+        async with await Audio.execute_query(
+            self._get_audio_by_hit_download_url,
+            bind_vars={
+                "@hits": Hit._collection_name,
+                "hit_download_url": hit_download_url,
+                "audios": Audio._collection_name,
+                "has": Has._collection_name,
+            },
+        ) as cursor:
+            async for doc in cursor:
+                return Audio.from_collection(doc)
+
+        return None
 
     async def get_user_download_history(
         self,
@@ -855,7 +900,7 @@ class AudioMethods:
         async with await Audio.execute_query(
             self._get_audios_by_keys,
             bind_vars={
-                "audios": Audio._collection_name,
+                "@audios": Audio._collection_name,
                 "audio_keys": keys,
             },
         ) as cursor:
@@ -875,7 +920,7 @@ class AudioMethods:
         async with await Audio.execute_query(
             self._iter_audios_query,
             bind_vars={
-                "audios": Audio._collection_name,
+                "@audios": Audio._collection_name,
                 "now": now,
             },
         ) as cursor:
@@ -903,7 +948,7 @@ class AudioMethods:
         async with await Audio.execute_query(
             self._get_new_indexed_audios_count_query,
             bind_vars={
-                "audios": Audio._collection_name,
+                "@audios": Audio._collection_name,
                 "checkpoint": checkpoint,
             },
         ) as cursor:
@@ -925,7 +970,7 @@ class AudioMethods:
         async with await Audio.execute_query(
             self._get_total_indexed_audios_count_query,
             bind_vars={
-                "audios": Audio._collection_name,
+                "@audios": Audio._collection_name,
             },
         ) as cursor:
             async for doc in cursor:

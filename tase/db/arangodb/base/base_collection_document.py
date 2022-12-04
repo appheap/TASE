@@ -893,34 +893,13 @@ class BaseCollectionDocument(BaseCollectionAttributes):
         """
         try:
             if "@graph_name" in query:
-                query = query.replace("@graph_name", cls._graph_name)
-                # bind_vars["graph_name"] = cls._graph_name
-                # logger.error(cls._graph_name)
-            for key, value in bind_vars.items():
-                if isinstance(value, list):
-                    if len(value):
-                        if isinstance(value[0], str):
-                            value = str([str(v) for v in value])
-                        elif isinstance(value[0], (int, float)):
-                            value = str([v for v in value])
-                        else:
-                            value = str([str(v) for v in value])
-                    else:
-                        value = str([])
-                else:
-                    # todo: fixme
-                    # if isinstance(value,str):
-                    #     value=f"'{value}'"
-                    # else:
-                    #     value = str(value)
-                    value = str(value)
-                query = query.replace(f"@{key}", value)
+                bind_vars["graph_name"] = cls._graph_name
 
             cursor = await cls._aql.execute(
                 query,
-                # bind_vars=bind_vars,
+                bind_vars=bind_vars,
                 count=True,
-                ttl=36000,  # fix this
+                # ttl=36000,  # fix this
             )
         except CursorCountError as e:
             logger.error(query)

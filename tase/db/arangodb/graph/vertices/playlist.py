@@ -107,38 +107,38 @@ class Playlist(BaseVertex, BaseSoftDeletableDocument):
 
 class PlaylistMethods:
     _get_user_playlist_by_title_query = (
-        "for v,e in 1..1 outbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@has'],vertexCollections:['@playlists']}"
-        "   filter v.is_soft_deleted == not @filter_out and v.title == '@title'"
+        "for v,e in 1..1 outbound @start_vertex graph @graph_name options {order:'dfs', edgeCollections:[@has],vertexCollections:[@playlists]}"
+        "   filter v.is_soft_deleted == not @filter_out and v.title == @title"
         "   limit 1"
         "   return v"
     )
 
     _get_user_playlist_by_key_query = (
-        "for v,e in 1..1 outbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@has'],vertexCollections:['@playlists']}"
-        "   filter v.is_soft_deleted == not @filter_out and v._key == '@key'"
+        "for v,e in 1..1 outbound @start_vertex graph @graph_name options {order:'dfs', edgeCollections:[@has],vertexCollections:[@playlists]}"
+        "   filter v.is_soft_deleted == not @filter_out and v._key == @key"
         "   limit 1"
         "   return v"
     )
 
     _get_user_favorite_playlist_query = (
-        "for v,e in 1..1 outbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@has'],vertexCollections:['@playlists']}"
+        "for v,e in 1..1 outbound @start_vertex graph @graph_name options {order:'dfs', edgeCollections:[@has],vertexCollections:[@playlists]}"
         "   filter v.is_favorite == @is_favorite"
         "   limit 1"
         "   return v"
     )
 
     _get_user_playlists_query = (
-        "for v,e in 1..1 outbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@has'],vertexCollections:['@playlists']}"
+        "for v,e in 1..1 outbound @start_vertex graph @graph_name options {order:'dfs', edgeCollections:[@has],vertexCollections:[@playlists]}"
         "   sort v.rank ASC, e.created_at DESC"
         "   limit @offset, @limit"
         "   return v"
     )
 
     _get_user_valid_playlists_query = (
-        "for v,e in 1..1 outbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@has'],vertexCollections:['@playlists']}"
+        "for v,e in 1..1 outbound @start_vertex graph @graph_name options {order:'dfs', edgeCollections:[@has],vertexCollections:[@playlists]}"
         "   sort v.rank ASC, e.created_at DESC"
         "   let playlist_length=("
-        "       for audio_v in 1..1 outbound v._id graph '@graph_name' options {order:'dfs', edgeCollections:['@has'], vertexCollections:['@audios']}"
+        "       for audio_v in 1..1 outbound v._id graph @graph_name options {order:'dfs', edgeCollections:[@has], vertexCollections:[@audios]}"
         "           collect with count into length"
         "           return length"
         "   )"
@@ -148,20 +148,20 @@ class PlaylistMethods:
     )
 
     _get_user_playlists_count_query = (
-        "for v,e in 1..1 outbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@has'],vertexCollections:['@playlists']}"
+        "for v,e in 1..1 outbound @start_vertex graph @graph_name options {order:'dfs', edgeCollections:[@has],vertexCollections:[@playlists]}"
         "   COLLECT WITH COUNT INTO playlist_count"
         "   return playlist_count"
     )
 
     _get_playlist_audios_query = (
-        "for audio_v,e in 1..1 outbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@has'], vertexCollections:['@audios']}"
+        "for audio_v,e in 1..1 outbound @start_vertex graph @graph_name options {order:'dfs', edgeCollections:[@has], vertexCollections:[@audios]}"
         "   sort e.created_at DESC"
         "   limit @offset, @limit"
         "   return audio_v"
     )
 
     _get_playlist_audios_for_inline_query = (
-        "for audio_v,e in 1..1 outbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@has'], vertexCollections:['@audios']}"
+        "for audio_v,e in 1..1 outbound @start_vertex graph @graph_name options {order:'dfs', edgeCollections:[@has], vertexCollections:[@audios]}"
         "   sort e.created_at DESC"
         "   filter audio_v.valid_for_inline_search == true"
         "   limit @offset, @limit"
@@ -170,10 +170,10 @@ class PlaylistMethods:
 
     _get_audio_playlists_query = (
         "let playlist_keys=("
-        "   for v,e in 1..1 outbound '@user_id' graph '@graph_name' options {order:'dfs', edgeCollections:['@has'],vertexCollections:['@playlists']}"
+        "   for v,e in 1..1 outbound @user_id graph @graph_name options {order:'dfs', edgeCollections:[@has],vertexCollections:[@playlists]}"
         "       return v._key"
         ")"
-        "for v,e in 1..1 inbound '@start_vertex' graph '@graph_name' options {order : 'dfs', edgeCollections : ['@has'], vertexCollections : ['@playlists']}"
+        "for v,e in 1..1 inbound @start_vertex graph @graph_name options {order : 'dfs', edgeCollections : [@has], vertexCollections : [@playlists]}"
         "   sort v.rank ASC, e.created_at DESC"
         "   filter v.is_soft_deleted == false and v._key in playlist_keys"
         "   limit @offset, @limit"
@@ -181,10 +181,10 @@ class PlaylistMethods:
     )
 
     _audio_in_favorite_playlist_query = (
-        "for v_pl in 1..1 outbound '@user_id' graph '@graph_name' options {order : 'dfs', edgeCollections : ['@has'], vertexCollections : ['@playlists']}"
+        "for v_pl in 1..1 outbound @user_id graph @graph_name options {order : 'dfs', edgeCollections : [@has], vertexCollections : [@playlists]}"
         "   filter v_pl.is_favorite == true"
-        "   for v_aud in 1..1 outbound v_pl._id graph '@graph_name' options {order : 'dfs', edgeCollections : ['@has'], vertexCollections : ['@audios']}"
-        "       filter v_aud._key == '@audio_key'"
+        "   for v_aud in 1..1 outbound v_pl._id graph @graph_name options {order : 'dfs', edgeCollections : [@has], vertexCollections : [@audios]}"
+        "       filter v_aud._key == @audio_key"
         "       return true"
     )
 

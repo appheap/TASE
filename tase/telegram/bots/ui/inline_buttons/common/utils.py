@@ -1,3 +1,5 @@
+import asyncio
+from itertools import chain
 from typing import Deque
 
 import pyrogram
@@ -103,27 +105,42 @@ async def populate_audio_items(
     # todo: fix this
     chats_dict = await handler.update_audio_cache(audio_vertices)
 
-    hit_download_urls = await handler.db.graph.generate_hit_download_urls(size=len(audio_vertices))
-
-    for audio_vertex, hit_download_url in zip(audio_vertices, hit_download_urls):
-        audio_doc = await handler.db.document.get_audio_by_key(
+    audio_doc_tasks = [
+        handler.db.document.get_audio_by_key(
             handler.telegram_client.telegram_id,
             audio_vertex.key,
         )
-        es_audio_doc = await handler.db.index.get_audio_by_id(audio_vertex.key)
+        for audio_vertex in audio_vertices
+    ]
+    es_audio_doc_tasks = [handler.db.index.get_audio_by_id(audio_vertex.key) for audio_vertex in audio_vertices]
 
-        if not audio_doc:
-            continue
-
-        status = await AudioKeyboardStatus.get_status(
+    statuses_tasks = [
+        AudioKeyboardStatus.get_status(
             handler.db,
             from_user,
             audio_vertex_key=audio_vertex.key,
         )
+        for audio_vertex in audio_vertices
+    ]
 
-        result.add_item(
+    res = await asyncio.gather(*chain(audio_doc_tasks, es_audio_doc_tasks, statuses_tasks))
+    temp_len = len(audio_vertices)
+    audio_docs = res[:temp_len]
+    es_audio_docs = res[temp_len : 2 * temp_len]
+    statuses = res[2 * temp_len :]
+
+    # audio_docs = await asyncio.gather(*audio_doc_tasks)
+    # es_audio_docs = await asyncio.gather(*es_audio_doc_tasks)
+    # statuses = await asyncio.gather(*statuses_tasks)
+
+    hit_download_urls = await handler.db.graph.generate_hit_download_urls(size=len(audio_vertices))
+
+    username = (await handler.telegram_client.get_me()).username
+
+    result.extend_results(
+        (
             AudioItem.get_item(
-                (await handler.telegram_client.get_me()).username,
+                username,
                 audio_doc.file_id,
                 from_user,
                 es_audio_doc,
@@ -132,7 +149,9 @@ async def populate_audio_items(
                 hit_download_url,
                 status,
             )
+            for audio_doc, es_audio_doc, status, hit_download_url, in zip(audio_docs, es_audio_docs, statuses, hit_download_urls)
         )
+    )
 
     return hit_download_urls
 
