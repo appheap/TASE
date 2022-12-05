@@ -96,6 +96,7 @@ class DownloadHistoryInlineButton(InlineButton):
                 from_user,
                 telegram_chosen_inline_result,
                 hit_download_url,
+                chat_type,
             )
         )
 

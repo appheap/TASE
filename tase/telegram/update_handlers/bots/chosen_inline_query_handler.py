@@ -1,4 +1,3 @@
-import asyncio
 import re
 from typing import List
 
@@ -6,7 +5,7 @@ import pyrogram
 from pyrogram import handlers
 
 from tase.common.utils import async_exception_handler
-from tase.db.arangodb.enums import InteractionType, ChatType
+from tase.db.arangodb.enums import ChatType
 from tase.my_logger import logger
 from tase.telegram.bots.ui.inline_buttons.base import InlineButton
 from tase.telegram.update_handlers.base import BaseHandler, HandlerMetadata
@@ -61,6 +60,11 @@ class ChosenInlineQueryHandler(BaseHandler):
 
             chat_type = ChatType(int(chat_type_value))
 
+            if not chosen_inline_result.inline_message_id:
+                # IMPORTANT: the item does not have any keyboard markup, so it is not considered as inline message. As a result, the `inline_message_id` is
+                # not set.
+                return
+
             if chat_type == ChatType.BOT:
                 # fixme: only store audio inline messages for inline queries in the bot chat
                 updated = await self.db.document.set_audio_inline_message_id(
@@ -75,25 +79,25 @@ class ChosenInlineQueryHandler(BaseHandler):
                     pass
 
             # update the keyboard markup of the downloaded audio
-            update_keyboard_task = asyncio.create_task(
-                self.update_audio_keyboard_markup(
-                    client,
-                    from_user,
-                    chosen_inline_result,
-                    hit_download_url,
-                )
-            )
+            # TODO: since no audio has been sent to the user, the action is not considered a valid download. It'll be counted after the user clicks on the
+            #  `download_audio` button of the sent message.
+            # await self.update_audio_keyboard_markup(
+            #     client,
+            #     from_user,
+            #     chosen_inline_result,
+            #     hit_download_url,
+            #     chat_type,
+            # )
 
-            interaction_vertex = await self.db.graph.create_interaction(
-                hit_download_url,
-                from_user,
-                self.telegram_client.telegram_id,
-                InteractionType.DOWNLOAD,
-                chat_type,
-            )
-            if not interaction_vertex:
-                # could not create the interaction_vertex
-                logger.error("Could not create the `interaction_vertex` vertex:")
-                logger.error(chosen_inline_result)
-
-            await update_keyboard_task
+            # interaction_vertex = await self.db.graph.create_interaction(
+            #     hit_download_url,
+            #     from_user,
+            #     self.telegram_client.telegram_id,
+            #     InteractionType.DOWNLOAD,
+            #     chat_type,
+            # )
+            # if not interaction_vertex:
+            #     # could not create the interaction_vertex
+            #     logger.error("Could not create the `interaction_vertex` vertex:")
+            #     logger.error(chosen_inline_result)
+            #

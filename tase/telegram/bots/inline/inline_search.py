@@ -1,4 +1,3 @@
-import asyncio
 from re import Match
 from typing import Optional
 
@@ -40,41 +39,33 @@ class InlineSearch(OnInlineQuery):
                     telegram_inline_query.query,
                     from_=result.from_,
                     size=size,  # todo: update?
-                    filter_by_valid_for_inline_search=True,
+                    filter_by_valid_for_inline_search=False,
                 )
 
                 if not es_audio_docs or not len(es_audio_docs) or not query_metadata:
                     found_any = False
 
-                # fixme
-                chats_dict = await handler.update_audio_cache(es_audio_docs)
-
-                audio_docs = await asyncio.gather(
-                    *(
-                        handler.db.document.get_audio_by_key(
-                            handler.telegram_client.telegram_id,
-                            es_audio_doc.id,
-                        )
-                        for es_audio_doc in es_audio_docs
-                    )
-                )
+                chats_dict = {}
+                db_chats = await handler.db.graph.get_chats_from_keys((str(es_audio_doc.chat_id) for es_audio_doc in es_audio_docs))
+                for db_chat in db_chats:
+                    if db_chat and db_chat.chat_id not in chats_dict:
+                        chats_dict[db_chat.chat_id] = db_chat
 
                 if len(es_audio_docs):  # todo: do more checks
                     hit_download_urls = await handler.db.graph.generate_hit_download_urls(size=size)
 
                     result.extend_results(
                         [
-                            AudioItem.get_item(
+                            AudioItem.get_article_item(
                                 (await handler.telegram_client.get_me()).username,
-                                audio_doc.file_id,
                                 from_user,
                                 es_audio_doc,
                                 telegram_inline_query,
                                 chats_dict,
                                 hit_download_url,
                             )
-                            for audio_doc, es_audio_doc, hit_download_url in zip(audio_docs, es_audio_docs, hit_download_urls)
-                            if audio_doc and es_audio_doc
+                            for es_audio_doc, hit_download_url in zip(es_audio_docs, hit_download_urls)
+                            if es_audio_doc
                         ]
                     )
 

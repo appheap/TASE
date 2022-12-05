@@ -901,7 +901,7 @@ class AudioMethods:
             self._get_audios_by_keys,
             bind_vars={
                 "@audios": Audio._collection_name,
-                "audio_keys": keys,
+                "audio_keys": list(keys),
             },
         ) as cursor:
             async for audios_lst in cursor:

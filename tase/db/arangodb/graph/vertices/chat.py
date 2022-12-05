@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import collections
-from typing import Optional, List, Tuple, Generator, TYPE_CHECKING
+from typing import Optional, List, Tuple, Generator, TYPE_CHECKING, Deque, Iterable
 
 import pyrogram
 
@@ -496,6 +496,8 @@ class ChatMethods:
         "   return chat"
     )
 
+    _get_chats_by_keys = "return document(@@chats, @chat_keys)"
+
     async def _create_chat(
         self: ArangoGraphMethods,
         telegram_chat: pyrogram.types.Chat,
@@ -838,6 +840,41 @@ class ChatMethods:
             return results[0]
 
         return None, None
+
+    async def get_chats_from_keys(
+        self,
+        keys: Iterable[str],
+    ) -> Deque[Chat]:
+        """
+        Get a list of Chats from a list of keys.
+
+        Parameters
+        ----------
+        keys : Iterable[str]
+            List of keys to get the chats from.
+
+        Returns
+        -------
+        Deque
+            List of Chats if operation was successful, otherwise, return None
+
+        """
+        if not keys:
+            return collections.deque()
+
+        res = collections.deque()
+        async with await Chat.execute_query(
+            self._get_chats_by_keys,
+            bind_vars={
+                "@chats": Chat._collection_name,
+                "chat_keys": list(keys),
+            },
+        ) as cursor:
+            async for chats_lst in cursor:
+                for doc in chats_lst:
+                    res.append(Chat.from_collection(doc))
+
+        return res
 
     async def get_chats_sorted_by_username_extractor_score(
         self,

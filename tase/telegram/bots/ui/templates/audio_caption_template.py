@@ -25,9 +25,11 @@ class AudioCaptionTemplate(BaseTemplate):
         "{{c_dir}}<b>{{s_quality}}:</b> ~{{quality_string}}"
         "{{c_new_line}}"
         "{{c_new_line}}"
+        "{% if show_source %}"
         "{{c_dir}}{{emoji._round_pushpin}}{{s_source}}: {% if include_source %}{{source}}{%else%}{{s_sent_by_users}}{% endif %}"
         "{{c_new_line}}"
         "{{c_new_line}}"
+        "{% endif %}"
         "{{c_dir}}{{emoji._search_emoji}} | <a href='{{bot_url}}'><b>TASE Bot:</b> {{s_audio_search_engine}}</a>"
         "{{c_new_line}}"
     )
@@ -47,6 +49,7 @@ class AudioCaptionData(BaseTemplateData):
     file_name: Optional[str]
     source: str
     include_source: bool
+    show_source: bool
     bot_url: str
     quality_string: str
 
@@ -57,6 +60,7 @@ class AudioCaptionData(BaseTemplateData):
         chat: graph_models.vertices.Chat,
         bot_url: str,  # todo: get bot_url from config
         include_source: bool = True,  # todo: where to get this variable?
+        show_source: bool = True,
     ) -> Optional[AudioCaptionData]:
         if audio is None or user is None or chat is None or bot_url is None:
             return None
@@ -71,6 +75,7 @@ class AudioCaptionData(BaseTemplateData):
             ),
             source=f"<a href ='https://t.me/{chat.username}/{audio.message_id}'>{chat.username}</a>",
             include_source=include_source,
+            show_source=show_source,
             bot_url=bot_url,
             quality_string=audio.estimated_bit_rate_type.get_bit_rate_string(True),
             lang_code=user.chosen_language_code,

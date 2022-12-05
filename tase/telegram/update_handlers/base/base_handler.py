@@ -61,7 +61,7 @@ class BaseHandler(BaseModel):
         [chat_msg[db_audio.chat_id].append(db_audio.message_id) for cache_check, db_audio in zip(cache_checks, db_audios) if not cache_check]
 
         for db_chat in db_chats:
-            if db_chat.chat_id not in chats_dict:
+            if db_chat and db_chat.chat_id not in chats_dict:
                 chats_dict[db_chat.chat_id] = db_chat
 
         # todo: this approach is only for public channels, what about private channels?
@@ -209,6 +209,7 @@ class BaseHandler(BaseModel):
         from_user: graph_models.vertices.User,
         telegram_chosen_inline_result: pyrogram.types.ChosenInlineResult,
         hit_download_url: str,
+        chat_type: ChatType,
     ):
         retry_left = 5
         audio_vertex = None
@@ -239,7 +240,7 @@ class BaseHandler(BaseModel):
             telegram_chosen_inline_result.inline_message_id,
             reply_markup=get_audio_markup_keyboard(
                 (await self.telegram_client.get_me()).username,
-                ChatType.BOT,
+                chat_type,
                 from_user.chosen_language_code,
                 hit_download_url,
                 audio_vertex.valid_for_inline_search,
