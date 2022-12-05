@@ -1,5 +1,4 @@
 import asyncio
-from itertools import chain
 from typing import Deque
 
 import pyrogram
@@ -105,28 +104,15 @@ async def populate_audio_items(
     # todo: fix this
     chats_dict = await handler.update_audio_cache(audio_vertices)
 
-    audio_doc_tasks = (
-        handler.db.document.get_audio_by_key(
-            handler.telegram_client.telegram_id,
-            audio_vertex.key,
+    audio_docs = await asyncio.gather(
+        *(
+            handler.db.document.get_audio_by_key(
+                handler.telegram_client.telegram_id,
+                audio_vertex.key,
+            )
+            for audio_vertex in audio_vertices
         )
-        for audio_vertex in audio_vertices
     )
-
-    statuses_tasks = (
-        AudioKeyboardStatus.get_status(
-            handler.db,
-            from_user,
-            audio_vertex_key=audio_vertex.key,
-        )
-        for audio_vertex in audio_vertices
-    )
-
-    res = await asyncio.gather(*chain(audio_doc_tasks, statuses_tasks))
-    temp_len = len(audio_vertices)
-    audio_docs = res[:temp_len]
-    statuses = res[temp_len:]
-
     hit_download_urls = await handler.db.graph.generate_hit_download_urls(size=len(audio_vertices))
 
     username = (await handler.telegram_client.get_me()).username
@@ -141,9 +127,8 @@ async def populate_audio_items(
                 telegram_inline_query,
                 chats_dict,
                 hit_download_url,
-                status,
             )
-            for audio_doc, audio_vertex, status, hit_download_url, in zip(audio_docs, audio_vertices, statuses, hit_download_urls)
+            for audio_doc, audio_vertex, hit_download_url, in zip(audio_docs, audio_vertices, hit_download_urls)
         )
     )
 

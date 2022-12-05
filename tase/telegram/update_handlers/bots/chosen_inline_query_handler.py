@@ -1,3 +1,4 @@
+import asyncio
 import re
 from typing import List
 
@@ -73,6 +74,16 @@ class ChosenInlineQueryHandler(BaseHandler):
                     # could not update the audio inline message, what now?
                     pass
 
+            # update the keyboard markup of the downloaded audio
+            update_keyboard_task = asyncio.create_task(
+                self.update_audio_keyboard_markup(
+                    client,
+                    from_user,
+                    chosen_inline_result,
+                    hit_download_url,
+                )
+            )
+
             interaction_vertex = await self.db.graph.create_interaction(
                 hit_download_url,
                 from_user,
@@ -84,3 +95,5 @@ class ChosenInlineQueryHandler(BaseHandler):
                 # could not create the interaction_vertex
                 logger.error("Could not create the `interaction_vertex` vertex:")
                 logger.error(chosen_inline_result)
+
+            await update_keyboard_task

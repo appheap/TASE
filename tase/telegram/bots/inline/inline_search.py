@@ -1,3 +1,4 @@
+import asyncio
 from re import Match
 from typing import Optional
 
@@ -5,8 +6,6 @@ import pyrogram
 
 from tase.db.arangodb.enums import InlineQueryType
 from tase.db.arangodb.graph.vertices import User
-from tase.db.arangodb.helpers import AudioKeyboardStatus
-from tase.my_logger import logger
 from tase.telegram.bots.ui.inline_items import AudioItem, NoResultItem
 from tase.telegram.update_handlers.base import BaseHandler
 from tase.telegram.update_interfaces import OnInlineQuery
@@ -26,7 +25,6 @@ class InlineSearch(OnInlineQuery):
         reg: Optional[Match] = None,
     ):
         found_any = True
-        temp_res = []
 
         if telegram_inline_query.query is None or not len(telegram_inline_query.query):
             # todo: query is empty
@@ -48,40 +46,24 @@ class InlineSearch(OnInlineQuery):
                 if not es_audio_docs or not len(es_audio_docs) or not query_metadata:
                     found_any = False
 
+                # fixme
                 chats_dict = await handler.update_audio_cache(es_audio_docs)
 
-                search_metadata_lst = []
-                audio_keys = []
-
-                for es_audio_doc in es_audio_docs:
-                    audio_doc = await handler.db.document.get_audio_by_key(
-                        handler.telegram_client.telegram_id,
-                        es_audio_doc.id,
-                    )
-
-                    search_metadata_lst.append(es_audio_doc.search_metadata)
-                    audio_keys.append(es_audio_doc.id)
-
-                    temp_res.append(
-                        (
-                            audio_doc,
-                            es_audio_doc,
+                audio_docs = await asyncio.gather(
+                    *(
+                        handler.db.document.get_audio_by_key(
+                            handler.telegram_client.telegram_id,
+                            es_audio_doc.id,
                         )
+                        for es_audio_doc in es_audio_docs
                     )
-                if len(temp_res):
+                )
+
+                if len(es_audio_docs):  # todo: do more checks
                     hit_download_urls = await handler.db.graph.generate_hit_download_urls(size=size)
 
-                    for (audio_doc, es_audio_doc), hit_download_url in zip(temp_res, hit_download_urls):
-                        status = await AudioKeyboardStatus.get_status(
-                            handler.db,
-                            from_user,
-                            audio_vertex_key=es_audio_doc.id,
-                        )
-                        if status is None:
-                            logger.error(f"Unexpected error: `status` is None")
-                            continue
-
-                        result.add_item(
+                    result.extend_results(
+                        [
                             AudioItem.get_item(
                                 (await handler.telegram_client.get_me()).username,
                                 audio_doc.file_id,
@@ -90,9 +72,12 @@ class InlineSearch(OnInlineQuery):
                                 telegram_inline_query,
                                 chats_dict,
                                 hit_download_url,
-                                status,
                             )
-                        )
+                            for audio_doc, es_audio_doc, hit_download_url in zip(audio_docs, es_audio_docs, hit_download_urls)
+                            if audio_doc and es_audio_doc
+                        ]
+                    )
+
                 else:
                     found_any = False
 
@@ -103,6 +88,9 @@ class InlineSearch(OnInlineQuery):
         await result.answer_query()
 
         if found_any:
+            search_metadata_lst = [es_audio_doc.search_metadata for es_audio_doc in es_audio_docs]
+            audio_keys = [es_audio_doc.id for es_audio_doc in es_audio_docs]
+
             # fixme
             audio_vertices = await handler.db.graph.get_audios_from_keys(audio_keys)
             await handler.db.graph.get_or_create_query(

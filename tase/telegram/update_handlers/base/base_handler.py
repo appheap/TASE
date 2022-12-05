@@ -202,3 +202,47 @@ class BaseHandler(BaseModel):
                     from_user.chosen_language_code,
                 )
             )
+
+    async def update_audio_keyboard_markup(
+        self,
+        client: pyrogram.Client,
+        from_user: graph_models.vertices.User,
+        telegram_chosen_inline_result: pyrogram.types.ChosenInlineResult,
+        hit_download_url: str,
+    ):
+        retry_left = 5
+        audio_vertex = None
+
+        while retry_left:
+            audio_vertex = await self.db.graph.get_audio_from_hit_download_url(hit_download_url)
+            if not audio_vertex:
+                # fixme: this should not happen
+                logger.error("This should not happen")
+                await asyncio.sleep(2)
+
+            retry_left -= 1
+
+        if not audio_vertex:
+            logger.error("This should not happen at all!")
+            # fixme: this should not happen at all!
+            return
+
+        from tase.telegram.bots.ui.inline_buttons.common import get_audio_markup_keyboard
+
+        status = await AudioKeyboardStatus.get_status(
+            self.db,
+            from_user,
+            audio_vertex_key=audio_vertex.key,
+        )
+
+        await client.edit_inline_reply_markup(
+            telegram_chosen_inline_result.inline_message_id,
+            reply_markup=get_audio_markup_keyboard(
+                (await self.telegram_client.get_me()).username,
+                ChatType.BOT,
+                from_user.chosen_language_code,
+                hit_download_url,
+                audio_vertex.valid_for_inline_search,
+                status,
+            ),
+        )

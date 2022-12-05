@@ -6,7 +6,7 @@ from typing import Optional, Tuple, TYPE_CHECKING, List, Deque
 from pydantic import Field
 
 from aioarango.models import PersistentIndex
-from tase.common.utils import generate_token_urlsafe, prettify, get_now_timestamp
+from tase.common.utils import generate_token_urlsafe, prettify, get_now_timestamp, async_timed
 from tase.errors import (
     PlaylistDoesNotExists,
     HitDoesNotExists,
@@ -849,6 +849,7 @@ class PlaylistMethods:
             # Audio does not belong to the playlist
             return True, False
 
+    @async_timed()
     async def get_playlist_audios(
         self: ArangoGraphMethods,
         user: User,

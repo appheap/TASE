@@ -1,3 +1,4 @@
+import asyncio
 from typing import Match, Optional
 
 import pyrogram
@@ -88,6 +89,16 @@ class DownloadHistoryInlineButton(InlineButton):
                 # could not update the inline message document, what now?
                 pass
 
+        # update the keyboard markup of the downloaded audio
+        update_keyboard_task = asyncio.create_task(
+            handler.update_audio_keyboard_markup(
+                client,
+                from_user,
+                telegram_chosen_inline_result,
+                hit_download_url,
+            )
+        )
+
         interaction_vertex = await handler.db.graph.create_interaction(
             hit_download_url,
             from_user,
@@ -99,3 +110,5 @@ class DownloadHistoryInlineButton(InlineButton):
             # could not create the download
             logger.error("Could not create the `interaction_vertex` vertex:")
             logger.error(telegram_chosen_inline_result)
+
+        await update_keyboard_task
