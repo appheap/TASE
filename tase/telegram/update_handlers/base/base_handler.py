@@ -148,7 +148,7 @@ class BaseHandler(BaseModel):
             from tase.telegram.bots.ui.inline_buttons.common import get_audio_markup_keyboard
 
             text = BaseTemplate.registry.audio_caption_template.render(
-                AudioCaptionData.parse_from_audio_vertex(
+                AudioCaptionData.parse_from_audio(
                     audio_vertex,
                     from_user,
                     chat,

@@ -1,5 +1,5 @@
 import random
-from typing import Optional
+from typing import Optional, Union
 
 import pyrogram.types
 from pyrogram.types import InlineQueryResultCachedAudio
@@ -30,7 +30,7 @@ class AudioItem(BaseInlineItem):
         bot_username: str,
         telegram_file_id: str,
         from_user: graph_models.vertices.User,
-        es_audio_doc: elasticsearch_models.Audio,
+        audio: Union[elasticsearch_models.Audio, graph_models.vertices.Audio],
         telegram_inline_query: pyrogram.types.InlineQuery,
         chats_dict: dict,
         hit_download_url: str,
@@ -39,9 +39,7 @@ class AudioItem(BaseInlineItem):
         if telegram_file_id is None or from_user is None:
             return None
 
-        from tase.telegram.bots.ui.inline_buttons.common import (
-            get_audio_markup_keyboard,
-        )
+        from tase.telegram.bots.ui.inline_buttons.common import get_audio_markup_keyboard
 
         chat_type = ChatType.parse_from_pyrogram(telegram_inline_query.chat_type)
 
@@ -55,10 +53,10 @@ class AudioItem(BaseInlineItem):
             audio_file_id=telegram_file_id,
             id=result_id,
             caption=BaseTemplate.registry.audio_caption_template.render(
-                AudioCaptionData.parse_from_es_audio_doc(
-                    es_audio_doc,
+                AudioCaptionData.parse_from_audio(
+                    audio,
                     from_user,
-                    chats_dict[es_audio_doc.chat_id],
+                    chats_dict[audio.chat_id],
                     bot_url=f"https://t.me/{bot_username}?start=dl_{hit_download_url}",
                     include_source=True,
                 )
@@ -68,7 +66,7 @@ class AudioItem(BaseInlineItem):
                 chat_type,
                 from_user.chosen_language_code,
                 hit_download_url,
-                es_audio_doc.valid_for_inline_search,
+                audio.valid_for_inline_search,
                 status,
             ),
         )

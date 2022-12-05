@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import asyncio
 import collections
-from typing import Optional, TYPE_CHECKING, List, Deque
+from typing import Optional, TYPE_CHECKING, List, Deque, Set
 
 from aioarango.models import PersistentIndex
 from tase.common.utils import generate_token_urlsafe, async_timed
@@ -88,6 +89,7 @@ class Hit(BaseVertex):
         audio: Audio,
         hit_type: HitType,
         search_metadata: Optional[SearchMetaData] = None,
+        hit_download_url: Optional[str] = None,
     ) -> Optional[Hit]:
         if query is None or audio is None or hit_type is None:
             return None
@@ -99,7 +101,7 @@ class Hit(BaseVertex):
             rank=search_metadata.rank if search_metadata else 0,
             score=search_metadata.score if search_metadata else 0,
             query_date=query.query_date,
-            download_url=generate_token_urlsafe(),
+            download_url=hit_download_url if hit_download_url else generate_token_urlsafe(),
         )
 
 
@@ -119,17 +121,33 @@ class HitMethods:
         self,
         size: int = 10,
     ) -> Deque[str]:
-        hits = collections.deque()
-        for i in range(size):
-            while True:
-                url = generate_token_urlsafe()
-                if url in hits or await self.find_hit_by_download_url(url) or not len(url):
-                    continue
-                else:
-                    hits.append(url)
-                    break
+        urls: List = await asyncio.gather(
+            *(
+                asyncio.get_running_loop().run_in_executor(
+                    None,
+                    generate_token_urlsafe,
+                )
+                for _ in range(size)
+            )
+        )
+        existence_checks = await asyncio.gather(*(self.find_hit_by_download_url(url) for url in urls))
+        for url, existence_check in zip(urls, existence_checks):
+            if existence_check:
+                urls.remove(url)
 
-        return hits
+        urls: Set = set(urls)
+        if len(urls) < size:
+            logger.error("duplicate hit urls!")
+            for i in range(size - len(urls)):
+                while True:
+                    url = await asyncio.get_running_loop().run_in_executor(None, generate_token_urlsafe)
+                    if url in urls or await self.find_hit_by_download_url(url) or not len(url):
+                        continue
+                    else:
+                        urls.add(url)
+                        break
+
+        return collections.deque(urls)
 
     async def create_hit(
         self: ArangoGraphMethods,
@@ -168,15 +186,14 @@ class HitMethods:
         if query is None or audio is None or hit_type is None:
             return None
 
-        hit = Hit.parse(query, audio, hit_type, search_metadata)
-        if hit_download_url is None or not len(hit_download_url):
+        if not hit_download_url:
             while True:
-                if not await self.find_hit_by_download_url(hit.download_url):
+                hit_download_url = await asyncio.get_running_loop().run_in_executor(None, generate_token_urlsafe)
+
+                if not await self.find_hit_by_download_url(hit_download_url):
                     break
 
-                hit.download_url = generate_token_urlsafe()
-        else:
-            hit.download_url = hit_download_url
+        hit = Hit.parse(query, audio, hit_type, search_metadata, hit_download_url)
 
         hit, successful = await Hit.insert(hit)
         if hit and successful:

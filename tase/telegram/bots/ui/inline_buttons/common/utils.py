@@ -105,33 +105,27 @@ async def populate_audio_items(
     # todo: fix this
     chats_dict = await handler.update_audio_cache(audio_vertices)
 
-    audio_doc_tasks = [
+    audio_doc_tasks = (
         handler.db.document.get_audio_by_key(
             handler.telegram_client.telegram_id,
             audio_vertex.key,
         )
         for audio_vertex in audio_vertices
-    ]
-    es_audio_doc_tasks = [handler.db.index.get_audio_by_id(audio_vertex.key) for audio_vertex in audio_vertices]
+    )
 
-    statuses_tasks = [
+    statuses_tasks = (
         AudioKeyboardStatus.get_status(
             handler.db,
             from_user,
             audio_vertex_key=audio_vertex.key,
         )
         for audio_vertex in audio_vertices
-    ]
+    )
 
-    res = await asyncio.gather(*chain(audio_doc_tasks, es_audio_doc_tasks, statuses_tasks))
+    res = await asyncio.gather(*chain(audio_doc_tasks, statuses_tasks))
     temp_len = len(audio_vertices)
     audio_docs = res[:temp_len]
-    es_audio_docs = res[temp_len : 2 * temp_len]
-    statuses = res[2 * temp_len :]
-
-    # audio_docs = await asyncio.gather(*audio_doc_tasks)
-    # es_audio_docs = await asyncio.gather(*es_audio_doc_tasks)
-    # statuses = await asyncio.gather(*statuses_tasks)
+    statuses = res[temp_len:]
 
     hit_download_urls = await handler.db.graph.generate_hit_download_urls(size=len(audio_vertices))
 
@@ -143,13 +137,13 @@ async def populate_audio_items(
                 username,
                 audio_doc.file_id,
                 from_user,
-                es_audio_doc,
+                audio_vertex,
                 telegram_inline_query,
                 chats_dict,
                 hit_download_url,
                 status,
             )
-            for audio_doc, es_audio_doc, status, hit_download_url, in zip(audio_docs, es_audio_docs, statuses, hit_download_urls)
+            for audio_doc, audio_vertex, status, hit_download_url, in zip(audio_docs, audio_vertices, statuses, hit_download_urls)
         )
     )
 
