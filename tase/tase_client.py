@@ -1,7 +1,9 @@
 import asyncio
 import json
+import sys
 from typing import List, Optional
 
+import uvloop
 from decouple import config
 
 from tase.configs import TASEConfig
@@ -86,4 +88,9 @@ class TASE:
 
 if __name__ == "__main__":
     tase = TASE()
-    asyncio.run(tase.init_telegram_clients())
+    if sys.version_info >= (3, 11):
+        with asyncio.Runner(loop_factory=uvloop.new_event_loop) as runner:
+            runner.run(tase.init_telegram_clients())
+    else:
+        uvloop.install()
+        asyncio.run(tase.init_telegram_clients())
