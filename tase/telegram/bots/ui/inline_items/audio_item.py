@@ -103,6 +103,7 @@ class AudioItem(BaseInlineItem):
                 input_message_content=InputTextMessageContent(  # todo: add a task to delete this message after the downloaded audio has been sent.
                     f"/dl_{hit_download_url}",
                     disable_web_page_preview=True,
+                    parse_mode=ParseMode.HTML,
                 ),
             )
         else:

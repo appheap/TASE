@@ -126,9 +126,20 @@ class BaseHandler(BaseModel):
                 file_id = audio_doc.file_id
             else:
                 # fixme: find a better way of getting messages that have not been cached yet
-                messages = await client.get_messages(chat.username, [audio_vertex.message_id])
-                if not messages or not len(messages):
+                try:
+                    messages = await client.get_messages(chat.username, [audio_vertex.message_id])
+                except Exception as e:
+                    logger.exception(e)
+                    messages = None
+
+                if not messages:
                     # todo: could not get the audio from telegram servers, what to do now?
+                    await message.reply_text(
+                        _trans(
+                            "An error occurred while processing the download URL for this audio",
+                            from_user.chosen_language_code,
+                        )
+                    )
                     logger.error("could not get the audio from telegram servers, what to do now?")
                     return
 
