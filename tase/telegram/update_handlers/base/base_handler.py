@@ -70,16 +70,17 @@ class BaseHandler(BaseModel):
             *(self.telegram_client.get_messages(chat_id=chats_dict[chat_id].username, message_ids=message_ids) for chat_id, message_ids in chat_msg.items())
         )
 
-        await asyncio.gather(
-            *(
-                self.db.update_or_create_audio(
-                    message,
-                    self.telegram_client.telegram_id,
+        messages = [message for sub_messages_list in messages_list if sub_messages_list for message in sub_messages_list if message]
+        if messages:
+            await asyncio.gather(
+                *(
+                    self.db.update_or_create_audio(
+                        message,
+                        self.telegram_client.telegram_id,
+                    )
+                    for message in messages
                 )
-                for sub_messages_list in messages_list
-                for message in sub_messages_list
             )
-        )
 
         return chats_dict
 

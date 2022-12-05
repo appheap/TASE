@@ -42,6 +42,7 @@ class MyPlaylistsInlineButton(InlineButton):
                 handler,
                 result,
                 telegram_inline_query,
+                view_playlist=True,
             )
 
             if not len(result) and result.is_first_page():

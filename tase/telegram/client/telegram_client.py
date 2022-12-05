@@ -220,12 +220,17 @@ class TelegramClient:
         chat_id: Union[int, str],
         message_ids: Union[int, Iterable[int]] = None,
     ) -> Union[pyrogram.types.Message, List[pyrogram.types.Message]]:
-        messages = await self._client.get_messages(
-            chat_id=chat_id,
-            message_ids=message_ids,
-        )
-        if messages and not isinstance(messages, list):
-            messages = [messages]
+        try:
+            messages = await self._client.get_messages(
+                chat_id=chat_id,
+                message_ids=message_ids,
+            )
+            if messages and not isinstance(messages, list):
+                messages = [messages]
+        except Exception as e:
+            # fixme
+            logger.exception(e)
+            return []
 
         return messages
 

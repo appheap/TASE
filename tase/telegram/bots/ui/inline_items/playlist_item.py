@@ -7,6 +7,7 @@ from pyrogram.types import (
     InputTextMessageContent,
 )
 
+from tase.common.utils import emoji
 from tase.db.arangodb import graph as graph_models
 from tase.telegram.bots.ui.templates import BaseTemplate, PlaylistData
 from .base_inline_item import BaseInlineItem
@@ -19,33 +20,46 @@ class PlaylistItem(BaseInlineItem):
         playlist: graph_models.vertices.Playlist,
         user: graph_models.vertices.User,
         telegram_inline_query: pyrogram.types.InlineQuery,
+        view_playlist: Optional[bool] = True,
     ) -> Optional[pyrogram.types.InlineQueryResult]:
         if playlist is None or user is None:
             return None
 
-        data = PlaylistData(
-            title=playlist.title,
-            description=playlist.description if playlist.description is not None else " ",
-            lang_code=user.chosen_language_code,
-        )
+        if view_playlist:
+            data = PlaylistData(
+                title=playlist.title,
+                description=playlist.description if playlist.description is not None else " ",
+                lang_code=user.chosen_language_code,
+            )
 
-        from tase.telegram.bots.ui.inline_buttons.common import (
-            get_playlist_markup_keyboard,
-        )
+            from tase.telegram.bots.ui.inline_buttons.common import get_playlist_markup_keyboard
 
-        item = InlineQueryResultArticle(
-            title=playlist.title,
-            description=f"{playlist.description if playlist.description is not None else ' '}",
-            id=f"{telegram_inline_query.id}->{playlist.key}",
-            thumb_url="https://telegra.ph/file/ac2d210b9b0e5741470a1.jpg" if not playlist.is_favorite else "https://telegra.ph/file/07d5ca30dba31b5241bcf.jpg",
-            input_message_content=InputTextMessageContent(
-                message_text=BaseTemplate.registry.playlist_template.render(data),
-                parse_mode=ParseMode.HTML,
-            ),
-            reply_markup=get_playlist_markup_keyboard(
-                playlist,
-                user.chosen_language_code,
-            ),
-        )
-
-        return item
+            return InlineQueryResultArticle(
+                title=playlist.title,
+                description=f"{playlist.description if playlist.description is not None else ' '}",
+                id=f"{telegram_inline_query.id}->{playlist.key}",
+                thumb_url="https://telegra.ph/file/ac2d210b9b0e5741470a1.jpg"
+                if not playlist.is_favorite
+                else "https://telegra.ph/file/07d5ca30dba31b5241bcf.jpg",
+                input_message_content=InputTextMessageContent(
+                    message_text=BaseTemplate.registry.playlist_template.render(data),
+                    parse_mode=ParseMode.HTML,
+                ),
+                reply_markup=get_playlist_markup_keyboard(
+                    playlist,
+                    user.chosen_language_code,
+                ),
+            )
+        else:
+            return InlineQueryResultArticle(
+                title=playlist.title,
+                description=f"{playlist.description if playlist.description is not None else ' '}",
+                id=f"{telegram_inline_query.id}->{playlist.key}",
+                thumb_url="https://telegra.ph/file/ac2d210b9b0e5741470a1.jpg"
+                if not playlist.is_favorite
+                else "https://telegra.ph/file/07d5ca30dba31b5241bcf.jpg",
+                input_message_content=InputTextMessageContent(
+                    message_text=emoji._clock_emoji,
+                    parse_mode=ParseMode.HTML,
+                ),
+            )

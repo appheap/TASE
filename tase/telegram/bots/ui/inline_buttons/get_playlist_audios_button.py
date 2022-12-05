@@ -50,6 +50,7 @@ class GetPlaylistAudioInlineButton(InlineButton):
                         playlist,
                         from_user,
                         telegram_inline_query,
+                        view_playlist=True,
                     ),
                     count=False,
                 )

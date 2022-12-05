@@ -1,5 +1,5 @@
 import asyncio
-from typing import Deque
+from typing import Deque, Optional
 
 import pyrogram
 from pyrogram.types import InlineKeyboardMarkup
@@ -24,7 +24,8 @@ async def populate_playlist_list(
     handler: BaseHandler,
     result: CustomInlineQueryResult,
     telegram_inline_query: pyrogram.types.InlineQuery,
-    filter_by_capacity: bool = False,
+    filter_by_capacity: Optional[bool] = False,
+    view_playlist: Optional[bool] = True,
 ) -> None:
     """
     Populate a list with the given `User` playlists
@@ -41,6 +42,8 @@ async def populate_playlist_list(
         Telegram Inline Query object
     filter_by_capacity : bool, default : False
         Whether to filter the playlists by their length
+    view_playlist : bool, default : True
+        Whether to show playlist item when clicked or not.
 
     """
     playlists = (
@@ -73,6 +76,7 @@ async def populate_playlist_list(
                 playlist,
                 from_user,
                 telegram_inline_query,
+                view_playlist=view_playlist,
             )
         )
 
@@ -129,6 +133,7 @@ async def populate_audio_items(
                 hit_download_url,
             )
             for audio_doc, audio_vertex, hit_download_url, in zip(audio_docs, audio_vertices, hit_download_urls)
+            if audio_doc and audio_vertex
         )
     )
 
