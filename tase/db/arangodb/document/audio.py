@@ -56,6 +56,7 @@ class Audio(BaseDocument):
         cls,
         telegram_message: pyrogram.types.Message,
         telegram_client_id: int,
+        chat_id: int,
     ) -> Optional[str]:
         """
         Parse the `key` from the given `telegram_message` argument if it contains a valid audio file, otherwise raise
@@ -65,9 +66,10 @@ class Audio(BaseDocument):
         ----------
         telegram_message : pyrogram.types.Message
             Telegram message to parse the key from or `Audio` document from elasticsearchDB
-
         telegram_client_id : int
             ID of the telegram client who got this message
+        chat_id : int
+            Chat ID this message belongs to.
 
         Returns
         -------
@@ -76,13 +78,14 @@ class Audio(BaseDocument):
 
         """
 
-        return f"{telegram_client_id}:{telegram_message.chat.id}:{telegram_message.id}"
+        return f"{telegram_client_id}:{chat_id}:{telegram_message.id}"
 
     @classmethod
     def parse(
         cls,
         telegram_message: pyrogram.types.Message,
         telegram_client_id: int,
+        chat_id: int,
     ) -> Optional[Audio]:
         """
         Parse an `Audio` from the given `telegram_message` argument.
@@ -91,9 +94,10 @@ class Audio(BaseDocument):
         ----------
         telegram_message : pyrogram.types.Message
             Telegram message to parse the `Audio` from
-
         telegram_client_id : int
             ID of the telegram client who got this message
+        chat_id : int
+            Chat ID this message belongs to.
 
         Returns
         -------
@@ -105,17 +109,17 @@ class Audio(BaseDocument):
         TelegramMessageWithNoAudio
             If `telegram_message` parameter does not contain any valid audio file.
         """
-        if telegram_message is None:
+        if telegram_message is None or chat_id is None:
             return None
 
-        key = Audio.parse_key(telegram_message, telegram_client_id)
+        key = Audio.parse_key(telegram_message, telegram_client_id, chat_id)
 
         if key is None:
             return None
 
         audio, audio_type = get_telegram_message_media_type(telegram_message)
         if audio is None or audio_type == TelegramAudioType.NON_AUDIO:
-            raise TelegramMessageWithNoAudio(telegram_message.id, telegram_message.chat.id)
+            raise TelegramMessageWithNoAudio(telegram_message.id, chat_id)
 
         return Audio(
             key=key,
@@ -131,6 +135,7 @@ class AudioMethods:
         self,
         telegram_message: pyrogram.types.Message,
         telegram_client_id: int,
+        chat_id: int,
     ) -> Optional[Audio]:
         """
         Create Audio document in the ArangoDB.
@@ -139,9 +144,10 @@ class AudioMethods:
         ----------
         telegram_message : pyrogram.types.Message
             Telegram message to create the Audio from
-
         telegram_client_id : int
             ID of the telegram client who got this message
+        chat_id : int
+            Chat ID this message belongs to.
 
         Returns
         -------
@@ -157,7 +163,7 @@ class AudioMethods:
             return None
 
         try:
-            audio, successful = await Audio.insert(Audio.parse(telegram_message, telegram_client_id))
+            audio, successful = await Audio.insert(Audio.parse(telegram_message, telegram_client_id, chat_id))
         except TelegramMessageWithNoAudio:
             # the message does not contain any valid audio file
             pass
@@ -171,6 +177,7 @@ class AudioMethods:
         self,
         telegram_message: pyrogram.types.Message,
         telegram_client_id: int,
+        chat_id: int,
     ) -> Optional[Audio]:
         """
         Get Audio document if it exists in ArangoDB, otherwise, create Audio document in the ArangoDB.
@@ -178,10 +185,11 @@ class AudioMethods:
         Parameters
         ----------
         telegram_message : pyrogram.types.Message
-            Telegram message to create the Audio from
-
+            Telegram message to create the Audio from.
         telegram_client_id : int
-            ID of the telegram client who got this message
+            ID of the telegram client who got this message.
+        chat_id : int
+            Chat ID this message belongs to.
 
         Returns
         -------
@@ -189,12 +197,12 @@ class AudioMethods:
             Audio if the operation was successful, otherwise, return None
 
         """
-        if telegram_message is None:
+        if telegram_message is None or chat_id is None:
             return None
 
-        audio = await Audio.get(Audio.parse_key(telegram_message, telegram_client_id))
+        audio = await Audio.get(Audio.parse_key(telegram_message, telegram_client_id, chat_id))
         if audio is None:
-            audio = await self.create_audio(telegram_message, telegram_client_id)
+            audio = await self.create_audio(telegram_message, telegram_client_id, chat_id)
 
         return audio
 
@@ -202,6 +210,7 @@ class AudioMethods:
         self,
         telegram_message: pyrogram.types.Message,
         telegram_client_id: int,
+        chat_id: int,
     ) -> Optional[Audio]:
         """
         Update `Audio` document if it exists in ArangoDB, otherwise, create the document in the ArangoDB.
@@ -209,10 +218,11 @@ class AudioMethods:
         Parameters
         ----------
         telegram_message : pyrogram.types.Message
-            Telegram message to create the Audio from
-
+            Telegram message to create the Audio from.
         telegram_client_id : int
-            ID of the telegram client who got this message
+            ID of the telegram client who got this message.
+        chat_id : int
+            Chat ID this message belongs to.
 
         Returns
         -------
@@ -220,20 +230,23 @@ class AudioMethods:
             Audio if the operation was successful, otherwise, return None
 
         """
-        if telegram_message is None:
+        if telegram_message is None or chat_id is None:
             return None
 
         try:
-            audio = await Audio.get(Audio.parse_key(telegram_message, telegram_client_id))
+            audio = await Audio.get(Audio.parse_key(telegram_message, telegram_client_id, chat_id))
         except ValueError:
             audio = None
         else:
             if audio is None:
-                audio = await self.create_audio(telegram_message, telegram_client_id)
+                audio = await self.create_audio(telegram_message, telegram_client_id, chat_id)
             else:
                 try:
-                    updated = await audio.update(Audio.parse(telegram_message, telegram_client_id))
+                    updated = await audio.update(Audio.parse(telegram_message, telegram_client_id, chat_id))
                 except ValueError:
+                    updated = False
+                except TelegramMessageWithNoAudio:
+                    # todo: what now?
                     updated = False
 
         return audio

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import collections
-from typing import Optional, List, Tuple, Generator, TYPE_CHECKING
+from typing import Optional, List, Tuple, Generator, TYPE_CHECKING, Deque, Iterable
 
 import pyrogram
 
@@ -452,49 +452,51 @@ class Chat(BaseVertex):
 
 class ChatMethods:
     _get_chat_linked_chat_with_edge_query = (
-        "for v,e in 1..1 outbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@linked_chat'], vertexCollections:['@chat']}"
+        "for v,e in 1..1 outbound @start_vertex graph @graph_name options {order:'dfs', edgeCollections:[@linked_chat], vertexCollections:[@chat]}"
         "   return {linked_chat:v, edge:e}"
     )
 
     _get_chat_username_with_edge_query = (
-        "for v,e in 1..1 outbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@has'], vertexCollections:['@usernames']}"
+        "for v,e in 1..1 outbound @start_vertex graph @graph_name options {order:'dfs', edgeCollections:[@has], vertexCollections:[@usernames]}"
         "   return {username:v, edge:e}"
     )
 
     _get_chats_sorted_by_username_extractor_score_query = (
-        "for chat in @chats"
+        "for chat in @@chats"
         "   filter chat.chat_type == @chat_type and chat.is_public == true and chat.username_extractor_metadata != null"
         "   sort chat.username_extractor_metadata.score desc, chat.members_count desc"
         "   return chat"
     )
 
     _get_not_extracted_chats_sorted_by_members_count_query = (
-        "for chat in @chats"
+        "for chat in @@chats"
         "   filter chat.chat_type == @chat_type and chat.is_public == true and chat.username_extractor_metadata == null"
         "   sort chat.members_count desc"
         "   return chat"
     )
 
     _get_chats_sorted_by_audio_indexer_score_query = (
-        "for chat in @chats"
+        "for chat in @@chats"
         "   filter chat.chat_type == @chat_type and chat.is_public == true and chat.audio_indexer_metadata != null"
         "   sort chat.audio_indexer_metadata.score desc, chat.members_count desc"
         "   return chat"
     )
 
     _get_not_indexed_chats_sorted_by_members_count_query = (
-        "for chat in @chats"
+        "for chat in @@chats"
         "   filter chat.chat_type == @chat_type and chat.is_public == true and chat.audio_indexer_metadata == null"
         "   sort chat.members_count desc"
         "   return chat"
     )
 
     _get_chats_sorted_by_audio_doc_indexer_score = (
-        "for chat in @chats"
+        "for chat in @@chats"
         "   filter chat.chat_type == @chat_type and chat.audio_doc_indexer_metadata != null "
         "   sort chat.audio_doc_indexer_metadata.score desc, chat.members_count desc"
         "   return chat"
     )
+
+    _get_chats_by_keys = "return document(@@chats, @chat_keys)"
 
     async def _create_chat(
         self: ArangoGraphMethods,
@@ -839,6 +841,41 @@ class ChatMethods:
 
         return None, None
 
+    async def get_chats_from_keys(
+        self,
+        keys: Iterable[str],
+    ) -> Deque[Chat]:
+        """
+        Get a list of Chats from a list of keys.
+
+        Parameters
+        ----------
+        keys : Iterable[str]
+            List of keys to get the chats from.
+
+        Returns
+        -------
+        Deque
+            List of Chats if operation was successful, otherwise, return None
+
+        """
+        if not keys:
+            return collections.deque()
+
+        res = collections.deque()
+        async with await Chat.execute_query(
+            self._get_chats_by_keys,
+            bind_vars={
+                "@chats": Chat._collection_name,
+                "chat_keys": list(keys),
+            },
+        ) as cursor:
+            async for chats_lst in cursor:
+                for doc in chats_lst:
+                    res.append(Chat.from_collection(doc))
+
+        return res
+
     async def get_chats_sorted_by_username_extractor_score(
         self,
         filter_by_indexed_chats: bool = True,
@@ -864,7 +901,7 @@ class ChatMethods:
             if filter_by_indexed_chats
             else self._get_not_extracted_chats_sorted_by_members_count_query,
             bind_vars={
-                "chats": Chat._collection_name,
+                "@chats": Chat._collection_name,
                 "chat_type": chat_type,
             },
         ) as cursor:
@@ -894,7 +931,7 @@ class ChatMethods:
         async with await Chat.execute_query(
             self._get_chats_sorted_by_audio_indexer_score_query if filter_by_indexed_chats else self._get_not_indexed_chats_sorted_by_members_count_query,
             bind_vars={
-                "chats": Chat._collection_name,
+                "@chats": Chat._collection_name,
                 "chat_type": chat_type,
             },
         ) as cursor:
@@ -918,7 +955,7 @@ class ChatMethods:
         async with await Chat.execute_query(
             self._get_chats_sorted_by_audio_doc_indexer_score,
             bind_vars={
-                "chats": Chat._collection_name,
+                "@chats": Chat._collection_name,
                 "chat_type": chat_type,
             },
         ) as cursor:

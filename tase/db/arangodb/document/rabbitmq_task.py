@@ -103,21 +103,21 @@ class RabbitMQTask(BaseDocument):
 
 class RabbitMQTaskMethods:
     _get_active_rabbitmq_task_query = (
-        "for doc_task in @rabbitmq_tasks"
+        "for doc_task in @@rabbitmq_tasks"
         "   sort doc_task.modified_at desc"
-        "   filter doc_task.type == '@type' and doc_task.status in @status_list and doc_task.state_dict != null"
+        "   filter doc_task.type == @type and doc_task.status in @status_list and doc_task.state_dict != null"
         "   filter @input_attr_list all in attributes(doc_task.state_dict) and @input_value_list all in values(doc_task.state_dict)"
         "   limit 1"
         "   return doc_task"
     )
 
     _cancel_active_rabbitmq_tasks_query = (
-        "for doc_task in @rabbitmq_tasks"
+        "for doc_task in @@rabbitmq_tasks"
         "   sort doc_task.modified_at desc"
-        "   filter doc_task.type == '@type' and doc_task.status in @status_list"
+        "   filter doc_task.type == @type and doc_task.status in @status_list"
         "   update doc_task with {"
         "       status: @new_status"
-        "   } in @rabbitmq_tasks options {mergeObjects: true}"
+        "   } in @@rabbitmq_tasks options {mergeObjects: true}"
         "   return NEW"
     )
 
@@ -200,7 +200,7 @@ class RabbitMQTaskMethods:
         async with await RabbitMQTask.execute_query(
             self._get_active_rabbitmq_task_query,
             bind_vars={
-                "rabbitmq_tasks": RabbitMQTask._collection_name,
+                "@rabbitmq_tasks": RabbitMQTask._collection_name,
                 "type": task_type.value,
                 "status_list": [
                     RabbitMQTaskStatus.CREATED.value,
@@ -247,7 +247,7 @@ class RabbitMQTaskMethods:
         cursor = await RabbitMQTask.execute_query(
             self._cancel_active_rabbitmq_tasks_query,
             bind_vars={
-                "rabbitmq_tasks": RabbitMQTask._collection_name,
+                "@rabbitmq_tasks": RabbitMQTask._collection_name,
                 "type": task_type.value,
                 "status_list": [
                     RabbitMQTaskStatus.CREATED.value,

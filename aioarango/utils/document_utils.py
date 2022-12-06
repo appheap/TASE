@@ -103,7 +103,7 @@ def prep_from_body(
         raise DocumentParseError(f"document cannot be `None`")
 
     doc_id = extract_id(document, id_prefix)
-    if (check_for_revisions_match is None and check_for_revisions_mismatch is None) or "_rev" not in document:
+    if (not check_for_revisions_match and not check_for_revisions_mismatch) or "_rev" not in document:
         return doc_id, {}
     if check_for_revisions_match:
         return doc_id, {"If-Match": document["_rev"]}
@@ -153,7 +153,7 @@ def prep_from_doc(
         doc_id = extract_id(document, id_prefix)
         rev = rev or document.get("_rev", None)
 
-        if (check_for_revisions_match is None and check_for_revisions_mismatch is None) or rev is None:
+        if (not check_for_revisions_match and not check_for_revisions_mismatch) or rev is None:
             return doc_id, doc_id, {}
         else:
             if check_for_revisions_match:

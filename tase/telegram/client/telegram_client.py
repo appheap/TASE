@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 from enum import Enum
-from typing import Coroutine, Iterable, List, Optional, Union, Dict, Any, AsyncGenerator
+from typing import Coroutine, Iterable, List, Optional, Union, Dict, Any, AsyncGenerator, TYPE_CHECKING
 
 import pyrogram
 from pyrogram.errors import PeerIdInvalid
@@ -11,7 +11,9 @@ from pyrogram.handlers.handler import Handler
 from tase.configs import ClientConfig, ClientTypes
 from tase.my_logger import logger
 from tase.telegram.client.raw_methods import search_messages
-from tase.telegram.update_handlers.base import BaseHandler
+
+if TYPE_CHECKING:
+    from tase.telegram.update_handlers.base import BaseHandler
 
 
 class UserClientRoles(Enum):
@@ -218,12 +220,20 @@ class TelegramClient:
         chat_id: Union[int, str],
         message_ids: Union[int, Iterable[int]] = None,
     ) -> Union[pyrogram.types.Message, List[pyrogram.types.Message]]:
-        messages = await self._client.get_messages(
-            chat_id=chat_id,
-            message_ids=message_ids,
-        )
-        if messages and not isinstance(messages, list):
-            messages = [messages]
+        try:
+            messages = await self._client.get_messages(
+                chat_id=chat_id,
+                message_ids=message_ids,
+            )
+            if messages and not isinstance(messages, list):
+                messages = [messages]
+        except KeyError as e:
+            # chat is no longer has that username or the username is invalid
+            return e
+        except Exception as e:
+            # fixme
+            logger.exception(e)
+            return []
 
         return messages
 

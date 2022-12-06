@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+import asyncio
 import collections
-import time
 from enum import Enum
 from typing import Optional, Tuple, TypeVar, Dict, Any, Type, List, Deque
 
@@ -409,6 +409,7 @@ class BaseDocument(BaseModel):
                 response = await cls._es.create(
                     index=cls._index_name,
                     id=id,
+                    refresh=False,
                     document=doc,
                 )
                 successful = True
@@ -425,6 +426,7 @@ class BaseDocument(BaseModel):
         document: TBaseDocument,
         reserve_non_updatable_fields: bool = True,
         retry_on_failure: bool = True,
+        retry_on_conflict: Optional[bool] = None,
         run_depth: int = 1,
     ) -> bool:
         """
@@ -438,6 +440,8 @@ class BaseDocument(BaseModel):
             Whether to keep the non-updatable fields from the old document or not
         retry_on_failure : bool, default : True
             Whether to retry the operation if it fails due to `revision` mismatch
+        retry_on_conflict : bool, optional
+            Whether to retry the api call if it fails due to `revision` mismatch
         run_depth : int
             Depth of running the function. stop and return False after 10 runs.
 
@@ -471,7 +475,9 @@ class BaseDocument(BaseModel):
                 response = await self._es.update(
                     index=self._index_name,
                     id=id,
+                    refresh=False,
                     doc=doc,
+                    retry_on_conflict=5 if retry_on_conflict else None,
                 )
                 self.__dict__.update(document.__dict__)
         except elasticsearch.ConflictError as e:
@@ -479,7 +485,7 @@ class BaseDocument(BaseModel):
             if retry_on_failure:
                 logger.error(f"Retry #{run_depth}")
                 # todo: sleep for a while before retrying
-                time.sleep(run_depth * 20 / 1000)
+                await asyncio.sleep(run_depth * 20 / 1000)
 
                 latest_doc = await self.get(self.id)
                 if latest_doc is not None:

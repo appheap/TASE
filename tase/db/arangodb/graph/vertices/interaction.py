@@ -82,25 +82,25 @@ class Interaction(BaseVertex):
 
 class InteractionMethods:
     _is_audio_interacted_by_user_query = (
-        "for v_int in 1..1 outbound '@user_id' graph '@graph_name' options {order : 'dfs', edgeCollections : ['@has'], vertexCollections : ['@interactions']}"
+        "for v_int in 1..1 outbound @user_id graph @graph_name options {order : 'dfs', edgeCollections : [@has], vertexCollections : [@interactions]}"
         "   filter v_int.type == @interaction_type and v_int.is_active == true"
-        "   for v_aud in 1..1 outbound v_int._id graph '@graph_name' options {order : 'dfs', edgeCollections : ['@has'], vertexCollections : ['@audios']}"
-        "       filter v_aud._key == '@audio_key'"
+        "   for v_aud in 1..1 outbound v_int._id graph @graph_name options {order : 'dfs', edgeCollections : [@has], vertexCollections : [@audios]}"
+        "       filter v_aud._key == @audio_key"
         "       return true"
     )
 
     _interaction_by_user_query = (
-        "for v_int in 1..1 outbound '@user_id' graph '@graph_name' options {order : 'dfs', edgeCollections : ['@has'], vertexCollections : ['@interactions']}"
+        "for v_int in 1..1 outbound @user_id graph @graph_name options {order : 'dfs', edgeCollections : [@has], vertexCollections : [@interactions]}"
         "   filter v_int.type == @interaction_type"
-        "   for v_aud in 1..1 outbound v_int._id graph '@graph_name' options {order : 'dfs', edgeCollections : ['@has'], vertexCollections : ['@audios']}"
-        "       filter v_aud._key == '@audio_key'"
+        "   for v_aud in 1..1 outbound v_int._id graph @graph_name options {order : 'dfs', edgeCollections : [@has], vertexCollections : [@audios]}"
+        "       filter v_aud._key == @audio_key"
         "       return v_int"
     )
 
     _count_interactions_query = (
-        "for interaction in @interactions"
+        "for interaction in @@interactions"
         "   filter interaction.modified_at >= @last_run_at and interaction.modified_at < @now"
-        "   for v,e in 1..1 outbound interaction graph '@graph_name' options {order: 'dfs', edgeCollections:['@has'], vertexCollections:['@audios']}"
+        "   for v,e in 1..1 outbound interaction graph @graph_name options {order: 'dfs', edgeCollections:[@has], vertexCollections:[@audios]}"
         "       collect audio_key = v._key, interaction_type = interaction.type, is_active= interaction.is_active"
         "       aggregate count_ = length(0)"
         "       sort count_ desc, interaction_type asc"
@@ -452,7 +452,7 @@ class InteractionMethods:
         async with await Interaction.execute_query(
             self._count_interactions_query,
             bind_vars={
-                "interactions": Interaction._collection_name,
+                "@interactions": Interaction._collection_name,
                 "last_run_at": last_run_at,
                 "now": now,
                 "has": Has._collection_name,

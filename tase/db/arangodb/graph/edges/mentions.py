@@ -141,22 +141,22 @@ class Mentions(BaseEdge):
 
 class MentionsMethods:
     _create_and_check_mentions_edges_query = (
-        "for v,e in 1..1 inbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@mentions'], vertexCollections:['@chats']}"
+        "for v,e in 1..1 inbound @start_vertex graph @graph_name options {order:'dfs', edgeCollections:[@mentions], vertexCollections:[@chats]}"
         "   filter e.is_checked == false"
         "   sort e.created_at ASC"
         "   update e with {"
         "       is_checked:true, checked_at:@checked_at"
-        "   } in @mentions options {mergeObjects: true}"
+        "   } in @@mentions options {mergeObjects: true}"
         "   return {chat:v, mention_:NEW}"
     )
 
     _update_mentions_edges_from_chat_to_username_query = (
-        "for v,e in 1..1 inbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@mentions'], vertexCollections:['@chats']}"
+        "for v,e in 1..1 inbound @start_vertex graph @graph_name options {order:'dfs', edgeCollections:[@mentions], vertexCollections:[@chats]}"
         "   filter e.is_checked != @is_checked"
         "   sort e.created_at ASC"
         "   update e with {"
         "       is_checked:@is_checked, checked_at:@checked_at"
-        "   } in @mentions options {mergeObjects: true}"
+        "   } in @@mentions options {mergeObjects: true}"
         "   return NEW"
     )
 
@@ -186,6 +186,7 @@ class MentionsMethods:
                 "start_vertex": username.id,
                 "chats": Chat._collection_name,
                 "mentions": Mentions._collection_name,
+                "@mentions": Mentions._collection_name,
                 "checked_at": username.checked_at,
             },
         ) as cursor:
@@ -277,6 +278,7 @@ class MentionsMethods:
             bind_vars={
                 "start_vertex": username.id,
                 "chats": Chat._collection_name,
+                "@mentions": Mentions._collection_name,
                 "mentions": Mentions._collection_name,
                 "is_checked": username.is_checked,
                 "checked_at": username.checked_at,

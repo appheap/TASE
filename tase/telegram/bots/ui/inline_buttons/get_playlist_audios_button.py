@@ -1,3 +1,4 @@
+import asyncio
 from typing import Match, Optional
 
 import pyrogram
@@ -49,6 +50,7 @@ class GetPlaylistAudioInlineButton(InlineButton):
                         playlist,
                         from_user,
                         telegram_inline_query,
+                        view_playlist=True,
                     ),
                     count=False,
                 )
@@ -68,7 +70,6 @@ class GetPlaylistAudioInlineButton(InlineButton):
                 # since it is already been checked that the playlist belongs to the user, this exception will not occur
                 pass
             else:
-
                 hit_download_urls = await populate_audio_items(
                     audio_vertices,
                     from_user,
@@ -122,6 +123,17 @@ class GetPlaylistAudioInlineButton(InlineButton):
                 # could not update the audio inline message, what now?
                 pass
 
+        # update the keyboard markup of the downloaded audio
+        update_keyboard_task = asyncio.create_task(
+            handler.update_audio_keyboard_markup(
+                client,
+                from_user,
+                telegram_chosen_inline_result,
+                hit_download_url,
+                chat_type,
+            )
+        )
+
         interaction_vertex = await handler.db.graph.create_interaction(
             hit_download_url,
             from_user,
@@ -133,3 +145,5 @@ class GetPlaylistAudioInlineButton(InlineButton):
             # could not create the interaction_vertex
             logger.error("Could not create the `interaction_vertex` vertex:")
             logger.error(telegram_chosen_inline_result)
+
+        await update_keyboard_task

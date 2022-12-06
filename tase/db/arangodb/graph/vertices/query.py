@@ -100,21 +100,21 @@ class Query(BaseVertex):
 
 class QueryMethods:
     _get_query_hits_query = (
-        "for v,e in 1..1 outbound '@start_vertex' graph '@graph_name' options {order:'dfs', edgeCollections:['@has'], vertexCollections:['@hits']}"
+        "for v,e in 1..1 outbound @start_vertex graph @graph_name options {order:'dfs', edgeCollections:[@has], vertexCollections:[@hits]}"
         "   sort v.created_at asc"
         "   return v"
     )
 
     _get_total_queries_count = (
         "let non_inline_count = ("
-        "   for query in @queries"
+        "   for query in @@queries"
         "       filter query.inline_metadata == null"
         "       collect with count into count_"
         "       return count_"
         ")"
         ""
         "let inline_count = ("
-        "   for query in @queries"
+        "   for query in @@queries"
         "       filter query.inline_metadata != null and query.inline_metadata.type == 1 and query.inline_metadata.offset == ''"
         "       collect with count into count_"
         "       return count_"
@@ -125,14 +125,14 @@ class QueryMethods:
 
     _get_new_queries_count = (
         "let non_inline_count = ("
-        "   for query in @queries"
+        "   for query in @@queries"
         "       filter query.inline_metadata == null and query.created_at >= @checkpoint"
         "       collect with count into count_"
         "       return count_"
         ")"
         ""
         "let inline_count = ("
-        "   for query in @queries"
+        "   for query in @@queries"
         "       filter query.inline_metadata != null and query.inline_metadata.type == 1 and query.inline_metadata.offset == '' and query.created_at >= @checkpoint"
         "       collect with count into count_"
         "       return count_"
@@ -390,7 +390,7 @@ class QueryMethods:
             self._get_query_hits_query,
             bind_vars={
                 "start_vertex": query.id,
-                "queries": Query._collection_name,
+                "hits": Hit._collection_name,
                 "has": Has._collection_name,
             },
         ) as cursor:
@@ -414,7 +414,7 @@ class QueryMethods:
         async with await Query.execute_query(
             self._get_new_queries_count,
             bind_vars={
-                "queries": Query._collection_name,
+                "@queries": Query._collection_name,
                 "checkpoint": checkpoint,
             },
         ) as cursor:
@@ -436,7 +436,7 @@ class QueryMethods:
         async with await Query.execute_query(
             self._get_total_queries_count,
             bind_vars={
-                "queries": Query._collection_name,
+                "@queries": Query._collection_name,
             },
         ) as cursor:
             async for doc in cursor:

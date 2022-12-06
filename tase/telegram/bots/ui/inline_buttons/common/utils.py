@@ -1,4 +1,5 @@
-from typing import Deque
+import asyncio
+from typing import Deque, Optional
 
 import pyrogram
 from pyrogram.types import InlineKeyboardMarkup
@@ -23,7 +24,8 @@ async def populate_playlist_list(
     handler: BaseHandler,
     result: CustomInlineQueryResult,
     telegram_inline_query: pyrogram.types.InlineQuery,
-    filter_by_capacity: bool = False,
+    filter_by_capacity: Optional[bool] = False,
+    view_playlist: Optional[bool] = True,
 ) -> None:
     """
     Populate a list with the given `User` playlists
@@ -40,6 +42,8 @@ async def populate_playlist_list(
         Telegram Inline Query object
     filter_by_capacity : bool, default : False
         Whether to filter the playlists by their length
+    view_playlist : bool, default : True
+        Whether to show playlist item when clicked or not.
 
     """
     playlists = (
@@ -72,6 +76,7 @@ async def populate_playlist_list(
                 playlist,
                 from_user,
                 telegram_inline_query,
+                view_playlist=view_playlist,
             )
         )
 
@@ -101,38 +106,36 @@ async def populate_audio_items(
         Telegram Inline Query object
     """
     # todo: fix this
-    chats_dict = await handler.update_audio_cache(audio_vertices)
+    chats_dict, invalid_audio_keys = await handler.update_audio_cache(audio_vertices)
 
+    audio_docs = await asyncio.gather(
+        *(
+            handler.db.document.get_audio_by_key(
+                handler.telegram_client.telegram_id,
+                audio_vertex.key,
+            )
+            for audio_vertex in audio_vertices
+        )
+    )
     hit_download_urls = await handler.db.graph.generate_hit_download_urls(size=len(audio_vertices))
 
-    for audio_vertex, hit_download_url in zip(audio_vertices, hit_download_urls):
-        audio_doc = await handler.db.document.get_audio_by_key(
-            handler.telegram_client.telegram_id,
-            audio_vertex.key,
-        )
-        es_audio_doc = await handler.db.index.get_audio_by_id(audio_vertex.key)
+    username = (await handler.telegram_client.get_me()).username
 
-        if not audio_doc:
-            continue
-
-        status = await AudioKeyboardStatus.get_status(
-            handler.db,
-            from_user,
-            audio_vertex_key=audio_vertex.key,
-        )
-
-        result.add_item(
+    result.extend_results(
+        (
             AudioItem.get_item(
-                (await handler.telegram_client.get_me()).username,
+                username,
                 audio_doc.file_id,
                 from_user,
-                es_audio_doc,
+                audio_vertex,
                 telegram_inline_query,
                 chats_dict,
                 hit_download_url,
-                status,
             )
+            for audio_doc, audio_vertex, hit_download_url, in zip(audio_docs, audio_vertices, hit_download_urls)
+            if audio_doc and audio_vertex and audio_doc.key not in invalid_audio_keys
         )
+    )
 
     return hit_download_urls
 

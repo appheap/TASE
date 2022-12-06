@@ -31,7 +31,10 @@ def get_telegram_message_media_type(
     return audio, audio_type
 
 
-def parse_audio_key(telegram_message: pyrogram.types.Message) -> Optional[str]:
+def parse_audio_key(
+    telegram_message: pyrogram.types.Message,
+    chat_id: int,
+) -> Optional[str]:
     """
     Parse the `key` from the given `telegram_message` argument
 
@@ -39,6 +42,8 @@ def parse_audio_key(telegram_message: pyrogram.types.Message) -> Optional[str]:
     ----------
     telegram_message : pyrogram.types.Message
         Telegram message to parse the key from
+    chat_id : int
+        Chat ID this message belongs to.
 
     Returns
     -------
@@ -46,9 +51,34 @@ def parse_audio_key(telegram_message: pyrogram.types.Message) -> Optional[str]:
         Parsed key if the parsing was successful, otherwise return `None` if the `telegram_message` is `None`.
 
     """
-    if telegram_message is None:
+    if telegram_message is None or chat_id is None:
         return None
-    return f"{telegram_message.chat.id}:{telegram_message.id}"
+    return f"{chat_id}:{telegram_message.id}"
+
+
+def parse_audio_key_from_message_id(
+    telegram_message_id: int,
+    chat_id: int,
+) -> Optional[str]:
+    """
+    Parse the `key` from the given `telegram_message` argument
+
+    Parameters
+    ----------
+    telegram_message_id : int
+        Telegram message id to parse the key from
+    chat_id : int
+        Chat ID this message belongs to.
+
+    Returns
+    -------
+    str, optional
+        Parsed key if the parsing was successful, otherwise return `None` if the `telegram_message` is `None`.
+
+    """
+    if telegram_message_id is None or chat_id is None:
+        return None
+    return f"{chat_id}:{telegram_message_id}"
 
 
 forbidden_mime_types = (

@@ -42,6 +42,7 @@ class AddToPlaylistInlineButton(InlineButton):
             result,
             telegram_inline_query,
             filter_by_capacity=True,
+            view_playlist=False,
         )
 
         await result.answer_query()

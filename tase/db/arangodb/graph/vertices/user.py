@@ -265,17 +265,17 @@ class User(BaseVertex):
 
 
 class UserMethods:
-    _get_admin_and_owners_query = "for user in @users" "   filter user.role in @roles_list" "   sort user.role desc" "   return user"
+    _get_admin_and_owners_query = "for user in @@users" "   filter user.role in @roles_list" "   sort user.role desc" "   return user"
 
     _get_new_joined_users_count_query = (
-        "for user in @users"
+        "for user in @@users"
         "   filter user.has_interacted_with_bot == true and user.created_at >= @checkpoint"
         "   collect with count into new_joined_users_count"
         "   return new_joined_users_count"
     )
 
     _get_total_interacted_users_count = (
-        "for user in @users" "   filter user.has_interacted_with_bot == true" "   collect with count into total_users_count" "   return total_users_count"
+        "for user in @@users" "   filter user.has_interacted_with_bot == true" "   collect with count into total_users_count" "   return total_users_count"
     )
 
     async def _get_or_create_favorite_playlist(
@@ -438,7 +438,7 @@ class UserMethods:
         async with await User.execute_query(
             self._get_admin_and_owners_query,
             bind_vars={
-                "users": User._collection_name,
+                "@users": User._collection_name,
                 "roles_list": [UserRole.OWNER.value, UserRole.ADMIN.value],
             },
         ) as cursor:
@@ -542,7 +542,7 @@ class UserMethods:
         async with await User.execute_query(
             self._get_new_joined_users_count_query,
             bind_vars={
-                "users": User._collection_name,
+                "@users": User._collection_name,
                 "checkpoint": checkpoint,
             },
         ) as cursor:
@@ -564,7 +564,7 @@ class UserMethods:
         async with await User.execute_query(
             self._get_total_interacted_users_count,
             bind_vars={
-                "users": User._collection_name,
+                "@users": User._collection_name,
             },
         ) as cursor:
             async for doc in cursor:

@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-import random
 import textwrap
-from typing import Optional
+from typing import Optional, Union
 
 from jinja2 import Template
 
 from tase.common.preprocessing import clean_audio_item_text
-from tase.common.utils import _trans, emoji
+from tase.common.utils import _trans
 from tase.db.arangodb import graph as graph_models
 from tase.db.elasticsearchdb import models as elasticsearch_models
 from .base_template import BaseTemplate, BaseTemplateData
@@ -26,12 +25,13 @@ class AudioCaptionTemplate(BaseTemplate):
         "{{c_dir}}<b>{{s_quality}}:</b> ~{{quality_string}}"
         "{{c_new_line}}"
         "{{c_new_line}}"
+        "{% if show_source %}"
         "{{c_dir}}{{emoji._round_pushpin}}{{s_source}}: {% if include_source %}{{source}}{%else%}{{s_sent_by_users}}{% endif %}"
         "{{c_new_line}}"
         "{{c_new_line}}"
+        "{% endif %}"
         "{{c_dir}}{{emoji._search_emoji}} | <a href='{{bot_url}}'><b>TASE Bot:</b> {{s_audio_search_engine}}</a>"
         "{{c_new_line}}"
-        "{{c_dir}}{{plant}}"
     )
 
 
@@ -49,60 +49,34 @@ class AudioCaptionData(BaseTemplateData):
     file_name: Optional[str]
     source: str
     include_source: bool
+    show_source: bool
     bot_url: str
-    plant: str = random.choice(emoji.plants_list)
     quality_string: str
 
     @staticmethod
-    def parse_from_es_audio_doc(
-        es_audio_doc: elasticsearch_models.Audio,
+    def parse_from_audio(
+        audio: Union[elasticsearch_models.Audio, graph_models.vertices.Audio],
         user: graph_models.vertices.User,
         chat: graph_models.vertices.Chat,
         bot_url: str,  # todo: get bot_url from config
         include_source: bool = True,  # todo: where to get this variable?
+        show_source: bool = True,
     ) -> Optional[AudioCaptionData]:
-        if es_audio_doc is None or user is None or chat is None or bot_url is None:
+        if audio is None or user is None or chat is None or bot_url is None:
             return None
 
         return AudioCaptionData(
-            title=clean_audio_item_text(es_audio_doc.raw_title),
-            performer=clean_audio_item_text(es_audio_doc.raw_performer),
+            title=clean_audio_item_text(audio.raw_title),
+            performer=clean_audio_item_text(audio.raw_performer),
             file_name=textwrap.shorten(
-                clean_audio_item_text(es_audio_doc.raw_file_name, is_file_name=True),
+                clean_audio_item_text(audio.raw_file_name, is_file_name=True),
                 width=40,
                 placeholder="...",
             ),
-            source=f"<a href ='https://t.me/{chat.username}/{es_audio_doc.message_id}'>{chat.username}</a>",
+            source=f"<a href ='https://t.me/{chat.username}/{audio.message_id}'>{chat.username}</a>",
             include_source=include_source,
+            show_source=show_source,
             bot_url=bot_url,
-            plant=random.choice(emoji.plants_list),
-            quality_string=es_audio_doc.estimated_bit_rate_type.get_bit_rate_string(True),
-            lang_code=user.chosen_language_code,
-        )
-
-    @staticmethod
-    def parse_from_audio_vertex(
-        audio_vertex: graph_models.vertices.Audio,
-        user: graph_models.vertices.User,
-        chat: graph_models.vertices.Chat,
-        bot_url: str,  # todo: get bot_url from config
-        include_source: bool = True,  # todo: where to get this variable?
-    ) -> Optional[AudioCaptionData]:
-        if audio_vertex is None or user is None or chat is None or bot_url is None:
-            return None
-
-        return AudioCaptionData(
-            title=clean_audio_item_text(audio_vertex.raw_title),
-            performer=clean_audio_item_text(audio_vertex.raw_performer),
-            file_name=textwrap.shorten(
-                clean_audio_item_text(audio_vertex.raw_file_name, is_file_name=True),
-                width=40,
-                placeholder="...",
-            ),
-            source=f"<a href ='https://t.me/{chat.username}/{audio_vertex.message_id}'>{chat.username}</a>",
-            include_source=include_source,
-            bot_url=bot_url,
-            plant=random.choice(emoji.plants_list),
-            quality_string=audio_vertex.estimated_bit_rate_type.get_bit_rate_string(True),
+            quality_string=audio.estimated_bit_rate_type.get_bit_rate_string(True),
             lang_code=user.chosen_language_code,
         )

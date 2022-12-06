@@ -1,5 +1,5 @@
 import collections
-from typing import Any, List, Optional, Deque
+from typing import Any, List, Optional, Deque, Iterable
 
 import pyrogram
 from pydantic import BaseModel, Field
@@ -66,6 +66,16 @@ class CustomInlineQueryResult(BaseModel):
         count: bool = False,
     ) -> None:
         self.results.clear()
+        self.results.extend(results)
+
+        if count:
+            self.countable_items_length += len(self.results)
+
+    def extend_results(
+        self,
+        results: Iterable[pyrogram.types.InlineQueryResult],
+        count: bool = True,
+    ) -> None:
         self.results.extend(results)
 
         if count:

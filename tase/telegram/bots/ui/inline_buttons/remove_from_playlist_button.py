@@ -58,6 +58,7 @@ class RemoveFromPlaylistInlineButton(InlineButton):
                         playlist,
                         from_user,
                         telegram_inline_query,
+                        view_playlist=False,
                     )
                 )
 

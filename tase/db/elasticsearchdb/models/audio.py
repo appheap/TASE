@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 import copy
-from typing import Optional, List, Tuple, Deque
+from typing import Optional, Tuple, Deque
 
 import pyrogram
 from elastic_transport import ObjectApiResponse
 from pydantic import Field
 
 from tase.common.preprocessing import clean_text, empty_to_null
-from tase.common.utils import datetime_to_timestamp, async_timed
+from tase.common.utils import datetime_to_timestamp, async_timed, get_now_timestamp
 from tase.errors import TelegramMessageWithNoAudio
 from tase.my_logger import logger
 from .base_document import BaseDocument
@@ -128,6 +128,7 @@ class Audio(BaseDocument):
     def parse_id(
         cls,
         telegram_message: pyrogram.types.Message,
+        chat_id: int,
     ) -> Optional[str]:
         """
         Parse the `ID` from the given `telegram_message` argument if it contains a valid audio file, otherwise raise
@@ -137,6 +138,8 @@ class Audio(BaseDocument):
         ----------
         telegram_message : pyrogram.types.Message
             Telegram message to parse the ID from
+        chat_id : int
+            Chat ID this message belongs to.
 
         Returns
         -------
@@ -144,12 +147,13 @@ class Audio(BaseDocument):
             Parsed ID if the parsing was successful, otherwise return `None` if the `telegram_message` is `None`.
 
         """
-        return parse_audio_key(telegram_message)
+        return parse_audio_key(telegram_message, chat_id)
 
     @classmethod
     def parse(
         cls,
         telegram_message: pyrogram.types.Message,
+        chat_id: int,
     ) -> Optional[Audio]:
         """
         Parse an `Audio` from the given `telegram_message` argument.
@@ -158,6 +162,8 @@ class Audio(BaseDocument):
         ----------
         telegram_message : pyrogram.types.Message
             Telegram message to parse the `Audio` from
+        chat_id : int
+            Chat ID this message belongs to.
 
         Returns
         -------
@@ -172,7 +178,7 @@ class Audio(BaseDocument):
         if telegram_message is None:
             return None
 
-        _id = cls.parse_id(telegram_message)
+        _id = cls.parse_id(telegram_message, chat_id)
         if _id is None:
             return None
 
@@ -227,6 +233,44 @@ class Audio(BaseDocument):
             is_edited=True if telegram_message.edit_date else False,
         )
 
+    async def mark_as_deleted(self) -> bool:
+        """
+        Mark the Audio the as deleted. This happens when the message is deleted in telegram.
+
+        Returns
+        -------
+        bool
+            Whether the operation was successful or not.
+
+        """
+        self_copy = self.copy(deep=True)
+        self_copy.is_deleted = True
+        self_copy.deleted_at = get_now_timestamp()
+        return await self.update(
+            self_copy,
+            reserve_non_updatable_fields=True,
+            retry_on_conflict=True,
+        )
+
+    async def mark_as_invalid(self) -> bool:
+        """
+        Mark the audio as invalid since it has been edited in telegram and changed to non-audio file.
+
+
+        Returns
+        -------
+        bool
+            Whether the update was successful or not.
+
+        """
+        self_copy = self.copy(deep=True)
+        self_copy.audio_type = TelegramAudioType.NON_AUDIO
+        return await self.update(
+            self_copy,
+            reserve_non_updatable_fields=True,
+            retry_on_conflict=True,
+        )
+
     @classmethod
     async def search_by_download_url(
         cls,
@@ -276,13 +320,17 @@ class Audio(BaseDocument):
                             "query": query,
                             "fuzziness": "AUTO",
                             "type": "best_fields",
-                            "minimum_should_match": "65%",
+                            "minimum_should_match": "75%",
                             "fields": cls._search_fields,
                         }
                     },
-                    "filter": {
-                        "match": {"valid_for_inline_search": {"query": "true"}},
-                    },
+                    "must_not": [
+                        {"term": {"audio_type": {"value": TelegramAudioType.NON_AUDIO.value}}},
+                    ],
+                    "filter": [
+                        {"term": {"is_deleted": False}},
+                        {"term": {"valid_for_inline_search": True}},
+                    ],
                 }
             }
         else:
@@ -293,10 +341,16 @@ class Audio(BaseDocument):
                             "query": query,
                             "fuzziness": "AUTO",
                             "type": "best_fields",
-                            "minimum_should_match": "65%",
+                            "minimum_should_match": "75%",
                             "fields": cls._search_fields,
                         }
                     },
+                    "must_not": [
+                        {"term": {"audio_type": {"value": TelegramAudioType.NON_AUDIO.value}}},
+                    ],
+                    "filter": [
+                        {"term": {"is_deleted": False}},
+                    ],
                 }
             }
 
@@ -359,6 +413,7 @@ class Audio(BaseDocument):
             self_copy,
             reserve_non_updatable_fields=False,
             retry_on_failure=True,
+            retry_on_conflict=True,
         )
 
     async def update_by_hit_count(
@@ -392,6 +447,7 @@ class Audio(BaseDocument):
             self_copy,
             reserve_non_updatable_fields=False,
             retry_on_failure=True,
+            retry_on_conflict=True,
         )
 
 
@@ -399,6 +455,7 @@ class AudioMethods:
     async def create_audio(
         self,
         telegram_message: pyrogram.types.Message,
+        chat_id: int,
     ) -> Optional[Audio]:
         """
         Create Audio document in the ElasticSearch.
@@ -406,7 +463,9 @@ class AudioMethods:
         Parameters
         ----------
         telegram_message : pyrogram.types.Message
-            Telegram message to create the Audio from
+            Telegram message to create the Audio from.
+        chat_id : int
+            Chat ID this message belongs to.
 
         Returns
         -------
@@ -415,7 +474,7 @@ class AudioMethods:
 
         """
         try:
-            audio, successful = await Audio.create(Audio.parse(telegram_message))
+            audio, successful = await Audio.create(Audio.parse(telegram_message, chat_id))
         except TelegramMessageWithNoAudio:
             # this message doesn't contain any valid audio file
             pass
@@ -428,6 +487,7 @@ class AudioMethods:
     async def get_or_create_audio(
         self,
         telegram_message: pyrogram.types.Message,
+        chat_id: int,
     ) -> Optional[Audio]:
         """
         Get Audio if it exists in ElasticSearch, otherwise, create Audio document.
@@ -435,7 +495,9 @@ class AudioMethods:
         Parameters
         ----------
         telegram_message : pyrogram.types.Message
-            Telegram message to create the Audio from
+            Telegram message to create the Audio from.
+        chat_id : int
+            Chat ID this message belongs to.
 
         Returns
         -------
@@ -443,19 +505,20 @@ class AudioMethods:
             Audio if the operation was successful, otherwise, return None
 
         """
-        if telegram_message is None:
+        if telegram_message is None or chat_id is None:
             return None
 
-        audio = await Audio.get(Audio.parse_id(telegram_message))
+        audio = await Audio.get(Audio.parse_id(telegram_message, chat_id))
         if audio is None:
             # audio does not exist in the index, create it
-            audio = await self.create_audio(telegram_message)
+            audio = await self.create_audio(telegram_message, chat_id)
 
         return audio
 
     async def update_or_create_audio(
         self,
         telegram_message: pyrogram.types.Message,
+        chat_id: int,
     ) -> Optional[Audio]:
         """
         Update Audio document in the ElasticSearch if it exists, otherwise, create it.
@@ -463,7 +526,9 @@ class AudioMethods:
         Parameters
         ----------
         telegram_message : pyrogram.types.Message
-            Telegram message to create the Audio from
+            Telegram message to create the Audio from.
+        chat_id : int
+            Chat ID this message belongs to.
 
         Returns
         -------
@@ -471,19 +536,26 @@ class AudioMethods:
             Audio if the creation was successful, otherwise, return None
 
         """
-        if telegram_message is None:
+        if telegram_message is None or chat_id is None:
             return None
 
-        audio = await Audio.get(Audio.parse_id(telegram_message))
+        audio: Optional[Audio] = await Audio.get(Audio.parse_id(telegram_message, chat_id))
         if audio is None:
             # audio does not exist in the index, create it
-            audio = await self.create_audio(telegram_message)
+            audio = await self.create_audio(telegram_message, chat_id)
         else:
             # audio exists in the index, update it
-            try:
-                updated = await audio.update(Audio.parse(telegram_message))
-            except TelegramMessageWithNoAudio:
-                updated = False
+            if telegram_message.empty:
+                deleted = await audio.mark_as_deleted()
+                if not deleted:
+                    # fixme: could not mark the audio as deleted, why?
+                    pass
+            else:
+                try:
+                    updated = await audio.update(Audio.parse(telegram_message, chat_id))
+                except TelegramMessageWithNoAudio:
+                    await audio.mark_as_invalid()
+                    updated = False
         return audio
 
     async def get_audio_by_id(
