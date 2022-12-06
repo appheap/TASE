@@ -1,4 +1,4 @@
-import time
+import asyncio
 from enum import Enum
 from itertools import chain
 from typing import Dict, Optional, Any, Type, Union, Tuple, TypeVar, List, Generator
@@ -734,7 +734,7 @@ class BaseCollectionDocument(BaseCollectionAttributes):
         if retry_on_failure:
             logger.error(f"Retry #{run_depth}")
             # todo: sleep for a while before retrying
-            time.sleep(run_depth * 20 / 1000)
+            await asyncio.sleep(run_depth * 20 / 1000)
 
             latest_doc = await self.get(self.key)
             if latest_doc is not None:

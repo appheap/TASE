@@ -151,6 +151,7 @@ class IndexAudiosTask(BaseTask):
                 successful = await db.update_or_create_audio(
                     message,
                     telegram_client.telegram_id,
+                    chat.chat_id,
                 )
                 if successful:
                     metadata.message_count += 1

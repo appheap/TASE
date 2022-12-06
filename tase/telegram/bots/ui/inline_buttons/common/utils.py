@@ -106,7 +106,7 @@ async def populate_audio_items(
         Telegram Inline Query object
     """
     # todo: fix this
-    chats_dict = await handler.update_audio_cache(audio_vertices)
+    chats_dict, invalid_audio_keys = await handler.update_audio_cache(audio_vertices)
 
     audio_docs = await asyncio.gather(
         *(
@@ -133,7 +133,7 @@ async def populate_audio_items(
                 hit_download_url,
             )
             for audio_doc, audio_vertex, hit_download_url, in zip(audio_docs, audio_vertices, hit_download_urls)
-            if audio_doc and audio_vertex
+            if audio_doc and audio_vertex and audio_doc.key not in invalid_audio_keys
         )
     )
 

@@ -227,6 +227,9 @@ class TelegramClient:
             )
             if messages and not isinstance(messages, list):
                 messages = [messages]
+        except KeyError as e:
+            # chat is no longer has that username or the username is invalid
+            return e
         except Exception as e:
             # fixme
             logger.exception(e)

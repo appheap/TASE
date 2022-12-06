@@ -236,6 +236,7 @@ class Audio(BaseVertex):
     def parse_key(
         cls,
         telegram_message: pyrogram.types.Message,
+        chat_id: int,
     ) -> Optional[str]:
         """
         Parse the `key` from the given `telegram_message` argument
@@ -244,6 +245,8 @@ class Audio(BaseVertex):
         ----------
         telegram_message : pyrogram.types.Message
             Telegram message to parse the key from
+        chat_id : int
+            Chat ID this message belongs to.
 
         Returns
         -------
@@ -251,12 +254,13 @@ class Audio(BaseVertex):
             Parsed key if the parsing was successful, otherwise return `None` if the `telegram_message` is `None`.
 
         """
-        return parse_audio_key(telegram_message)
+        return parse_audio_key(telegram_message, chat_id)
 
     @classmethod
     def parse(
         cls,
         telegram_message: pyrogram.types.Message,
+        chat_id: int,
     ) -> Optional[Audio]:
         """
         Parse an `Audio` from the given `telegram_message` argument.
@@ -265,6 +269,8 @@ class Audio(BaseVertex):
         ----------
         telegram_message : pyrogram.types.Message
             Telegram message to parse the `Audio` from
+        chat_id : int
+            Chat ID this message belongs to.
 
         Returns
         -------
@@ -279,11 +285,11 @@ class Audio(BaseVertex):
         if telegram_message is None:
             return None
 
-        key = Audio.parse_key(telegram_message)
+        key = Audio.parse_key(telegram_message, chat_id)
 
         audio, audio_type = get_telegram_message_media_type(telegram_message)
         if audio is None or audio_type == TelegramAudioType.NON_AUDIO:
-            raise TelegramMessageWithNoAudio(telegram_message.id, telegram_message.chat.id)
+            raise TelegramMessageWithNoAudio(telegram_message.id, chat_id)
 
         title = getattr(audio, "title", None)
 
@@ -373,19 +379,16 @@ class Audio(BaseVertex):
         self_copy = self.copy(deep=True)
         self_copy.is_deleted = True
         self_copy.deleted_at = get_now_timestamp()
-        return await self.update(self_copy, reserve_non_updatable_fields=False)
+        return await self.update(
+            self_copy,
+            reserve_non_updatable_fields=False,
+            check_for_revisions_match=False,
+        )
 
-    async def mark_as_invalid(
-        self,
-        telegram_message: pyrogram.types.Message,
-    ) -> bool:
+    async def mark_as_invalid(self) -> bool:
         """
         Mark the audio as invalid since it has been edited in telegram and changed to non-audio file.
 
-        Parameters
-        ----------
-        telegram_message : pyrogram.types.Message
-            Telegram message to update the Audio by
 
         Returns
         -------
@@ -393,12 +396,13 @@ class Audio(BaseVertex):
             Whether the update was successful or not.
 
         """
-        if telegram_message is None:
-            return False
-
         self_copy = self.copy(deep=True)
         self_copy.audio_type = TelegramAudioType.NON_AUDIO
-        return await self.update(self_copy, reserve_non_updatable_fields=True)
+        return await self.update(
+            self_copy,
+            reserve_non_updatable_fields=True,
+            check_for_revisions_match=False,
+        )
 
 
 ######################################################################
@@ -464,6 +468,7 @@ class AudioMethods:
     async def create_audio(
         self: ArangoGraphMethods,
         telegram_message: pyrogram.types.Message,
+        chat_id: int,
     ) -> Optional[Audio]:
         """
         Create Audio alongside necessary vertices and edges in the ArangoDB.
@@ -472,6 +477,8 @@ class AudioMethods:
         ----------
         telegram_message : pyrogram.types.Message
             Telegram message to create the Audio from
+        chat_id : int
+            Chat ID this message belongs to.
 
         Returns
         -------
@@ -487,7 +494,7 @@ class AudioMethods:
             return None
 
         try:
-            audio, successful = await Audio.insert(Audio.parse(telegram_message))
+            audio, successful = await Audio.insert(Audio.parse(telegram_message, chat_id))
         except TelegramMessageWithNoAudio as e:
             # this message doesn't contain any valid audio file
             pass
@@ -587,6 +594,7 @@ class AudioMethods:
     async def get_or_create_audio(
         self,
         telegram_message: pyrogram.types.Message,
+        chat_id: int,
     ) -> Optional[Audio]:
         """
         Get Audio if it exists in ArangoDB, otherwise, create Audio alongside necessary vertices and edges in the
@@ -596,6 +604,8 @@ class AudioMethods:
         ----------
         telegram_message : pyrogram.types.Message
             Telegram message to create the Audio from
+        chat_id : int
+            Chat ID this message belongs to.
 
         Returns
         -------
@@ -610,15 +620,16 @@ class AudioMethods:
         if telegram_message is None:
             return None
 
-        audio = await Audio.get(Audio.parse_key(telegram_message))
+        audio = await Audio.get(Audio.parse_key(telegram_message, chat_id))
         if audio is None:
-            audio = await self.create_audio(telegram_message)
+            audio = await self.create_audio(telegram_message, chat_id)
 
         return audio
 
     async def update_or_create_audio(
         self,
         telegram_message: pyrogram.types.Message,
+        chat_id: int,
     ) -> Optional[Audio]:
         """
         Update Audio alongside necessary vertices and edges in the ArangoDB if it exists, otherwise, create it.
@@ -626,7 +637,9 @@ class AudioMethods:
         Parameters
         ----------
         telegram_message : pyrogram.types.Message
-            Telegram message to create the Audio from
+            Telegram message to create the Audio from.
+        chat_id : int
+            Chat ID this message belongs to.
 
         Returns
         -------
@@ -641,14 +654,14 @@ class AudioMethods:
         if telegram_message is None:
             return None
 
-        audio: Optional[Audio] = await Audio.get(Audio.parse_key(telegram_message))
+        audio: Optional[Audio] = await Audio.get(Audio.parse_key(telegram_message, chat_id))
 
         if audio is not None:
             telegram_audio, audio_type = get_telegram_message_media_type(telegram_message)
             if telegram_audio is None or audio_type == TelegramAudioType.NON_AUDIO:
                 # this message doesn't contain any valid audio file, check if there is a previous audio in the database
                 # and check it as invalid audio.
-                successful = await audio.mark_as_invalid(telegram_message)
+                successful = await audio.mark_as_invalid()
                 if not successful:
                     # fixme: could not mark the audio as invalid, why?
                     pass
@@ -663,12 +676,15 @@ class AudioMethods:
                 else:
                     # the message has not been `deleted`, update remaining attributes
                     try:
-                        updated = await audio.update(Audio.parse(telegram_message))
+                        updated = await audio.update(Audio.parse(telegram_message, chat_id))
                     except ValueError:
+                        updated = False
+                    except TelegramMessageWithNoAudio:
+                        await audio.mark_as_invalid()
                         updated = False
 
         else:
-            audio = await self.create_audio(telegram_message)
+            audio = await self.create_audio(telegram_message, chat_id)
 
         return audio
 
