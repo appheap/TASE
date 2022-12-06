@@ -119,6 +119,9 @@ class AddToPlaylistInlineButton(InlineButton):
                             from_user.user_id,
                             "Added to the playlist",
                         )
+                        playlist = await handler.db.graph.get_user_playlist_by_key(from_user, playlist_key)
+                        if playlist:
+                            logger.info(await playlist.update_last_modified_date())
                     else:
                         await client.send_message(
                             from_user.user_id,

@@ -104,6 +104,24 @@ class Playlist(BaseVertex, BaseSoftDeletableDocument):
         self_copy.description = description
         return await self.update(self_copy, reserve_non_updatable_fields=False)
 
+    async def update_last_modified_date(self):
+        """
+        Update last modified date field of the playlist.
+
+        Notes
+        -----
+        This method is called when a new audio has been added to this playlist. It is done to place the last recently used playlist on top.
+
+        Returns
+        -------
+        bool
+            Whether the update was successful or not.
+        """
+        return await self.update(
+            self.copy(deep=True),
+            reserve_non_updatable_fields=True,
+        )
+
 
 class PlaylistMethods:
     _get_user_playlist_by_title_query = (
@@ -115,7 +133,14 @@ class PlaylistMethods:
 
     _get_user_playlist_by_key_query = (
         "for v,e in 1..1 outbound @start_vertex graph @graph_name options {order:'dfs', edgeCollections:[@has],vertexCollections:[@playlists]}"
-        "   filter v.is_soft_deleted == not @filter_out and v._key == @key"
+        "   filter v.is_soft_deleted == @is_soft_deleted and v._key == @key"
+        "   limit 1"
+        "   return v"
+    )
+
+    _get_user_playlist_by_key_query1 = (
+        "for v,e in 1..1 outbound @start_vertex graph @graph_name options {order:'dfs', edgeCollections:[@has],vertexCollections:[@playlists]}"
+        "   filter v._key == @key"
         "   limit 1"
         "   return v"
     )
@@ -129,14 +154,14 @@ class PlaylistMethods:
 
     _get_user_playlists_query = (
         "for v,e in 1..1 outbound @start_vertex graph @graph_name options {order:'dfs', edgeCollections:[@has],vertexCollections:[@playlists]}"
-        "   sort v.rank ASC, e.created_at DESC"
+        "   sort v.rank ASC, v.modified_at DESC"
         "   limit @offset, @limit"
         "   return v"
     )
 
     _get_user_valid_playlists_query = (
         "for v,e in 1..1 outbound @start_vertex graph @graph_name options {order:'dfs', edgeCollections:[@has],vertexCollections:[@playlists]}"
-        "   sort v.rank ASC, e.created_at DESC"
+        "   sort v.rank ASC, v.modified_at DESC"
         "   let playlist_length=("
         "       for audio_v in 1..1 outbound v._id graph @graph_name options {order:'dfs', edgeCollections:[@has], vertexCollections:[@audios]}"
         "           collect with count into length"
@@ -174,7 +199,7 @@ class PlaylistMethods:
         "       return v._key"
         ")"
         "for v,e in 1..1 inbound @start_vertex graph @graph_name options {order : 'dfs', edgeCollections : [@has], vertexCollections : [@playlists]}"
-        "   sort v.rank ASC, e.created_at DESC"
+        "   sort v.rank ASC, v.modified_at DESC"
         "   filter v.is_soft_deleted == false and v._key in playlist_keys"
         "   limit @offset, @limit"
         "   return v"
@@ -235,7 +260,7 @@ class PlaylistMethods:
         self,
         user: User,
         key: str,
-        filter_out_soft_deleted: Optional[bool] = False,
+        filter_out_soft_deleted: Optional[bool] = True,
     ) -> Optional[Playlist]:
         """
         Get a `Playlist` with the given `key` if exists, otherwise, return `None`.
@@ -246,7 +271,7 @@ class PlaylistMethods:
             User with this playlist
         key : str
             Playlist key to check
-        filter_out_soft_deleted : Optional[bool]
+        filter_out_soft_deleted : bool, default : True
             Whether to filter out soft-deleted documents in this query
 
         Returns
@@ -259,15 +284,18 @@ class PlaylistMethods:
 
         from tase.db.arangodb.graph.edges import Has
 
+        bind_vars = {
+            "start_vertex": user.id,
+            "has": Has._collection_name,
+            "playlists": Playlist._collection_name,
+            "key": key,
+        }
+        if filter_out_soft_deleted:
+            bind_vars["is_soft_deleted"] = False
+
         async with await Playlist.execute_query(
-            self._get_user_playlist_by_key_query,
-            bind_vars={
-                "start_vertex": user.id,
-                "has": Has._collection_name,
-                "playlists": Playlist._collection_name,
-                "filter_out": filter_out_soft_deleted,
-                "key": key,
-            },
+            self._get_user_playlist_by_key_query if filter_out_soft_deleted else self._get_user_playlist_by_key_query1,
+            bind_vars=bind_vars,
         ) as cursor:
             async for doc in cursor:
                 return Playlist.from_collection(doc)
