@@ -31,12 +31,16 @@ class CustomInlineQueryResult(BaseModel):
 
         if inline_query is None:
             self.from_ = 0
+            self.last_result_total_item_count = 0
 
-        if inline_query.offset is not None and len(inline_query.offset):
+        if inline_query.offset:
             last_result_len, last_countable_items_len = inline_query.offset.split(":")
 
             self.from_ = int(last_countable_items_len)
             self.last_result_total_item_count = int(last_result_len)
+        else:
+            self.from_ = 0
+            self.last_result_total_item_count = 0
 
     def __len__(self):
         return self.countable_items_length
@@ -55,10 +59,10 @@ class CustomInlineQueryResult(BaseModel):
         self,
         only_countable: bool = False,
     ) -> str:
-        return f"{self.from_ + self.countable_items_length}" if only_countable else f"{len(self.results)}:{self.from_ + self.countable_items_length}"
+        return f"{self.from_ + self.countable_items_length if only_countable else len(self.results)}:{self.from_ + self.countable_items_length}"
 
     def is_first_page(self) -> bool:
-        return self.last_result_total_item_count == 0
+        return self.from_ == 0 and self.last_result_total_item_count == 0
 
     def set_results(
         self,
@@ -92,7 +96,7 @@ class CustomInlineQueryResult(BaseModel):
         NullTelegramInlineQuery
             When the telegram inline query object is None
         """
-        if self.telegram_inline_query is None:
+        if self.telegram_inline_query is None or not len(self.results):
             # raise NullTelegramInlineQuery()
             return
         # if not len(self.results) or self.results is None:
@@ -102,6 +106,7 @@ class CustomInlineQueryResult(BaseModel):
                 list(self.results),
                 cache_time=self.cache_time,
                 next_offset=self.get_next_offset(),
+                is_personal=True,
             )
         except QueryIdInvalid:
             pass
