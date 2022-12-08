@@ -25,7 +25,7 @@ common_bit_rates = np.array(
 )
 
 bit_rate_string_mapping = {
-    0: "",
+    0: "N/A",
     1: "16",
     2: "32",
     3: "64",
@@ -81,11 +81,16 @@ class BitRateType(Enum):
     def get_bit_rate_string(
         self,
         include_bps: bool = False,
+        include_estimate_sign: bool = False,
     ) -> str:
         q = bit_rate_string_mapping[self.value]
 
-        if include_bps and 1 <= int(self.value) <= 9:
-            return q + " kbps"
+        if 1 <= int(self.value) <= 9:
+            if include_bps:
+                q = q + " kbps"
+
+        if include_estimate_sign and int(self.value) != 0:
+            q = "~ " + q
 
         return q
 

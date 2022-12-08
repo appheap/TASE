@@ -117,15 +117,19 @@ class AudioItem(BaseInlineItem):
         if not title:
             title = "   "
 
-        duration = timedelta(seconds=audio.duration if audio.duration else 0)
+        duration = timedelta(seconds=audio.duration or 0)
         d = datetime(1, 1, 1) + duration
-        _time = f"{str(d.hour) + ':' if d.hour > 0 else ''}{d.minute:02}:{d.second:02}" if duration else ""
+        if d.hour:
+            _time = f"{d.hour:02}:{d.minute:02}:{d.second:02}"
+        else:
+            _time = f"{d.minute:02}:{d.second:02}"
+
         description = (
-            f"‎{textwrap.shorten(_performer, 25, placeholder='...') if _performer else ''}‎"
+            f"‎{textwrap.shorten(_performer, 25, placeholder='...')}‎"
             "\n"
-            f"{emoji._clock_emoji} {_time}    "
-            f"{emoji._floppy_emoji} {round(audio.file_size / 1_048_576, 1)}    "
-            f"{emoji._cd} {audio.estimated_bit_rate_type.get_bit_rate_string()}"
+            f"{emoji._clock_emoji} {_time:<10}\t"
+            f"{emoji._floppy_emoji} {round(audio.file_size / 1_048_576, 1):<6}\t\t"
+            f"{emoji._cd} {audio.estimated_bit_rate_type.get_bit_rate_string():<6}"
         )
 
         if chat_type == ChatType.BOT:

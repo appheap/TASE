@@ -50,8 +50,6 @@ class QueryResultsData(BaseTemplateData):
         es_audio_doc: elasticsearch_models.Audio,
         hit_download_url: str,
     ) -> Dict[str, str]:
-        duration = timedelta(seconds=es_audio_doc.duration if es_audio_doc.duration else 0)
-        d = datetime(1, 1, 1) + duration
         _performer = clean_audio_item_text(es_audio_doc.raw_performer)
         _title = clean_audio_item_text(es_audio_doc.raw_title)
         _file_name = clean_audio_item_text(
@@ -75,11 +73,18 @@ class QueryResultsData(BaseTemplateData):
         else:
             name = _file_name
 
+        duration = timedelta(seconds=es_audio_doc.duration or 0)
+        d = datetime(1, 1, 1) + duration
+        if d.hour:
+            _time = f"{d.hour:02}:{d.minute:02}:{d.second:02}"
+        else:
+            _time = f"{d.minute:02}:{d.second:02}"
+
         return {
             "index": f"{index + 1:02}",
             "name": textwrap.shorten(name, width=35, placeholder="..."),
             "file_size": round(es_audio_doc.file_size / 1_048_576, 1),
-            "time": f"{str(d.hour) + ':' if d.hour > 0 else ''}{d.minute:02}:{d.second:02}" if duration else "",
+            "time": _time,
             "url": hit_download_url,
             "sep": f"{40 * '-' if index != 0 else ''}",
             "quality_string": es_audio_doc.estimated_bit_rate_type.get_bit_rate_string(),

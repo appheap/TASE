@@ -45,13 +45,13 @@ class InlineSearch(OnInlineQuery):
                 if not es_audio_docs or not len(es_audio_docs) or not query_metadata:
                     found_any = False
 
-                chats_dict = {}
-                db_chats = await handler.db.graph.get_chats_from_keys((str(es_audio_doc.chat_id) for es_audio_doc in es_audio_docs))
-                for db_chat in db_chats:
-                    if db_chat and db_chat.chat_id not in chats_dict:
-                        chats_dict[db_chat.chat_id] = db_chat
+                if es_audio_docs:
+                    chats_dict = {}
+                    db_chats = await handler.db.graph.get_chats_from_keys((str(es_audio_doc.chat_id) for es_audio_doc in es_audio_docs))
+                    for db_chat in db_chats:
+                        if db_chat and db_chat.chat_id not in chats_dict:
+                            chats_dict[db_chat.chat_id] = db_chat
 
-                if len(es_audio_docs):  # todo: do more checks
                     hit_download_urls = await handler.db.graph.generate_hit_download_urls(size=size)
 
                     result.extend_results(

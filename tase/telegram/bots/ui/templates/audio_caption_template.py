@@ -22,7 +22,7 @@ class AudioCaptionTemplate(BaseTemplate):
         "{{c_new_line}}"
         "{{c_dir}}<b>{{s_file_name}}:</b> {{file_name}}"
         "{{c_new_line}}"
-        "{{c_dir}}<b>{{s_quality}}:</b> ~{{quality_string}}"
+        "{{c_dir}}<b>{{s_quality}}:</b> {{quality_string}}"
         "{{c_new_line}}"
         "{{c_new_line}}"
         "{% if show_source %}"
@@ -77,6 +77,6 @@ class AudioCaptionData(BaseTemplateData):
             include_source=include_source,
             show_source=show_source,
             bot_url=bot_url,
-            quality_string=audio.estimated_bit_rate_type.get_bit_rate_string(True),
+            quality_string=audio.estimated_bit_rate_type.get_bit_rate_string(True, True),
             lang_code=user.chosen_language_code,
         )
