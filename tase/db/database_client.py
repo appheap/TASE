@@ -41,7 +41,7 @@ class DatabaseClient:
 
     async def get_or_create_audio(
         self,
-        message: pyrogram.types.Message,
+        telegram_message: pyrogram.types.Message,
         telegram_client_id: int,
         chat_id: int,
         audio_type: AudioType,
@@ -52,7 +52,7 @@ class DatabaseClient:
 
         Parameters
         ----------
-        message : pyrogram.types.Message
+        telegram_message : pyrogram.types.Message
             Telegram message to use for creating the audio entities.
         telegram_client_id : int
             ID of the telegram client making this request.
@@ -65,20 +65,14 @@ class DatabaseClient:
         -------
         bool
             Whether the operation was successful or not.
-
-        Raises
-        ------
-        TelegramMessageWithNoAudio
-            If `telegram_message` argument does not contain any valid audio file.
-
         """
-        if message is None or message.audio is None:
+        if telegram_message is None or telegram_message.audio is None:
             return False
 
         try:
-            audio_vertex = await self.graph.get_or_create_audio(message, chat_id, audio_type)
-            audio_doc = await self.document.get_or_create_audio(message, telegram_client_id, chat_id)
-            es_audio_doc = await self.index.get_or_create_audio(message, chat_id, audio_type)
+            audio_vertex = await self.graph.get_or_create_audio(telegram_message, chat_id, audio_type)
+            audio_doc = await self.document.get_or_create_audio(telegram_message, telegram_client_id, chat_id)
+            es_audio_doc = await self.index.get_or_create_audio(telegram_message, chat_id, audio_type)
         except Exception as e:
             logger.exception(e)
         else:
@@ -94,6 +88,26 @@ class DatabaseClient:
         chat_id: int,
         audio_type,
     ) -> bool:
+        """
+        Create the audio vertex and document in the arangodb and audio document in the elasticsearch.
+        These entities are created if they do not already exist in the database. Otherwise, they will get updated.
+
+        Parameters
+        ----------
+        telegram_message : pyrogram.types.Message
+            Telegram message to use for creating the audio entities.
+        telegram_client_id : int
+            ID of the telegram client making this request.
+        chat_id : int
+            ID of the telegram chat this message belongs to.
+        audio_type : AudioType
+            Type of the audio to store in the databases.
+
+        Returns
+        -------
+        bool
+            Whether the operation was successful or not.
+        """
         if telegram_message is None or telegram_client_id is None:
             return False
 

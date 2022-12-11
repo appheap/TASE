@@ -85,6 +85,8 @@ class ForwardMessageTask(BaseTask):
 
             successful, forwardable_message_ids = await self.check_new_messages(
                 telegram_client,
+                db,
+                source_chat_id,
                 db_audios,
                 es_audio_docs,
                 new_messages,
@@ -266,6 +268,8 @@ class ForwardMessageTask(BaseTask):
     async def check_new_messages(
         self,
         telegram_client: TelegramClient,
+        db: DatabaseClient,
+        source_chat_id: int,
         db_audios: Deque[graph_models.vertices.Audio],
         es_audio_docs: List[elasticsearch_models.Audio],
         new_messages: List[pyrogram.types.Message],
@@ -291,18 +295,24 @@ class ForwardMessageTask(BaseTask):
                             forwardable_message_ids.append(new_message)
                         else:
                             # this message content is protected and cannot be forwarded by a user client.
+                            # todo: this must not happen!
+                            await db.update_or_create_audio(
+                                new_message,
+                                telegram_client.telegram_id,
+                                source_chat_id,
+                                AudioType.NOT_ARCHIVED,
+                            )
                             logger.error(f"Message `{new_message.id}` from chat `{new_message.chat.id}` has content protection enabled!")
                     else:
                         forwardable_message_ids.append(new_message.id)
                 else:
-                    # message is not the same as the audio in the database, mark it as invalid
-                    # todo: what if this audio is added to a playlist? should it be removed?
-                    pass
-                    # success = await db_audio.mark_as_non_audio()
-                    # es_success = await es_audio_doc.mark_as_non_audio()
-                    # if not success or not es_success:
-                    #     logger.error(f"Error in marking `{db_audio.key}` as invalid!")
-                    #     break
+                    # message is not the same as the audio in the database, update the audio in all databases.
+                    await db.update_or_create_audio(
+                        new_message,
+                        telegram_client.telegram_id,
+                        source_chat_id,
+                        AudioType.NOT_ARCHIVED,
+                    )
         else:
             successful = True
 
