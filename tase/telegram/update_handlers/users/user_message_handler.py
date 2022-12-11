@@ -4,7 +4,6 @@ import pyrogram
 from pyrogram import handlers
 
 from tase.common.utils import async_exception_handler
-from tase.my_logger import logger
 from tase.telegram.update_handlers.base import BaseHandler, HandlerMetadata
 
 
@@ -23,5 +22,4 @@ class UserMessageHandler(BaseHandler):
         client: pyrogram.Client,
         message: pyrogram.types.Message,
     ):
-        direction = "=>" if message.outgoing else "<="
-        logger.debug(f"user_message_handler: {direction} {message.chat.title or message.chat.first_name}")
+        await self.update_audio_doc_coming_in_from_archive_channel(message)

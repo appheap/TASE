@@ -8,8 +8,8 @@ from pydantic import BaseModel
 from pyrogram.enums import ParseMode
 
 from tase.common.utils import _trans, async_timed
-from tase.db.arangodb import graph as graph_models
-from tase.db.arangodb.enums import TelegramAudioType, InteractionType, ChatType
+from tase.db.arangodb import graph as graph_models, document as document_models
+from tase.db.arangodb.enums import TelegramAudioType, InteractionType, ChatType, AudioType
 from tase.db.arangodb.helpers import AudioKeyboardStatus
 from tase.db.database_client import DatabaseClient
 from tase.db.db_utils import get_telegram_message_media_type, parse_audio_key_from_message_id
@@ -52,10 +52,9 @@ class BaseHandler(BaseModel):
         chats_dict = {}
         invalid_audio_keys = collections.deque()
 
-        def get_key(_db_audio) -> str:
-            return _db_audio.key if isinstance(_db_audio, graph_models.vertices.Audio) else _db_audio.id
-
-        cache_checks = await asyncio.gather(*(self.db.document.has_audio_by_key(self.telegram_client.telegram_id, get_key(db_audio)) for db_audio in db_audios))
+        cache_checks = await asyncio.gather(
+            *(self.db.document.has_audio_by_key(db_audio.get_doc_cache_key(self.telegram_client.telegram_id)) for db_audio in db_audios)
+        )
         db_chats = await asyncio.gather(*(self.db.graph.get_chat_by_telegram_chat_id(db_audio.chat_id) for db_audio in db_audios))
 
         for cache_check, db_audio in zip(cache_checks, db_audios):
@@ -100,6 +99,7 @@ class BaseHandler(BaseModel):
                         message,
                         self.telegram_client.telegram_id,
                         chat_id,
+                        AudioType.NOT_ARCHIVED,
                     )
                     for message, chat_id in messages
                 )
@@ -127,16 +127,13 @@ class BaseHandler(BaseModel):
             # todo: handle exceptions
             audio_doc, chat = await asyncio.gather(
                 *(
-                    self.db.document.get_audio_by_key(
-                        self.telegram_client.telegram_id,
-                        audio_vertex.key,
-                    ),
+                    self.db.document.get_audio_by_key(audio_vertex.get_doc_cache_key(self.telegram_client.telegram_id)),
                     self.db.graph.get_chat_by_telegram_chat_id(audio_vertex.chat_id),
                 )
             )
 
             update_audio_task = None
-            if audio_doc:
+            if isinstance(audio_doc, document_models.Audio):  # fixme: check for `BaseException` type
                 file_id = audio_doc.file_id
             else:
                 # fixme: find a better way of getting messages that have not been cached yet
@@ -173,6 +170,7 @@ class BaseHandler(BaseModel):
                         messages[0],
                         self.telegram_client.telegram_id,
                         audio_vertex.chat_id,
+                        AudioType.NOT_ARCHIVED,
                     )
                 )
 
@@ -304,3 +302,17 @@ class BaseHandler(BaseModel):
                 status,
             ),
         )
+
+    async def update_audio_doc_coming_in_from_archive_channel(
+        self,
+        message: pyrogram.types.Message,
+    ):
+        if message.chat and message.chat.id == self.telegram_client.archive_channel_info.chat_id:
+            # logger.debug(f"Archiving audio in client `{self.telegram_client.name}` ...")
+            audio_doc = await self.db.document.update_or_create_audio(
+                message,
+                telegram_client_id=self.telegram_client.telegram_id,
+                chat_id=self.telegram_client.archive_channel_info.chat_id,
+            )
+            if not audio_doc:
+                logger.error(f"Error in creating audio doc for message ID `{message.id}` in client `{self.telegram_client.name}`")

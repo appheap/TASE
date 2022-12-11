@@ -4,6 +4,7 @@ import copy
 from typing import Optional, Tuple, Deque
 
 import pyrogram
+from decouple import config
 from elastic_transport import ObjectApiResponse
 from pydantic import Field
 
@@ -12,7 +13,7 @@ from tase.common.utils import datetime_to_timestamp, async_timed, get_now_timest
 from tase.errors import TelegramMessageWithNoAudio
 from tase.my_logger import logger
 from .base_document import BaseDocument
-from ...arangodb.enums import TelegramAudioType, InteractionType, HitType
+from ...arangodb.enums import TelegramAudioType, InteractionType, HitType, AudioType
 from ...arangodb.helpers import (
     ElasticQueryMetadata,
     BitRateType,
@@ -23,6 +24,7 @@ from ...db_utils import (
     get_telegram_message_media_type,
     parse_audio_key,
     is_audio_valid_for_inline,
+    parse_audio_document_key,
 )
 
 
@@ -118,6 +120,9 @@ class Audio(BaseDocument):
      query search, then, it cannot be shown in `download_history` section or any other sections that work in inline
      mode.
     """
+    type: AudioType
+    archive_message_id: Optional[int]
+
     estimated_bit_rate_type: BitRateType
     is_forwarded: bool
     is_deleted: bool
@@ -154,6 +159,7 @@ class Audio(BaseDocument):
         cls,
         telegram_message: pyrogram.types.Message,
         chat_id: int,
+        audio_type: AudioType,
     ) -> Optional[Audio]:
         """
         Parse an `Audio` from the given `telegram_message` argument.
@@ -164,6 +170,8 @@ class Audio(BaseDocument):
             Telegram message to parse the `Audio` from
         chat_id : int
             Chat ID this message belongs to.
+        audio_type : AudioType
+            Type of the audio.
 
         Returns
         -------
@@ -182,13 +190,13 @@ class Audio(BaseDocument):
         if _id is None:
             return None
 
-        audio, audio_type = get_telegram_message_media_type(telegram_message)
-        if audio_type == TelegramAudioType.NON_AUDIO:
+        audio, telegram_audio_type = get_telegram_message_media_type(telegram_message)
+        if telegram_audio_type == TelegramAudioType.NON_AUDIO:
             raise TelegramMessageWithNoAudio(telegram_message.id, telegram_message.chat.id)
 
         title = getattr(audio, "title", None)
 
-        valid_for_inline = is_audio_valid_for_inline(audio, audio_type)
+        valid_for_inline = is_audio_valid_for_inline(audio, telegram_audio_type)
 
         raw_title = copy.copy(title)
         raw_caption = copy.copy(telegram_message.caption if telegram_message.caption else telegram_message.text)
@@ -227,7 +235,8 @@ class Audio(BaseDocument):
                 audio.file_size,
                 duration,
             ),
-            audio_type=audio_type,
+            audio_type=telegram_audio_type,
+            type=audio_type,
             is_forwarded=True if telegram_message.forward_date else False,
             is_deleted=True if telegram_message.empty else False,
             is_edited=True if telegram_message.edit_date else False,
@@ -252,7 +261,7 @@ class Audio(BaseDocument):
             retry_on_conflict=True,
         )
 
-    async def mark_as_invalid(self) -> bool:
+    async def mark_as_non_audio(self) -> bool:
         """
         Mark the audio as invalid since it has been edited in telegram and changed to non-audio file.
 
@@ -270,6 +279,62 @@ class Audio(BaseDocument):
             reserve_non_updatable_fields=True,
             retry_on_conflict=True,
         )
+
+    async def mark_as_archived(
+        self,
+        archive_message_id: int,
+    ) -> bool:
+        """
+        Mark the audio as archived after it has been archived.
+
+        Parameters
+        ----------
+        archive_message_id : int
+            ID of the message in the archive channel.
+
+
+        Returns
+        -------
+        bool
+            Whether the update was successful or not.
+        """
+        if archive_message_id is None:
+            return False
+
+        self_copy: Audio = self.copy(deep=True)
+        self_copy.type = AudioType.ARCHIVED
+
+        return await self.update(
+            self_copy,
+            reserve_non_updatable_fields=True,
+            retry_on_conflict=True,
+        )
+
+    @property
+    def is_archived(self) -> bool:
+        """
+        Check if this audio is archived or not.
+
+        Returns
+        -------
+        bool
+            Whether this audio is archived or not.
+
+        """
+        return self.type == AudioType.ARCHIVED
+
+    def get_doc_cache_key(
+        self,
+        telegram_client_id: int,
+    ) -> Optional[str]:
+        if not telegram_client_id:
+            return None
+
+        if self.type == AudioType.NOT_ARCHIVED:
+            return parse_audio_document_key(telegram_client_id, self.chat_id, self.message_id)
+        else:
+            # fixme : a better way to get the archive channel id ?
+            return parse_audio_document_key(telegram_client_id, config("ARCHIVE_CHANNEL_ID"), self.archive_message_id)
 
     @classmethod
     async def search_by_download_url(
@@ -456,6 +521,7 @@ class AudioMethods:
         self,
         telegram_message: pyrogram.types.Message,
         chat_id: int,
+        audio_type: AudioType,
     ) -> Optional[Audio]:
         """
         Create Audio document in the ElasticSearch.
@@ -466,6 +532,8 @@ class AudioMethods:
             Telegram message to create the Audio from.
         chat_id : int
             Chat ID this message belongs to.
+        audio_type : AudioType
+            Type of the audio.
 
         Returns
         -------
@@ -474,7 +542,7 @@ class AudioMethods:
 
         """
         try:
-            audio, successful = await Audio.create(Audio.parse(telegram_message, chat_id))
+            audio, successful = await Audio.create(Audio.parse(telegram_message, chat_id, audio_type))
         except TelegramMessageWithNoAudio:
             # this message doesn't contain any valid audio file
             pass
@@ -488,6 +556,7 @@ class AudioMethods:
         self,
         telegram_message: pyrogram.types.Message,
         chat_id: int,
+        audio_type: AudioType,
     ) -> Optional[Audio]:
         """
         Get Audio if it exists in ElasticSearch, otherwise, create Audio document.
@@ -498,6 +567,8 @@ class AudioMethods:
             Telegram message to create the Audio from.
         chat_id : int
             Chat ID this message belongs to.
+        audio_type : AudioType
+            Type of the audio.
 
         Returns
         -------
@@ -511,7 +582,7 @@ class AudioMethods:
         audio = await Audio.get(Audio.parse_id(telegram_message, chat_id))
         if audio is None:
             # audio does not exist in the index, create it
-            audio = await self.create_audio(telegram_message, chat_id)
+            audio = await self.create_audio(telegram_message, chat_id, audio_type)
 
         return audio
 
@@ -519,6 +590,7 @@ class AudioMethods:
         self,
         telegram_message: pyrogram.types.Message,
         chat_id: int,
+        audio_type: AudioType,
     ) -> Optional[Audio]:
         """
         Update Audio document in the ElasticSearch if it exists, otherwise, create it.
@@ -529,6 +601,8 @@ class AudioMethods:
             Telegram message to create the Audio from.
         chat_id : int
             Chat ID this message belongs to.
+        audio_type : AudioType
+            Type of the audio.
 
         Returns
         -------
@@ -542,7 +616,7 @@ class AudioMethods:
         audio: Optional[Audio] = await Audio.get(Audio.parse_id(telegram_message, chat_id))
         if audio is None:
             # audio does not exist in the index, create it
-            audio = await self.create_audio(telegram_message, chat_id)
+            audio = await self.create_audio(telegram_message, chat_id, audio_type)
         else:
             # audio exists in the index, update it
             if telegram_message.empty:
@@ -552,9 +626,10 @@ class AudioMethods:
                     pass
             else:
                 try:
-                    updated = await audio.update(Audio.parse(telegram_message, chat_id))
+                    # the type of the audio after update is not changed. So, the previous type is used for updating the current one.
+                    updated = await audio.update(Audio.parse(telegram_message, chat_id, audio.type))
                 except TelegramMessageWithNoAudio:
-                    await audio.mark_as_invalid()
+                    await audio.mark_as_non_audio()
                     updated = False
         return audio
 

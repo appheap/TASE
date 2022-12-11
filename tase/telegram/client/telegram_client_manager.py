@@ -58,6 +58,9 @@ class TelegramClientManager(mp.Process):
                 client_config,
                 self.config.pyrogram_config.workdir,
             )
+            # set the archive channel info for the client
+            telegram_client.archive_channel_info = self.config.archive_channel_info
+
             self.clients.append(telegram_client)
 
             if isinstance(telegram_client, UserTelegramClient):

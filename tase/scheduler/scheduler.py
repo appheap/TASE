@@ -188,7 +188,7 @@ class SchedulerJobConsumer(RabbitMQConsumer):
                         job,
                     ],
                     coalesce=True,
-                    misfire_grace_time=None,
+                    misfire_grace_time=3600,
                     replace_existing=True,
                 )
 

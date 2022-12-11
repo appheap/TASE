@@ -190,13 +190,18 @@ class BotMessageHandler(BaseHandler):
             )
 
     @async_exception_handler()
-    @async_timed()
     async def bot_message_handler(
         self,
         client: "pyrogram.Client",
         message: "pyrogram.types.Message",
     ):
         # logger.info(f"bot_message_handler: {message}")
+
+        if not message.from_user:
+            # message is not from a user
+            # message is coming from a chat
+            await self.update_audio_doc_coming_in_from_archive_channel(message)
+            return
 
         from_user = await self.db.graph.get_interacted_user(message.from_user, update=True)
 

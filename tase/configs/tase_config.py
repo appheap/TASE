@@ -1,5 +1,6 @@
-from typing import List
+from typing import List, Optional
 
+from . import ArchiveChannelInfo
 from .arangodb_config import ArangoDBConfig
 from .base_config import BaseConfig
 from .client_config import ClientConfig
@@ -12,3 +13,4 @@ class TASEConfig(BaseConfig):
     elastic_config: ElasticConfig
     pyrogram_config: PyrogramConfig
     clients_config: List[ClientConfig]
+    archive_channel_info: Optional[ArchiveChannelInfo]

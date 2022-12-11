@@ -1,16 +1,18 @@
 from __future__ import annotations
 
 import re
+from datetime import datetime
 from enum import Enum
 from typing import Coroutine, Iterable, List, Optional, Union, Dict, Any, AsyncGenerator, TYPE_CHECKING
 
 import pyrogram
-from pyrogram.errors import PeerIdInvalid
+from pyrogram.errors import PeerIdInvalid, ChannelInvalid
 from pyrogram.handlers.handler import Handler
 
-from tase.configs import ClientConfig, ClientTypes
+from tase.configs import ClientConfig, ClientTypes, ArchiveChannelInfo
 from tase.my_logger import logger
 from tase.telegram.client.raw_methods import search_messages
+from tase.telegram.client.raw_methods.forward_messages import forward_messages
 
 if TYPE_CHECKING:
     from tase.telegram.update_handlers.base import BaseHandler
@@ -51,6 +53,8 @@ class TelegramClient:
     telegram_id: int = None
     client_type: ClientTypes
     _me: Optional[pyrogram.types.User] = None
+
+    archive_channel_info: Optional[ArchiveChannelInfo]
 
     def init_client(self):
         pass
@@ -148,6 +152,29 @@ class TelegramClient:
     ) -> Union[pyrogram.types.Chat, pyrogram.types.ChatPreview]:
         return await self._client.get_chat(chat_id=chat_id)
 
+    async def forward_messages(
+        self,
+        chat_id: Union[int, str],
+        from_chat_id: Union[int, str],
+        message_ids: Union[int, Iterable[int]],
+        disable_notification: bool = None,
+        schedule_date: datetime = None,
+        protect_content: bool = None,
+        drop_media_captions: Optional[bool] = False,
+        drop_author: Optional[bool] = False,
+    ) -> Union["pyrogram.types.Message", List["pyrogram.types.Message"],]:
+        return await forward_messages(
+            self._client,
+            chat_id=chat_id,
+            from_chat_id=from_chat_id,
+            message_ids=message_ids,
+            disable_notification=disable_notification,
+            schedule_date=schedule_date,
+            protect_content=protect_content,
+            drop_author=drop_author,
+            drop_media_captions=drop_media_captions,
+        )
+
     def get_session_name(self) -> str:
         return self._client.name
 
@@ -229,11 +256,16 @@ class TelegramClient:
                 messages = [messages]
         except KeyError as e:
             # chat is no longer has that username or the username is invalid
-            return e
+            logger.error(f"[KeyError] Chat ID `{chat_id}` no longer has this username or the username is invalid!")
+            raise e
+        except ChannelInvalid as e:
+            # The channel parameter is invalid
+            logger.error(f"[ChannelInvalid] Chat ID `{chat_id}` is no longer valid!")
+            raise e
         except Exception as e:
             # fixme
             logger.exception(e)
-            return []
+            raise e
 
         return messages
 

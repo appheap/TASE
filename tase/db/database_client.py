@@ -6,6 +6,7 @@ from tase.db.arangodb import graph as graph_models
 from tase.db.elasticsearchdb import models
 from .arangodb import ArangoDB
 from .arangodb.document import ArangoDocumentMethods
+from .arangodb.enums import AudioType
 from .arangodb.graph import ArangoGraphMethods
 from .elasticsearchdb import ElasticsearchDatabase
 from .elasticsearchdb.models import ElasticSearchMethods
@@ -43,14 +44,15 @@ class DatabaseClient:
         message: pyrogram.types.Message,
         telegram_client_id: int,
         chat_id: int,
+        audio_type: AudioType,
     ) -> bool:
         if message is None or message.audio is None:
             return False
 
         try:
-            audio_vertex = await self.graph.get_or_create_audio(message, chat_id)
+            audio_vertex = await self.graph.get_or_create_audio(message, chat_id, audio_type)
             audio_doc = await self.document.get_or_create_audio(message, telegram_client_id, chat_id)
-            es_audio_doc = await self.index.get_or_create_audio(message, chat_id)
+            es_audio_doc = await self.index.get_or_create_audio(message, chat_id, audio_type)
         except Exception as e:
             logger.exception(e)
         else:
@@ -64,14 +66,15 @@ class DatabaseClient:
         telegram_message: pyrogram.types.Message,
         telegram_client_id: int,
         chat_id: int,
+        audio_type,
     ) -> bool:
         if telegram_message is None or telegram_client_id is None:
             return False
 
         try:
-            audio_vertex = await self.graph.update_or_create_audio(telegram_message, chat_id)
+            audio_vertex = await self.graph.update_or_create_audio(telegram_message, chat_id, audio_type)
             audio_doc = await self.document.update_or_create_audio(telegram_message, telegram_client_id, chat_id)
-            es_audio_doc = await self.index.update_or_create_audio(telegram_message, chat_id)
+            es_audio_doc = await self.index.update_or_create_audio(telegram_message, chat_id, audio_type)
         except Exception as e:
             logger.exception(e)
         else:
@@ -90,10 +93,10 @@ class DatabaseClient:
 
         audio_vertex, audio_doc = await asyncio.gather(*(self.graph.get_audio_by_key(audio_key), self.index.get_audio_by_id(audio_key)))
         if audio_vertex and isinstance(audio_vertex, graph_models.vertices.Audio):
-            await audio_vertex.mark_as_invalid()
+            await audio_vertex.mark_as_non_audio()
 
         if audio_doc and isinstance(audio_doc, models.Audio):
-            await audio_doc.mark_as_invalid()
+            await audio_doc.mark_as_non_audio()
 
     async def mark_audio_as_deleted(
         self,

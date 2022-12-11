@@ -40,6 +40,19 @@ class HasHashtag(BaseEdge):
     mention_start_index: int
 
     @classmethod
+    def parse_has_hashtag_key(
+        cls,
+        from_vertex_key: str,
+        to_vertex_key: str,
+        mention_source: MentionSource,
+        mention_start_index: int,
+    ) -> Optional[str]:
+        if not from_vertex_key or not to_vertex_key or not mention_source or mention_start_index is None:
+            return None
+
+        return f"{from_vertex_key}:{to_vertex_key}:{mention_source.value}:{mention_start_index}"
+
+    @classmethod
     def parse_key(
         cls,
         from_vertex: Union[Audio, Playlist, Query],
@@ -52,7 +65,7 @@ class HasHashtag(BaseEdge):
         if from_vertex is None or to_vertex is None or mention_source is None or mention_start_index is None:
             return None
 
-        return f"{from_vertex.key}:{to_vertex.key}:{mention_source.value}:{mention_start_index}"
+        return cls.parse_has_hashtag_key(from_vertex.key, to_vertex.key, mention_source, mention_start_index)
 
     @classmethod
     @EdgeEndsValidator

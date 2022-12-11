@@ -8,7 +8,7 @@ from aioarango.models import PersistentIndex
 from tase.errors import TelegramMessageWithNoAudio
 from .base_document import BaseDocument
 from ..enums import TelegramAudioType
-from ...db_utils import get_telegram_message_media_type
+from ...db_utils import get_telegram_message_media_type, parse_audio_document_key
 
 
 class Audio(BaseDocument):
@@ -54,7 +54,7 @@ class Audio(BaseDocument):
     @classmethod
     def parse_key(
         cls,
-        telegram_message: pyrogram.types.Message,
+        telegram_message_id: int,
         telegram_client_id: int,
         chat_id: int,
     ) -> Optional[str]:
@@ -64,8 +64,8 @@ class Audio(BaseDocument):
 
         Parameters
         ----------
-        telegram_message : pyrogram.types.Message
-            Telegram message to parse the key from or `Audio` document from elasticsearchDB
+        telegram_message_id : int
+            ID of the telegram message this document is created for.
         telegram_client_id : int
             ID of the telegram client who got this message
         chat_id : int
@@ -77,8 +77,7 @@ class Audio(BaseDocument):
             Parsed key if the parsing was successful, otherwise return `None` if the `telegram_message` is `None`.
 
         """
-
-        return f"{telegram_client_id}:{chat_id}:{telegram_message.id}"
+        return parse_audio_document_key(telegram_client_id, chat_id, telegram_message_id)
 
     @classmethod
     def parse(
@@ -112,7 +111,7 @@ class Audio(BaseDocument):
         if telegram_message is None or chat_id is None:
             return None
 
-        key = Audio.parse_key(telegram_message, telegram_client_id, chat_id)
+        key = Audio.parse_key(telegram_message.id, telegram_client_id, chat_id)
 
         if key is None:
             return None
@@ -200,7 +199,7 @@ class AudioMethods:
         if telegram_message is None or chat_id is None:
             return None
 
-        audio = await Audio.get(Audio.parse_key(telegram_message, telegram_client_id, chat_id))
+        audio = await Audio.get(Audio.parse_key(telegram_message.id, telegram_client_id, chat_id))
         if audio is None:
             audio = await self.create_audio(telegram_message, telegram_client_id, chat_id)
 
@@ -234,7 +233,7 @@ class AudioMethods:
             return None
 
         try:
-            audio = await Audio.get(Audio.parse_key(telegram_message, telegram_client_id, chat_id))
+            audio = await Audio.get(Audio.parse_key(telegram_message.id, telegram_client_id, chat_id))
         except ValueError:
             audio = None
         else:
@@ -253,18 +252,15 @@ class AudioMethods:
 
     async def get_audio_by_key(
         self,
-        telegram_client_id: int,
-        audio_key: str,
+        audio_doc_key: str,
     ) -> Optional[Audio]:
         """
-        Get `Audio` by its `key` from given arguments
+        Get `Audio` by its `key`.
 
         Parameters
         ----------
-        telegram_client_id : int
-            ID of the telegram client
-        audio_key : str
-            Key of the `Audio` vertex or index (from arangodb or elasticsearch)
+        audio_doc_key : str
+            Key of the `Audio` document.
 
         Returns
         -------
@@ -272,14 +268,13 @@ class AudioMethods:
             Audio if it exists in the ArangoDB, otherwise, return None
 
         """
-        if telegram_client_id is None or audio_key is None:
+        if not audio_doc_key:
             return None
 
-        return await Audio.get(f"{telegram_client_id}:{audio_key}")
+        return await Audio.get(audio_doc_key)
 
     async def has_audio_by_key(
         self,
-        telegram_client_id: int,
         audio_key: str,
     ) -> bool:
         """
@@ -287,10 +282,8 @@ class AudioMethods:
 
         Parameters
         ----------
-        telegram_client_id : int
-            ID of the telegram client
         audio_key : str
-            Key of the `Audio` vertex or index (from arangodb or elasticsearch)
+            Key of the `Audio` document.
 
         Returns
         -------
@@ -298,7 +291,7 @@ class AudioMethods:
             Audio if it exists in the ArangoDB, otherwise, return None
 
         """
-        if telegram_client_id is None or audio_key is None:
+        if not audio_key:
             return False
 
-        return await Audio.has(f"{telegram_client_id}:{audio_key}")
+        return await Audio.has(audio_key)

@@ -7,7 +7,7 @@ from pyrogram.errors import FloodWait
 from tase.common.utils import datetime_to_timestamp, prettify, get_now_timestamp
 from tase.db import DatabaseClient
 from tase.db.arangodb import graph as graph_models
-from tase.db.arangodb.enums import RabbitMQTaskType, TelegramAudioType, ChatType
+from tase.db.arangodb.enums import RabbitMQTaskType, TelegramAudioType, ChatType, AudioType
 from tase.db.arangodb.graph.vertices import Chat
 from tase.db.arangodb.helpers import AudioIndexerMetadata, AudioDocIndexerMetadata
 from tase.db.db_utils import get_telegram_message_media_type
@@ -152,6 +152,7 @@ class IndexAudiosTask(BaseTask):
                     message,
                     telegram_client.telegram_id,
                     chat.chat_id,
+                    AudioType.NOT_ARCHIVED,
                 )
                 if successful:
                     metadata.message_count += 1

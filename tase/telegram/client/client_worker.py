@@ -147,6 +147,17 @@ class TelegramClientConsumer(RabbitMQConsumer):
                             )
                         else:
                             logger.error(f"Could not find Telegram user client with `{message.routing_key}` name")
+                    elif body.target_worker_type == TargetWorkerType.ONE_TELEGRAM_BOT_CONSUMER_WORK:
+                        if self.bots.get(message.routing_key, None):
+                            asyncio.create_task(
+                                body.run(
+                                    self,
+                                    self.db,
+                                    self.bots[message.routing_key],
+                                )
+                            )
+                        else:
+                            logger.error(f"Could not find Telegram bot client with `{message.routing_key}` name")
                     elif body.target_worker_type == TargetWorkerType.RABBITMQ_CONSUMER_COMMAND:
                         asyncio.create_task(
                             body.run(

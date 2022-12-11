@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Optional
+from typing import Optional, Tuple, TYPE_CHECKING
 
 import pyrogram
 
@@ -10,6 +10,9 @@ from tase.errors import TelegramMessageWithNoAudio
 from tase.my_logger import logger
 from .base_vertex import BaseVertex
 from ...enums import TelegramAudioType
+
+if TYPE_CHECKING:
+    from ..edges import FileRef
 
 
 class File(BaseVertex):
@@ -99,6 +102,11 @@ class File(BaseVertex):
 
 
 class FileMethods:
+    _get_audio_file_with_edge_query = (
+        "for v, e in 1..1 outbound @audio_vertex graph @graph_name options {order: 'dfs', edgeCollections: [@file_ref], vertexCollections: [@files]}"
+        "   return {vertex: v, edge: e}"
+    )
+
     async def create_file(
         self,
         telegram_message: pyrogram.types.Message,
@@ -208,3 +216,39 @@ class FileMethods:
             logger.exception(e)
 
         return None
+
+    async def get_audio_file_with_file_ref_edge(
+        self,
+        audio_vertex_id: str,
+    ) -> Tuple[Optional[File], Optional[FileRef]]:
+        """
+        Get `File` vertex belonging to an `audio` vertex along with the `FileRef` edge.
+
+        Parameters
+        ----------
+        audio_vertex_id : str
+            ID of the audio vertex.
+
+        Returns
+        -------
+        tuple, optional
+            Tuple of `File` vertex and `FileRef` edge.
+        """
+        if not audio_vertex_id:
+            return None, None
+
+        from ..edges import FileRef
+
+        async with await File.execute_query(
+            self._get_audio_file_with_edge_query,
+            bind_vars={
+                "audio_vertex": audio_vertex_id,
+                "file_ref": FileRef._collection_name,
+                "files": File._collection_name,
+            },
+        ) as cursor:
+            async for d in cursor:
+                if "vertex" in d and "edge" in d:
+                    return File.from_collection(d["vertex"]), FileRef.from_collection(d["edge"])
+
+        return None, None
