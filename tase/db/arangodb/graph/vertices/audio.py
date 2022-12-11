@@ -18,7 +18,7 @@ from tase.db.db_utils import (
     get_telegram_message_media_type,
     parse_audio_key,
     is_audio_valid_for_inline,
-    parse_audio_document_key,
+    parse_audio_document_key_from_raw_attributes,
 )
 from tase.errors import (
     TelegramMessageWithNoAudio,
@@ -471,10 +471,10 @@ class Audio(BaseVertex):
             return None
 
         if self.type == AudioType.NOT_ARCHIVED:
-            return parse_audio_document_key(telegram_client_id, self.chat_id, self.message_id)
+            return parse_audio_document_key_from_raw_attributes(telegram_client_id, self.chat_id, self.message_id, self.file_unique_id)
         else:
             # fixme : a better way to get the archive channel id ?
-            return parse_audio_document_key(telegram_client_id, config("ARCHIVE_CHANNEL_ID"), self.archive_message_id)
+            return parse_audio_document_key_from_raw_attributes(telegram_client_id, config("ARCHIVE_CHANNEL_ID"), self.archive_message_id, self.file_unique_id)
 
     def find_hashtags(self) -> List[Tuple[str, int, MentionSource]]:
         """

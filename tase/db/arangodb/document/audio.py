@@ -6,6 +6,7 @@ import pyrogram
 
 from aioarango.models import PersistentIndex
 from tase.errors import TelegramMessageWithNoAudio
+from tase.my_logger import logger
 from .base_document import BaseDocument
 from ..enums import TelegramAudioType
 from ...db_utils import get_telegram_message_media_type, parse_audio_document_key
@@ -54,7 +55,7 @@ class Audio(BaseDocument):
     @classmethod
     def parse_key(
         cls,
-        telegram_message_id: int,
+        telegram_message: pyrogram.types.Message,
         telegram_client_id: int,
         chat_id: int,
     ) -> Optional[str]:
@@ -64,7 +65,7 @@ class Audio(BaseDocument):
 
         Parameters
         ----------
-        telegram_message_id : int
+        telegram_message : pyrogram.types.Message
             ID of the telegram message this document is created for.
         telegram_client_id : int
             ID of the telegram client who got this message
@@ -76,8 +77,12 @@ class Audio(BaseDocument):
         str, optional
             Parsed key if the parsing was successful, otherwise return `None` if the `telegram_message` is `None`.
 
+        Raises
+        ------
+        TelegramMessageWithNoAudio
+            If `telegram_message` argument does not contain any valid audio file.
         """
-        return parse_audio_document_key(telegram_client_id, chat_id, telegram_message_id)
+        return parse_audio_document_key(telegram_client_id, chat_id, telegram_message)
 
     @classmethod
     def parse(
@@ -111,7 +116,7 @@ class Audio(BaseDocument):
         if telegram_message is None or chat_id is None:
             return None
 
-        key = Audio.parse_key(telegram_message.id, telegram_client_id, chat_id)
+        key = Audio.parse_key(telegram_message, telegram_client_id, chat_id)
 
         if key is None:
             return None
@@ -195,11 +200,15 @@ class AudioMethods:
         Audio, optional
             Audio if the operation was successful, otherwise, return None
 
+        Raises
+        ------
+        TelegramMessageWithNoAudio
+            If `telegram_message` argument does not contain any valid audio file.
         """
         if telegram_message is None or chat_id is None:
             return None
 
-        audio = await Audio.get(Audio.parse_key(telegram_message.id, telegram_client_id, chat_id))
+        audio = await Audio.get(Audio.parse_key(telegram_message, telegram_client_id, chat_id))
         if audio is None:
             audio = await self.create_audio(telegram_message, telegram_client_id, chat_id)
 
@@ -233,7 +242,7 @@ class AudioMethods:
             return None
 
         try:
-            audio = await Audio.get(Audio.parse_key(telegram_message.id, telegram_client_id, chat_id))
+            audio = await Audio.get(Audio.parse_key(telegram_message, telegram_client_id, chat_id))
         except ValueError:
             audio = None
         else:
@@ -245,7 +254,10 @@ class AudioMethods:
                 except ValueError:
                     updated = False
                 except TelegramMessageWithNoAudio:
-                    # todo: what now?
+                    # this message does not contain any audio file anymore, it should be deleted.
+                    if not await audio.delete():
+                        logger.error(f"Error in deleting `Audio` document with key `{audio.key}`")
+
                     updated = False
 
         return audio
