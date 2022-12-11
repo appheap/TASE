@@ -3,6 +3,7 @@ from typing import Tuple, Union, Optional
 import pyrogram
 
 from tase.db.arangodb.enums import TelegramAudioType
+from tase.errors import TelegramMessageWithNoAudio
 
 
 def get_telegram_message_media_type(
@@ -50,10 +51,20 @@ def parse_audio_key(
     str, optional
         Parsed key if the parsing was successful, otherwise return `None` if the `telegram_message` is `None`.
 
+
+    Raises
+    ------
+    TelegramMessageWithNoAudio
+        If `telegram_message` argument does not contain any valid audio file.
     """
     if telegram_message is None or chat_id is None:
         return None
-    return f"{chat_id}:{telegram_message.id}"
+
+    audio, telegram_audio_type = get_telegram_message_media_type(telegram_message)
+    if audio is None or telegram_audio_type == TelegramAudioType.NON_AUDIO:
+        raise TelegramMessageWithNoAudio(telegram_message.id, chat_id)
+
+    return f"{chat_id}:{telegram_message.id}:{audio.file_unique_id}"
 
 
 def parse_audio_key_from_message_id(

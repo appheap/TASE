@@ -202,7 +202,6 @@ class Audio(BaseVertex):
     # forward_from : forward_from => Chat
     # via_bot : via_bot => User
 
-    # file_id: str # todo: is it necessary?
     file_unique_id: Optional[str]
     duration: Optional[int]
     performer: Optional[str]
@@ -259,6 +258,10 @@ class Audio(BaseVertex):
         str, optional
             Parsed key if the parsing was successful, otherwise return `None` if the `telegram_message` is `None`.
 
+        Raises
+        ------
+        TelegramMessageWithNoAudio
+            If `telegram_message` argument does not contain any valid audio file.
         """
         return parse_audio_key(telegram_message, chat_id)
 
@@ -295,6 +298,8 @@ class Audio(BaseVertex):
             return None
 
         key = Audio.parse_key(telegram_message, chat_id)
+        if not key:
+            return None
 
         audio, telegram_audio_type = get_telegram_message_media_type(telegram_message)
         if audio is None or telegram_audio_type == TelegramAudioType.NON_AUDIO:
@@ -529,7 +534,7 @@ class AudioMethods:
 
     _get_user_download_history_query = (
         "for dl_v,dl_e in 1..1 outbound @start_vertex graph @graph_name options {order:'dfs', edgeCollections:[@has], vertexCollections:[@interactions]}"
-        "   filter dl_v.type == @interaction_type"
+        "   filter (dl_v.is_deleted == false or dl_v.type == @archived) and dl_v.type == @interaction_type"
         "   sort dl_e.created_at DESC"
         "   for aud_v,has_e in 1..1 outbound dl_v graph @graph_name options {order:'dfs', edgeCollections:[@has], vertexCollections:[@audios]}"
         "       limit @offset, @limit"
@@ -538,7 +543,7 @@ class AudioMethods:
 
     _get_user_download_history_inline_query = (
         "for dl_v,dl_e in 1..1 outbound @start_vertex graph @graph_name options {order:'dfs', edgeCollections:[@has], vertexCollections:[@interactions]}"
-        "   filter dl_v.type == @interaction_type"
+        "   filter (dl_v.is_deleted == false or dl_v.type == @archived) and dl_v.type == @interaction_type"
         "   sort dl_e.created_at DESC"
         "   for aud_v,has_e in 1..1 outbound dl_v graph @graph_name options {order:'dfs', edgeCollections:[@has], vertexCollections:[@audios]}"
         "       filter aud_v.valid_for_inline_search == true"
@@ -547,6 +552,18 @@ class AudioMethods:
     )
 
     _get_audios_by_keys = "return document(@@audios, @audio_keys)"
+
+    _get_not_deleted_audios_by_chat_id_and_message_id = (
+        "for audio in @@audios"
+        "   filter audio.chat_id == @chat_id and not audio.is_deleted and audio.message_id == @message_id and audio._key != @excluded_key"
+        "   sort audio.created_at asc"
+        "   return audio"
+    )
+
+    _remove_audio_from_all_playlists_query = (
+        "for v,e in 1..1 inbound @audio_vertex_id graph @graph_name options {order: 'dfs', edgeCollections: [@has], vertexCollections: [@playlists]}"
+        "   remove e in @@has_"
+    )
 
     _iter_audios_query = "for audio in @@audios" "   filter audio.modified_at <= @now" "   sort audio.created_at asc" "   return audio"
 
@@ -646,15 +663,7 @@ class AudioMethods:
                     pass
 
                 # since checking for audio file validation is done above, there is no need to it again.
-                file = await self.get_or_create_file(telegram_message)
-                try:
-                    from tase.db.arangodb.graph.edges import FileRef
-
-                    file_ref_edge = await FileRef.get_or_create_edge(audio, file)
-                    if file_ref_edge is None:
-                        raise EdgeCreationFailed(FileRef.__class__.__name__)
-                except (InvalidFromVertex, InvalidToVertex):
-                    pass
+                await self._create_file_with_file_ref_edge(telegram_message, audio)
 
                 if audio.is_forwarded:
                     if telegram_message.forward_from:
@@ -719,6 +728,8 @@ class AudioMethods:
         ------
         EdgeCreationFailed
             If creation of the related edges was unsuccessful.
+        TelegramMessageWithNoAudio
+            If `telegram_message` argument does not contain any valid audio file.
         """
         if telegram_message is None:
             return None
@@ -781,41 +792,37 @@ class AudioMethods:
                         pass
                 else:
                     # the message has not been `deleted`, update remaining attributes
-                    from tase.db.arangodb.graph.edges import FileRef
-
                     try:
                         # the type of the audio after update is not changed. So, the previous type is used for updating the current one.
-                        new_audio = Audio.parse(telegram_message, chat_id, audio.type)
+                        updated = await audio.update(Audio.parse(telegram_message, chat_id, audio.type))
+                        if updated:
+                            # update connected hashtag vertices and edges
+                            await self._update_connected_hashtags(audio)
 
-                        if new_audio.file_unique_id == audio.file_unique_id:
-                            updated = await audio.update(new_audio)
-                            if updated:
-                                await self._update_connected_hashtags(audio)
-                        else:
+                            # since checking for audio file validation is done above, there is no need to it again.
+                            await self._create_file_with_file_ref_edge(telegram_message, audio)
+
+                            # get older valid audio vertices to process
                             # audio file has been changed, the connected hashtag and file vertices must be updated.
-                            updated = await audio.update(new_audio)
-                            if updated:
-                                # todo: remove the audio from playlists, etc.
+                            # todo: write a better code to handle this all at once
+                            older_audio_vertices: List[Audio] = await self.get_not_deleted_audio_vertices(
+                                chat_id=chat_id,
+                                message_id=audio.message_id,
+                                excluded_key=audio.key,
+                            )
+                            if older_audio_vertices:
+                                for old_audio_vertex in older_audio_vertices:
+                                    if not old_audio_vertex:
+                                        continue
 
-                                # update connected hashtag vertices and edges
-                                await self._update_connected_hashtags(audio)
-
-                                current_file, current_file_ref = await self.get_audio_file_with_file_ref_edge(audio.id)
-                                if current_file and current_file_ref:
-                                    current_file_ref: FileRef
-
-                                    if await current_file_ref.delete():
-                                        # since checking for audio file validation is done above, there is no need to it again.
-                                        await self._create_file_with_file_ref_edge(telegram_message, audio)
+                                    if not await old_audio_vertex.mark_as_deleted():
+                                        logger.error(f"Error in marking `Audio` vertex with key `{old_audio_vertex.key}` as deleted!")
                                     else:
-                                        logger.error(
-                                            f"Error in deleting `FileRef` edge with key `{current_file_ref.key}` connected to `Audio` vertex with key `"
-                                            f"{audio.key}`"
-                                        )
-                                else:
-                                    # since checking for audio file validation is done above, there is no need to it again.
-                                    await self._create_file_with_file_ref_edge(telegram_message, audio)
+                                        # remove the audio from all playlists
+                                        await self.remove_audio_from_all_playlists(old_audio_vertex.id)
 
+                        else:
+                            updated = False
                     except ValueError:
                         updated = False
                     except TelegramMessageWithNoAudio:
@@ -1136,6 +1143,7 @@ class AudioMethods:
                 "audios": Audio._collection_name,
                 "interactions": Interaction._collection_name,
                 "interaction_type": InteractionType.DOWNLOAD.value,
+                "archived": AudioType.ARCHIVED.value,
                 "offset": offset,
                 "limit": limit,
             },
@@ -1179,6 +1187,77 @@ class AudioMethods:
                     res.append(Audio.from_collection(doc))
 
         return res
+
+    async def remove_audio_from_all_playlists(
+        self,
+        audio_vertex_id: str,
+    ) -> None:
+        """
+        Remove an `Audio` vertex from all playlists.
+
+        Parameters
+        ----------
+        audio_vertex_id : str
+            ID of the `Audio` vertex.
+
+        """
+        if not audio_vertex_id:
+            return
+
+        from tase.db.arangodb.graph.vertices import Playlist
+        from tase.db.arangodb.graph.edges import Has
+
+        await Audio.execute_query(
+            self._remove_audio_from_all_playlists_query,
+            bind_vars={
+                "audio_vertex_id": audio_vertex_id,
+                "@has_": Has._collection_name,
+                "has": Has._collection_name,
+                "playlists": Playlist._collection_name,
+            },
+        )
+
+    async def get_not_deleted_audio_vertices(
+        self,
+        chat_id: int,
+        message_id: int,
+        excluded_key: str,
+    ) -> List[Audio]:
+        """
+        Get `Audio` vertices with the given `chat_id` and `message_id` attributes which are not deleted.
+
+        Parameters
+        ----------
+        chat_id : int
+            ID of the chat the audio vertex belongs to.
+        message_id : int
+            ID of the telegram message containing this audio file.
+        excluded_key : str
+            Audio vertex key to exclude from this query.
+
+        Returns
+        -------
+        list of Audio
+            List of `Audio` vertices if operation was successful.
+
+        """
+        if chat_id is None or message_id is None:
+            return []
+
+        res = collections.deque()
+        async with await Audio.execute_query(
+            self._get_not_deleted_audios_by_chat_id_and_message_id,
+            bind_vars={
+                "@audios": Audio._collection_name,
+                "chat_id": chat_id,
+                "message_id": chat_id,
+                "excluded_key": excluded_key,
+            },
+        ) as cursor:
+            async for doc in cursor:
+                res.append(Audio.from_collection(doc))
+
+        return list(res)
 
     async def iter_audios(
         self,

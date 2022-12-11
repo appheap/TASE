@@ -205,8 +205,6 @@ class BaseDocument(BaseModel):
 
         Parameters
         ----------
-        doc : dict
-            Dictionary mapping attribute names to attribute values
         response : ObjectApiResponse, optional
             Attribute value mapping dictionary to be processed
         hit : dict, optional

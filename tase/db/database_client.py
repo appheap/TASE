@@ -46,6 +46,32 @@ class DatabaseClient:
         chat_id: int,
         audio_type: AudioType,
     ) -> bool:
+        """
+        Create the audio vertex and document in the arangodb and audio document in the elasticsearch.
+        These entities are created if they do not already exist in the database.
+
+        Parameters
+        ----------
+        message : pyrogram.types.Message
+            Telegram message to use for creating the audio entities.
+        telegram_client_id : int
+            ID of the telegram client making this request.
+        chat_id : int
+            ID of the telegram chat this message belongs to.
+        audio_type : AudioType
+            Type of the audio to store in the databases.
+
+        Returns
+        -------
+        bool
+            Whether the operation was successful or not.
+
+        Raises
+        ------
+        TelegramMessageWithNoAudio
+            If `telegram_message` argument does not contain any valid audio file.
+
+        """
         if message is None or message.audio is None:
             return False
 

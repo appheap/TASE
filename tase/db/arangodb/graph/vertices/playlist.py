@@ -25,7 +25,7 @@ from .user import User
 if TYPE_CHECKING:
     from .. import ArangoGraphMethods
 from ...base import BaseSoftDeletableDocument
-from ...enums import TelegramAudioType
+from ...enums import TelegramAudioType, AudioType
 
 
 class Playlist(BaseVertex, BaseSoftDeletableDocument):
@@ -180,6 +180,7 @@ class PlaylistMethods:
 
     _get_playlist_audios_query = (
         "for audio_v,e in 1..1 outbound @start_vertex graph @graph_name options {order:'dfs', edgeCollections:[@has], vertexCollections:[@audios]}"
+        "   filter audio_v.is_deleted == false or audio_v.type == @archived"
         "   sort e.created_at DESC"
         "   limit @offset, @limit"
         "   return audio_v"
@@ -187,8 +188,8 @@ class PlaylistMethods:
 
     _get_playlist_audios_for_inline_query = (
         "for audio_v,e in 1..1 outbound @start_vertex graph @graph_name options {order:'dfs', edgeCollections:[@has], vertexCollections:[@audios]}"
+        "   filter (audio_v.is_deleted == false or audio_v.type == @archived) and audio_v.valid_for_inline_search == true"
         "   sort e.created_at DESC"
-        "   filter audio_v.valid_for_inline_search == true"
         "   limit @offset, @limit"
         "   return audio_v"
     )
@@ -928,6 +929,7 @@ class PlaylistMethods:
                 "start_vertex": playlist.id,
                 "has": Has._collection_name,
                 "audios": Audio._collection_name,
+                "archived": AudioType.ARCHIVED.value,
                 "offset": offset,
                 "limit": limit,
             },

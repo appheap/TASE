@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import collections
 import copy
-from typing import Optional, Tuple, Deque
+from typing import Optional, Tuple, Deque, List
 
 import pyrogram
 from decouple import config
@@ -62,6 +63,8 @@ class Audio(BaseDocument):
             "dislikes": {"type": "long"},
             "audio_type": {"type": "integer"},
             "valid_for_inline_search": {"type": "boolean"},
+            "type": {"type": "integer"},
+            "archive_message_id": {"type": "long"},
             "estimated_bit_rate_type": {"type": "integer"},
             "is_forwarded": {"type": "boolean"},
             "is_deleted": {"type": "boolean"},
@@ -78,6 +81,7 @@ class Audio(BaseDocument):
         "non_search_hits",
         "likes",
         "dislikes",
+        "deleted_at",
     )
     _search_fields = [
         "performer",
@@ -151,6 +155,10 @@ class Audio(BaseDocument):
         str, optional
             Parsed ID if the parsing was successful, otherwise return `None` if the `telegram_message` is `None`.
 
+        Raises
+        ------
+        TelegramMessageWithNoAudio
+            If `telegram_message` argument does not contain any valid audio file.
         """
         return parse_audio_key(telegram_message, chat_id)
 
@@ -257,7 +265,7 @@ class Audio(BaseDocument):
         self_copy.deleted_at = get_now_timestamp()
         return await self.update(
             self_copy,
-            reserve_non_updatable_fields=True,
+            reserve_non_updatable_fields=False,
             retry_on_conflict=True,
         )
 
@@ -587,7 +595,7 @@ class AudioMethods:
         return audio
 
     async def update_or_create_audio(
-        self,
+        self: AudioMethods,
         telegram_message: pyrogram.types.Message,
         chat_id: int,
         audio_type: AudioType,
@@ -620,14 +628,28 @@ class AudioMethods:
         else:
             # audio exists in the index, update it
             if telegram_message.empty:
-                deleted = await audio.mark_as_deleted()
-                if not deleted:
+                if not await audio.mark_as_deleted():
                     # fixme: could not mark the audio as deleted, why?
-                    pass
+                    logger.error(f"Error in marking elastic Audio doc with ID `{audio.id}` as deleted!")
             else:
                 try:
                     # the type of the audio after update is not changed. So, the previous type is used for updating the current one.
                     updated = await audio.update(Audio.parse(telegram_message, chat_id, audio.type))
+                    if updated:
+                        # get older valid audio docs to process
+                        older_audio_documents: List[Audio] = await self.get_not_deleted_audio_documents(
+                            chat_id=chat_id,
+                            message_id=audio.message_id,
+                            excluded_id=audio.id,
+                        )
+                        if older_audio_documents:
+                            for old_audio_document in older_audio_documents:
+                                if not old_audio_document:
+                                    continue
+
+                                if not await old_audio_document.mark_as_deleted():
+                                    logger.error(f"Error in marking elastic `Audio` document with ID `{old_audio_document.id}` as deleted!")
+
                 except TelegramMessageWithNoAudio:
                     await audio.mark_as_non_audio()
                     updated = False
@@ -692,3 +714,64 @@ class AudioMethods:
             filter_by_valid_for_inline_search,
         )
         return audios, query_metadata
+
+    async def get_not_deleted_audio_documents(
+        self,
+        chat_id: int,
+        message_id: int,
+        excluded_id: str,
+    ) -> List[Audio]:
+        """
+        Get `Audio` documents with the given `chat_id` and `message_id` attributes which are not deleted.
+
+        Parameters
+        ----------
+        chat_id : int
+            ID of the chat the audio document belongs to.
+        message_id : int
+            ID of the telegram message containing this audio file.
+        excluded_id : str
+            Audio document ID to exclude from this query.
+
+        Returns
+        -------
+        list of Audio
+            List of `Audio` documents if operation was successful.
+        """
+        if chat_id is None or message_id is None:
+            return []
+
+        audios = collections.deque()
+        try:
+            res: ObjectApiResponse = await Audio._es.search(
+                index=Audio._index_name,
+                query={
+                    "query": {
+                        "bool": {
+                            "must_not": {"ids": {"values": [excluded_id]}},
+                            "filter": [
+                                {"term": {"is_deleted": {"value": False}}},
+                                {"term": {"chat_id": {"value": chat_id}}},
+                                {"term": {"message_id": {"value": message_id}}},
+                            ],
+                        }
+                    },
+                    "sort": {"created_at": {"order": "asc"}},
+                },
+            )
+
+            hits = res.body["hits"]["hits"]
+
+            for index, hit in enumerate(hits, start=1):
+                try:
+                    db_doc = Audio.from_index(hit=hit, rank=len(hits) - index + 1)
+                except ValueError:
+                    # happens when `hit` is None
+                    pass
+                else:
+                    audios.append(db_doc)
+
+        except Exception as e:
+            logger.exception(e)
+
+        return list(audios)
