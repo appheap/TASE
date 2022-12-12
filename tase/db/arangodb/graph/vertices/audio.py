@@ -1341,7 +1341,8 @@ class AudioMethods:
                 if "_id" in doc:
                     coroutines.append(self.remove_audio_from_all_playlists(doc["_id"]))
 
-        await asyncio.gather(*coroutines)
+        if coroutines:
+            await asyncio.gather(*coroutines)
 
     async def iter_audios(
         self,

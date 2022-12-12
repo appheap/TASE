@@ -778,7 +778,7 @@ class AudioMethods:
                         }
                     },
                     "script": {
-                        "source": f"ctx._source.is_deleted = true; ctx._source.deleted_at = {deleted_at};",
+                        "source": f"ctx._source.is_deleted = true; ctx._source.deleted_at = {deleted_at}; ctx._source.modified_at = {deleted_at};",
                         "lang": "painless",
                     },
                 },
