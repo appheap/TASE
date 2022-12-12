@@ -1,9 +1,7 @@
-import asyncio
+from typing import Optional
 
 import pyrogram
 
-from tase.db.arangodb import graph as graph_models
-from tase.db.elasticsearchdb import models
 from .arangodb import ArangoDB
 from .arangodb.document import ArangoDocumentMethods
 from .arangodb.enums import AudioType
@@ -123,33 +121,24 @@ class DatabaseClient:
 
         return False
 
-    async def mark_audio_as_invalid(
+    async def invalidate_old_audios(
         self,
-        audio_key: str,
+        chat_id: int,
+        message_id: int,
+        excluded_audio_vertex_key: Optional[str] = None,
     ) -> None:
-        if not audio_key:
-            return
-        # todo: what about users who have already downloaded this file before invalidation had happened?
-
-        audio_vertex, audio_doc = await asyncio.gather(*(self.graph.get_audio_by_key(audio_key), self.index.get_audio_by_id(audio_key)))
-        if audio_vertex and isinstance(audio_vertex, graph_models.vertices.Audio):
-            await audio_vertex.mark_as_non_audio()
-
-        if audio_doc and isinstance(audio_doc, models.Audio):
-            await audio_doc.mark_as_non_audio()
-
-    async def mark_audio_as_deleted(
-        self,
-        audio_key: str,
-    ) -> None:
-        if not audio_key:
+        if not chat_id or message_id is None:
             return
 
-        # todo: what about users who have already downloaded this file before deletion had happened?
+        await self.graph.invalidate_old_audio_vertices(
+            chat_id=chat_id,
+            message_id=message_id,
+            excluded_key=excluded_audio_vertex_key,
+        )
 
-        audio_vertex, audio_doc = await asyncio.gather(*(self.graph.get_audio_by_key(audio_key), self.index.get_audio_by_id(audio_key)))
-        if audio_vertex and isinstance(audio_vertex, graph_models.vertices.Audio):
-            await audio_vertex.mark_as_deleted()
+        await self.document.delete_old_audio_caches(
+            chat_id=chat_id,
+            message_id=message_id,
+        )
 
-        if audio_doc and isinstance(audio_doc, models.Audio):
-            await audio_doc.mark_as_deleted()
+        # todo: invalidate es audio docs as well

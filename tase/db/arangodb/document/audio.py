@@ -6,7 +6,6 @@ import pyrogram
 
 from aioarango.models import PersistentIndex
 from tase.errors import TelegramMessageWithNoAudio
-from tase.my_logger import logger
 from .base_document import BaseDocument
 from ..enums import TelegramAudioType
 from ...db_utils import get_telegram_message_media_type, parse_audio_document_key
@@ -135,6 +134,18 @@ class Audio(BaseDocument):
 
 
 class AudioMethods:
+    _delete_audio_cache_by_chat_id_and_message_id_with_excluded_key_query = (
+        "for audio_doc in @@doc_audios"
+        "   filter audio_doc.chat_id == @chat_id and audio_doc.message_id == @message_id and audio_doc._key != @excluded_key"
+        "   remove audio_doc in @@doc_audios options {ignoreRevs: true}"
+    )
+
+    _delete_audio_cache_by_chat_id_and_message_id_without_excluded_key_query = (
+        "for audio_doc in @@doc_audios"
+        "   filter audio_doc.chat_id == @chat_id and audio_doc.message_id == @message_id"
+        "   remove audio_doc in @@doc_audios options {ignoreRevs: true}"
+    )
+
     async def create_audio(
         self,
         telegram_message: pyrogram.types.Message,
@@ -170,7 +181,7 @@ class AudioMethods:
             audio, successful = await Audio.insert(Audio.parse(telegram_message, telegram_client_id, chat_id))
         except TelegramMessageWithNoAudio:
             # the message does not contain any valid audio file
-            pass
+            await self.delete_old_audio_caches(chat_id=chat_id, message_id=telegram_message.id)
         else:
             if audio and successful:
                 return audio
@@ -208,9 +219,22 @@ class AudioMethods:
         if telegram_message is None or chat_id is None:
             return None
 
-        audio = await Audio.get(Audio.parse_key(telegram_message, telegram_client_id, chat_id))
-        if audio is None:
-            audio = await self.create_audio(telegram_message, telegram_client_id, chat_id)
+        audio = None
+
+        try:
+            audio = await Audio.get(Audio.parse_key(telegram_message, telegram_client_id, chat_id))
+        except TelegramMessageWithNoAudio:
+            await self.delete_old_audio_caches(chat_id=chat_id, message_id=telegram_message.id)
+        else:
+            if audio is None:
+                audio = await self.create_audio(telegram_message, telegram_client_id, chat_id)
+
+                if audio:
+                    await self.delete_old_audio_caches(
+                        chat_id=chat_id,
+                        message_id=telegram_message.id,
+                        excluded_key=audio.key,
+                    )
 
         return audio
 
@@ -236,29 +260,34 @@ class AudioMethods:
         -------
         Audio, optional
             Audio if the operation was successful, otherwise, return None
-
         """
         if telegram_message is None or chat_id is None:
             return None
 
+        audio = None
+
         try:
             audio = await Audio.get(Audio.parse_key(telegram_message, telegram_client_id, chat_id))
-        except ValueError:
-            audio = None
+        except TelegramMessageWithNoAudio:
+            # remove any previous not deleted audio vertices with `chat_id` and `message_id`
+            await self.delete_old_audio_caches(chat_id=chat_id, message_id=telegram_message.id)
         else:
             if audio is None:
                 audio = await self.create_audio(telegram_message, telegram_client_id, chat_id)
+                if audio:
+                    await self.delete_old_audio_caches(
+                        chat_id=chat_id,
+                        message_id=telegram_message.id,
+                        excluded_key=audio.key,
+                    )
             else:
-                try:
-                    updated = await audio.update(Audio.parse(telegram_message, telegram_client_id, chat_id))
-                except ValueError:
-                    updated = False
-                except TelegramMessageWithNoAudio:
-                    # this message does not contain any audio file anymore, it should be deleted.
-                    if not await audio.delete():
-                        logger.error(f"Error in deleting `Audio` document with key `{audio.key}`")
-
-                    updated = False
+                updated = await audio.update(Audio.parse(telegram_message, telegram_client_id, chat_id))
+                if updated:
+                    await self.delete_old_audio_caches(
+                        chat_id=chat_id,
+                        message_id=telegram_message.id,
+                        excluded_key=audio.key,
+                    )
 
         return audio
 
@@ -307,3 +336,40 @@ class AudioMethods:
             return False
 
         return await Audio.has(audio_key)
+
+    async def delete_old_audio_caches(
+        self,
+        chat_id: int,
+        message_id: int,
+        excluded_key: Optional[str] = None,
+    ) -> None:
+        """
+        Delete `Audio` documents with the given `chat_id` and `message_id` attributes.
+
+        Parameters
+        ----------
+        chat_id : int
+            ID of the chat the audio document belongs to.
+        message_id : int
+            ID of the telegram message containing this audio file.
+        excluded_key : str, optional
+            Audio document key to exclude from this query.
+
+        """
+        if chat_id is None or message_id is None:
+            return
+
+        bind_vars = {
+            "@doc_audios": Audio._collection_name,
+            "chat_id": chat_id,
+            "message_id": chat_id,
+        }
+        if excluded_key:
+            bind_vars["excluded_key"] = excluded_key
+
+        await Audio.execute_query(
+            self._delete_audio_cache_by_chat_id_and_message_id_with_excluded_key_query
+            if excluded_key
+            else self._delete_audio_cache_by_chat_id_and_message_id_without_excluded_key_query,
+            bind_vars=bind_vars,
+        )

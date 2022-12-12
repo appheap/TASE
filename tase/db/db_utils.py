@@ -67,31 +67,6 @@ def parse_audio_key(
     return f"{chat_id}:{telegram_message.id}:{audio.file_unique_id}"
 
 
-def parse_audio_key_from_message_id(
-    telegram_message_id: int,
-    chat_id: int,
-) -> Optional[str]:
-    """
-    Parse the `key` from the given `telegram_message` argument
-
-    Parameters
-    ----------
-    telegram_message_id : int
-        Telegram message id to parse the key from
-    chat_id : int
-        Chat ID this message belongs to.
-
-    Returns
-    -------
-    str, optional
-        Parsed key if the parsing was successful, otherwise return `None` if the `telegram_message` is `None`.
-
-    """
-    if telegram_message_id is None or chat_id is None:
-        return None
-    return f"{chat_id}:{telegram_message_id}"
-
-
 def parse_audio_document_key(
     telegram_client_id: int,
     chat_id: int,
