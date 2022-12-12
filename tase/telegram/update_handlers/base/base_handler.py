@@ -179,7 +179,7 @@ class BaseHandler(BaseModel):
                 audio, audio_type = get_telegram_message_media_type(messages[0])
                 if audio is None or audio_type == TelegramAudioType.NON_AUDIO:
                     # invalidate audio vertices and remove the not-archived ones from all playlists.
-                    await self.db.graph.invalidate_old_audio_vertices(
+                    await self.db.invalidate_old_audios(
                         chat_id=audio_vertex.chat_id,
                         message_id=audio_vertex.message_id,
                     )

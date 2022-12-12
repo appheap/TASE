@@ -672,7 +672,7 @@ class AudioMethods:
             audio, successful = await Audio.insert(Audio.parse(telegram_message, chat_id, audio_type))
         except TelegramMessageWithNoAudio as e:
             # this message doesn't contain any valid audio file
-            await self.invalidate_old_audio_vertices(chat_id, telegram_message.id)
+            await self.mark_old_audio_vertices_as_deleted(chat_id, telegram_message.id)
         except Exception as e:
             logger.exception(e)
         else:
@@ -785,14 +785,14 @@ class AudioMethods:
         try:
             audio = await Audio.get(Audio.parse_key(telegram_message, chat_id))
         except TelegramMessageWithNoAudio:
-            await self.invalidate_old_audio_vertices(chat_id, telegram_message.id)
+            await self.mark_old_audio_vertices_as_deleted(chat_id, telegram_message.id)
         else:
             if audio is None:
                 # audio vertex does not exist in the database, create it.
                 audio = await self.create_audio(telegram_message, chat_id, audio_type)
 
                 if audio:
-                    await self.invalidate_old_audio_vertices(
+                    await self.mark_old_audio_vertices_as_deleted(
                         chat_id=chat_id,
                         message_id=audio.message_id,
                         excluded_key=audio.key,
@@ -836,7 +836,7 @@ class AudioMethods:
         try:
             audio: Optional[Audio] = await Audio.get(Audio.parse_key(telegram_message, chat_id))
         except TelegramMessageWithNoAudio:
-            await self.invalidate_old_audio_vertices(chat_id, telegram_message.id)
+            await self.mark_old_audio_vertices_as_deleted(chat_id, telegram_message.id)
         else:
             if audio is not None:
                 # the message has not been `deleted`, update remaining attributes
@@ -852,7 +852,7 @@ class AudioMethods:
 
                     # get older valid audio vertices to process
                     # audio file has been changed, the connected hashtag and file vertices must be updated.
-                    await self.invalidate_old_audio_vertices(
+                    await self.mark_old_audio_vertices_as_deleted(
                         chat_id=chat_id,
                         message_id=audio.message_id,
                         excluded_key=audio.key,
@@ -861,7 +861,7 @@ class AudioMethods:
                 # audio vertex does not exist in the database, create it.
                 audio = await self.create_audio(telegram_message, chat_id, audio_type)
                 if audio:
-                    await self.invalidate_old_audio_vertices(
+                    await self.mark_old_audio_vertices_as_deleted(
                         chat_id=chat_id,
                         message_id=audio.message_id,
                         excluded_key=audio.key,
@@ -1293,14 +1293,15 @@ class AudioMethods:
 
         return list(res)
 
-    async def invalidate_old_audio_vertices(
+    async def mark_old_audio_vertices_as_deleted(
         self,
         chat_id: int,
         message_id: int,
         excluded_key: Optional[str] = None,
     ) -> None:
         """
-        Invalidate `Audio` vertices with the given `chat_id` and `message_id` attributes which are not deleted.
+        Mark `Audio` vertices with the given `chat_id` and `message_id` attributes as deleted.
+
         This method marks the matching vertices as deleted and removes them from all playlists
 
         Parameters

@@ -130,7 +130,7 @@ class DatabaseClient:
         if not chat_id or message_id is None:
             return
 
-        await self.graph.invalidate_old_audio_vertices(
+        await self.graph.mark_old_audio_vertices_as_deleted(
             chat_id=chat_id,
             message_id=message_id,
             excluded_key=excluded_audio_vertex_key,
@@ -141,4 +141,8 @@ class DatabaseClient:
             message_id=message_id,
         )
 
-        # todo: invalidate es audio docs as well
+        await self.index.mark_old_audios_as_deleted(
+            chat_id=chat_id,
+            message_id=message_id,
+            excluded_id=excluded_audio_vertex_key,
+        )

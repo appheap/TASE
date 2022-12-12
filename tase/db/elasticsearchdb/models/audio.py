@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-import collections
 import copy
-from typing import Optional, Tuple, Deque, List
+from typing import Optional, Tuple, Deque
 
 import pyrogram
 from decouple import config
@@ -553,7 +552,10 @@ class AudioMethods:
             audio, successful = await Audio.create(Audio.parse(telegram_message, chat_id, audio_type))
         except TelegramMessageWithNoAudio:
             # this message doesn't contain any valid audio file
-            pass
+            await self.mark_old_audios_as_deleted(
+                chat_id=chat_id,
+                message_id=telegram_message.id,
+            )
         else:
             if audio and successful:
                 return audio
@@ -587,10 +589,26 @@ class AudioMethods:
         if telegram_message is None or chat_id is None:
             return None
 
-        audio = await Audio.get(Audio.parse_id(telegram_message, chat_id))
-        if audio is None:
-            # audio does not exist in the index, create it
-            audio = await self.create_audio(telegram_message, chat_id, audio_type)
+        audio = None
+
+        try:
+            audio = await Audio.get(Audio.parse_id(telegram_message, chat_id))
+        except TelegramMessageWithNoAudio:
+            await self.mark_old_audios_as_deleted(
+                chat_id=chat_id,
+                message_id=telegram_message.id,
+            )
+        else:
+            if audio is None:
+                # audio does not exist in the index, create it
+                audio = await self.create_audio(telegram_message, chat_id, audio_type)
+
+                if audio:
+                    await self.mark_old_audios_as_deleted(
+                        chat_id=chat_id,
+                        message_id=telegram_message.id,
+                        excluded_id=audio.id,
+                    )
 
         return audio
 
@@ -621,38 +639,35 @@ class AudioMethods:
         if telegram_message is None or chat_id is None:
             return None
 
-        audio: Optional[Audio] = await Audio.get(Audio.parse_id(telegram_message, chat_id))
-        if audio is None:
-            # audio does not exist in the index, create it
-            audio = await self.create_audio(telegram_message, chat_id, audio_type)
+        audio = None
+
+        try:
+            audio: Optional[Audio] = await Audio.get(Audio.parse_id(telegram_message, chat_id))
+        except TelegramMessageWithNoAudio:
+            await self.mark_old_audios_as_deleted(
+                chat_id=chat_id,
+                message_id=telegram_message.id,
+            )
         else:
-            # audio exists in the index, update it
-            if telegram_message.empty:
-                if not await audio.mark_as_deleted():
-                    # fixme: could not mark the audio as deleted, why?
-                    logger.error(f"Error in marking elastic Audio doc with ID `{audio.id}` as deleted!")
+            if audio is None:
+                # audio does not exist in the index, create it
+                audio = await self.create_audio(telegram_message, chat_id, audio_type)
+                if audio:
+                    await self.mark_old_audios_as_deleted(
+                        chat_id=chat_id,
+                        message_id=telegram_message.id,
+                        excluded_id=audio.id,
+                    )
             else:
-                try:
-                    # the type of the audio after update is not changed. So, the previous type is used for updating the current one.
-                    updated = await audio.update(Audio.parse(telegram_message, chat_id, audio.type))
-                    if updated:
-                        # get older valid audio docs to process
-                        older_audio_documents: List[Audio] = await self.get_not_deleted_audio_documents(
-                            chat_id=chat_id,
-                            message_id=audio.message_id,
-                            excluded_id=audio.id,
-                        )
-                        if older_audio_documents:
-                            for old_audio_document in older_audio_documents:
-                                if not old_audio_document:
-                                    continue
+                # the type of the audio after update is not changed. So, the previous type is used for updating the current one.
+                if await audio.update(Audio.parse(telegram_message, chat_id, audio.type)):
+                    # get older valid audio docs to process
+                    await self.mark_old_audios_as_deleted(
+                        chat_id=chat_id,
+                        message_id=audio.message_id,
+                        excluded_id=audio.id,
+                    )
 
-                                if not await old_audio_document.mark_as_deleted():
-                                    logger.error(f"Error in marking elastic `Audio` document with ID `{old_audio_document.id}` as deleted!")
-
-                except TelegramMessageWithNoAudio:
-                    await audio.mark_as_non_audio()
-                    updated = False
         return audio
 
     async def get_audio_by_id(
@@ -715,14 +730,14 @@ class AudioMethods:
         )
         return audios, query_metadata
 
-    async def get_not_deleted_audio_documents(
+    async def mark_old_audios_as_deleted(
         self,
         chat_id: int,
         message_id: int,
-        excluded_id: str,
-    ) -> List[Audio]:
+        excluded_id: Optional[str] = None,
+    ) -> None:
         """
-        Get `Audio` documents with the given `chat_id` and `message_id` attributes which are not deleted.
+        Mark `Audio` documents with the given `chat_id` and `message_id` attributes which as deleted.
 
         Parameters
         ----------
@@ -730,21 +745,19 @@ class AudioMethods:
             ID of the chat the audio document belongs to.
         message_id : int
             ID of the telegram message containing this audio file.
-        excluded_id : str
+        excluded_id : str, optional
             Audio document ID to exclude from this query.
 
-        Returns
-        -------
-        list of Audio
-            List of `Audio` documents if operation was successful.
         """
         if chat_id is None or message_id is None:
-            return []
+            return
 
-        audios = collections.deque()
+        deleted_at = get_now_timestamp()
+
         try:
-            res: ObjectApiResponse = await Audio._es.search(
+            await Audio._es.update_by_query(
                 index=Audio._index_name,
+                conflicts="proceed",
                 query={
                     "query": {
                         "bool": {
@@ -755,23 +768,21 @@ class AudioMethods:
                                 {"term": {"message_id": {"value": message_id}}},
                             ],
                         }
+                        if excluded_id
+                        else {
+                            "filter": [
+                                {"term": {"is_deleted": {"value": False}}},
+                                {"term": {"chat_id": {"value": chat_id}}},
+                                {"term": {"message_id": {"value": message_id}}},
+                            ],
+                        }
                     },
-                    "sort": {"created_at": {"order": "asc"}},
+                    "script": {
+                        "source": f"ctx._source.is_deleted = true; ctx._source.deleted_at = {deleted_at};",
+                        "lang": "painless",
+                    },
                 },
             )
 
-            hits = res.body["hits"]["hits"]
-
-            for index, hit in enumerate(hits, start=1):
-                try:
-                    db_doc = Audio.from_index(hit=hit, rank=len(hits) - index + 1)
-                except ValueError:
-                    # happens when `hit` is None
-                    pass
-                else:
-                    audios.append(db_doc)
-
         except Exception as e:
             logger.exception(e)
-
-        return list(audios)
