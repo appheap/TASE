@@ -10,6 +10,7 @@ from pydantic import Field
 
 from tase.common.preprocessing import clean_text, empty_to_null
 from tase.common.utils import datetime_to_timestamp, async_timed, get_now_timestamp
+from tase.db.arangodb import graph as graph_models
 from tase.errors import TelegramMessageWithNoAudio
 from tase.my_logger import logger
 from .base_document import BaseDocument
@@ -247,6 +248,58 @@ class Audio(BaseDocument):
             is_forwarded=True if telegram_message.forward_date else False,
             is_deleted=True if telegram_message.empty else False,
             is_edited=True if telegram_message.edit_date else False,
+        )
+
+    @classmethod
+    def parse_from_audio_vertex(cls, audio_vertex: graph_models.vertices.Audio) -> Optional[Audio]:
+        """
+        Parse the `Audio` document from an `Audio` vertex object.
+
+        Parameters
+        ----------
+        audio_vertex : graph_models.vertices.Audio
+            Audio vertex to parse the audio document from.
+
+        Returns
+        -------
+        Audio, optional
+            Parsed audio document if operation was successful.
+
+        """
+        if not audio_vertex or not audio_vertex.key:
+            return None
+
+        return Audio(
+            id=audio_vertex.key,
+            created_at=audio_vertex.created_at,
+            modified_at=audio_vertex.modified_at,
+            schema_version=audio_vertex.schema_version,  # todo: is this correct?
+            chat_id=audio_vertex.chat_id,
+            message_id=audio_vertex.message_id,
+            message_caption=audio_vertex.message_caption,
+            raw_message_caption=audio_vertex.raw_message_caption,
+            message_date=audio_vertex.message_date,
+            file_unique_id=audio_vertex.file_unique_id,
+            duration=audio_vertex.duration,
+            performer=audio_vertex.performer,
+            raw_performer=audio_vertex.raw_performer,
+            title=audio_vertex.title,
+            raw_title=audio_vertex.raw_title,
+            file_name=audio_vertex.file_name,
+            raw_file_name=audio_vertex.raw_file_name,
+            mime_type=audio_vertex.mime_type,
+            file_size=audio_vertex.file_size,
+            date=audio_vertex.date,
+            views=audio_vertex.views,
+            audio_type=audio_vertex.audio_type,
+            valid_for_inline_search=audio_vertex.valid_for_inline_search,
+            type=audio_vertex.type,
+            archive_message_id=audio_vertex.archive_message_id,
+            estimated_bit_rate_type=audio_vertex.estimated_bit_rate_type,
+            is_forwarded=audio_vertex.is_forwarded,
+            is_deleted=audio_vertex.is_deleted,
+            deleted_at=audio_vertex.deleted_at,
+            is_edited=audio_vertex.is_edited,
         )
 
     async def mark_as_deleted(self) -> bool:
@@ -759,27 +812,28 @@ class AudioMethods:
                 index=Audio._index_name,
                 conflicts="proceed",
                 query={
-                    "query": {
-                        "bool": {
-                            "must_not": {"ids": {"values": [excluded_id]}},
-                            "filter": [
-                                {"term": {"is_deleted": {"value": False}}},
-                                {"term": {"chat_id": {"value": chat_id}}},
-                                {"term": {"message_id": {"value": message_id}}},
-                            ],
-                        }
-                        if excluded_id
-                        else {
-                            "filter": [
-                                {"term": {"is_deleted": {"value": False}}},
-                                {"term": {"chat_id": {"value": chat_id}}},
-                                {"term": {"message_id": {"value": message_id}}},
-                            ],
-                        }
-                    },
-                    "script": {
-                        "source": f"ctx._source.is_deleted = true; ctx._source.deleted_at = {deleted_at}; ctx._source.modified_at = {deleted_at};",
-                        "lang": "painless",
+                    "bool": {
+                        "must_not": {"ids": {"values": [excluded_id]}},
+                        "filter": [
+                            {"term": {"is_deleted": {"value": False}}},
+                            {"term": {"chat_id": {"value": chat_id}}},
+                            {"term": {"message_id": {"value": message_id}}},
+                        ],
+                    }
+                    if excluded_id
+                    else {
+                        "filter": [
+                            {"term": {"is_deleted": {"value": False}}},
+                            {"term": {"chat_id": {"value": chat_id}}},
+                            {"term": {"message_id": {"value": message_id}}},
+                        ],
+                    }
+                },
+                script={
+                    "source": f"ctx._source.is_deleted = true; ctx._source.deleted_at = params.deleted_at; ctx._source.modified_at = params.deleted_at",
+                    "lang": "painless",
+                    "params": {
+                        "deleted_at": deleted_at,
                     },
                 },
             )

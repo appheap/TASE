@@ -164,6 +164,8 @@ class Chat(BaseVertex):
     distance: Optional[int]
     members_count: Optional[int]
 
+    is_valid: bool  # whether this chat is valid or not.
+
     audio_indexer_metadata: Optional[AudioIndexerMetadata]
     audio_doc_indexer_metadata: Optional[AudioDocIndexerMetadata]
     username_extractor_metadata: Optional[UsernameExtractorMetadata]
@@ -223,6 +225,7 @@ class Chat(BaseVertex):
             restrictions=Restriction.parse_from_restrictions(telegram_chat.restrictions),
             distance=telegram_chat.distance,
             members_count=telegram_chat.members_count,
+            is_valid=True,
         )
 
     @staticmethod
@@ -463,35 +466,35 @@ class ChatMethods:
 
     _get_chats_sorted_by_username_extractor_score_query = (
         "for chat in @@chats"
-        "   filter chat.chat_type == @chat_type and chat.is_public == true and chat.username_extractor_metadata != null"
+        "   filter chat.is_valid == true and chat.chat_type == @chat_type and chat.is_public == true and chat.username_extractor_metadata != null"
         "   sort chat.username_extractor_metadata.score desc, chat.members_count desc"
         "   return chat"
     )
 
     _get_not_extracted_chats_sorted_by_members_count_query = (
         "for chat in @@chats"
-        "   filter chat.chat_type == @chat_type and chat.is_public == true and chat.username_extractor_metadata == null"
+        "   filter chat.is_valid == true and chat.chat_type == @chat_type and chat.is_public == true and chat.username_extractor_metadata == null"
         "   sort chat.members_count desc"
         "   return chat"
     )
 
     _get_chats_sorted_by_audio_indexer_score_query = (
         "for chat in @@chats"
-        "   filter chat.chat_type == @chat_type and chat.is_public == true and chat.audio_indexer_metadata != null"
+        "   filter chat.is_valid == true and chat.chat_type == @chat_type and chat.is_public == true and chat.audio_indexer_metadata != null"
         "   sort chat.audio_indexer_metadata.score desc, chat.members_count desc"
         "   return chat"
     )
 
     _get_not_indexed_chats_sorted_by_members_count_query = (
         "for chat in @@chats"
-        "   filter chat.chat_type == @chat_type and chat.is_public == true and chat.audio_indexer_metadata == null"
+        "   filter chat.is_valid == true and chat.chat_type == @chat_type and chat.is_public == true and chat.audio_indexer_metadata == null"
         "   sort chat.members_count desc"
         "   return chat"
     )
 
     _get_chats_sorted_by_audio_doc_indexer_score = (
         "for chat in @@chats"
-        "   filter chat.chat_type == @chat_type and chat.audio_doc_indexer_metadata != null "
+        "   filter chat.is_valid == true and chat.chat_type == @chat_type and chat.audio_doc_indexer_metadata != null "
         "   sort chat.audio_doc_indexer_metadata.score desc, chat.members_count desc"
         "   return chat"
     )

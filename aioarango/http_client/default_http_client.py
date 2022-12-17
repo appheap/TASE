@@ -16,7 +16,8 @@ class DefaultHTTPClient(BaseHTTPClient):
         host: str,
         request_timeout: int = 60,
     ) -> aiohttp.ClientSession:
-        return aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=request_timeout))
+        self._timeout = aiohttp.ClientTimeout(total=None)  # fixme
+        return aiohttp.ClientSession(timeout=self._timeout)
 
     async def send_request(
         self,
@@ -35,6 +36,7 @@ class DefaultHTTPClient(BaseHTTPClient):
             data=data,
             headers=headers,
             auth=auth,
+            timeout=self._timeout,
         )
 
         return Response(

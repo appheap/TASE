@@ -616,7 +616,11 @@ class BaseCollectionDocument(BaseCollectionAttributes):
         successful = False
         key = doc.key if isinstance(doc, BaseCollectionDocument) else doc
         try:
-            successful = await cls._collection.delete(key, ignore_missing=True)
+            successful = await cls._collection.delete(
+                key,
+                ignore_missing=True,
+                check_for_revisions_match=False,  # fixme
+            )
         except DocumentRevisionMisMatchError as e:
             # The expected and actual document revisions mismatched.
             logger.exception(f"{cls.__name__} : {e}")
@@ -874,6 +878,8 @@ class BaseCollectionDocument(BaseCollectionAttributes):
         cls: Type[TBaseCollectionDocument],
         query: str,
         bind_vars: Dict[str, Any],
+        ttl: Optional[int] = None,
+        batch_size: Optional[int] = 1000,
     ) -> Result[Cursor]:
         """
         Execute a query and return a `Cursor` object if did not catch any errors, otherwise, return `None`.
@@ -884,7 +890,19 @@ class BaseCollectionDocument(BaseCollectionAttributes):
             Query string to execute
         bind_vars : dict
             Dictionary of variables to be bound to the query before running
-
+        ttl : int, optional
+            The time-to-live for the cursor (in seconds). If the result set is small enough
+            (less than or equal to **batch_size**) then results are returned right away.
+            Otherwise, they are stored in memory and will be accessible via the cursor with
+            respect to the ttl. The cursor will be removed on the server automatically
+            after the specified amount of time. This is useful to ensure garbage collection
+            of cursors that are not fully fetched by clients. If not set, a server-defined
+            value will be used (default: `30` seconds).
+        batch_size : int, default : 1000
+            Maximum number of result documents to be transferred from
+            the server to the client in one roundtrip. If this attribute is
+            not set, a server-controlled default value will be used. A **batch_size** value of
+            `0` is disallowed.
         Returns
         -------
         Result[Cursor]
@@ -899,7 +917,8 @@ class BaseCollectionDocument(BaseCollectionAttributes):
                 query,
                 bind_vars=bind_vars,
                 count=True,
-                # ttl=36000,  # fix this
+                ttl=ttl,
+                batch_size=batch_size,
             )
         except CursorCountError as e:
             logger.error(query)
