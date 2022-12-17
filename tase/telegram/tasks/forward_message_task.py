@@ -219,8 +219,14 @@ class ForwardMessageTask(BaseTask):
                     await archived_audio_vertex.delete()
                     await archived_audio_doc.delete()
                 else:
-                    success = await source_audio.mark_as_archived(archived_audio_vertex.message_id)
-                    es_success = await es_source_audio_doc.mark_as_archived(archived_audio_vertex.message_id)
+                    success = await source_audio.mark_as_archived(
+                        archived_audio_vertex.chat_id,
+                        archived_audio_vertex.message_id,
+                    )
+                    es_success = await es_source_audio_doc.mark_as_archived(
+                        archived_audio_vertex.chat_id,
+                        archived_audio_vertex.message_id,
+                    )
                     if not success or not es_success:
                         logger.error(f"Error in marking `{source_audio.key}` as archived!")
                         await message.delete()

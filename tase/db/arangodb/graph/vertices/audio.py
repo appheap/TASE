@@ -6,7 +6,6 @@ import copy
 from typing import Optional, List, Generator, TYPE_CHECKING, Deque, Tuple
 
 import pyrogram
-from decouple import config
 
 from aioarango.models import PersistentIndex
 from tase.common.preprocessing import clean_text, empty_to_null
@@ -182,6 +181,8 @@ class Audio(BaseVertex):
     _extra_do_not_update_fields = [
         "has_checked_forwarded_message_at",
         "deleted_at",
+        "archive_chat_id",
+        "archive_message_id",
     ]
 
     chat_id: int
@@ -231,6 +232,7 @@ class Audio(BaseVertex):
     has_checked_forwarded_message_at: Optional[int]
 
     type: AudioType
+    archive_chat_id: Optional[int]
     archive_message_id: Optional[int]
 
     is_forwarded: bool
@@ -422,6 +424,7 @@ class Audio(BaseVertex):
 
     async def mark_as_archived(
         self,
+        archive_chat_id: int,
         archive_message_id: int,
     ) -> bool:
         """
@@ -429,6 +432,8 @@ class Audio(BaseVertex):
 
         Parameters
         ----------
+        archive_chat_id : int
+            ID of the archive channel.
         archive_message_id : int
             ID of the message in the archive channel.
 
@@ -438,16 +443,17 @@ class Audio(BaseVertex):
         bool
             Whether the update was successful or not.
         """
-        if archive_message_id is None:
+        if archive_chat_id is None or archive_message_id is None:
             return False
 
         self_copy: Audio = self.copy(deep=True)
         self_copy.type = AudioType.ARCHIVED
+        self_copy.archive_chat_id = archive_chat_id
         self_copy.archive_message_id = archive_message_id
 
         return await self.update(
             self_copy,
-            reserve_non_updatable_fields=True,
+            reserve_non_updatable_fields=False,
             check_for_revisions_match=False,
         )
 
@@ -503,8 +509,7 @@ class Audio(BaseVertex):
         if self.type == AudioType.NOT_ARCHIVED:
             return parse_audio_document_key_from_raw_attributes(telegram_client_id, self.chat_id, self.message_id, self.file_unique_id)
         else:
-            # fixme : a better way to get the archive channel id ?
-            return parse_audio_document_key_from_raw_attributes(telegram_client_id, config("ARCHIVE_CHANNEL_ID"), self.archive_message_id, self.file_unique_id)
+            return parse_audio_document_key_from_raw_attributes(telegram_client_id, self.archive_chat_id, self.archive_message_id, self.file_unique_id)
 
     def find_hashtags(self) -> List[Tuple[str, int, MentionSource]]:
         """
