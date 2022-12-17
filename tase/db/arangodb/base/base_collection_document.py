@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field, ValidationError
 
 from aioarango.api import VertexCollection, EdgeCollection, StandardCollection, AQL, Cursor
 from aioarango.enums import IndexType
-from aioarango.errors import ArangoServerError, DocumentRevisionMisMatchError, DocumentRevisionMatchError, CursorCountError
+from aioarango.errors import ArangoServerError, DocumentRevisionMisMatchError, DocumentRevisionMatchError, CursorCountError, CollectionUniqueConstraintViolated
 from aioarango.models.index import PersistentIndex
 from aioarango.typings import ArangoIndex, Result
 from tase.common.utils import get_now_timestamp
@@ -364,6 +364,10 @@ class BaseCollectionDocument(BaseCollectionAttributes):
 
             metadata = await cls._collection.insert(graph_doc)
             doc._update_metadata(metadata)
+        except CollectionUniqueConstraintViolated:
+            # A unique constraint in this collection has been violated; document key or an unique index.
+            # fixme
+            pass
         except ArangoServerError as e:
             # Failed to insert the document
             logger.exception(f"{cls.__name__} : {e}")
