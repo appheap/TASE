@@ -11,8 +11,7 @@ from pyrogram.handlers.handler import Handler
 
 from tase.configs import ClientConfig, ClientTypes, ArchiveChannelInfo
 from tase.my_logger import logger
-from tase.telegram.client.raw_methods import search_messages
-from tase.telegram.client.raw_methods.forward_messages import forward_messages
+from tase.telegram.client.raw_methods import search_messages, forward_messages
 
 if TYPE_CHECKING:
     from tase.telegram.update_handlers.base import BaseHandler
@@ -162,7 +161,7 @@ class TelegramClient:
         protect_content: bool = None,
         drop_media_captions: Optional[bool] = False,
         drop_author: Optional[bool] = False,
-    ) -> Union["pyrogram.types.Message", List["pyrogram.types.Message"],]:
+    ) -> Union[pyrogram.types.Message, List[pyrogram.types.Message]]:
         return await forward_messages(
             self._client,
             chat_id=chat_id,
