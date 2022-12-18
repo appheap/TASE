@@ -24,16 +24,16 @@ class CountInteractionsJob(BaseJob):
         db: DatabaseClient,
         telegram_client: "TelegramClient" = None,
     ):
-        self.task_in_worker(db)
+        await self.task_in_worker(db)
 
-        job = db.document.get_count_interactions_job()
+        job = await db.document.get_count_interactions_job()
         if job is None:
-            self.task_failed(db)
+            await self.task_failed(db)
         else:
             if job.is_active:
                 now = get_now_timestamp()
 
-                interactions_count = db.graph.count_interactions(
+                interactions_count = await db.graph.count_interactions(
                     job.last_run_at,
                     now,
                 )
@@ -50,6 +50,6 @@ class CountInteractionsJob(BaseJob):
                 updated = job.update_last_run(now)
                 if not updated:
                     logger.error(f"Could not count interaction job document")
-                self.task_done(db)
+                await self.task_done(db)
             else:
-                self.task_failed(db)
+                await self.task_failed(db)

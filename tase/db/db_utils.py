@@ -3,11 +3,26 @@ from typing import Tuple, Union, Optional
 import pyrogram
 
 from tase.db.arangodb.enums import TelegramAudioType
+from tase.errors import TelegramMessageWithNoAudio
 
 
 def get_telegram_message_media_type(
     telegram_message: pyrogram.types.Message,
 ) -> Tuple[Optional[Union[pyrogram.types.Audio, pyrogram.types.Document]], TelegramAudioType]:
+    """
+    Get media type of the given telegram message along with included telegram `Audio` or `Document` object if it has any.
+
+    Parameters
+    ----------
+    telegram_message : pyrogram.types.Message
+        Telegram message to extract the `Audio` from.
+
+    Returns
+    -------
+    tuple
+        A tuple of `Audio` or `Document` and the type of the telegram audio in the given message.
+
+    """
     if telegram_message.media is None:
         audio = None
         audio_type = TelegramAudioType.NON_AUDIO
@@ -50,35 +65,88 @@ def parse_audio_key(
     str, optional
         Parsed key if the parsing was successful, otherwise return `None` if the `telegram_message` is `None`.
 
+
+    Raises
+    ------
+    TelegramMessageWithNoAudio
+        If `telegram_message` argument does not contain any valid audio file.
     """
     if telegram_message is None or chat_id is None:
         return None
-    return f"{chat_id}:{telegram_message.id}"
+
+    audio, telegram_audio_type = get_telegram_message_media_type(telegram_message)
+    if audio is None or telegram_audio_type == TelegramAudioType.NON_AUDIO:
+        raise TelegramMessageWithNoAudio(telegram_message.id, chat_id)
+
+    return f"{chat_id}:{telegram_message.id}:{audio.file_unique_id}"
 
 
-def parse_audio_key_from_message_id(
-    telegram_message_id: int,
+def parse_audio_document_key(
+    telegram_client_id: int,
     chat_id: int,
+    telegram_message: pyrogram.types.Message,
 ) -> Optional[str]:
     """
     Parse the `key` from the given `telegram_message` argument
 
     Parameters
     ----------
-    telegram_message_id : int
-        Telegram message id to parse the key from
+    telegram_client_id : int
+        ID of the telegram client which has seen this message.
     chat_id : int
         Chat ID this message belongs to.
+    telegram_message : pyrogram.types.Message
+        Telegram message to parse the key from
 
     Returns
     -------
     str, optional
-        Parsed key if the parsing was successful, otherwise return `None` if the `telegram_message` is `None`.
+        Parsed key if the parsing was successful, otherwise return `None`.
 
+    Raises
+    ------
+    TelegramMessageWithNoAudio
+        If `telegram_message` argument does not contain any valid audio file.
     """
-    if telegram_message_id is None or chat_id is None:
+    if telegram_client_id is None or telegram_message is None or chat_id is None:
         return None
-    return f"{chat_id}:{telegram_message_id}"
+
+    audio, telegram_audio_type = get_telegram_message_media_type(telegram_message)
+
+    if audio is None or telegram_audio_type == TelegramAudioType.NON_AUDIO:
+        raise TelegramMessageWithNoAudio(telegram_message.id, chat_id)
+
+    return f"{telegram_client_id}:{chat_id}:{telegram_message.id}:{audio.file_unique_id}"
+
+
+def parse_audio_document_key_from_raw_attributes(
+    telegram_client_id: int,
+    chat_id: int,
+    telegram_message_id: int,
+    file_unique_id: str,
+) -> Optional[str]:
+    """
+    Parse the `key` from the given raw parameters.
+
+    Parameters
+    ----------
+    telegram_client_id : int
+        ID of the telegram client which has seen this message.
+    chat_id : int
+        Chat ID this message belongs to.
+    telegram_message_id : int
+        Telegram message ID to parse the key from
+    file_unique_id : str
+        File unique ID to parse the key from.
+    Returns
+    -------
+    str, optional
+        Parsed key if the parsing was successful, otherwise return `None`.
+    """
+    if telegram_client_id is None or telegram_message_id is None or chat_id is None or not file_unique_id:
+        return None
+
+    return f"{telegram_client_id}:{chat_id}:{telegram_message_id}:{file_unique_id}"
 
 
 forbidden_mime_types = (

@@ -44,7 +44,12 @@ class FromVertexMapper(FromGraphBaseProcessor):
         ) in document_class._from_graph_db_mapping_rel.items():
             attr_value = graph_doc.get(graph_doc_attr, None)
             if attr_value is not None:
-                obj = BaseVertex.from_collection({"_id": graph_doc.get(attr_value, None)})
+                obj = BaseVertex.from_collection(
+                    {
+                        "_id": attr_value,
+                        "_key": "".join(attr_value.split("/")[1:]),
+                    }
+                )
                 if obj is None:
                     raise Exception(f"`obj` cannot be `None`")
                 graph_doc[obj_attr] = obj

@@ -7,6 +7,7 @@ from .count_hits_job import CountHitsJob
 from .count_interactions_job import CountInteractionsJob
 from .dummy_job import DummyJob
 from .extract_usernames_job import ExtractUsernamesJob
+from .forward_audios_job import ForwardAudiosJob
 from .index_audios_job import IndexAudiosJob
 
 __all__ = [
@@ -17,5 +18,6 @@ __all__ = [
     "CountInteractionsJob",
     "DummyJob",
     "ExtractUsernamesJob",
+    "ForwardAudiosJob",
     "IndexAudiosJob",
 ]

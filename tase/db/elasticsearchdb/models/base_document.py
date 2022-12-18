@@ -205,8 +205,6 @@ class BaseDocument(BaseModel):
 
         Parameters
         ----------
-        doc : dict
-            Dictionary mapping attribute names to attribute values
         response : ObjectApiResponse, optional
             Attribute value mapping dictionary to be processed
         hit : dict, optional
@@ -415,11 +413,37 @@ class BaseDocument(BaseModel):
                 successful = True
         except ConflictError as e:
             # Exception representing a 409 status code. Document exists in the index
-            logger.exception(f"{cls.__name__} : {e}")
+            pass
+            # logger.exception(f"{cls.__name__} : {e}")
         except Exception as e:
             logger.exception(f"{cls.__name__} : {e}")
 
         return document, successful
+
+    async def delete(self) -> bool:
+        """
+        Remove a document from the index.
+
+        Returns
+        -------
+        bool
+            Whether the operation was successful or not.
+        """
+        if not self.id:
+            return False
+
+        try:
+            resp = await self._es.delete(
+                index=self._index_name,
+                id=self.id,
+                refresh=False,
+            )
+        except Exception as e:
+            logger.exception(e)
+        else:
+            return True
+
+        return False
 
     async def update(
         self,

@@ -354,14 +354,37 @@ def find_hashtags_in_text(
     text: Union[str, List[Union[str, None]]],
     mention_source: Union[MentionSource, List[MentionSource]],
 ) -> List[Tuple[str, int, MentionSource]]:
+    """
+    Find hashtags in the given text.
+
+    Parameters
+    ----------
+    text : str | list of str
+        A string or an array of strings to check.
+    mention_source : MentionSource | list of MentionSource
+        A `MentionSource` object or a list of `MentionSource` objects.
+
+    Returns
+    -------
+    list
+        A list containing a tuple of the `hashtag` string, its starting index, and its mention source.
+
+    Raises
+    ------
+    ValueError
+        If input data is invalid.
+
+    """
     if text is None or not len(text) or mention_source is None:
         return []
 
     hashtags = collections.deque()
+
     if not isinstance(text, str) and isinstance(text, List):
         if isinstance(mention_source, List):
             if len(mention_source) != len(text):
-                raise Exception(f"mention_source and text must of the the same size: {len(mention_source)} != " f"{len(text)}")
+                raise ValueError(f"mention_source and text must of the the same size: {len(mention_source)} != " f"{len(text)}")
+
             for text__, mention_source_ in zip(text, mention_source):
                 if text__ is not None and mention_source_ is not None:
                     hashtags.extend(find_hashtags(text__, mention_source_))
@@ -375,3 +398,10 @@ def find_hashtags_in_text(
             hashtags.extend(find_hashtags(text, mention_source))
 
     return list(hashtags)
+
+
+def group_list_by_step(
+    l: List[Any],
+    step: int = 100,
+) -> List[List[Any]]:
+    return [l[i : i + step] for i in range(0, len(l), step)]

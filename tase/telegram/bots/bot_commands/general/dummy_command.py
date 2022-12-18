@@ -1,5 +1,3 @@
-import random
-
 import pyrogram
 from pydantic import Field
 from pyrogram.enums import ParseMode
