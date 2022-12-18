@@ -76,10 +76,18 @@ class BaseHandler(BaseModel):
                 res = await self.telegram_client.get_messages(chat_id=chats_dict[chat_id].username, message_ids=message_ids)
             except KeyError:
                 # todo: this chat is no longer is public or available, update the databases accordingly
-                pass
+                if chat_id in chats_dict:
+                    if await chats_dict[chat_id].mark_as_invalid():
+                        await self.db.graph.mark_chat_audios_as_deleted(chat_id)
+                    else:
+                        logger.error(f"Error in marking the `Chat` with key `{db_chat.key}` as invalid.")
                 return [], chat_id
             except ChannelInvalid:
-                pass
+                if chat_id in chats_dict:
+                    if await chats_dict[chat_id].mark_as_invalid():
+                        await self.db.graph.mark_chat_audios_as_deleted(chat_id)
+                    else:
+                        logger.error(f"Error in marking the `Chat` with key `{db_chat.key}` as invalid.")
             else:
                 return res, chat_id
 

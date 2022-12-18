@@ -75,6 +75,7 @@ class ForwardMessageTask(BaseTask):
 
             successful, new_messages = await self.get_new_messages(
                 db,
+                db_chat,
                 source_chat_id,
                 source_message_ids,
                 telegram_client,
@@ -395,6 +396,7 @@ class ForwardMessageTask(BaseTask):
     async def get_new_messages(
         self,
         db: DatabaseClient,
+        db_chat: graph_models.vertices.Chat,
         source_chat_id: int,
         source_message_ids: List[int],
         telegram_client: TelegramClient,
@@ -410,10 +412,18 @@ class ForwardMessageTask(BaseTask):
             successful = True
         except KeyError as e:
             # chat is no longer has that username or the username is invalid
-            pass
+            # mark the chat as invalid and invalid all audios belonging to this chat
+            if await db_chat.mark_as_invalid():
+                await db.graph.mark_chat_audios_as_deleted(source_chat_id)
+            else:
+                logger.error(f"Error in marking the `Chat` with key `{db_chat.key}` as invalid.")
         except ChannelInvalid as e:
             # The channel parameter is invalid
-            pass
+            # mark the chat as invalid and invalid all audios belonging to this chat
+            if await db_chat.mark_as_invalid():
+                await db.graph.mark_chat_audios_as_deleted(source_chat_id)
+            else:
+                logger.error(f"Error in marking the `Chat` with key `{db_chat.key}` as invalid.")
         except Exception as e:
             pass
 

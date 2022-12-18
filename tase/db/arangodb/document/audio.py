@@ -367,9 +367,11 @@ class AudioMethods:
         if excluded_key:
             bind_vars["excluded_key"] = excluded_key
 
-        await Audio.execute_query(
+        cursor = await Audio.execute_query(
             self._delete_audio_cache_by_chat_id_and_message_id_with_excluded_key_query
             if excluded_key
             else self._delete_audio_cache_by_chat_id_and_message_id_without_excluded_key_query,
             bind_vars=bind_vars,
         )
+        if cursor:
+            await cursor.close(ignore_missing=True)

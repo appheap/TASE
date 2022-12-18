@@ -642,6 +642,12 @@ class AudioMethods:
         "       return chat_audios"
     )
 
+    _mark_chat_audios_as_deleted_query = (
+        "for audio in @@audios"
+        "   filter audio.chat_id == @chat_id and audio.is_deleted == true"
+        "   update {_key: audio._key, is_deleted: true, modified_at : @modified_at, deleted_at: @deleted_at} in @@audios options {ignoreRevs: true}"
+    )
+
     async def create_audio(
         self: ArangoGraphMethods,
         telegram_message: pyrogram.types.Message,
@@ -1255,6 +1261,36 @@ class AudioMethods:
                 "playlists": Playlist._collection_name,
             },
         )
+
+    async def mark_chat_audios_as_deleted(
+        self,
+        chat_id: int,
+    ) -> None:
+        """
+        Mark `Audio` vertices belonging to a chat as deleted.
+
+        Parameters
+        ----------
+        chat_id : int
+            ID of the chat to mark the audio vertices as deleted.
+        """
+        if chat_id is None:
+            return
+
+        now = get_now_timestamp()
+
+        cursor=await Audio.execute_query(
+            self._mark_chat_audios_as_deleted_query,
+            bind_vars={
+                "chat_id": chat_id,
+                "@audios": Audio._collection_name,
+                "modified_at": now,
+                "deleted_at": now,
+            },
+        )
+
+        if cursor:
+            await cursor.close(ignore_missing=True)
 
     async def get_not_deleted_audio_vertices(
         self,

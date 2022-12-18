@@ -261,6 +261,24 @@ class Chat(BaseVertex):
 
         return is_public
 
+    async def mark_as_invalid(self) -> bool:
+        """
+        Mark the `Chat` the as invalid. This happens when the chat is no longer valid or is deleted by Telegram.
+
+        Returns
+        -------
+        bool
+            Whether the operation was successful or not.
+
+        """
+        self_copy: Chat = self.copy(deep=True)
+        self_copy.is_valid = False
+        return await self.update(
+            self_copy,
+            reserve_non_updatable_fields=True,
+            check_for_revisions_match=False,
+        )
+
     async def update_username_extractor_metadata(
         self,
         metadata: UsernameExtractorMetadata,
