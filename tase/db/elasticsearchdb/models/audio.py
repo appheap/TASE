@@ -63,6 +63,7 @@ class Audio(BaseDocument):
             "audio_type": {"type": "integer"},
             "valid_for_inline_search": {"type": "boolean"},
             "type": {"type": "integer"},
+            "archive_chat_id": {"type": "long"},
             "archive_message_id": {"type": "long"},
             "estimated_bit_rate_type": {"type": "integer"},
             "is_forwarded": {"type": "boolean"},
