@@ -83,7 +83,7 @@ class ForwardMessageTask(BaseTask):
                 await self.task_failed(db)
                 return
 
-            forwardable_message_ids = await self.check_new_messages(
+            forwardable_messages, non_forwardable_message_count = await self.check_new_messages(
                 telegram_client,
                 db,
                 source_chat_id,
@@ -91,7 +91,7 @@ class ForwardMessageTask(BaseTask):
                 es_audio_docs,
                 new_messages,
             )
-            if not forwardable_message_ids:
+            if not forwardable_messages:
                 await self.task_failed(db)
                 return
 
@@ -101,7 +101,8 @@ class ForwardMessageTask(BaseTask):
             # forward the forwardable messages
             successful, forwarded_messages = await self.forward_messages(
                 telegram_client,
-                forwardable_message_ids,
+                forwardable_messages,
+                non_forwardable_message_count,
                 source_chat_id,
             )
             if not successful or not forwarded_messages:
@@ -112,7 +113,7 @@ class ForwardMessageTask(BaseTask):
             target_chat_id = telegram_client.archive_channel_info.chat_id
 
             logger.debug(
-                f"[{telegram_client.name}] Forwarded {count} out of {len(forwardable_message_ids)} message(s) from `{db_chat.username}` to Archive Channel (`{telegram_client.archive_channel_info.chat_id}`) "
+                f"[{telegram_client.name}] Forwarded {count} out of {len(forwardable_messages)} message(s) from `{db_chat.username}` to Archive Channel (`{telegram_client.archive_channel_info.chat_id}`) "
             )
 
             forwarded_file_unique_ids = await self.check_forwarded_messages(
@@ -126,7 +127,7 @@ class ForwardMessageTask(BaseTask):
             await self.check_failed_forwarded_messages(
                 telegram_client,
                 db,
-                forwardable_message_ids,
+                list(forwardable_messages),
                 forwarded_file_unique_ids,
                 forwarded_messages,
                 source_chat_id,
@@ -152,12 +153,12 @@ class ForwardMessageTask(BaseTask):
         self,
         telegram_client: TelegramClient,
         db: DatabaseClient,
-        forwardable_message_ids: Deque[int],
+        forwardable_messages: List[pyrogram.types.Message],
         forwarded_file_unique_ids: Set[str],
         forwarded_messages: List[pyrogram.types.Message],
         source_chat_id: int,
     ):
-        if len(forwarded_messages) != len(forwardable_message_ids):
+        if len(forwarded_messages) != len(forwardable_messages):
             not_forwarded_message_ids = [message.id for message in forwarded_messages if message.audio.file_unique_id not in forwarded_file_unique_ids]
 
             if not_forwarded_message_ids:
@@ -241,22 +242,58 @@ class ForwardMessageTask(BaseTask):
     async def forward_messages(
         self,
         telegram_client: TelegramClient,
-        forwardable_message_ids: Deque[int],
+        forwardable_messages: Deque[pyrogram.types.Message],
+        non_forwardable_message_count: int,
         source_chat_id: int,
     ) -> Tuple[bool, List[pyrogram.types.Message]]:
         successful = False
-        message_or_messages = []
+        forwarded_messages = collections.deque()
 
         try:
-            message_or_messages = await telegram_client.forward_messages(
-                chat_id=telegram_client.archive_channel_info.chat_id,
-                from_chat_id=source_chat_id,
-                message_ids=list(forwardable_message_ids),
-                drop_author=True,
-                drop_media_captions=False,
-            )
-            if not isinstance(message_or_messages, list):
-                message_or_messages = [message_or_messages]
+            remainder = collections.deque()
+
+            if non_forwardable_message_count:
+                for msg in forwardable_messages:
+                    if msg.has_protected_content:
+                        if msg.audio:
+                            forwarded_message = await telegram_client._client.send_audio(
+                                chat_id=telegram_client.archive_channel_info.chat_id,
+                                audio=msg.audio.file_id,
+                                caption=msg.caption,
+                            )
+                        elif msg.document:
+                            forwarded_message = await telegram_client._client.send_document(
+                                chat_id=telegram_client.archive_channel_info.chat_id,
+                                document=msg.audio.file_id,
+                                caption=msg.caption,
+                            )
+                        else:
+                            forwarded_message = None
+
+                        if forwarded_message:
+                            forwarded_messages.append(forwarded_message)
+
+                            # sleep before sending any more messages to avoid `floodwait` errors
+                            await asyncio.sleep(random.randint(5, 15))  # todo: is it enough?
+                    else:
+                        remainder.append(msg)
+
+                forwardable_messages.clear()
+                if remainder:
+                    forwardable_messages.extend(remainder)
+
+            if forwardable_messages:
+                message_or_messages = await telegram_client.forward_messages(
+                    chat_id=telegram_client.archive_channel_info.chat_id,
+                    from_chat_id=source_chat_id,
+                    message_ids=[msg.id for msg in forwardable_messages],
+                    drop_author=True,
+                    drop_media_captions=False,
+                )
+                if not isinstance(message_or_messages, list):
+                    forwarded_messages.append(message_or_messages)
+                else:
+                    forwarded_messages.extend(message_or_messages)
 
             successful = True
         except MessageIdInvalid:
@@ -269,7 +306,7 @@ class ForwardMessageTask(BaseTask):
         except Exception as e:
             logger.exception(e)
 
-        return successful, message_or_messages
+        return successful, list(forwarded_messages)
 
     async def check_new_messages(
         self,
@@ -279,8 +316,9 @@ class ForwardMessageTask(BaseTask):
         db_audios: Deque[graph_models.vertices.Audio],
         es_audio_docs: List[elasticsearch_models.Audio],
         new_messages: List[pyrogram.types.Message],
-    ) -> Deque[int]:
-        forwardable_message_ids = collections.deque()
+    ) -> Tuple[Deque[pyrogram.types.Message], int]:
+        forwardable_messages = collections.deque()
+        non_forwardable_message_count = 0
 
         for new_message, db_audio, es_audio_doc in zip(new_messages, db_audios, es_audio_docs):
             audio, telegram_audio_type = get_telegram_message_media_type(new_message)
@@ -303,7 +341,8 @@ class ForwardMessageTask(BaseTask):
                         # audio is the same as the audio in the database, forward it
                         if new_message.has_protected_content:
                             if telegram_client.client_type == ClientTypes.BOT:
-                                forwardable_message_ids.append(new_message)
+                                forwardable_messages.append(new_message)
+                                non_forwardable_message_count += 1
                             else:
                                 # this message content is protected and cannot be forwarded by a user client.
                                 # todo: this must not happen!
@@ -315,7 +354,7 @@ class ForwardMessageTask(BaseTask):
                                 )
                                 logger.error(f"Message `{new_message.id}` from chat `{new_message.chat.id}` has content protection enabled!")
                         else:
-                            forwardable_message_ids.append(new_message.id)
+                            forwardable_messages.append(new_message)
                     else:
                         # message is not the same as the audio in the database, update the audio in all databases.
                         await db.update_or_create_audio(
@@ -325,7 +364,7 @@ class ForwardMessageTask(BaseTask):
                             AudioType.NOT_ARCHIVED,
                         )
 
-        return forwardable_message_ids
+        return forwardable_messages, non_forwardable_message_count
 
     async def get_updated_chat(
         self,

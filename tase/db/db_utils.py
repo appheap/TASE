@@ -9,6 +9,20 @@ from tase.errors import TelegramMessageWithNoAudio
 def get_telegram_message_media_type(
     telegram_message: pyrogram.types.Message,
 ) -> Tuple[Optional[Union[pyrogram.types.Audio, pyrogram.types.Document]], TelegramAudioType]:
+    """
+    Get media type of the given telegram message along with included telegram `Audio` or `Document` object if it has any.
+
+    Parameters
+    ----------
+    telegram_message : pyrogram.types.Message
+        Telegram message to extract the `Audio` from.
+
+    Returns
+    -------
+    tuple
+        A tuple of `Audio` or `Document` and the type of the telegram audio in the given message.
+
+    """
     if telegram_message.media is None:
         audio = None
         audio_type = TelegramAudioType.NON_AUDIO
