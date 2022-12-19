@@ -273,7 +273,7 @@ class MentionsMethods:
         if username is None or not isinstance(username, Username):
             return False
 
-        cursor = await Mentions.execute_query(
+        async with await Mentions.execute_query(
             self._update_mentions_edges_from_chat_to_username_query,
             bind_vars={
                 "start_vertex": username.id,
@@ -283,8 +283,5 @@ class MentionsMethods:
                 "is_checked": username.is_checked,
                 "checked_at": username.checked_at,
             },
-        )
-        if cursor is not None and len(cursor):
-            return True
-        else:
-            return False
+        ) as cursor:
+            return not cursor.empty()

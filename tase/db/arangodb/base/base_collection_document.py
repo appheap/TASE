@@ -935,7 +935,11 @@ class BaseCollectionDocument(BaseCollectionAttributes):
         else:
             return cursor
 
-        return None
+        return Cursor(
+            cls._aql._connection,
+            cls._aql._executor,
+            {},
+        )
 
     ########################################################################
     @classmethod

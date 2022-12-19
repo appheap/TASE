@@ -1252,7 +1252,7 @@ class AudioMethods:
         from tase.db.arangodb.graph.vertices import Playlist
         from tase.db.arangodb.graph.edges import Has
 
-        await Audio.execute_query(
+        async with await Audio.execute_query(
             self._remove_audio_from_all_playlists_query,
             bind_vars={
                 "audio_vertex_id": audio_vertex_id,
@@ -1260,7 +1260,8 @@ class AudioMethods:
                 "has": Has._collection_name,
                 "playlists": Playlist._collection_name,
             },
-        )
+        ) as _:
+            pass
 
     async def mark_chat_audios_as_deleted(
         self,
@@ -1279,7 +1280,7 @@ class AudioMethods:
 
         now = get_now_timestamp()
 
-        cursor = await Audio.execute_query(
+        async with await Audio.execute_query(
             self._mark_chat_audios_as_deleted_query,
             bind_vars={
                 "chat_id": chat_id,
@@ -1287,10 +1288,8 @@ class AudioMethods:
                 "modified_at": now,
                 "deleted_at": now,
             },
-        )
-
-        if cursor:
-            await cursor.close(ignore_missing=True)
+        ) as _:
+            pass
 
     async def get_not_deleted_audio_vertices(
         self,

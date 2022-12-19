@@ -248,7 +248,7 @@ class BotTaskMethods:
         if user_id is None or bot_id is None or task_type is None:
             return False
 
-        cursor = await BotTask.execute_query(
+        async with await BotTask.execute_query(
             self._cancel_recent_bot_tasks_query,
             bind_vars={
                 "@doc_bot_tasks": BotTask._collection_name,
@@ -258,8 +258,8 @@ class BotTaskMethods:
                 "status": BotTaskStatus.CREATED.value,
                 "new_status": BotTaskStatus.CANCELED.value,
             },
-        )
-        return cursor is not None
+        ) as cursor:
+            return not cursor.empty()
 
     async def get_latest_bot_task(
         self,

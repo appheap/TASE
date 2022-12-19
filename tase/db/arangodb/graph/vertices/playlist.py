@@ -1056,7 +1056,7 @@ class PlaylistMethods:
 
         from tase.db.arangodb.graph.edges import Has
 
-        cursor = await Playlist.execute_query(
+        async with await Playlist.execute_query(
             self._audio_in_favorite_playlist_query,
             bind_vars={
                 "user_id": user.id,
@@ -1065,9 +1065,8 @@ class PlaylistMethods:
                 "playlists": Playlist._collection_name,
                 "audios": Audio._collection_name,
             },
-        )
-
-        return True if cursor is not None and len(cursor) else False
+        ) as cursor:
+            return not cursor.empty()
 
     async def toggle_favorite_playlist(
         self,

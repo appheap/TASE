@@ -84,11 +84,17 @@ class Cursor:
             self._cached = data["cached"]
             result["cached"] = data["cached"]
 
-        self._has_more = bool(data["hasMore"])
-        result["has_more"] = data["hasMore"]
+        if "hasMore" in data:
+            self._has_more = bool(data["hasMore"])
+            result["has_more"] = data["hasMore"]
+        else:
+            self._has_more = False
 
-        self._batch.extend(data["result"])
-        result["batch"] = data["result"]
+        if "result" in data:
+            self._batch.extend(data["result"])
+            result["batch"] = data["result"]
+        else:
+            result["batch"] = []
 
         if "extra" in data:
             extra = data["extra"]

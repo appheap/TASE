@@ -212,7 +212,7 @@ class RabbitMQTaskMethods:
             },
         ) as cursor:
             async for doc in cursor:
-                RabbitMQTask.from_collection(doc)
+                return RabbitMQTask.from_collection(doc)
 
         return None
 
@@ -244,7 +244,7 @@ class RabbitMQTaskMethods:
         if task_type is None or task_type == RabbitMQTaskType.UNKNOWN:
             return False
 
-        cursor = await RabbitMQTask.execute_query(
+        async with await RabbitMQTask.execute_query(
             self._cancel_active_rabbitmq_tasks_query,
             bind_vars={
                 "@rabbitmq_tasks": RabbitMQTask._collection_name,
@@ -256,5 +256,5 @@ class RabbitMQTaskMethods:
                 ],
                 "new_status": RabbitMQTaskStatus.CANCELED.value,
             },
-        )
-        return cursor is not None
+        ) as cursor:
+            return not cursor.empty()
