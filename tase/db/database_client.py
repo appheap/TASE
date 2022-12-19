@@ -146,3 +146,22 @@ class DatabaseClient:
             message_id=message_id,
             excluded_id=excluded_audio_vertex_key,
         )
+
+    async def mark_chat_audios_as_deleted(
+        self,
+        chat_id: int,
+    ) -> None:
+        """
+        Mark `Audio` vertices in ArangoDB and documents in the Elasticsearch with the given `chat_id` as deleted.
+
+        Parameters
+        ----------
+        chat_id : int
+            ID of the chat the audio documents belongs to.
+
+        """
+        if chat_id is None:
+            return
+
+        await self.graph.mark_chat_audios_as_deleted(chat_id=chat_id)
+        await self.index.mark_chat_audios_as_deleted(chat_id=chat_id)

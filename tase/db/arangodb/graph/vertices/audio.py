@@ -1279,7 +1279,7 @@ class AudioMethods:
 
         now = get_now_timestamp()
 
-        cursor=await Audio.execute_query(
+        cursor = await Audio.execute_query(
             self._mark_chat_audios_as_deleted_query,
             bind_vars={
                 "chat_id": chat_id,

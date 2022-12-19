@@ -847,3 +847,45 @@ class AudioMethods:
 
         except Exception as e:
             logger.exception(e)
+
+    async def mark_chat_audios_as_deleted(
+        self,
+        chat_id: int,
+    ) -> None:
+        """
+        Mark `Audio` documents with the given `chat_id` as deleted.
+
+        Parameters
+        ----------
+        chat_id : int
+            ID of the chat the audio documents belongs to.
+
+        """
+        if chat_id is None:
+            return
+
+        deleted_at = get_now_timestamp()
+
+        try:
+            await Audio._es.update_by_query(
+                index=Audio._index_name,
+                conflicts="proceed",
+                query={
+                    "bool": {
+                        "filter": [
+                            {"term": {"is_deleted": {"value": False}}},
+                            {"term": {"chat_id": {"value": chat_id}}},
+                        ],
+                    }
+                },
+                script={
+                    "source": f"ctx._source.is_deleted = true; ctx._source.deleted_at = params.deleted_at; ctx._source.modified_at = params.deleted_at",
+                    "lang": "painless",
+                    "params": {
+                        "deleted_at": deleted_at,
+                    },
+                },
+            )
+
+        except Exception as e:
+            logger.exception(e)

@@ -78,14 +78,14 @@ class BaseHandler(BaseModel):
                 # todo: this chat is no longer is public or available, update the databases accordingly
                 if chat_id in chats_dict:
                     if await chats_dict[chat_id].mark_as_invalid():
-                        await self.db.graph.mark_chat_audios_as_deleted(chat_id)
+                        await self.db.mark_chat_audios_as_deleted(chat_id)
                     else:
                         logger.error(f"Error in marking the `Chat` with key `{db_chat.key}` as invalid.")
                 return [], chat_id
             except ChannelInvalid:
                 if chat_id in chats_dict:
                     if await chats_dict[chat_id].mark_as_invalid():
-                        await self.db.graph.mark_chat_audios_as_deleted(chat_id)
+                        await self.db.mark_chat_audios_as_deleted(chat_id)
                     else:
                         logger.error(f"Error in marking the `Chat` with key `{db_chat.key}` as invalid.")
             else:

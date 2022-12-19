@@ -414,14 +414,14 @@ class ForwardMessageTask(BaseTask):
             # chat is no longer has that username or the username is invalid
             # mark the chat as invalid and invalid all audios belonging to this chat
             if await db_chat.mark_as_invalid():
-                await db.graph.mark_chat_audios_as_deleted(source_chat_id)
+                await db.mark_chat_audios_as_deleted(source_chat_id)
             else:
                 logger.error(f"Error in marking the `Chat` with key `{db_chat.key}` as invalid.")
         except ChannelInvalid as e:
             # The channel parameter is invalid
             # mark the chat as invalid and invalid all audios belonging to this chat
             if await db_chat.mark_as_invalid():
-                await db.graph.mark_chat_audios_as_deleted(source_chat_id)
+                await db.mark_chat_audios_as_deleted(source_chat_id)
             else:
                 logger.error(f"Error in marking the `Chat` with key `{db_chat.key}` as invalid.")
         except Exception as e:
