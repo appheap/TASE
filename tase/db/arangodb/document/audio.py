@@ -362,7 +362,7 @@ class AudioMethods:
         bind_vars = {
             "@doc_audios": Audio._collection_name,
             "chat_id": chat_id,
-            "message_id": chat_id,
+            "message_id": message_id,
         }
         if excluded_key:
             bind_vars["excluded_key"] = excluded_key

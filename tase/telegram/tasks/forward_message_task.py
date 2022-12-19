@@ -51,6 +51,11 @@ class ForwardMessageTask(BaseTask):
                 await self.task_failed(db)
                 return
 
+            if not db_chat.is_valid:
+                await db.mark_chat_audios_as_deleted(db_chat.chat_id)
+                await self.task_failed(db)
+                return
+
             db_audios = await db.graph.get_audios_from_keys(source_message_db_keys)
             if not db_audios:
                 await self.task_failed(db)
@@ -381,8 +386,26 @@ class ForwardMessageTask(BaseTask):
                 tg_chat = await telegram_client.get_chat(db_chat.username)
                 caught_exception = False
             except UsernameNotOccupied as e:
-                # todo: this username is no longer valid, mark audio from this chat as invalid
+                # this username is no longer valid, mark audio from this chat as invalid
                 logger.error(f"Chat `{db_chat.username}` is no longer valid!")
+                if await db_chat.mark_as_invalid():
+                    await db.mark_chat_audios_as_deleted(source_chat_id)
+                else:
+                    logger.error(f"Error in marking the `Chat` with key `{db_chat.key}` as invalid.")
+            except KeyError as e:
+                # chat is no longer has that username or the username is invalid
+                # mark the chat as invalid and invalid all audios belonging to this chat
+                if await db_chat.mark_as_invalid():
+                    await db.mark_chat_audios_as_deleted(source_chat_id)
+                else:
+                    logger.error(f"Error in marking the `Chat` with key `{db_chat.key}` as invalid.")
+            except ChannelInvalid as e:
+                # The channel parameter is invalid
+                # mark the chat as invalid and invalid all audios belonging to this chat
+                if await db_chat.mark_as_invalid():
+                    await db.mark_chat_audios_as_deleted(source_chat_id)
+                else:
+                    logger.error(f"Error in marking the `Chat` with key `{db_chat.key}` as invalid.")
             except Exception as e:
                 logger.exception(e)
             else:

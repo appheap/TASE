@@ -150,6 +150,13 @@ class Audio(BaseVertex):
         ),
         PersistentIndex(
             custom_version=1,
+            name="type",
+            fields=[
+                "type",
+            ],
+        ),
+        PersistentIndex(
+            custom_version=1,
             name="is_forwarded",
             fields=[
                 "is_forwarded",
@@ -599,7 +606,7 @@ class AudioMethods:
         "for audio in @@audios"
         "   filter audio.chat_id == @chat_id and not audio.is_deleted and audio.message_id == @message_id and audio._key != @excluded_key"
         "   sort audio.created_at asc"
-        "   update {_key:audio._key, is_deleted: true, deleted_at: @deleted_at} in audios options {ignoreRevs: true}"
+        "   update {_key:audio._key, is_deleted: true, deleted_at: @deleted_at, modified_at: @deleted_at} in audios options {ignoreRevs: true}"
         "   filter NEW.type == @not_archived"
         "   return NEW"
     )
@@ -608,7 +615,7 @@ class AudioMethods:
         "for audio in @@audios"
         "   filter audio.chat_id == @chat_id and not audio.is_deleted and audio.message_id == @message_id "
         "   sort audio.created_at asc"
-        "   update {_key:audio._key, is_deleted: true, deleted_at: @deleted_at} in audios options {ignoreRevs: true}"
+        "   update {_key:audio._key, is_deleted: true, deleted_at: @deleted_at, modified_at: @deleted_at} in audios options {ignoreRevs: true}"
         "   filter NEW.type == @not_archived"
         "   return NEW"
     )
@@ -637,14 +644,14 @@ class AudioMethods:
         "   filter interaction.type == @interaction_type and interaction.created_at < @now"
         "   sort interaction.created_at desc"
         "   for v_audio in 1..1 outbound interaction graph @graph_name options {order: 'dfs', edgeCollections: [@has], vertexCollections: [@audios]}"
-        "       filter not has(v_audio, 'type') or v_audio.type == @not_archived_type"
+        "       filter not v_audio.is_deleted and (not has(v_audio, 'type') or v_audio.type == @not_archived_type)"
         "       collect temp = v_audio.chat_id into chat_audios = v_audio"
         "       return chat_audios"
     )
 
     _mark_chat_audios_as_deleted_query = (
         "for audio in @@audios"
-        "   filter audio.chat_id == @chat_id and audio.is_deleted == true"
+        "   filter audio.chat_id == @chat_id and audio.is_deleted == false"
         "   update {_key: audio._key, is_deleted: true, modified_at : @modified_at, deleted_at: @deleted_at} in @@audios options {ignoreRevs: true}"
     )
 
@@ -1324,7 +1331,7 @@ class AudioMethods:
             bind_vars={
                 "@audios": Audio._collection_name,
                 "chat_id": chat_id,
-                "message_id": chat_id,
+                "message_id": message_id,
                 "excluded_key": excluded_key,
             },
         ) as cursor:
@@ -1362,7 +1369,7 @@ class AudioMethods:
         bind_vars = {
             "@audios": Audio._collection_name,
             "chat_id": chat_id,
-            "message_id": chat_id,
+            "message_id": message_id,
             "not_archived": AudioType.NOT_ARCHIVED.value,
             "deleted_at": deleted_at,
         }
@@ -1479,7 +1486,14 @@ class AudioMethods:
             async for audio_doc_lst in cursor:
                 group = collections.deque()
                 group_keys = set()
+
+                if not audio_doc_lst:
+                    continue
+
                 for audio_doc in audio_doc_lst:
+                    if not audio_doc:
+                        continue
+
                     if audio_doc["_key"] not in group_keys:
                         _audio = Audio.from_collection(audio_doc)
                         group.append(_audio)
