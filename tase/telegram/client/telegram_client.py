@@ -290,6 +290,13 @@ class UserTelegramClient(TelegramClient):
             api_id=self.api_id,
             api_hash=self.api_hash,
             workdir=self.workdir,
+            # proxy={
+            #     "scheme": "socks5",
+            #     "hostname": "127.0.0.1",
+            #     "port": 9150,
+            #     "username": None,
+            #     "password": None,
+            # },
         )
 
 
@@ -317,6 +324,13 @@ class BotTelegramClient(TelegramClient):
             api_hash=self.api_hash,
             bot_token=self.token,
             workdir=self.workdir,
+            # proxy={
+            #     "scheme": "socks5",
+            #     "hostname": "127.0.0.1",
+            #     "port": 9150,
+            #     "username": None,
+            #     "password": None,
+            # },
         )
 
     async def set_bot_commands(
