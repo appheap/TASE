@@ -367,7 +367,7 @@ class BaseCollectionDocument(BaseCollectionAttributes):
         except CollectionUniqueConstraintViolated:
             # A unique constraint in this collection has been violated; document key or an unique index.
             # fixme
-            pass
+            logger.error(f"[CollectionUniqueConstraintViolated] => {doc.id}")
         except ArangoServerError as e:
             # Failed to insert the document
             logger.exception(f"{cls.__name__} : {e}")
@@ -884,6 +884,7 @@ class BaseCollectionDocument(BaseCollectionAttributes):
         bind_vars: Dict[str, Any],
         ttl: Optional[int] = None,
         batch_size: Optional[int] = 1000,
+        stream: Optional[bool] = None,
     ) -> Result[Cursor]:
         """
         Execute a query and return a `Cursor` object if did not catch any errors, otherwise, return `None`.
@@ -907,6 +908,17 @@ class BaseCollectionDocument(BaseCollectionAttributes):
             the server to the client in one roundtrip. If this attribute is
             not set, a server-controlled default value will be used. A **batch_size** value of
             `0` is disallowed.
+        stream : bool, optional
+            Can be enabled to execute the query lazily. If set to `true`, then the query is
+            executed as long as necessary to produce up to **batch_size** results. These
+            results are returned immediately and the query is suspended until the client
+            asks for the next batch (if there are more results). Depending on the query
+            this can mean that the first results will be available much faster and that
+            less memory is needed because the server only needs to store a subset of
+            results at a time. Read-only queries can benefit the most, unless `SORT`
+            without `index` or `COLLECT` are involved that make it necessary to process all
+            documents before a partial result can be returned. It is advisable to only use
+            this option for "queries without exclusive locks".
         Returns
         -------
         Result[Cursor]
@@ -923,6 +935,7 @@ class BaseCollectionDocument(BaseCollectionAttributes):
                 count=True,
                 ttl=ttl,
                 batch_size=batch_size,
+                stream=stream,
             )
         except CursorCountError as e:
             logger.error(query)
