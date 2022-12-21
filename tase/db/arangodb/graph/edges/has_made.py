@@ -11,11 +11,11 @@ class HasMade(BaseEdge):
     Connection from `User` to `Query
     """
 
-    _collection_name = "has_made"
+    __collection_name__ = "has_made"
     schema_version = 1
 
-    _from_vertex_collections = (User,)
-    _to_vertex_collections = (Query,)
+    __from_vertex_collections__ = (User,)
+    __to_vertex_collections__ = (Query,)
 
     @classmethod
     @EdgeEndsValidator

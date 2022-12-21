@@ -11,11 +11,11 @@ class FileRef(BaseEdge):
     Connection from `Audio` to `File`
     """
 
-    _collection_name = "file_ref"
+    __collection_name__ = "file_ref"
     schema_version = 1
 
-    _from_vertex_collections = (Audio,)
-    _to_vertex_collections = (File,)
+    __from_vertex_collections__ = (Audio,)
+    __to_vertex_collections__ = (File,)
 
     @classmethod
     @EdgeEndsValidator

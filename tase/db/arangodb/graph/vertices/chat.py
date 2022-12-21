@@ -25,9 +25,9 @@ from ...helpers import (
 
 
 class Chat(BaseVertex):
-    _collection_name = "chats"
+    __collection_name__ = "chats"
     schema_version = 1
-    _extra_indexes = [
+    __indexes__ = [
         PersistentIndex(
             custom_version=1,
             name="chat_id",
@@ -136,7 +136,7 @@ class Chat(BaseVertex):
         ),
     ]
 
-    _extra_do_not_update_fields = (
+    __non_updatable_fields__ = (
         "audio_indexer_metadata",
         "audio_doc_indexer_metadata",
         "username_extractor_metadata",
@@ -791,8 +791,8 @@ class ChatMethods:
             self._get_chat_linked_chat_with_edge_query,
             bind_vars={
                 "start_vertex": chat.id,
-                "linked_chat": LinkedChat._collection_name,
-                "chat": Chat._collection_name,
+                "linked_chat": LinkedChat.__collection_name__,
+                "chat": Chat.__collection_name__,
             },
         ) as cursor:
             async for doc in cursor:
@@ -844,8 +844,8 @@ class ChatMethods:
             self._get_chat_username_with_edge_query,
             bind_vars={
                 "start_vertex": chat.id,
-                "has": Has._collection_name,
-                "usernames": Username._collection_name,
+                "has": Has.__collection_name__,
+                "usernames": Username.__collection_name__,
             },
         ) as cursor:
             async for doc in cursor:
@@ -887,7 +887,7 @@ class ChatMethods:
         async with await Chat.execute_query(
             self._get_chats_by_keys,
             bind_vars={
-                "@chats": Chat._collection_name,
+                "@chats": Chat.__collection_name__,
                 "chat_keys": list(keys),
             },
         ) as cursor:
@@ -922,7 +922,7 @@ class ChatMethods:
             if filter_by_indexed_chats
             else self._get_not_extracted_chats_sorted_by_members_count_query,
             bind_vars={
-                "@chats": Chat._collection_name,
+                "@chats": Chat.__collection_name__,
                 "chat_type": chat_type,
             },
         ) as cursor:
@@ -952,7 +952,7 @@ class ChatMethods:
         async with await Chat.execute_query(
             self._get_chats_sorted_by_audio_indexer_score_query if filter_by_indexed_chats else self._get_not_indexed_chats_sorted_by_members_count_query,
             bind_vars={
-                "@chats": Chat._collection_name,
+                "@chats": Chat.__collection_name__,
                 "chat_type": chat_type,
             },
         ) as cursor:
@@ -976,7 +976,7 @@ class ChatMethods:
         async with await Chat.execute_query(
             self._get_chats_sorted_by_audio_doc_indexer_score,
             bind_vars={
-                "@chats": Chat._collection_name,
+                "@chats": Chat.__collection_name__,
                 "chat_type": chat_type,
             },
         ) as cursor:

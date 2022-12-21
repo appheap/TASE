@@ -6,5 +6,5 @@ from tase.db.arangodb.base import BaseCollectionDocument
 
 
 class BaseDocument(BaseCollectionDocument):
-    _collection_name = "base_document"
-    _collection: Optional[StandardCollection]
+    __collection_name__ = "base_document"
+    __collection__: Optional[StandardCollection]

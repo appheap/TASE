@@ -86,7 +86,7 @@ class ToDocumentAttributeMapper(ToDocumentBaseProcessor):
         document: TBaseDocument,
         attr_value_dict: Dict[str, Any],
     ) -> None:
-        for obj_attr in document._to_db_mapping:
+        for obj_attr in document.__to_db_mapping__:
             del attr_value_dict[obj_attr]
 
 
@@ -139,25 +139,25 @@ class FromDocumentAttributeMapper(FromDocumentBaseProcessor):
 class BaseDocument(BaseModel):
     schema_version: int = Field(default=1)
 
-    _es: Optional[AsyncElasticsearch]
+    __es__: Optional[AsyncElasticsearch]
 
-    _index_name = "base_index_name"
-    _mappings = {}
+    __index_name__ = "base_index_name"
+    __mappings__ = {}
 
-    _to_db_mapping = ("id", "search_metadata")
-    _search_fields: List[str] = []
+    __to_db_mapping__ = ("id", "search_metadata")
+    __search_fields__: List[str] = []
 
-    _to_index_base_processors: Optional[Tuple[ToDocumentBaseProcessor]] = (
+    __to_index_base_processors__: Optional[Tuple[ToDocumentBaseProcessor]] = (
         ToDocumentEnumConverter,
         ToDocumentAttributeMapper,
     )
-    _to_index_extra_processors: Optional[Tuple[ToDocumentBaseProcessor]] = None
+    __to_index_processors__: Optional[Tuple[ToDocumentBaseProcessor]] = None
 
-    _from_index_base_processors: Optional[Tuple[FromDocumentBaseProcessor]] = (FromDocumentAttributeMapper,)
-    _from_index_extra_processors: Optional[Tuple[FromDocumentBaseProcessor]] = None
+    __from_index_base_processors__: Optional[Tuple[FromDocumentBaseProcessor]] = (FromDocumentAttributeMapper,)
+    __from_index_processors__: Optional[Tuple[FromDocumentBaseProcessor]] = None
 
-    _base_do_not_update_fields: Optional[Tuple[str]] = ("created_at",)
-    _extra_do_not_update_fields: Optional[Tuple[str]] = None
+    __base_non_updatable_fields__: Optional[Tuple[str]] = ("created_at",)
+    __non_updatable_fields__: Optional[Tuple[str]] = None
 
     id: Optional[str]
 
@@ -178,14 +178,14 @@ class BaseDocument(BaseModel):
         """
         attr_value_dict = self.dict()
 
-        for attrib_processor in self._to_index_base_processors:
+        for attrib_processor in self.__to_index_base_processors__:
             try:
                 attrib_processor.process(self, attr_value_dict)
             except Exception as e:
                 return None, None
 
-        if self._to_index_extra_processors is not None:
-            for doc_processor in self._to_index_extra_processors:
+        if self.__to_index_processors__ is not None:
+            for doc_processor in self.__to_index_processors__:
                 try:
                     doc_processor.process(self, attr_value_dict)
                 except Exception as e:
@@ -235,14 +235,14 @@ class BaseDocument(BaseModel):
             raise ValueError("either `response` or `hit` parameter must be passed to this method")
 
         body = dict()
-        for doc_processor in cls._from_index_base_processors:
+        for doc_processor in cls.__from_index_base_processors__:
             try:
                 doc_processor.process(cls, body, response, hit)
             except Exception as e:
                 return None
 
-        if cls._from_index_extra_processors is not None:
-            for doc_processor in cls._from_index_extra_processors:
+        if cls.__from_index_processors__ is not None:
+            for doc_processor in cls.__from_index_processors__:
                 try:
                     doc_processor.process(cls, body, response, hit)
                 except Exception as e:
@@ -284,11 +284,11 @@ class BaseDocument(BaseModel):
             Updated document
 
         """
-        for field_name in self._base_do_not_update_fields:
+        for field_name in self.__base_non_updatable_fields__:
             setattr(self, field_name, getattr(old_doc, field_name, None))
 
-        if self._extra_do_not_update_fields is not None:
-            for field_name in self._extra_do_not_update_fields:
+        if self.__non_updatable_fields__ is not None:
+            for field_name in self.__non_updatable_fields__:
                 setattr(self, field_name, getattr(old_doc, field_name, None))
 
         return self
@@ -308,7 +308,7 @@ class BaseDocument(BaseModel):
         """
         index_exists = False
         try:
-            await cls._es.indices.get(index=cls._index_name)
+            await cls.__es__.indices.get(index=cls.__index_name__)
             index_exists = True
         except NotFoundError as e:
             index_exists = False
@@ -330,9 +330,9 @@ class BaseDocument(BaseModel):
             Whether the index was created or not
         """
         try:
-            await cls._es.indices.create(
-                index=cls._index_name,
-                mappings=cls._mappings,
+            await cls.__es__.indices.create(
+                index=cls.__index_name__,
+                mappings=cls.__mappings__,
             )
         except Exception as e:
             raise e
@@ -360,8 +360,8 @@ class BaseDocument(BaseModel):
         """
         obj = None
         try:
-            response = await cls._es.get(
-                index=cls._index_name,
+            response = await cls.__es__.get(
+                index=cls.__index_name__,
                 id=doc_id,
             )
             obj = cls.from_index(response=response)
@@ -404,8 +404,8 @@ class BaseDocument(BaseModel):
         try:
             id, doc = document.to_index()
             if id and doc:
-                response = await cls._es.create(
-                    index=cls._index_name,
+                response = await cls.__es__.create(
+                    index=cls.__index_name__,
                     id=id,
                     refresh=False,
                     document=doc,
@@ -433,8 +433,8 @@ class BaseDocument(BaseModel):
             return False
 
         try:
-            resp = await self._es.delete(
-                index=self._index_name,
+            resp = await self.__es__.delete(
+                index=self.__index_name__,
                 id=self.id,
                 refresh=False,
             )
@@ -496,8 +496,8 @@ class BaseDocument(BaseModel):
             if id and doc:
                 doc["modified_at"] = get_now_timestamp()
 
-                response = await self._es.update(
-                    index=self._index_name,
+                response = await self.__es__.update(
+                    index=self.__index_name__,
                     id=id,
                     refresh=False,
                     doc=doc,
@@ -562,8 +562,8 @@ class BaseDocument(BaseModel):
 
         db_docs = collections.deque()
         try:
-            res: ObjectApiResponse = await cls._es.search(
-                index=cls._index_name,
+            res: ObjectApiResponse = await cls.__es__.search(
+                index=cls.__index_name__,
                 from_=from_,
                 size=size,
                 track_total_hits=False,
@@ -641,7 +641,7 @@ class BaseDocument(BaseModel):
                 "fuzziness": "AUTO",
                 "type": "best_fields",
                 "minimum_should_match": "60%",
-                "fields": cls._search_fields,
+                "fields": cls.__search_fields__,
             },
         }
 

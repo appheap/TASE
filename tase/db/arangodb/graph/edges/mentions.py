@@ -16,9 +16,9 @@ class Mentions(BaseEdge):
     Connection from `Chat` to [`Chat`,`Username`]
     """
 
-    _collection_name = "mentions"
+    __collection_name__ = "mentions"
     schema_version = 1
-    _extra_indexes = [
+    __indexes__ = [
         PersistentIndex(
             custom_version=1,
             name="is_direct_mention",
@@ -56,8 +56,8 @@ class Mentions(BaseEdge):
         ),
     ]
 
-    _from_vertex_collections = (Chat,)
-    _to_vertex_collections = (
+    __from_vertex_collections__ = (Chat,)
+    __to_vertex_collections__ = (
         Chat,
         Username,
     )
@@ -184,9 +184,9 @@ class MentionsMethods:
             self._create_and_check_mentions_edges_query,
             bind_vars={
                 "start_vertex": username.id,
-                "chats": Chat._collection_name,
-                "mentions": Mentions._collection_name,
-                "@mentions": Mentions._collection_name,
+                "chats": Chat.__collection_name__,
+                "mentions": Mentions.__collection_name__,
+                "@mentions": Mentions.__collection_name__,
                 "checked_at": username.checked_at,
             },
         ) as cursor:
@@ -277,9 +277,9 @@ class MentionsMethods:
             self._update_mentions_edges_from_chat_to_username_query,
             bind_vars={
                 "start_vertex": username.id,
-                "chats": Chat._collection_name,
-                "@mentions": Mentions._collection_name,
-                "mentions": Mentions._collection_name,
+                "chats": Chat.__collection_name__,
+                "@mentions": Mentions.__collection_name__,
+                "mentions": Mentions.__collection_name__,
                 "is_checked": username.is_checked,
                 "checked_at": username.checked_at,
             },

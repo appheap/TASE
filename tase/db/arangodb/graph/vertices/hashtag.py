@@ -13,8 +13,8 @@ if TYPE_CHECKING:
 
 class Hashtag(BaseVertex):
     schema_version = 1
-    _collection_name = "hashtags"
-    _extra_indexes = [
+    __collection_name__ = "hashtags"
+    __indexes__ = [
         PersistentIndex(
             custom_version=1,
             name="hashtag",
@@ -172,8 +172,8 @@ class HashTagMethods:
             self._get_audio_hashtags_with_edge_query,
             bind_vars={
                 "audio_vertex": audio_vertex_id,
-                "has_hashtag": HasHashtag._collection_name,
-                "hashtags": Hashtag._collection_name,
+                "has_hashtag": HasHashtag.__collection_name__,
+                "hashtags": Hashtag.__collection_name__,
             },
         ) as cursor:
             async for d in cursor:

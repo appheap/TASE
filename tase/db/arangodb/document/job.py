@@ -10,9 +10,9 @@ from ..enums import JobType
 
 
 class Job(BaseDocument):
-    _collection_name = "doc_jobs"
+    __collection_name__ = "doc_jobs"
     schema_version = 1
-    _extra_indexes = [
+    __indexes__ = [
         PersistentIndex(
             custom_version=1,
             name="is_active",

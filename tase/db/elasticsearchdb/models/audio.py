@@ -31,8 +31,8 @@ from ...db_utils import (
 class Audio(BaseDocument):
     schema_version = 1
 
-    _index_name = "audios_index"
-    _mappings = {
+    __index_name__ = "audios_index"
+    __mappings__ = {
         "properties": {
             "schema_version": {"type": "integer"},
             "created_at": {"type": "long"},
@@ -73,7 +73,7 @@ class Audio(BaseDocument):
         }
     }
 
-    _extra_do_not_update_fields = (
+    __non_updatable_fields__ = (
         "views",
         "downloads",
         "shares",
@@ -85,7 +85,7 @@ class Audio(BaseDocument):
         "archive_chat_id",
         "archive_message_id",
     )
-    _search_fields = [
+    __search_fields__ = [
         "performer",
         "title",
         "file_name",
@@ -413,8 +413,8 @@ class Audio(BaseDocument):
         db_docs = []
 
         try:
-            res: ObjectApiResponse = await cls._es.search(
-                index=cls._index_name,
+            res: ObjectApiResponse = await cls.__es__.search(
+                index=cls.__index_name__,
                 query={
                     "match": {
                         "download_url": download_url,
@@ -453,7 +453,7 @@ class Audio(BaseDocument):
                             "fuzziness": "AUTO",
                             "type": "best_fields",
                             "minimum_should_match": "75%",
-                            "fields": cls._search_fields,
+                            "fields": cls.__search_fields__,
                         }
                     },
                     "must_not": [
@@ -474,7 +474,7 @@ class Audio(BaseDocument):
                             "fuzziness": "AUTO",
                             "type": "best_fields",
                             "minimum_should_match": "75%",
-                            "fields": cls._search_fields,
+                            "fields": cls.__search_fields__,
                         }
                     },
                     "must_not": [
@@ -815,8 +815,8 @@ class AudioMethods:
         deleted_at = get_now_timestamp()
 
         try:
-            await Audio._es.update_by_query(
-                index=Audio._index_name,
+            await Audio.__es__.update_by_query(
+                index=Audio.__index_name__,
                 conflicts="proceed",
                 query={
                     "bool": {
@@ -867,8 +867,8 @@ class AudioMethods:
         deleted_at = get_now_timestamp()
 
         try:
-            await Audio._es.update_by_query(
-                index=Audio._index_name,
+            await Audio.__es__.update_by_query(
+                index=Audio.__index_name__,
                 conflicts="proceed",
                 query={
                     "bool": {

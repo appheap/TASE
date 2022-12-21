@@ -12,9 +12,9 @@ from ...db_utils import get_telegram_message_media_type, parse_audio_document_ke
 
 
 class Audio(BaseDocument):
-    _collection_name = "doc_audios"
+    __collection_name__ = "doc_audios"
     schema_version = 1
-    _extra_indexes = [
+    __indexes__ = [
         PersistentIndex(
             custom_version=1,
             name="file_id",
@@ -360,7 +360,7 @@ class AudioMethods:
             return
 
         bind_vars = {
-            "@doc_audios": Audio._collection_name,
+            "@doc_audios": Audio.__collection_name__,
             "chat_id": chat_id,
             "message_id": message_id,
         }

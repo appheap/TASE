@@ -21,7 +21,7 @@ class ToVertexMapper(ToGraphBaseProcessor):
         document: BaseEdge,
         attr_value_dict: Dict[str, Any],
     ) -> None:
-        for k, v in document._to_graph_db_mapping_rel.items():
+        for k, v in document.___to_graph_db_mapping_rel__.items():
             attr_value = attr_value_dict.get(k, None)
             if attr_value is not None:
                 attr_value_dict[v] = attr_value["_id"]
@@ -41,7 +41,7 @@ class FromVertexMapper(FromGraphBaseProcessor):
         for (
             graph_doc_attr,
             obj_attr,
-        ) in document_class._from_graph_db_mapping_rel.items():
+        ) in document_class.__from_graph_db_mapping_rel__.items():
             attr_value = graph_doc.get(graph_doc_attr, None)
             if attr_value is not None:
                 obj = BaseVertex.from_collection(
@@ -70,11 +70,11 @@ class EdgeEndsValidator:
         from_vertex: BaseVertex = args[1]
         to_vertex: BaseVertex = args[2]
 
-        if not isinstance(from_vertex, cls._from_vertex_collections):
+        if not isinstance(from_vertex, cls.__from_vertex_collections__):
             e = InvalidFromVertex(from_vertex.__class__.__name__, cls.__name__)
             logger.error(e)
             raise e
-        if not isinstance(to_vertex, cls._to_vertex_collections):
+        if not isinstance(to_vertex, cls.__to_vertex_collections__):
             e = InvalidToVertex(to_vertex.__class__.__name__, cls.__name__)
             logger.error(e)
             raise e
@@ -83,25 +83,25 @@ class EdgeEndsValidator:
 
 
 class BaseEdge(BaseCollectionDocument):
-    _collection_name = "base_edges"
-    _collection: Optional[EdgeCollection]
+    __collection_name__ = "base_edges"
+    __collection__: Optional[EdgeCollection]
 
-    _from_graph_db_mapping_rel = {
+    __from_graph_db_mapping_rel__ = {
         "_from": "from_node",
         "_to": "to_node",
     }
-    _to_graph_db_mapping_rel = {
+    ___to_graph_db_mapping_rel__ = {
         "from_node": "_from",
         "to_node": "_to",
     }
 
-    _from_vertex_collections: Tuple[Type[BaseVertex]] = (BaseVertex,)
-    _to_vertex_collections: Tuple[Type[BaseVertex]] = (BaseVertex,)
+    __from_vertex_collections__: Tuple[Type[BaseVertex]] = (BaseVertex,)
+    __to_vertex_collections__: Tuple[Type[BaseVertex]] = (BaseVertex,)
 
-    _to_graph_db_extra_processors = [
+    __to_graph_db_processors__ = [
         ToVertexMapper,
     ]
-    _from_graph_db_extra_processors = [
+    __from_graph_db_processors__ = [
         FromVertexMapper,
     ]
 
@@ -113,15 +113,15 @@ class BaseEdge(BaseCollectionDocument):
         cls,
         lst: List[Type[BaseVertex]],
     ) -> List[str]:
-        return [v._collection_name for v in lst if v._collection_name != BaseVertex._collection_name]
+        return [v.__collection_name__ for v in lst if v.__collection_name__ != BaseVertex.__collection_name__]
 
     @classmethod
     def to_vertex_collections(cls) -> List[str]:
-        return cls._get_vertices_collection_names(list(cls._to_vertex_collections))
+        return cls._get_vertices_collection_names(list(cls.__to_vertex_collections__))
 
     @classmethod
     def from_vertex_collections(cls) -> List[str]:
-        return cls._get_vertices_collection_names(list(cls._from_vertex_collections))
+        return cls._get_vertices_collection_names(list(cls.__from_vertex_collections__))
 
     @classmethod
     async def link(
@@ -169,7 +169,7 @@ class BaseEdge(BaseCollectionDocument):
                 return None, False
 
             # fixme: this method hasn't been implemented in `aioarango` yet.
-            metadata = await cls._collection.link(
+            metadata = await cls.__collection__.link(
                 from_vertex=from_vertex.id,
                 to_vertex=to_vertex.id,
                 data=graph_doc,

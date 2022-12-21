@@ -11,11 +11,11 @@ class ToBot(BaseEdge):
     Connection from `Query` to `User`
     """
 
-    _collection_name = "to_bot"
+    __collection_name__ = "to_bot"
     schema_version = 1
 
-    _from_vertex_collections = (Query,)
-    _to_vertex_collections = (User,)
+    __from_vertex_collections__ = (Query,)
+    __to_vertex_collections__ = (User,)
 
     @classmethod
     @EdgeEndsValidator

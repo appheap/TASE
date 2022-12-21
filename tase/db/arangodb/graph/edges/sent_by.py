@@ -9,11 +9,11 @@ from ..vertices import Audio, Chat
 class SentBy(BaseEdge):
     """Connection from `Audio` to `Chat`"""
 
-    _collection_name = "sent_by"
+    __collection_name__ = "sent_by"
     schema_version = 1
 
-    _from_vertex_collections = (Audio,)
-    _to_vertex_collections = (Chat,)
+    __from_vertex_collections__ = (Audio,)
+    __to_vertex_collections__ = (Chat,)
 
     @classmethod
     @EdgeEndsValidator

@@ -82,7 +82,7 @@ class ToGraphAttributeMapper(ToGraphBaseProcessor):
         document: TBaseCollectionAttributes,
         attr_value_dict: Dict[str, Any],
     ) -> None:
-        for obj_attr, graph_doc_attr in document._to_graph_db_mapping.items():
+        for obj_attr, graph_doc_attr in document.__to_graph_db_mapping__.items():
             attr_value = attr_value_dict.get(obj_attr, None)
             if attr_value is not None:
                 attr_value_dict[graph_doc_attr] = attr_value
@@ -142,7 +142,7 @@ class FromGraphAttributeMapper(FromGraphBaseProcessor):
         document_class: Type[TBaseCollectionAttributes],
         graph_doc: Dict[str, Any],
     ) -> None:
-        for graph_doc_attr, obj_attr in document_class._from_graph_db_mapping.items():
+        for graph_doc_attr, obj_attr in document_class.__from_graph_db_mapping__.items():
             attr_value = graph_doc.get(graph_doc_attr, None)
             if attr_value is not None:
                 graph_doc[obj_attr] = attr_value
@@ -155,32 +155,32 @@ class FromGraphAttributeMapper(FromGraphBaseProcessor):
 
 
 class BaseCollectionAttributes(BaseModel):
-    _from_graph_db_mapping = {
+    __from_graph_db_mapping__ = {
         "_id": "id",
         "_key": "key",
         "_rev": "rev",
     }
 
-    _to_graph_db_mapping = {
+    __to_graph_db_mapping__ = {
         "id": "_id",
         "key": "_key",
         "rev": "_rev",
     }
 
-    _to_graph_db_base_processors: Optional[Tuple[ToGraphBaseProcessor]] = (
+    __to_graph_db_base_processors__: Optional[Tuple[ToGraphBaseProcessor]] = (
         ToGraphEnumConverter,
         ToGraphAttributeMapper,
         ToGraphNestedConverter,
     )
-    _to_graph_db_extra_processors: Optional[Tuple[ToGraphBaseProcessor]] = None
+    __to_graph_db_processors__: Optional[Tuple[ToGraphBaseProcessor]] = None
 
-    _from_graph_db_base_processors: Optional[Tuple[FromGraphBaseProcessor]] = (FromGraphAttributeMapper,)
-    _from_graph_db_extra_processors: Optional[Tuple[FromGraphBaseProcessor]] = None
+    __from_graph_db_base_processors__: Optional[Tuple[FromGraphBaseProcessor]] = (FromGraphAttributeMapper,)
+    __from_graph_db_processors__: Optional[Tuple[FromGraphBaseProcessor]] = None
 
-    _base_do_not_update_fields: Optional[Tuple[str]] = ("created_at",)
-    _extra_do_not_update_fields: Optional[Tuple[str]] = None
+    __base_non_updatable_fields__: Optional[Tuple[str]] = ("created_at",)
+    __non_updatable_fields__: Optional[Tuple[str]] = None
 
-    _base_indexes: List[ArangoIndex] = [
+    __base_indexes__: List[ArangoIndex] = [
         PersistentIndex(
             custom_version=1,
             name="created_at",
@@ -197,7 +197,7 @@ class BaseCollectionAttributes(BaseModel):
         ),
     ]
 
-    _extra_indexes: Optional[List[ArangoIndex]] = []
+    __indexes__: Optional[List[ArangoIndex]] = []
 
     def to_collection(self) -> Optional[Dict[str, Any]]:
         """
@@ -211,15 +211,15 @@ class BaseCollectionAttributes(BaseModel):
         """
         attr_value_dict = self.dict()
 
-        for attrib_processor in self._to_graph_db_base_processors:
+        for attrib_processor in self.__to_graph_db_base_processors__:
             try:
                 attrib_processor.process(self, attr_value_dict)
             except Exception as e:
                 logger.exception(e)
                 return None
 
-        if self._to_graph_db_extra_processors is not None:
-            for doc_processor in self._to_graph_db_extra_processors:
+        if self.__to_graph_db_processors__ is not None:
+            for doc_processor in self.__to_graph_db_processors__:
                 try:
                     doc_processor.process(self, attr_value_dict)
                 except Exception as e:
@@ -250,14 +250,14 @@ class BaseCollectionAttributes(BaseModel):
         if not doc:
             return None
 
-        for doc_processor in cls._from_graph_db_base_processors:
+        for doc_processor in cls.__from_graph_db_base_processors__:
             try:
                 doc_processor.process(cls, doc)
             except Exception as e:
                 return None
 
-        if cls._from_graph_db_extra_processors is not None:
-            for doc_processor in cls._from_graph_db_extra_processors:
+        if cls.__from_graph_db_processors__ is not None:
+            for doc_processor in cls.__from_graph_db_processors__:
                 try:
                     doc_processor.process(cls, doc)
                 except Exception as e:
@@ -280,10 +280,10 @@ class BaseCollectionAttributes(BaseModel):
 class BaseCollectionDocument(BaseCollectionAttributes):
     schema_version: int = Field(default=1)
 
-    _collection_name = "base_documents"
-    _collection: Optional[Union[VertexCollection, EdgeCollection, StandardCollection]]
-    _aql: Optional[AQL]
-    _graph_name: Optional[str]
+    __collection_name__ = "base_documents"
+    __collection__: Optional[Union[VertexCollection, EdgeCollection, StandardCollection]]
+    __aql__: Optional[AQL]
+    __graph_name__: Optional[str]
 
     id: Optional[str]
     key: Optional[str]
@@ -306,27 +306,27 @@ class BaseCollectionDocument(BaseCollectionAttributes):
             If the index creation fails
         """
         current_index_mapping = {}
-        for index in await cls._collection.indexes():
+        for index in await cls.__collection__.indexes():
             if index.type in (IndexType.PRIMARY, IndexType.EDGE):
                 continue
 
             current_index_mapping[index.name] = index
 
-        new_index_names = [index.name for index in chain(cls._base_indexes, cls._extra_indexes if cls._extra_indexes is not None else [])]
+        new_index_names = [index.name for index in chain(cls.__base_indexes__, cls.__indexes__ if cls.__indexes__ is not None else [])]
         for old_index in current_index_mapping.values():
             if old_index.name not in new_index_names:
-                await cls._collection.delete_index(old_index.id, ignore_missing=True)
+                await cls.__collection__.delete_index(old_index.id, ignore_missing=True)
 
-        for index in chain(cls._base_indexes, cls._extra_indexes if cls._extra_indexes is not None else []):
+        for index in chain(cls.__base_indexes__, cls.__indexes__ if cls.__indexes__ is not None else []):
             try:
                 if index.name not in current_index_mapping:
-                    logger.info(f"Adding index `{index.name}` to `{cls._collection.name}` collection")
-                    await cls._collection.add_index(index)
+                    logger.info(f"Adding index `{index.name}` to `{cls.__collection__.name}` collection")
+                    await cls.__collection__.add_index(index)
                 else:
                     if current_index_mapping[index.name].custom_version != index.custom_version:
-                        logger.info(f"Updating index `{index.name}` in `{cls._collection.name}` collection")
-                        await cls._collection.delete_index(current_index_mapping[index.name].id, ignore_missing=True)
-                        await cls._collection.add_index(index)
+                        logger.info(f"Updating index `{index.name}` in `{cls.__collection__.name}` collection")
+                        await cls.__collection__.delete_index(current_index_mapping[index.name].id, ignore_missing=True)
+                        await cls.__collection__.add_index(index)
 
             except Exception as e:
                 temp = index.to_db()
@@ -362,7 +362,7 @@ class BaseCollectionDocument(BaseCollectionAttributes):
             if graph_doc is None:
                 return None, False
 
-            metadata = await cls._collection.insert(graph_doc)
+            metadata = await cls.__collection__.insert(graph_doc)
             doc._update_metadata(metadata)
         except CollectionUniqueConstraintViolated:
             # A unique constraint in this collection has been violated; document key or an unique index.
@@ -401,7 +401,7 @@ class BaseCollectionDocument(BaseCollectionAttributes):
             return None
 
         try:
-            graph_doc = await cls._collection.get(doc_key)
+            graph_doc = await cls.__collection__.get(doc_key)
             return cls.from_collection(graph_doc)
         except DocumentRevisionMisMatchError as e:
             logger.exception(e)
@@ -437,7 +437,7 @@ class BaseCollectionDocument(BaseCollectionAttributes):
             return None
 
         try:
-            return await cls._collection.has(doc_key)
+            return await cls.__collection__.has(doc_key)
         except DocumentRevisionMisMatchError as e:
             # If revisions mismatch.
             caught_error = True
@@ -500,7 +500,7 @@ class BaseCollectionDocument(BaseCollectionAttributes):
                 raise NotSoftDeletableSubclass(cls.__name__)
 
         try:
-            async with await cls._collection.find(
+            async with await cls.__collection__.find(
                 filters,
                 skip=offset,
                 limit=limit,
@@ -620,7 +620,7 @@ class BaseCollectionDocument(BaseCollectionAttributes):
         successful = False
         key = doc.key if isinstance(doc, BaseCollectionDocument) else doc
         try:
-            successful = await cls._collection.delete(
+            successful = await cls.__collection__.delete(
                 key,
                 ignore_missing=True,
                 check_for_revisions_match=False,  # fixme
@@ -690,7 +690,7 @@ class BaseCollectionDocument(BaseCollectionAttributes):
 
             graph_doc["modified_at"] = get_now_timestamp()
 
-            metadata = await self._collection.update(
+            metadata = await self.__collection__.update(
                 graph_doc,
                 check_for_revisions_match=check_for_revisions_match,
                 wait_for_sync=wait_for_sync,
@@ -797,7 +797,7 @@ class BaseCollectionDocument(BaseCollectionAttributes):
             if graph_doc is None:
                 return None, False
 
-            metadata = await cls._collection.replace(graph_doc)
+            metadata = await cls.__collection__.replace(graph_doc)
             doc._update_metadata(metadata)
         except DocumentRevisionMisMatchError as e:
             # The expected and actual document revisions mismatched.
@@ -825,7 +825,7 @@ class BaseCollectionDocument(BaseCollectionAttributes):
             Metadata returned from the database query
 
         """
-        for k, v in self._from_graph_db_mapping.items():
+        for k, v in self.__from_graph_db_mapping__.items():
             setattr(self, v, metadata.get(k, None))
 
     def _update_metadata_from_old_document(
@@ -845,7 +845,7 @@ class BaseCollectionDocument(BaseCollectionAttributes):
         TBaseCollectionDocument
             Updated document
         """
-        for field_name in self._to_graph_db_mapping.keys():
+        for field_name in self.__to_graph_db_mapping__.keys():
             setattr(self, field_name, getattr(old_doc, field_name, None))
 
         return self
@@ -868,11 +868,11 @@ class BaseCollectionDocument(BaseCollectionAttributes):
             Updated document
 
         """
-        for field_name in self._base_do_not_update_fields:
+        for field_name in self.__base_non_updatable_fields__:
             setattr(self, field_name, getattr(old_doc, field_name, None))
 
-        if self._extra_do_not_update_fields is not None:
-            for field_name in self._extra_do_not_update_fields:
+        if self.__non_updatable_fields__ is not None:
+            for field_name in self.__non_updatable_fields__:
                 setattr(self, field_name, getattr(old_doc, field_name, None))
 
         return self
@@ -927,9 +927,9 @@ class BaseCollectionDocument(BaseCollectionAttributes):
         """
         try:
             if "@graph_name" in query:
-                bind_vars["graph_name"] = cls._graph_name
+                bind_vars["graph_name"] = cls.__graph_name__
 
-            cursor = await cls._aql.execute(
+            cursor = await cls.__aql__.execute(
                 query,
                 bind_vars=bind_vars,
                 count=True,
@@ -949,8 +949,8 @@ class BaseCollectionDocument(BaseCollectionAttributes):
             return cursor
 
         return Cursor(
-            cls._aql._connection,
-            cls._aql._executor,
+            cls.__aql__._connection,
+            cls.__aql__._executor,
             {},
         )
 

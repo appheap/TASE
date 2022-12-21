@@ -9,11 +9,11 @@ from ..vertices import Chat
 class LinkedChat(BaseEdge):
     """Connection from `Chat` to `Chat`"""
 
-    _collection_name = "linked_chat"
+    __collection_name__ = "linked_chat"
     schema_version = 1
 
-    _from_vertex_collections = (Chat,)
-    _to_vertex_collections = (Chat,)
+    __from_vertex_collections__ = (Chat,)
+    __to_vertex_collections__ = (Chat,)
 
     @classmethod
     @EdgeEndsValidator

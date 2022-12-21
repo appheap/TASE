@@ -29,9 +29,9 @@ from ...enums import TelegramAudioType, AudioType
 
 
 class Playlist(BaseVertex, BaseSoftDeletableDocument):
-    _collection_name = "playlists"
+    __collection_name__ = "playlists"
     schema_version = 1
-    _extra_indexes = [
+    __indexes__ = [
         PersistentIndex(
             custom_version=1,
             name="rank",
@@ -48,7 +48,7 @@ class Playlist(BaseVertex, BaseSoftDeletableDocument):
         ),
     ]
 
-    _extra_do_not_update_fields = ("is_favorite",)
+    __non_updatable_fields__ = ("is_favorite",)
 
     title: str
     description: Optional[str]
@@ -246,8 +246,8 @@ class PlaylistMethods:
             self._get_user_playlist_by_title_query,
             bind_vars={
                 "start_vertex": user.id,
-                "has": Has._collection_name,
-                "playlists": Playlist._collection_name,
+                "has": Has.__collection_name__,
+                "playlists": Playlist.__collection_name__,
                 "filter_out": filter_out_soft_deleted,
                 "title": title,
             },
@@ -287,8 +287,8 @@ class PlaylistMethods:
 
         bind_vars = {
             "start_vertex": user.id,
-            "has": Has._collection_name,
-            "playlists": Playlist._collection_name,
+            "has": Has.__collection_name__,
+            "playlists": Playlist.__collection_name__,
             "key": key,
         }
         if filter_out_soft_deleted:
@@ -330,8 +330,8 @@ class PlaylistMethods:
             self._get_user_favorite_playlist_query,
             bind_vars={
                 "start_vertex": user.id,
-                "has": Has._collection_name,
-                "playlists": Playlist._collection_name,
+                "has": Has.__collection_name__,
+                "playlists": Playlist.__collection_name__,
                 "is_favorite": True,
             },
         ) as cursor:
@@ -605,8 +605,8 @@ class PlaylistMethods:
             self._get_user_playlists_query,
             bind_vars={
                 "start_vertex": user.id,
-                "has": Has._collection_name,
-                "playlists": Playlist._collection_name,
+                "has": Has.__collection_name__,
+                "playlists": Playlist.__collection_name__,
                 "offset": offset,
                 "limit": limit,
             },
@@ -653,9 +653,9 @@ class PlaylistMethods:
             self._get_user_valid_playlists_query,
             bind_vars={
                 "start_vertex": user.id,
-                "has": Has._collection_name,
-                "playlists": Playlist._collection_name,
-                "audios": Audio._collection_name,
+                "has": Has.__collection_name__,
+                "playlists": Playlist.__collection_name__,
+                "audios": Audio.__collection_name__,
                 "playlist_capacity": playlist_capacity,
                 "offset": offset,
                 "limit": limit,
@@ -693,8 +693,8 @@ class PlaylistMethods:
             self._get_user_playlists_count_query,
             bind_vars={
                 "start_vertex": user.id,
-                "has": Has._collection_name,
-                "playlists": Playlist._collection_name,
+                "has": Has.__collection_name__,
+                "playlists": Playlist.__collection_name__,
             },
         ) as cursor:
             async for doc in cursor:
@@ -927,8 +927,8 @@ class PlaylistMethods:
             self._get_playlist_audios_for_inline_query if filter_by_valid_for_inline_search else self._get_playlist_audios_query,
             bind_vars={
                 "start_vertex": playlist.id,
-                "has": Has._collection_name,
-                "audios": Audio._collection_name,
+                "has": Has.__collection_name__,
+                "audios": Audio.__collection_name__,
                 "archived": AudioType.ARCHIVED.value,
                 "offset": offset,
                 "limit": limit,
@@ -986,8 +986,8 @@ class PlaylistMethods:
             self._get_audio_playlists_query,
             bind_vars={
                 "start_vertex": audio.id,
-                "has": Has._collection_name,
-                "playlists": Playlist._collection_name,
+                "has": Has.__collection_name__,
+                "playlists": Playlist.__collection_name__,
                 "user_id": user.id,
                 "offset": offset,
                 "limit": limit,
@@ -1061,9 +1061,9 @@ class PlaylistMethods:
             bind_vars={
                 "user_id": user.id,
                 "audio_key": audio.key,
-                "has": Has._collection_name,
-                "playlists": Playlist._collection_name,
-                "audios": Audio._collection_name,
+                "has": Has.__collection_name__,
+                "playlists": Playlist.__collection_name__,
+                "audios": Audio.__collection_name__,
             },
         ) as cursor:
             return not cursor.empty()

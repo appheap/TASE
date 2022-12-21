@@ -17,10 +17,10 @@ from ..vertices import (
 
 
 class Has(BaseEdge):
-    _collection_name = "has"
+    __collection_name__ = "has"
     schema_version = 1
 
-    _from_vertex_collections = (
+    __from_vertex_collections__ = (
         User,
         Playlist,
         Query,
@@ -29,7 +29,7 @@ class Has(BaseEdge):
         Audio,
         Chat,
     )
-    _to_vertex_collections = (
+    __to_vertex_collections__ = (
         Playlist,
         Audio,
         Hit,

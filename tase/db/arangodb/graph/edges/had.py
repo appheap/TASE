@@ -15,9 +15,9 @@ from ..vertices import (
 
 
 class Had(BaseEdge):
-    _collection_name = "had"
+    __collection_name__ = "had"
     schema_version = 1
-    _extra_indexes = [
+    __indexes__ = [
         PersistentIndex(
             custom_version=1,
             name="deleted_at",
@@ -45,12 +45,12 @@ class Had(BaseEdge):
     metadata_created_at: int
     metadata_modified_at: int
 
-    _from_vertex_collections = (
+    __from_vertex_collections__ = (
         User,
         Playlist,
         Audio,
     )
-    _to_vertex_collections = (
+    __to_vertex_collections__ = (
         Playlist,
         Audio,
         Keyword,

@@ -54,42 +54,42 @@ class ArangoDB(
             self.graph = self.db.graph(arangodb_config.graph_name)
 
         for v_class in vertex_classes:
-            if not await self.graph.has_vertex_collection(v_class._collection_name):
-                _collection = await self.graph.create_vertex_collection(v_class._collection_name)
+            if not await self.graph.has_vertex_collection(v_class.__collection_name__):
+                _collection = await self.graph.create_vertex_collection(v_class.__collection_name__)
             else:
-                _collection = self.graph.vertex_collection(v_class._collection_name)
-            v_class._graph_name = arangodb_config.graph_name
-            v_class._collection = _collection
-            v_class._aql = self.aql
+                _collection = self.graph.vertex_collection(v_class.__collection_name__)
+            v_class.__graph_name__ = arangodb_config.graph_name
+            v_class.__collection__ = _collection
+            v_class.__aql__ = self.aql
             if update_indexes:
                 await v_class.update_indexes()
 
         for e_class in edge_classes:
-            if not await self.graph.has_edge_definition(e_class._collection_name):
+            if not await self.graph.has_edge_definition(e_class.__collection_name__):
                 _collection = await self.graph.create_edge_definition(
                     EdgeDefinition(
-                        collection=e_class._collection_name,
+                        collection=e_class.__collection_name__,
                         from_=e_class.from_vertex_collections(),
                         to=e_class.from_vertex_collections(),
                     )
                 )
             else:
-                _collection = self.graph.edge_collection(e_class._collection_name)
-            e_class._graph_name = arangodb_config.graph_name
-            e_class._collection = _collection
-            e_class._aql = self.aql
+                _collection = self.graph.edge_collection(e_class.__collection_name__)
+            e_class.__graph_name__ = arangodb_config.graph_name
+            e_class.__collection__ = _collection
+            e_class.__aql__ = self.aql
 
             if update_indexes:
                 await e_class.update_indexes()
 
         for doc in document_classes:
-            if not await self.db.has_collection(doc._collection_name):
-                _collection = await self.db.create_collection(doc._collection_name)
+            if not await self.db.has_collection(doc.__collection_name__):
+                _collection = await self.db.create_collection(doc.__collection_name__)
             else:
-                _collection = self.db.collection(doc._collection_name)
-            doc._graph_name = arangodb_config.graph_name
-            doc._collection = _collection
-            doc._aql = self.aql
+                _collection = self.db.collection(doc.__collection_name__)
+            doc.__graph_name__ = arangodb_config.graph_name
+            doc.__collection__ = _collection
+            doc.__aql__ = self.aql
 
             if update_indexes:
                 await doc.update_indexes()

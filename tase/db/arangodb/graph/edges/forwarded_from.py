@@ -10,9 +10,9 @@ from ..vertices import Audio, Chat, User
 class ForwardedFrom(BaseEdge):
     """Connection from `Audio` to a `Chat` or an `Audio`"""
 
-    _collection_name = "forwarded_from"
+    __collection_name__ = "forwarded_from"
     schema_version = 1
-    _extra_indexes = [
+    __indexes__ = [
         PersistentIndex(
             custom_version=1,
             name="date",
@@ -22,8 +22,8 @@ class ForwardedFrom(BaseEdge):
         ),
     ]
 
-    _from_vertex_collections = (Audio,)
-    _to_vertex_collections = (User, Chat, Audio)
+    __from_vertex_collections__ = (Audio,)
+    __to_vertex_collections__ = (User, Chat, Audio)
 
     signature: Optional[str]
     from_message_id: Optional[int]

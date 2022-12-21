@@ -22,9 +22,9 @@ from ...enums import HitType
 
 
 class Hit(BaseVertex):
-    _collection_name = "hits"
+    __collection_name__ = "hits"
     schema_version = 1
-    _extra_indexes = [
+    __indexes__ = [
         PersistentIndex(
             custom_version=1,
             name="rank",
@@ -308,11 +308,11 @@ class HitMethods:
         async with await Hit.execute_query(
             self._count_hits_query,
             bind_vars={
-                "@hits": Hit._collection_name,
+                "@hits": Hit.__collection_name__,
                 "last_run_at": last_run_at,
                 "now": now,
-                "has": Has._collection_name,
-                "audios": Audio._collection_name,
+                "has": Has.__collection_name__,
+                "audios": Audio.__collection_name__,
             },
         ) as cursor:
             async for doc in cursor:

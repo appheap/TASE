@@ -9,11 +9,11 @@ from ..vertices import Audio, User
 class ViaBot(BaseEdge):
     """Connection from `Audio` to a `User`"""
 
-    _collection_name = "via_bot"
+    __collection_name__ = "via_bot"
     schema_version = 1
 
-    _from_vertex_collections = (Audio,)
-    _to_vertex_collections = (User,)
+    __from_vertex_collections__ = (Audio,)
+    __to_vertex_collections__ = (User,)
 
     @classmethod
     @EdgeEndsValidator

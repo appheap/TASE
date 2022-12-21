@@ -19,9 +19,9 @@ class Username(BaseVertex):
     database for indexing
     """
 
-    _collection_name = "usernames"
+    __collection_name__ = "usernames"
     schema_version = 1
-    _extra_indexes = [
+    __indexes__ = [
         PersistentIndex(
             custom_version=1,
             name="username",
@@ -334,9 +334,9 @@ class UsernameMethods:
         async with await Username.execute_query(
             self._get_unchecked_usernames_query,
             bind_vars={
-                "@usernames": Username._collection_name,
-                "mentions": Mentions._collection_name,
-                "chats": Chat._collection_name,
+                "@usernames": Username.__collection_name__,
+                "mentions": Mentions.__collection_name__,
+                "chats": Chat.__collection_name__,
                 "now": now,
                 "limit_": limit,
             },
@@ -372,10 +372,10 @@ class UsernameMethods:
         async with await Username.execute_query(
             self._get_checked_usernames_with_unchecked_mentions,
             bind_vars={
-                "@usernames": Username._collection_name,
-                "mentions": Mentions._collection_name,
-                "chats": Chat._collection_name,
-                "has": Has._collection_name,
+                "@usernames": Username.__collection_name__,
+                "mentions": Mentions.__collection_name__,
+                "chats": Chat.__collection_name__,
+                "has": Has.__collection_name__,
                 "now": now,
                 "limit_": limit,
             },

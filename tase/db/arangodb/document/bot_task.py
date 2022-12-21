@@ -12,9 +12,9 @@ from ..enums import BotTaskType, BotTaskStatus
 
 
 class BotTask(BaseDocument):
-    _collection_name = "doc_bot_tasks"
+    __collection_name__ = "doc_bot_tasks"
     schema_version = 1
-    _extra_indexes = [
+    __indexes__ = [
         PersistentIndex(
             custom_version=1,
             name="user_id",
@@ -251,7 +251,7 @@ class BotTaskMethods:
         async with await BotTask.execute_query(
             self._cancel_recent_bot_tasks_query,
             bind_vars={
-                "@doc_bot_tasks": BotTask._collection_name,
+                "@doc_bot_tasks": BotTask.__collection_name__,
                 "type": task_type.value,
                 "user_id": user_id,
                 "bot_id": bot_id,
@@ -287,7 +287,7 @@ class BotTaskMethods:
         async with await BotTask.execute_query(
             self._get_latest_bot_task_query,
             bind_vars={
-                "@doc_bot_tasks": BotTask._collection_name,
+                "@doc_bot_tasks": BotTask.__collection_name__,
                 "user_id": user_id,
                 "bot_id": bot_id,
                 "status": BotTaskStatus.CREATED.value,

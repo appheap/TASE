@@ -40,9 +40,9 @@ from ...enums import TelegramAudioType, MentionSource, InteractionType, AudioTyp
 
 
 class Audio(BaseVertex):
-    _collection_name = "audios"
+    __collection_name__ = "audios"
     schema_version = 1
-    _extra_indexes = [
+    __indexes__ = [
         PersistentIndex(
             custom_version=1,
             name="chat_id",
@@ -185,7 +185,7 @@ class Audio(BaseVertex):
         ),
     ]
 
-    _extra_do_not_update_fields = [
+    __non_updatable_fields__ = [
         "has_checked_forwarded_message_at",
         "deleted_at",
         "archive_chat_id",
@@ -1056,8 +1056,8 @@ class AudioMethods:
             self._get_audio_from_hit_query,
             bind_vars={
                 "start_vertex": hit.id,
-                "audios": Audio._collection_name,
-                "has": Has._collection_name,
+                "audios": Audio.__collection_name__,
+                "has": Has.__collection_name__,
             },
         ) as cursor:
             async for doc in cursor:
@@ -1102,10 +1102,10 @@ class AudioMethods:
             async with await Audio.execute_query(
                 self._check_audio_validity_for_inline_mode_by_hit_download_url,
                 bind_vars={
-                    "@hits": Hit._collection_name,
+                    "@hits": Hit.__collection_name__,
                     "hit_download_url": hit_download_url,
-                    "audios": Audio._collection_name,
-                    "has": Has._collection_name,
+                    "audios": Audio.__collection_name__,
+                    "has": Has.__collection_name__,
                 },
             ) as cursor:
                 async for doc in cursor:
@@ -1143,10 +1143,10 @@ class AudioMethods:
         async with await Audio.execute_query(
             self._get_audio_by_hit_download_url,
             bind_vars={
-                "@hits": Hit._collection_name,
+                "@hits": Hit.__collection_name__,
                 "hit_download_url": hit_download_url,
-                "audios": Audio._collection_name,
-                "has": Has._collection_name,
+                "audios": Audio.__collection_name__,
+                "has": Has.__collection_name__,
             },
         ) as cursor:
             async for doc in cursor:
@@ -1191,9 +1191,9 @@ class AudioMethods:
             self._get_user_download_history_inline_query if filter_by_valid_for_inline_search else self._get_user_download_history_query,
             bind_vars={
                 "start_vertex": user.id,
-                "has": Has._collection_name,
-                "audios": Audio._collection_name,
-                "interactions": Interaction._collection_name,
+                "has": Has.__collection_name__,
+                "audios": Audio.__collection_name__,
+                "interactions": Interaction.__collection_name__,
                 "interaction_type": InteractionType.DOWNLOAD.value,
                 "archived": AudioType.ARCHIVED.value,
                 "offset": offset,
@@ -1230,7 +1230,7 @@ class AudioMethods:
         async with await Audio.execute_query(
             self._get_audios_by_keys,
             bind_vars={
-                "@audios": Audio._collection_name,
+                "@audios": Audio.__collection_name__,
                 "audio_keys": list(keys),
             },
         ) as cursor:
@@ -1263,9 +1263,9 @@ class AudioMethods:
             self._remove_audio_from_all_playlists_query,
             bind_vars={
                 "audio_vertex_id": audio_vertex_id,
-                "@has_": Has._collection_name,
-                "has": Has._collection_name,
-                "playlists": Playlist._collection_name,
+                "@has_": Has.__collection_name__,
+                "has": Has.__collection_name__,
+                "playlists": Playlist.__collection_name__,
             },
         ) as _:
             pass
@@ -1291,7 +1291,7 @@ class AudioMethods:
             self._mark_chat_audios_as_deleted_query,
             bind_vars={
                 "chat_id": chat_id,
-                "@audios": Audio._collection_name,
+                "@audios": Audio.__collection_name__,
                 "modified_at": now,
                 "deleted_at": now,
             },
@@ -1329,7 +1329,7 @@ class AudioMethods:
         async with await Audio.execute_query(
             self._get_not_deleted_audios_by_chat_id_and_message_id,
             bind_vars={
-                "@audios": Audio._collection_name,
+                "@audios": Audio.__collection_name__,
                 "chat_id": chat_id,
                 "message_id": message_id,
                 "excluded_key": excluded_key,
@@ -1367,7 +1367,7 @@ class AudioMethods:
         deleted_at = get_now_timestamp()
 
         bind_vars = {
-            "@audios": Audio._collection_name,
+            "@audios": Audio.__collection_name__,
             "chat_id": chat_id,
             "message_id": message_id,
             "not_archived": AudioType.NOT_ARCHIVED.value,
@@ -1401,7 +1401,7 @@ class AudioMethods:
         async with await Audio.execute_query(
             self._iter_audios_query,
             bind_vars={
-                "@audios": Audio._collection_name,
+                "@audios": Audio.__collection_name__,
                 "now": now,
             },
         ) as cursor:
@@ -1429,7 +1429,7 @@ class AudioMethods:
         async with await Audio.execute_query(
             self._get_new_indexed_audios_count_query,
             bind_vars={
-                "@audios": Audio._collection_name,
+                "@audios": Audio.__collection_name__,
                 "checkpoint": checkpoint,
             },
         ) as cursor:
@@ -1451,7 +1451,7 @@ class AudioMethods:
         async with await Audio.execute_query(
             self._get_total_indexed_audios_count_query,
             bind_vars={
-                "@audios": Audio._collection_name,
+                "@audios": Audio.__collection_name__,
             },
         ) as cursor:
             async for doc in cursor:
@@ -1475,9 +1475,9 @@ class AudioMethods:
         async with await Audio.execute_query(
             self._get_not_archived_downloaded_audios,
             bind_vars={
-                "@interactions": Interaction._collection_name,
-                "audios": Audio._collection_name,
-                "has": Has._collection_name,
+                "@interactions": Interaction.__collection_name__,
+                "audios": Audio.__collection_name__,
+                "has": Has.__collection_name__,
                 "now": get_now_timestamp(),
                 "interaction_type": InteractionType.DOWNLOAD.value,
                 "not_archived_type": AudioType.NOT_ARCHIVED.value,

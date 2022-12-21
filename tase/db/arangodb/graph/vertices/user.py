@@ -26,9 +26,9 @@ class UserRole(Enum):
 
 
 class User(BaseVertex):
-    _collection_name = "users"
+    __collection_name__ = "users"
     schema_version = 1
-    _extra_indexes = [
+    __indexes__ = [
         PersistentIndex(
             custom_version=1,
             name="user_id",
@@ -137,7 +137,7 @@ class User(BaseVertex):
         ),
     ]
 
-    _extra_do_not_update_fields = [
+    __non_updatable_fields__ = [
         "chosen_language_code",
         "role",
         "has_interacted_with_bot",
@@ -438,7 +438,7 @@ class UserMethods:
         async with await User.execute_query(
             self._get_admin_and_owners_query,
             bind_vars={
-                "@users": User._collection_name,
+                "@users": User.__collection_name__,
                 "roles_list": [UserRole.OWNER.value, UserRole.ADMIN.value],
             },
         ) as cursor:
@@ -542,7 +542,7 @@ class UserMethods:
         async with await User.execute_query(
             self._get_new_joined_users_count_query,
             bind_vars={
-                "@users": User._collection_name,
+                "@users": User.__collection_name__,
                 "checkpoint": checkpoint,
             },
         ) as cursor:
@@ -564,7 +564,7 @@ class UserMethods:
         async with await User.execute_query(
             self._get_total_interacted_users_count,
             bind_vars={
-                "@users": User._collection_name,
+                "@users": User.__collection_name__,
             },
         ) as cursor:
             async for doc in cursor:

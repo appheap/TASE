@@ -16,9 +16,9 @@ if TYPE_CHECKING:
 
 
 class File(BaseVertex):
-    _collection_name = "files"
+    __collection_name__ = "files"
     schema_version = 1
-    _extra_indexes = [
+    __indexes__ = [
         PersistentIndex(
             custom_version=1,
             name="file_unique_id",
@@ -243,8 +243,8 @@ class FileMethods:
             self._get_audio_file_with_edge_query,
             bind_vars={
                 "audio_vertex": audio_vertex_id,
-                "file_ref": FileRef._collection_name,
-                "files": File._collection_name,
+                "file_ref": FileRef.__collection_name__,
+                "files": File.__collection_name__,
             },
         ) as cursor:
             async for d in cursor:

@@ -11,11 +11,11 @@ class FromHit(BaseEdge):
     Connection from `Download` to `Hit`
     """
 
-    _collection_name = "from_hit"
+    __collection_name__ = "from_hit"
     schema_version = 1
 
-    _from_vertex_collections = (Interaction,)
-    _to_vertex_collections = (Hit,)
+    __from_vertex_collections__ = (Interaction,)
+    __to_vertex_collections__ = (Hit,)
 
     @classmethod
     @EdgeEndsValidator

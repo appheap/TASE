@@ -8,9 +8,9 @@ from .base_document import BaseDocument
 
 
 class AudioInlineMessage(BaseDocument):
-    _collection_name = "doc_audio_inline_messages"
+    __collection_name__ = "doc_audio_inline_messages"
     schema_version = 1
-    _extra_indexes = [
+    __indexes__ = [
         PersistentIndex(
             custom_version=1,
             name="bot_id",

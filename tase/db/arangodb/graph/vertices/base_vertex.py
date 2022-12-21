@@ -6,5 +6,5 @@ from tase.db.arangodb.base import BaseCollectionDocument
 
 
 class BaseVertex(BaseCollectionDocument):
-    _collection_name = "base_vertices"
-    _collection: Optional[VertexCollection]
+    __collection_name__ = "base_vertices"
+    __collection__: Optional[VertexCollection]

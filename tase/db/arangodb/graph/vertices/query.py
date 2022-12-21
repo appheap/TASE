@@ -22,9 +22,9 @@ from ...helpers import ElasticQueryMetadata, InlineQueryMetadata
 
 
 class Query(BaseVertex):
-    _collection_name = "queries"
+    __collection_name__ = "queries"
     schema_version = 1
-    _extra_indexes = [
+    __indexes__ = [
         PersistentIndex(
             custom_version=1,
             name="query",
@@ -390,8 +390,8 @@ class QueryMethods:
             self._get_query_hits_query,
             bind_vars={
                 "start_vertex": query.id,
-                "hits": Hit._collection_name,
-                "has": Has._collection_name,
+                "hits": Hit.__collection_name__,
+                "has": Has.__collection_name__,
             },
         ) as cursor:
             async for doc in cursor:
@@ -414,7 +414,7 @@ class QueryMethods:
         async with await Query.execute_query(
             self._get_new_queries_count,
             bind_vars={
-                "@queries": Query._collection_name,
+                "@queries": Query.__collection_name__,
                 "checkpoint": checkpoint,
             },
         ) as cursor:
@@ -436,7 +436,7 @@ class QueryMethods:
         async with await Query.execute_query(
             self._get_total_queries_count,
             bind_vars={
-                "@queries": Query._collection_name,
+                "@queries": Query.__collection_name__,
             },
         ) as cursor:
             async for doc in cursor:

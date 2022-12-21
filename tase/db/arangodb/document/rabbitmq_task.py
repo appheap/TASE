@@ -11,9 +11,9 @@ from ..enums import RabbitMQTaskStatus, RabbitMQTaskType
 
 
 class RabbitMQTask(BaseDocument):
-    _collection_name = "doc_rabbitmq_tasks"
+    __collection_name__ = "doc_rabbitmq_tasks"
     schema_version = 1
-    _extra_indexes = [
+    __indexes__ = [
         PersistentIndex(
             custom_version=1,
             name="type",
@@ -200,7 +200,7 @@ class RabbitMQTaskMethods:
         async with await RabbitMQTask.execute_query(
             self._get_active_rabbitmq_task_query,
             bind_vars={
-                "@rabbitmq_tasks": RabbitMQTask._collection_name,
+                "@rabbitmq_tasks": RabbitMQTask.__collection_name__,
                 "type": task_type.value,
                 "status_list": [
                     RabbitMQTaskStatus.CREATED.value,
@@ -247,7 +247,7 @@ class RabbitMQTaskMethods:
         async with await RabbitMQTask.execute_query(
             self._cancel_active_rabbitmq_tasks_query,
             bind_vars={
-                "@rabbitmq_tasks": RabbitMQTask._collection_name,
+                "@rabbitmq_tasks": RabbitMQTask.__collection_name__,
                 "type": task_type.value,
                 "status_list": [
                     RabbitMQTaskStatus.CREATED.value,

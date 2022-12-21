@@ -9,9 +9,9 @@ from ...enums import MentionSource
 
 
 class HasHashtag(BaseEdge):
-    _collection_name = "has_hashtag"
+    __collection_name__ = "has_hashtag"
     schema_version = 1
-    _extra_indexes = [
+    __indexes__ = [
         PersistentIndex(
             custom_version=1,
             name="is_direct_mention",
@@ -28,12 +28,12 @@ class HasHashtag(BaseEdge):
         ),
     ]
 
-    _from_vertex_collections = (
+    __from_vertex_collections__ = (
         Audio,
         Playlist,
         Query,
     )
-    _to_vertex_collections = (Hashtag,)
+    __to_vertex_collections__ = (Hashtag,)
 
     is_direct_mention: bool
     mention_source: MentionSource

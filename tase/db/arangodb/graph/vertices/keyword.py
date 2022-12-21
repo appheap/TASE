@@ -8,9 +8,9 @@ from .base_vertex import BaseVertex
 
 
 class Keyword(BaseVertex):
-    _collection_name = "keywords"
+    __collection_name__ = "keywords"
     schema_version = 1
-    _extra_indexes = [
+    __indexes__ = [
         PersistentIndex(
             custom_version=1,
             name="keyword",

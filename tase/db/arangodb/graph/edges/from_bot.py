@@ -11,11 +11,11 @@ class FromBot(BaseEdge):
     Connection from `Interaction` to `User`
     """
 
-    _collection_name = "from_bot"
+    __collection_name__ = "from_bot"
     schema_version = 1
 
-    _from_vertex_collections = (Interaction,)
-    _to_vertex_collections = (User,)
+    __from_vertex_collections__ = (Interaction,)
+    __to_vertex_collections__ = (User,)
 
     @classmethod
     @EdgeEndsValidator

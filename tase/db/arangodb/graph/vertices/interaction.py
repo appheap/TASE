@@ -25,9 +25,9 @@ if TYPE_CHECKING:
 
 
 class Interaction(BaseVertex):
-    _collection_name = "interactions"
+    __collection_name__ = "interactions"
     schema_version = 1
-    _extra_indexes = [
+    __indexes__ = [
         PersistentIndex(
             custom_version=1,
             name="type",
@@ -51,7 +51,7 @@ class Interaction(BaseVertex):
         ),
     ]
 
-    _extra_do_not_update_fields = ("is_active",)
+    __non_updatable_fields__ = ("is_active",)
 
     type: InteractionType
     chat_type: ChatType
@@ -259,9 +259,9 @@ class InteractionMethods:
                 "user_id": user.id,
                 "audio_key": audio.key,
                 "interaction_type": interaction_type.value,
-                "has": Has._collection_name,
-                "interactions": Interaction._collection_name,
-                "audios": Audio._collection_name,
+                "has": Has.__collection_name__,
+                "interactions": Interaction.__collection_name__,
+                "audios": Audio.__collection_name__,
             },
         ) as cursor:
             async for doc in cursor:
@@ -333,9 +333,9 @@ class InteractionMethods:
                 "user_id": user.id,
                 "audio_key": audio.key,
                 "interaction_type": interaction_type.value,
-                "has": Has._collection_name,
-                "interactions": Interaction._collection_name,
-                "audios": Audio._collection_name,
+                "has": Has.__collection_name__,
+                "interactions": Interaction.__collection_name__,
+                "audios": Audio.__collection_name__,
             },
         )
 
@@ -452,11 +452,11 @@ class InteractionMethods:
         async with await Interaction.execute_query(
             self._count_interactions_query,
             bind_vars={
-                "@interactions": Interaction._collection_name,
+                "@interactions": Interaction.__collection_name__,
                 "last_run_at": last_run_at,
                 "now": now,
-                "has": Has._collection_name,
-                "audios": Audio._collection_name,
+                "has": Has.__collection_name__,
+                "audios": Audio.__collection_name__,
             },
         ) as cursor:
             async for doc in cursor:

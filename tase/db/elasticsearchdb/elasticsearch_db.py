@@ -25,13 +25,13 @@ class ElasticsearchDatabase:
 
     async def init_database(self):
         for index_cls in elasticsearch_indices:
-            index_cls._es = self.es
+            index_cls.__es__ = self.es
 
             if not await index_cls.has_index():
                 try:
                     created = await index_cls.create_index()
                 except Exception as e:
-                    logger.exception(f"Could not create the {index_cls._index_name} Index")
+                    logger.exception(f"Could not create the {index_cls.__index_name__} Index")
                 else:
                     if not created:
-                        logger.error(f"Could not create the {index_cls._index_name} Index")
+                        logger.error(f"Could not create the {index_cls.__index_name__} Index")

@@ -12,7 +12,7 @@ class DummyObj(BaseModel):
 
 
 class DummyVertex(BaseVertex):
-    _collection_name = "dummy_vertices"
+    __collection_name__ = "dummy_vertices"
 
     dummy_int: int
     dummy_str: str
