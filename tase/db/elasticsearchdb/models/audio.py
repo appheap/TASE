@@ -297,6 +297,7 @@ class Audio(BaseDocument):
             audio_type=audio_vertex.audio_type,
             valid_for_inline_search=audio_vertex.valid_for_inline_search,
             type=audio_vertex.type,
+            archive_chat_id=audio_vertex.archive_chat_id,
             archive_message_id=audio_vertex.archive_message_id,
             estimated_bit_rate_type=audio_vertex.estimated_bit_rate_type,
             is_forwarded=audio_vertex.is_forwarded,
