@@ -576,19 +576,20 @@ class AudioMethods:
 
     _get_user_download_history_query = (
         "for dl_v,dl_e in 1..1 outbound @start_vertex graph @graph_name options {order:'dfs', edgeCollections:[@has], vertexCollections:[@interactions]}"
-        "   filter (dl_v.is_deleted == false or dl_v.type == @archived) and dl_v.type == @interaction_type"
+        "   filter dl_v.type == @interaction_type"
         "   sort dl_e.created_at DESC"
         "   for aud_v,has_e in 1..1 outbound dl_v graph @graph_name options {order:'dfs', edgeCollections:[@has], vertexCollections:[@audios]}"
+        "       filter not aud_v.is_deleted or aud_v.type in @archived_lst"
         "       limit @offset, @limit"
         "       return aud_v"
     )
 
     _get_user_download_history_inline_query = (
         "for dl_v,dl_e in 1..1 outbound @start_vertex graph @graph_name options {order:'dfs', edgeCollections:[@has], vertexCollections:[@interactions]}"
-        "   filter (dl_v.is_deleted == false or dl_v.type == @archived) and dl_v.type == @interaction_type"
+        "   filter dl_v.type == @interaction_type"
         "   sort dl_e.created_at DESC"
         "   for aud_v,has_e in 1..1 outbound dl_v graph @graph_name options {order:'dfs', edgeCollections:[@has], vertexCollections:[@audios]}"
-        "       filter aud_v.valid_for_inline_search == true"
+        "       filter (not aud_v.is_deleted or aud_v.type in @archived_lst) and aud_v.valid_for_inline_search == true"
         "       limit @offset, @limit"
         "       return aud_v"
     )
@@ -1195,7 +1196,7 @@ class AudioMethods:
                 "audios": Audio.__collection_name__,
                 "interactions": Interaction.__collection_name__,
                 "interaction_type": InteractionType.DOWNLOAD.value,
-                "archived": AudioType.ARCHIVED.value,
+                "archived_lst": [AudioType.ARCHIVED.value, AudioType.UPLOADED.value, AudioType.SENT_BY_USERS.value],
                 "offset": offset,
                 "limit": limit,
             },

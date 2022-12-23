@@ -180,7 +180,7 @@ class PlaylistMethods:
 
     _get_playlist_audios_query = (
         "for audio_v,e in 1..1 outbound @start_vertex graph @graph_name options {order:'dfs', edgeCollections:[@has], vertexCollections:[@audios]}"
-        "   filter audio_v.is_deleted == false or audio_v.type == @archived"
+        "   filter not audio_v.is_deleted or audio_v.type in @archived_lst"
         "   sort e.created_at DESC"
         "   limit @offset, @limit"
         "   return audio_v"
@@ -188,7 +188,7 @@ class PlaylistMethods:
 
     _get_playlist_audios_for_inline_query = (
         "for audio_v,e in 1..1 outbound @start_vertex graph @graph_name options {order:'dfs', edgeCollections:[@has], vertexCollections:[@audios]}"
-        "   filter (audio_v.is_deleted == false or audio_v.type == @archived) and audio_v.valid_for_inline_search == true"
+        "   filter (not audio_v.is_deleted or audio_v.type in @archived_lst) and audio_v.valid_for_inline_search == true"
         "   sort e.created_at DESC"
         "   limit @offset, @limit"
         "   return audio_v"
@@ -929,7 +929,7 @@ class PlaylistMethods:
                 "start_vertex": playlist.id,
                 "has": Has.__collection_name__,
                 "audios": Audio.__collection_name__,
-                "archived": AudioType.ARCHIVED.value,
+                "archived_lst": [AudioType.ARCHIVED.value, AudioType.UPLOADED.value, AudioType.SENT_BY_USERS.value],
                 "offset": offset,
                 "limit": limit,
             },
