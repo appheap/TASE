@@ -49,7 +49,7 @@ class BaseHandler(BaseModel):
         if not db_audios:
             return {}, collections.deque()
 
-        chat_msg = defaultdict(collections.deque)
+        chat_msg = defaultdict(set)
         chats_dict = {}
         invalid_audio_keys = collections.deque()
 
@@ -60,7 +60,7 @@ class BaseHandler(BaseModel):
 
         for cache_check, db_audio in zip(cache_checks, db_audios):
             if not cache_check and not isinstance(cache_check, BaseException):
-                chat_msg[db_audio.chat_id].append(db_audio.message_id)
+                chat_msg[db_audio.chat_id].add(db_audio.message_id)
 
         for db_chat in db_chats:
             if db_chat and db_chat.chat_id not in chats_dict:
@@ -73,7 +73,7 @@ class BaseHandler(BaseModel):
             message_ids,
         ) -> Tuple[List[pyrogram.types.Message], int]:
             try:
-                res = await self.telegram_client.get_messages(chat_id=chats_dict[chat_id].username, message_ids=message_ids)
+                res = await self.telegram_client.get_messages(chat_id=chats_dict[chat_id].username, message_ids=list(message_ids))
             except KeyError:
                 # this chat is no longer is public or available, update the databases accordingly
                 if chat_id in chats_dict:

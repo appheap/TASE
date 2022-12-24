@@ -246,6 +246,9 @@ class TelegramClient:
         chat_id: Union[int, str],
         message_ids: Union[int, Iterable[int]] = None,
     ) -> Union[pyrogram.types.Message, List[pyrogram.types.Message]]:
+        if chat_id is None or not message_ids:
+            return []
+
         try:
             messages = await self._client.get_messages(
                 chat_id=chat_id,
