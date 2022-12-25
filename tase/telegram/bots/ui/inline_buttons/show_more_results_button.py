@@ -45,7 +45,7 @@ class ShowMoreResultsInlineButton(InlineButton):
             given_query_hash = given_query_hash.strip()
             real_query_hash = get_query_hash(query)
 
-            if not res.is_first_page() and given_query_hash == real_query_hash:
+            if res.is_first_page() and given_query_hash == real_query_hash:
                 # if this is the first time this query is made, then the first 10 results should be skipped since it is already shown in the non-inline search
                 # results.
                 res.from_ = 10
