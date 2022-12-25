@@ -250,10 +250,40 @@ def get_audio_markup_keyboard(
 
 
 def add(v1: int, v2: int) -> int:
+    """
+    Add two integers and return the result.
+
+    Parameters
+    ----------
+    v1 : int
+        Integer number one.
+    v2 : int
+        Integer number two.
+
+    Returns
+    -------
+    int
+        Calculated sum of the given integers.
+
+    """
     return v1 + v2
 
 
 def get_query_hash(query: str) -> Optional[str]:
+    """
+    Calculate a hash for the given `query` string.
+
+    Parameters
+    ----------
+    query : str,
+        Query string to calculate the hash for.
+
+    Returns
+    -------
+    str, optional
+        Calculated hash if operation was successful, otherwise return None.
+
+    """
     if not query:
         return None
 
@@ -261,7 +291,7 @@ def get_query_hash(query: str) -> Optional[str]:
     if not query:
         return None
 
-    u = functools.reduce(add, (ord(c) for c in query))
+    u = functools.reduce(add, (idx * ord(c) for idx, c in enumerate(query, 1)))
     u = str(hex(u))[2:]
 
     return u
