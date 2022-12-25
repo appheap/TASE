@@ -507,6 +507,7 @@ class Audio(BaseDocument):
     ) -> Optional[dict]:
         return {
             "_score": {"order": "desc"},
+            "chat_audio_indexer_score": {"order": "desc"},
             "estimated_bit_rate_type": {"order": "desc"},
             "date": {"order": "desc"},
             "downloads": {"order": "desc"},
