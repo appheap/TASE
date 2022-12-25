@@ -248,6 +248,21 @@ def get_audio_markup_keyboard(
     return markup
 
 
+def get_more_results_markup_keyboad(
+    chosen_language_code: str,
+    query: str,
+):
+    markup = [
+        [
+            InlineButton.get_button(InlineButtonType.SHOW_MORE_RESULTS).get_inline_keyboard_button(
+                chosen_language_code,
+                switch_inline_arg=" " + query,
+            ),
+        ],
+    ]
+    return InlineKeyboardMarkup(markup)
+
+
 def get_playlist_markup_keyboard(
     playlist: graph_models.vertices.Playlist,
     chosen_language_code: str,

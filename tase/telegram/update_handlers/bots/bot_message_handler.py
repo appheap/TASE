@@ -167,11 +167,19 @@ class BotMessageHandler(BaseHandler):
                 )
             )
 
+        from tase.telegram.bots.ui.inline_buttons.common import get_more_results_markup_keyboad
+
         await message.reply_text(
             text=text,
             quote=True,
             parse_mode=ParseMode.HTML,
             disable_web_page_preview=True,
+            reply_markup=get_more_results_markup_keyboad(
+                from_user.chosen_language_code,
+                query,
+            )
+            if found_any
+            else None,
         )
 
         if found_any:
