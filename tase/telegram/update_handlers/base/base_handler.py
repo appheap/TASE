@@ -50,7 +50,7 @@ class BaseHandler(BaseModel):
             return {}, collections.deque()
 
         chat_msg = defaultdict(set)
-        chats_dict = {}
+        chats_dict: Dict[int, graph_models.vertices.Chat] = {}
         invalid_audio_keys = collections.deque()
 
         cache_checks = await asyncio.gather(
@@ -112,6 +112,7 @@ class BaseHandler(BaseModel):
                         self.telegram_client.telegram_id,
                         chat_id,
                         AudioType.NOT_ARCHIVED,
+                        chats_dict[chat_id].get_chat_scores(),
                     )
                     for message, chat_id in messages
                 )
@@ -154,6 +155,8 @@ class BaseHandler(BaseModel):
                 )
             )
 
+            chat: graph_models.vertices.Chat = chat
+
             update_audio_task = None
             if isinstance(audio_doc, document_models.Audio):  # fixme: check for `BaseException` type
                 file_id = audio_doc.file_id
@@ -191,6 +194,7 @@ class BaseHandler(BaseModel):
                         self.telegram_client.telegram_id,
                         audio_vertex.chat_id,
                         AudioType.NOT_ARCHIVED,
+                        chat.get_chat_scores(),
                     )
                 )
 

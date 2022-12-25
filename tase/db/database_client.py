@@ -8,6 +8,7 @@ from .arangodb.enums import AudioType
 from .arangodb.graph import ArangoGraphMethods
 from .elasticsearchdb import ElasticsearchDatabase
 from .elasticsearchdb.models import ElasticSearchMethods
+from .helpers import ChatScores
 from ..configs import ArangoDBConfig, ElasticConfig
 from ..my_logger import logger
 
@@ -43,6 +44,7 @@ class DatabaseClient:
         telegram_client_id: int,
         chat_id: int,
         audio_type: AudioType,
+        chat_scores: ChatScores,
     ) -> bool:
         """
         Create the audio vertex and document in the arangodb and audio document in the elasticsearch.
@@ -58,6 +60,8 @@ class DatabaseClient:
             ID of the telegram chat this message belongs to.
         audio_type : AudioType
             Type of the audio to store in the databases.
+        chat_scores : ChatScores
+            Scores of the parent chat.
 
         Returns
         -------
@@ -68,9 +72,9 @@ class DatabaseClient:
             return False
 
         try:
-            audio_vertex = await self.graph.get_or_create_audio(telegram_message, chat_id, audio_type)
+            audio_vertex = await self.graph.get_or_create_audio(telegram_message, chat_id, audio_type, chat_scores)
             audio_doc = await self.document.get_or_create_audio(telegram_message, telegram_client_id, chat_id)
-            es_audio_doc = await self.index.get_or_create_audio(telegram_message, chat_id, audio_type)
+            es_audio_doc = await self.index.get_or_create_audio(telegram_message, chat_id, audio_type, chat_scores)
         except Exception as e:
             logger.exception(e)
         else:
@@ -84,7 +88,8 @@ class DatabaseClient:
         telegram_message: pyrogram.types.Message,
         telegram_client_id: int,
         chat_id: int,
-        audio_type,
+        audio_type: AudioType,
+        chat_scores: ChatScores,
     ) -> bool:
         """
         Create the audio vertex and document in the arangodb and audio document in the elasticsearch.
@@ -100,6 +105,8 @@ class DatabaseClient:
             ID of the telegram chat this message belongs to.
         audio_type : AudioType
             Type of the audio to store in the databases.
+        chat_scores : ChatScores
+            Scores of the parent chat.
 
         Returns
         -------
@@ -110,9 +117,9 @@ class DatabaseClient:
             return False
 
         try:
-            audio_vertex = await self.graph.update_or_create_audio(telegram_message, chat_id, audio_type)
+            audio_vertex = await self.graph.update_or_create_audio(telegram_message, chat_id, audio_type, chat_scores)
             audio_doc = await self.document.update_or_create_audio(telegram_message, telegram_client_id, chat_id)
-            es_audio_doc = await self.index.update_or_create_audio(telegram_message, chat_id, audio_type)
+            es_audio_doc = await self.index.update_or_create_audio(telegram_message, chat_id, audio_type, chat_scores)
         except Exception as e:
             logger.exception(e)
         else:

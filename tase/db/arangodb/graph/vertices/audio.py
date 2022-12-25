@@ -20,6 +20,7 @@ from tase.db.db_utils import (
     is_audio_valid_for_inline,
     parse_audio_document_key_from_raw_attributes,
 )
+from tase.db.helpers import ChatScores
 from tase.errors import (
     TelegramMessageWithNoAudio,
     InvalidToVertex,
@@ -242,6 +243,10 @@ class Audio(BaseVertex):
     archive_chat_id: Optional[int]
     archive_message_id: Optional[int]
 
+    chat_audio_indexer_score: Optional[float]
+    chat_audio_doc_indexer_score: Optional[float]
+    chat_username_extractor_score: Optional[float]
+
     is_forwarded: bool
     is_deleted: bool
     deleted_at: Optional[int]  # this is not always accurate
@@ -281,6 +286,7 @@ class Audio(BaseVertex):
         telegram_message: pyrogram.types.Message,
         chat_id: int,
         audio_type: AudioType,
+        chat_scores: ChatScores,
     ) -> Optional[Audio]:
         """
         Parse an `Audio` from the given `telegram_message` argument.
@@ -293,6 +299,8 @@ class Audio(BaseVertex):
             Chat ID this message belongs to.
         audio_type : AudioType
             Type of the audio.
+        chat_scores : ChatScores
+            Scores of the parent chat.
 
         Returns
         -------
@@ -386,6 +394,9 @@ class Audio(BaseVertex):
             audio_type=telegram_audio_type,
             has_checked_forwarded_message=has_checked_forwarded_message,
             type=audio_type,
+            chat_audio_indexer_score=chat_scores.audio_indexer_score,
+            chat_audio_doc_indexer_score=chat_scores.audio_doc_indexer_score,
+            chat_username_extractor_score=chat_scores.username_extractor_score,
             is_forwarded=is_forwarded,
             is_deleted=True if telegram_message.empty else False,
             is_edited=True if telegram_message.edit_date else False,
@@ -661,6 +672,7 @@ class AudioMethods:
         telegram_message: pyrogram.types.Message,
         chat_id: int,
         audio_type: AudioType,
+        chat_scores: ChatScores,
     ) -> Optional[Audio]:
         """
         Create Audio alongside necessary vertices and edges in the ArangoDB.
@@ -673,6 +685,8 @@ class AudioMethods:
             Chat ID this message belongs to.
         audio_type : AudioType
             Type of the Audio.
+        chat_scores : ChatScores
+            Scores of the parent chat.
 
         Returns
         -------
@@ -688,7 +702,7 @@ class AudioMethods:
             return None
 
         try:
-            audio, successful = await Audio.insert(Audio.parse(telegram_message, chat_id, audio_type))
+            audio, successful = await Audio.insert(Audio.parse(telegram_message, chat_id, audio_type, chat_scores))
         except TelegramMessageWithNoAudio as e:
             # this message doesn't contain any valid audio file
             await self.mark_old_audio_vertices_as_deleted(chat_id, telegram_message.id)
@@ -772,6 +786,7 @@ class AudioMethods:
         telegram_message: pyrogram.types.Message,
         chat_id: int,
         audio_type: AudioType,
+        chat_scores: ChatScores,
     ) -> Optional[Audio]:
         """
         Get Audio if it exists in ArangoDB, otherwise, create Audio alongside necessary vertices and edges in the
@@ -785,6 +800,8 @@ class AudioMethods:
             Chat ID this message belongs to.
         audio_type : AudioType
             Type of the audio.
+        chat_scores : ChatScores
+            Scores of the parent chat.
 
         Returns
         -------
@@ -808,7 +825,7 @@ class AudioMethods:
         else:
             if audio is None:
                 # audio vertex does not exist in the database, create it.
-                audio = await self.create_audio(telegram_message, chat_id, audio_type)
+                audio = await self.create_audio(telegram_message, chat_id, audio_type, chat_scores)
 
                 if audio:
                     await self.mark_old_audio_vertices_as_deleted(
@@ -824,6 +841,7 @@ class AudioMethods:
         telegram_message: pyrogram.types.Message,
         chat_id: int,
         audio_type: AudioType,
+        chat_scores: ChatScores,
     ) -> Optional[Audio]:
         """
         Update Audio alongside necessary vertices and edges in the ArangoDB if it exists, otherwise, create it.
@@ -836,6 +854,8 @@ class AudioMethods:
             Chat ID this message belongs to.
         audio_type : AudioType
             Type of the audio.
+        chat_scores : ChatScores
+            Scores of the parent chat.
 
         Returns
         -------
@@ -862,7 +882,7 @@ class AudioMethods:
                 # the type of the audio after update is not changed. So, the previous type is used for updating the current one.
 
                 # since it is checked for `TelegramMessageWithNoAudio` error earlier, there is no need to do it again.
-                if await audio.update(Audio.parse(telegram_message, chat_id, audio.type)):
+                if await audio.update(Audio.parse(telegram_message, chat_id, audio.type, chat_scores)):
                     # update connected hashtag vertices and edges
                     await self._update_connected_hashtags(audio)
 
@@ -878,7 +898,7 @@ class AudioMethods:
                     )
             else:
                 # audio vertex does not exist in the database, create it.
-                audio = await self.create_audio(telegram_message, chat_id, audio_type)
+                audio = await self.create_audio(telegram_message, chat_id, audio_type, chat_scores)
                 if audio:
                     await self.mark_old_audio_vertices_as_deleted(
                         chat_id=chat_id,

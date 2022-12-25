@@ -8,6 +8,7 @@ import pyrogram
 from aioarango.models import PersistentIndex
 from tase.common.utils import prettify, get_now_timestamp
 from tase.db.arangodb import graph as graph_models
+from tase.db.helpers import ChatScores
 from tase.errors import InvalidFromVertex, InvalidToVertex
 from tase.my_logger import logger
 from .base_vertex import BaseVertex
@@ -470,6 +471,22 @@ class Chat(BaseVertex):
             retry_on_failure=True,
         )
 
+    def get_chat_scores(self) -> ChatScores:
+        """
+        Return scores of this chat.
+
+        Returns
+        -------
+        ChatScores
+            A `ChatScores` object is returned.
+
+        """
+        return ChatScores(
+            audio_indexer_score=self.audio_indexer_metadata.score if self.audio_indexer_metadata else 0.0,
+            audio_doc_indexer_score=self.audio_doc_indexer_metadata.score if self.audio_doc_indexer_metadata else 0.0,
+            username_extractor_score=self.username_extractor_metadata.score if self.username_extractor_metadata else 0.0,
+        )
+
 
 class ChatMethods:
     _get_chat_linked_chat_with_edge_query = (
@@ -621,6 +638,10 @@ class ChatMethods:
                 await self._update_linked_chat(chat, telegram_chat)
                 await self._update_linked_username(chat, telegram_chat)
 
+                if chat.chat_type == ChatType.CHANNEL and (not chat.username or not telegram_chat.username):
+                    await chat.mark_as_invalid()
+                    await self.mark_chat_audios_as_deleted(chat.chat_id)
+
         else:
             chat: Chat = await self._create_chat(telegram_chat)
 
@@ -658,13 +679,16 @@ class ChatMethods:
         if chat is None or telegram_chat is None:
             return
 
-        async def remove_old_links(username_vertex_, has_edge_):
+        from tase.db.arangodb.graph.vertices import Username
+        from tase.db.arangodb.graph.edges import Has
+
+        async def remove_old_links(username_vertex_: Username, has_edge_: Has):
             deleted = await has_edge_.delete()
-            if not deleted:
-                logger.error(f"could not delete the `has` edge from chat with key `{chat.key}` to username with key `{username_vertex_.key}`")
-            else:
+            if deleted:
                 if not await username_vertex_.check(False, get_now_timestamp(), False):
                     logger.error(f"could not check username with key `{username_vertex_.key}`")
+            else:
+                logger.error(f"could not delete the `has` edge from chat with key `{chat.key}` to username with key `{username_vertex_.key}`")
 
         if telegram_chat.username:
             try:
@@ -711,10 +735,7 @@ class ChatMethods:
         if telegram_chat.linked_chat:
             # check if an update of connected vertices is needed
             try:
-                (
-                    linked_chat,
-                    linked_chat_edge,
-                ) = await self.get_chat_linked_chat_with_edge(chat)
+                linked_chat, linked_chat_edge = await self.get_chat_linked_chat_with_edge(chat)
             except ValueError as e:
                 logger.exception(e)
             else:
@@ -746,10 +767,7 @@ class ChatMethods:
         else:
             # the chat doesn't have any linked chat, check if it had any before and delete the link
             try:
-                (
-                    linked_chat,
-                    linked_chat_edge,
-                ) = await self.get_chat_linked_chat_with_edge(chat)
+                linked_chat, linked_chat_edge = await self.get_chat_linked_chat_with_edge(chat)
             except ValueError as e:
                 logger.exception(e)
             else:

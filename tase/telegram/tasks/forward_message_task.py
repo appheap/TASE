@@ -92,6 +92,7 @@ class ForwardMessageTask(BaseTask):
             forwardable_messages, non_forwardable_message_count = await self.check_new_messages(
                 telegram_client,
                 db,
+                db_chat,
                 source_chat_id,
                 db_audios,
                 es_audio_docs,
@@ -125,6 +126,7 @@ class ForwardMessageTask(BaseTask):
             forwarded_file_unique_ids = await self.check_forwarded_messages(
                 telegram_client,
                 db,
+                db_chat,
                 db_audios_mapping,
                 forwarded_messages,
                 target_chat_id,
@@ -133,6 +135,7 @@ class ForwardMessageTask(BaseTask):
             await self.check_failed_forwarded_messages(
                 telegram_client,
                 db,
+                db_chat,
                 list(forwardable_messages),
                 forwarded_file_unique_ids,
                 forwarded_messages,
@@ -159,6 +162,7 @@ class ForwardMessageTask(BaseTask):
         self,
         telegram_client: TelegramClient,
         db: DatabaseClient,
+        db_chat: graph_models.vertices.Chat,
         forwardable_messages: List[pyrogram.types.Message],
         forwarded_file_unique_ids: Set[str],
         forwarded_messages: List[pyrogram.types.Message],
@@ -179,12 +183,14 @@ class ForwardMessageTask(BaseTask):
                         telegram_client.telegram_id,
                         source_chat_id,
                         AudioType.NOT_ARCHIVED,
+                        db_chat.get_chat_scores(),
                     )
 
     async def check_forwarded_messages(
         self,
         telegram_client: TelegramClient,
         db: DatabaseClient,
+        db_chat: graph_models.vertices.Chat,
         db_audios_mapping: Dict[str, Tuple[graph_models.vertices.Audio, elasticsearch_models.Audio]],
         forwarded_messages: List[pyrogram.types.Message],
         target_chat_id: int,
@@ -196,6 +202,7 @@ class ForwardMessageTask(BaseTask):
                 message,
                 target_chat_id,
                 AudioType.ARCHIVED,
+                db_chat.get_chat_scores(),
             )
             archived_audio_doc = await db.document.update_or_create_audio(
                 message,
@@ -318,6 +325,7 @@ class ForwardMessageTask(BaseTask):
         self,
         telegram_client: TelegramClient,
         db: DatabaseClient,
+        db_chat: graph_models.vertices.Chat,
         source_chat_id: int,
         db_audios: Deque[graph_models.vertices.Audio],
         es_audio_docs: List[elasticsearch_models.Audio],
@@ -357,6 +365,7 @@ class ForwardMessageTask(BaseTask):
                                     telegram_client.telegram_id,
                                     source_chat_id,
                                     AudioType.NOT_ARCHIVED,
+                                    db_chat.get_chat_scores(),
                                 )
                                 logger.error(f"Message `{new_message.id}` from chat `{new_message.chat.id}` has content protection enabled!")
                         else:
@@ -368,6 +377,7 @@ class ForwardMessageTask(BaseTask):
                             telegram_client.telegram_id,
                             source_chat_id,
                             AudioType.NOT_ARCHIVED,
+                            db_chat.get_chat_scores(),
                         )
 
         return forwardable_messages, non_forwardable_message_count
