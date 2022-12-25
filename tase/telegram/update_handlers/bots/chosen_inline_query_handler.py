@@ -51,12 +51,7 @@ class ChosenInlineQueryHandler(BaseHandler):
                 )
 
         else:
-            (
-                inline_query_id,
-                hit_download_url,
-                chat_type_value,
-                _,
-            ) = chosen_inline_result.result_id.split("->")
+            inline_query_id, hit_download_url, chat_type_value, _ = chosen_inline_result.result_id.split("->")
 
             chat_type = ChatType(int(chat_type_value))
 

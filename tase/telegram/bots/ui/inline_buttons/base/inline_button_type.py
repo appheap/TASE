@@ -16,6 +16,7 @@ class InlineButtonType(Enum):
     ADVERTISEMENT = "advertisement"
     BACK = "back"
     BACK_TO_PLAYLISTS = "back_to_pl"
+    SHOW_MORE_RESULTS = "more"
     CHOOSE_LANGUAGE = "choose_language"
     DELETE_PLAYLIST = "delete_playlist"
     DOWNLOAD_HISTORY = "downloads"

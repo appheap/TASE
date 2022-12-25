@@ -15,6 +15,7 @@ from .loading_keyboard_button import LoadingKeyboardInlineButton
 from .my_playlists_button import MyPlaylistsInlineButton
 from .remove_from_playlist_button import RemoveFromPlaylistInlineButton
 from .show_language_menu_button import ShowLanguageMenuInlineButton
+from .show_more_results_button import ShowMoreResultsInlineButton
 from .toggle_dislike_audio_button import ToggleDisLikeAudioInlineButton
 from .toggle_favorite_playlist import ToggleFavoritePlaylistInlineButton
 from .toggle_like_audio_button import ToggleLikeAudioInlineButton
@@ -37,6 +38,7 @@ __all__ = [
     "MyPlaylistsInlineButton",
     "RemoveFromPlaylistInlineButton",
     "ShowLanguageMenuInlineButton",
+    "ShowMoreResultsInlineButton",
     "ToggleDisLikeAudioInlineButton",
     "ToggleFavoritePlaylistInlineButton",
     "ToggleLikeAudioInlineButton",
