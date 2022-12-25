@@ -4,6 +4,7 @@ from .utils import (
     get_audio_markup_keyboard,
     get_playlist_markup_keyboard,
     get_more_results_markup_keyboad,
+    get_query_hash,
 )
 
 __all__ = [
@@ -12,4 +13,5 @@ __all__ = [
     "populate_playlist_list",
     "populate_audio_items",
     "get_more_results_markup_keyboad",
+    "get_query_hash",
 ]

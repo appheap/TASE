@@ -27,18 +27,35 @@ class ShowMoreResultsInlineButton(InlineButton):
         query_date: int,
         reg: Optional[Match] = None,
     ):
+        from tase.telegram.bots.ui.inline_buttons.common import get_query_hash
+
         query_date = get_now_timestamp()
         from_user = await handler.db.graph.get_interacted_user(telegram_inline_query.from_user)
 
-        res = CustomInlineQueryResult(telegram_inline_query)
-        if not res.is_first_page():
-            # if this is the first time this query is made, then the first 10 results should be skipped since it is already shown in the non-inline search
-            # results.
-            res.from_ = 10
-
         # remove the command section from the original query to be like a normal inline query.
         command = reg.group("command")
-        telegram_inline_query.query = telegram_inline_query.query[telegram_inline_query.query.find(command) + len(command) :].strip()
+        query = telegram_inline_query.query[telegram_inline_query.query.find(command) + len(command) :].strip()
+        telegram_inline_query.query = query
+        res = CustomInlineQueryResult(telegram_inline_query)
+
+        q_split = query.split("\u200c")
+        if len(q_split) == 2:
+            given_query_hash, query = q_split
+
+            given_query_hash = given_query_hash.strip()
+            real_query_hash = get_query_hash(query)
+
+            if not res.is_first_page() and given_query_hash == real_query_hash:
+                # if this is the first time this query is made, then the first 10 results should be skipped since it is already shown in the non-inline search
+                # results.
+                res.from_ = 10
+            else:
+                if given_query_hash != real_query_hash:
+                    # query hash is invalid, user have changed the original query.
+                    pass
+
+            # remove the query hash section from the query string.
+            telegram_inline_query.query = query
 
         await InlineSearch.on_inline_query(
             handler,

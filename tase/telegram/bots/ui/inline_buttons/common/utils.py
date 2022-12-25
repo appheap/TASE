@@ -1,4 +1,5 @@
 import asyncio
+import functools
 from typing import Deque, Optional
 
 import pyrogram
@@ -248,15 +249,41 @@ def get_audio_markup_keyboard(
     return markup
 
 
+def add(v1: int, v2: int) -> int:
+    return v1 + v2
+
+
+def get_query_hash(query: str) -> Optional[str]:
+    if not query:
+        return None
+
+    query = query.strip()
+    if not query:
+        return None
+
+    u = functools.reduce(add, (ord(c) for c in query))
+    u = str(hex(u))[2:]
+
+    return u
+
+
 def get_more_results_markup_keyboad(
     chosen_language_code: str,
     query: str,
 ):
+    query = query.strip()
+    if not query:
+        return None
+
+    u = get_query_hash(query)
+    if not u:
+        return None
+
     markup = [
         [
             InlineButton.get_button(InlineButtonType.SHOW_MORE_RESULTS).get_inline_keyboard_button(
                 chosen_language_code,
-                switch_inline_arg=" " + query,
+                switch_inline_arg=u + " \u200c " + query,
             ),
         ],
     ]
