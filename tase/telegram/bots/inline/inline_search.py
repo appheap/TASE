@@ -24,6 +24,9 @@ class InlineSearch(OnInlineQuery):
         reg: Optional[Match] = None,
     ):
         found_any = True
+        query_metadata = None
+        audio_vertices = None
+        hit_download_urls = None
 
         if telegram_inline_query.query is None or not len(telegram_inline_query.query):
             # todo: query is empty
@@ -78,7 +81,7 @@ class InlineSearch(OnInlineQuery):
 
         await result.answer_query()
 
-        if found_any:
+        if found_any and query_metadata and audio_vertices and hit_download_urls:
             search_metadata_lst = [es_audio_doc.search_metadata for es_audio_doc in es_audio_docs]
             audio_keys = [es_audio_doc.id for es_audio_doc in es_audio_docs]
 

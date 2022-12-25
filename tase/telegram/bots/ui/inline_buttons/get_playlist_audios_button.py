@@ -36,6 +36,8 @@ class GetPlaylistAudioInlineButton(InlineButton):
         playlist_key = reg.group("arg1")
 
         playlist_is_valid = False  # whether the requested playlist belongs to the user or not
+        audio_vertices = None
+        hit_download_urls = None
 
         if result.is_first_page():
             playlist = await handler.db.graph.get_user_playlist_by_key(
@@ -83,7 +85,7 @@ class GetPlaylistAudioInlineButton(InlineButton):
 
         await result.answer_query()
 
-        if playlist_is_valid:
+        if playlist_is_valid and audio_vertices and hit_download_urls:
             await handler.db.graph.get_or_create_query(
                 handler.telegram_client.telegram_id,
                 from_user,
