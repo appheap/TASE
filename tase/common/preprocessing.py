@@ -1,5 +1,6 @@
 import collections
 import mimetypes
+import os
 import re
 import string
 import unicodedata
@@ -29,7 +30,19 @@ telegram_username_regex = r"(?:@)(?P<username>[a-zA-Z0-9_]{5,32})"
 if __name__ == "__main__":
     mime_types_file_path = "mime_types_file"
 else:
-    mime_types_file_path = "common/mime_types_file"
+    POSTFIX = "common/mime_types_file"
+
+    cwd = os.getcwd()
+    cwd = cwd[cwd.find("TASE/") :]
+
+    if cwd.endswith("tase"):
+        mime_types_file_path = POSTFIX
+    else:
+        if "tase" in cwd:
+            mime_types_file_path = "../" * (cwd.count("/") - 1) + POSTFIX
+        else:
+            mime_types_file_path = "../" * (cwd.count("/")) + "tase/" + POSTFIX
+
 mimetypes = mimetypes.MimeTypes((mime_types_file_path,))
 
 try:
