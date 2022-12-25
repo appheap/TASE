@@ -26,6 +26,7 @@ from ...db_utils import (
     is_audio_valid_for_inline,
     parse_audio_document_key_from_raw_attributes,
 )
+from ...helpers import ChatScores
 
 
 class Audio(BaseDocument):
@@ -63,6 +64,9 @@ class Audio(BaseDocument):
             "audio_type": {"type": "integer"},
             "valid_for_inline_search": {"type": "boolean"},
             "type": {"type": "integer"},
+            "chat_audio_indexer_score": {"type": "float"},
+            "chat_audio_doc_indexer_score": {"type": "float"},
+            "chat_username_extractor_score": {"type": "float"},
             "archive_chat_id": {"type": "long"},
             "archive_message_id": {"type": "long"},
             "estimated_bit_rate_type": {"type": "integer"},
@@ -130,6 +134,10 @@ class Audio(BaseDocument):
     archive_chat_id: Optional[int]
     archive_message_id: Optional[int]
 
+    chat_audio_indexer_score: Optional[float]
+    chat_audio_doc_indexer_score: Optional[float]
+    chat_username_extractor_score: Optional[float]
+
     estimated_bit_rate_type: BitRateType
     is_forwarded: bool
     is_deleted: bool
@@ -171,6 +179,7 @@ class Audio(BaseDocument):
         telegram_message: pyrogram.types.Message,
         chat_id: int,
         audio_type: AudioType,
+        chat_scores: ChatScores,
     ) -> Optional[Audio]:
         """
         Parse an `Audio` from the given `telegram_message` argument.
@@ -183,6 +192,8 @@ class Audio(BaseDocument):
             Chat ID this message belongs to.
         audio_type : AudioType
             Type of the audio.
+        chat_scores : ChatScores
+            Scores of the parent chat.
 
         Returns
         -------
@@ -248,6 +259,9 @@ class Audio(BaseDocument):
             ),
             audio_type=telegram_audio_type,
             type=audio_type,
+            chat_audio_indexer_score=chat_scores.audio_indexer_score,
+            chat_audio_doc_indexer_score=chat_scores.audio_doc_indexer_score,
+            chat_username_extractor_score=chat_scores.username_extractor_score,
             is_forwarded=True if telegram_message.forward_date else False,
             is_deleted=True if telegram_message.empty else False,
             is_edited=True if telegram_message.edit_date else False,
@@ -590,6 +604,7 @@ class AudioMethods:
         telegram_message: pyrogram.types.Message,
         chat_id: int,
         audio_type: AudioType,
+        chat_scores: ChatScores,
     ) -> Optional[Audio]:
         """
         Create Audio document in the ElasticSearch.
@@ -602,6 +617,8 @@ class AudioMethods:
             Chat ID this message belongs to.
         audio_type : AudioType
             Type of the audio.
+        chat_scores : ChatScores
+            Scores of the parent chat.
 
         Returns
         -------
@@ -610,7 +627,7 @@ class AudioMethods:
 
         """
         try:
-            audio, successful = await Audio.create(Audio.parse(telegram_message, chat_id, audio_type))
+            audio, successful = await Audio.create(Audio.parse(telegram_message, chat_id, audio_type, chat_scores))
         except TelegramMessageWithNoAudio:
             # this message doesn't contain any valid audio file
             await self.mark_old_audios_as_deleted(
@@ -628,6 +645,7 @@ class AudioMethods:
         telegram_message: pyrogram.types.Message,
         chat_id: int,
         audio_type: AudioType,
+        chat_scores: ChatScores,
     ) -> Optional[Audio]:
         """
         Get Audio if it exists in ElasticSearch, otherwise, create Audio document.
@@ -640,6 +658,8 @@ class AudioMethods:
             Chat ID this message belongs to.
         audio_type : AudioType
             Type of the audio.
+        chat_scores : ChatScores
+            Scores of the parent chat.
 
         Returns
         -------
@@ -662,7 +682,7 @@ class AudioMethods:
         else:
             if audio is None:
                 # audio does not exist in the index, create it
-                audio = await self.create_audio(telegram_message, chat_id, audio_type)
+                audio = await self.create_audio(telegram_message, chat_id, audio_type, chat_scores)
 
                 if audio:
                     await self.mark_old_audios_as_deleted(
@@ -678,6 +698,7 @@ class AudioMethods:
         telegram_message: pyrogram.types.Message,
         chat_id: int,
         audio_type: AudioType,
+        chat_scores: ChatScores,
     ) -> Optional[Audio]:
         """
         Update Audio document in the ElasticSearch if it exists, otherwise, create it.
@@ -690,6 +711,8 @@ class AudioMethods:
             Chat ID this message belongs to.
         audio_type : AudioType
             Type of the audio.
+        chat_scores : ChatScores
+            Scores of the parent chat.
 
         Returns
         -------
@@ -712,7 +735,7 @@ class AudioMethods:
         else:
             if audio is None:
                 # audio does not exist in the index, create it
-                audio = await self.create_audio(telegram_message, chat_id, audio_type)
+                audio = await self.create_audio(telegram_message, chat_id, audio_type, chat_scores)
                 if audio:
                     await self.mark_old_audios_as_deleted(
                         chat_id=chat_id,
@@ -721,7 +744,7 @@ class AudioMethods:
                     )
             else:
                 # the type of the audio after update is not changed. So, the previous type is used for updating the current one.
-                if await audio.update(Audio.parse(telegram_message, chat_id, audio.type)):
+                if await audio.update(Audio.parse(telegram_message, chat_id, audio.type, chat_scores)):
                     # get older valid audio docs to process
                     await self.mark_old_audios_as_deleted(
                         chat_id=chat_id,

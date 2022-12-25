@@ -153,6 +153,7 @@ class IndexAudiosTask(BaseTask):
                     telegram_client.telegram_id,
                     chat.chat_id,
                     AudioType.NOT_ARCHIVED,
+                    chat.get_chat_scores(),
                 )
                 if successful:
                     metadata.message_count += 1

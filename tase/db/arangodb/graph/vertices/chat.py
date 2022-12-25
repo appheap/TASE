@@ -8,6 +8,7 @@ import pyrogram
 from aioarango.models import PersistentIndex
 from tase.common.utils import prettify, get_now_timestamp
 from tase.db.arangodb import graph as graph_models
+from tase.db.helpers import ChatScores
 from tase.errors import InvalidFromVertex, InvalidToVertex
 from tase.my_logger import logger
 from .base_vertex import BaseVertex
@@ -468,6 +469,22 @@ class Chat(BaseVertex):
             self_copy,
             reserve_non_updatable_fields=False,
             retry_on_failure=True,
+        )
+
+    def get_chat_scores(self) -> ChatScores:
+        """
+        Return scores of this chat.
+
+        Returns
+        -------
+        ChatScores
+            A `ChatScores` object is returned.
+
+        """
+        return ChatScores(
+            audio_indexer_score=self.audio_indexer_metadata.score if self.audio_indexer_metadata else 0.0,
+            audio_doc_indexer_score=self.audio_doc_indexer_metadata.score if self.audio_doc_indexer_metadata else 0.0,
+            username_extractor_score=self.username_extractor_metadata.score if self.username_extractor_metadata else 0.0,
         )
 
 
