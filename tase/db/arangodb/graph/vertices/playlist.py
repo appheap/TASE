@@ -619,7 +619,7 @@ class PlaylistMethods:
     async def get_user_valid_playlists(
         self,
         user: User,
-        playlist_capacity: int = 200,
+        playlist_capacity: int = 500,
         offset: int = 0,
         limit: int = 15,
     ) -> List[Playlist]:
@@ -630,7 +630,7 @@ class PlaylistMethods:
         ----------
         user : User
             User to get playlist list for
-        playlist_capacity : int, default : 200
+        playlist_capacity : int, default : 500
             Length to filter the playlists by
         offset : int, default : 0
             Offset to get the playlists query after
