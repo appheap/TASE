@@ -112,19 +112,6 @@ class GetPlaylistAudioInlineButton(InlineButton):
         hit_download_url = result_id_list[1]
         chat_type = ChatType(int(result_id_list[2]))
 
-        if chat_type == ChatType.BOT:
-            # fixme: only store audio inline messages for inline queries in the bot chat
-            updated = await handler.db.document.set_audio_inline_message_id(
-                handler.telegram_client.telegram_id,
-                from_user.user_id,
-                inline_query_id,
-                hit_download_url,
-                telegram_chosen_inline_result.inline_message_id,
-            )
-            if not updated:
-                # could not update the audio inline message, what now?
-                pass
-
         # update the keyboard markup of the downloaded audio
         update_keyboard_task = asyncio.create_task(
             handler.update_audio_keyboard_markup(

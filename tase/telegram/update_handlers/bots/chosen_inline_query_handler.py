@@ -60,19 +60,6 @@ class ChosenInlineQueryHandler(BaseHandler):
                 # not set.
                 return
 
-            if chat_type == ChatType.BOT:
-                # fixme: only store audio inline messages for inline queries in the bot chat
-                updated = await self.db.document.set_audio_inline_message_id(
-                    self.telegram_client.telegram_id,
-                    from_user.user_id,
-                    inline_query_id,
-                    hit_download_url,
-                    chosen_inline_result.inline_message_id,
-                )
-                if not updated:
-                    # could not update the audio inline message, what now?
-                    pass
-
             # update the keyboard markup of the downloaded audio
             # TODO: since no audio has been sent to the user, the action is not considered a valid download. It'll be counted after the user clicks on the
             #  `download_audio` button of the sent message.

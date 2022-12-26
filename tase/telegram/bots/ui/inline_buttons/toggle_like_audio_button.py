@@ -89,44 +89,37 @@ class ToggleLikeAudioInlineButton(InlineButton):
                     except Exception as e:
                         pass
                 elif telegram_callback_query.inline_message_id:
-                    audio_inline_message = await handler.db.document.find_audio_inline_message_by_message_inline_id(
-                        handler.telegram_client.telegram_id,
-                        from_user.user_id,
-                        telegram_callback_query.inline_message_id,
-                        hit_download_url,
+                    status = await AudioKeyboardStatus.get_status(
+                        handler.db,
+                        from_user,
+                        hit_download_url=hit_download_url,
                     )
-                    if audio_inline_message:
-                        status = await AudioKeyboardStatus.get_status(
-                            handler.db,
-                            from_user,
-                            hit_download_url=hit_download_url,
-                        )
 
-                        reply_markup = get_audio_markup_keyboard(
-                            (await handler.telegram_client.get_me()).username,
-                            chat_type,
-                            from_user.chosen_language_code,
-                            hit_download_url,
-                            True,
-                            status,
-                        )
-                        if reply_markup:
-                            like_dislike_index = 1 if len(reply_markup.inline_keyboard) == 3 else 0
-                            reply_markup.inline_keyboard[like_dislike_index][1].text = self.new_text(not has_liked)
+                    reply_markup = get_audio_markup_keyboard(
+                        (await handler.telegram_client.get_me()).username,
+                        chat_type,
+                        from_user.chosen_language_code,
+                        hit_download_url,
+                        True,
+                        status,
+                    )
+                    if reply_markup:
+                        like_dislike_index = 1 if len(reply_markup.inline_keyboard) == 3 else 0
+                        reply_markup.inline_keyboard[like_dislike_index][1].text = self.new_text(not has_liked)
 
-                            if update_dislike_button:
-                                reply_markup.inline_keyboard[like_dislike_index][0].text = self.new_text(
-                                    not is_disliked,
-                                    thumbs_up=False,
-                                )
+                        if update_dislike_button:
+                            reply_markup.inline_keyboard[like_dislike_index][0].text = self.new_text(
+                                not is_disliked,
+                                thumbs_up=False,
+                            )
 
-                            try:
-                                await client.edit_inline_reply_markup(
-                                    telegram_callback_query.inline_message_id,
-                                    reply_markup,
-                                )
-                            except Exception as e:
-                                logger.exception(e)
+                        try:
+                            await client.edit_inline_reply_markup(
+                                telegram_callback_query.inline_message_id,
+                                reply_markup,
+                            )
+                        except Exception as e:
+                            logger.exception(e)
             else:
                 await telegram_callback_query.answer("Internal error")
 
