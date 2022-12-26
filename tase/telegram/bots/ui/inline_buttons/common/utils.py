@@ -1,4 +1,5 @@
 import asyncio
+import collections
 import functools
 from typing import Deque, Optional
 
@@ -106,6 +107,9 @@ async def populate_audio_items(
     telegram_inline_query : pyrogram.types.InlineQuery
         Telegram Inline Query object
     """
+    if not audio_vertices:
+        return collections.deque()
+
     # todo: fix this
     chats_dict, invalid_audio_keys = await handler.update_audio_cache(audio_vertices)
 

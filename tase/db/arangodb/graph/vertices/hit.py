@@ -121,6 +121,9 @@ class HitMethods:
         self,
         size: int = 10,
     ) -> Deque[str]:
+        if size <= 0:
+            return collections.deque()
+
         urls: List = await asyncio.gather(
             *(
                 asyncio.get_running_loop().run_in_executor(
