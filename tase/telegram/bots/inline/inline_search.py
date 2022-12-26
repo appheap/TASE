@@ -25,7 +25,7 @@ class InlineSearch(OnInlineQuery):
     ):
         found_any = True
         query_metadata = None
-        audio_vertices = None
+        es_audio_docs = None
         hit_download_urls = None
 
         if telegram_inline_query.query is None or not len(telegram_inline_query.query):
@@ -81,22 +81,23 @@ class InlineSearch(OnInlineQuery):
 
         await result.answer_query()
 
-        if found_any and query_metadata and audio_vertices and hit_download_urls:
+        if found_any and es_audio_docs:
             search_metadata_lst = [es_audio_doc.search_metadata for es_audio_doc in es_audio_docs]
-            audio_keys = [es_audio_doc.id for es_audio_doc in es_audio_docs]
+            audio_vertices = await handler.db.graph.get_audios_from_keys([es_audio_doc.id for es_audio_doc in es_audio_docs])
+        else:
+            search_metadata_lst = None
+            audio_vertices = None
 
-            # fixme
-            audio_vertices = await handler.db.graph.get_audios_from_keys(audio_keys)
-            await handler.db.graph.get_or_create_query(
-                handler.telegram_client.telegram_id,
-                from_user,
-                telegram_inline_query.query,
-                query_date,
-                audio_vertices,
-                query_metadata,
-                search_metadata_lst,
-                telegram_inline_query,
-                InlineQueryType.SEARCH,
-                result.get_next_offset(only_countable=True),
-                hit_download_urls=hit_download_urls,
-            )
+        await handler.db.graph.get_or_create_query(
+            handler.telegram_client.telegram_id,
+            from_user,
+            telegram_inline_query.query,
+            query_date,
+            audio_vertices,
+            query_metadata,
+            search_metadata_lst,
+            telegram_inline_query,
+            InlineQueryType.SEARCH,
+            result.get_next_offset(only_countable=True),
+            hit_download_urls=hit_download_urls,
+        )

@@ -237,6 +237,10 @@ class QueryMethods:
                 if to_bot_edge is None:
                     raise EdgeCreationFailed(ToBot.__class__.__name__)
 
+            if not audio_vertices:
+                # if the query doesn't have any results, create the query vertex but not the hits vertices
+                return db_query, None
+
             hit_type = HitType.UNKNOWN
             if inline_query_type is not None and telegram_inline_query is not None:
                 if inline_query_type == InlineQueryType.SEARCH:

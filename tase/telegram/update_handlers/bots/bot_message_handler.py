@@ -132,7 +132,9 @@ class BotMessageHandler(BaseHandler):
         ):
             return
 
-        found_any = True
+        es_audio_docs = None
+        query_metadata = None
+        hit_download_urls = None
         if not query:
             found_any = False
         else:
@@ -144,11 +146,11 @@ class BotMessageHandler(BaseHandler):
                     size=10,
                     filter_by_valid_for_inline_search=False,  # todo: is this a good idea?
                 )
-                if not es_audio_docs or not len(es_audio_docs) or query_metadata is None:
-                    found_any = False
-                else:
+                if es_audio_docs and query_metadata:
                     hit_download_urls = await self.db.graph.generate_hit_download_urls(size=10)
                     found_any = True
+                else:
+                    found_any = False
 
         if found_any:
             data = QueryResultsData.parse_from_query(
@@ -182,20 +184,24 @@ class BotMessageHandler(BaseHandler):
             else None,
         )
 
-        if found_any:
+        if found_any and es_audio_docs:
             audio_vertices = await self.db.graph.get_audios_from_keys([doc.id for doc in es_audio_docs])
             search_metadata_lst = [es_audio_doc.search_metadata for es_audio_doc in es_audio_docs]
+        else:
+            audio_vertices = None
+            search_metadata_lst = None
+            query_metadata = None
 
-            db_query, hits = await self.db.graph.get_or_create_query(
-                self.telegram_client.telegram_id,
-                from_user,
-                query,
-                datetime_to_timestamp(message.date),
-                audio_vertices,
-                query_metadata,
-                search_metadata_lst,
-                hit_download_urls=hit_download_urls,
-            )
+        await self.db.graph.get_or_create_query(
+            self.telegram_client.telegram_id,
+            from_user,
+            query,
+            datetime_to_timestamp(message.date),
+            audio_vertices,
+            query_metadata,
+            search_metadata_lst,
+            hit_download_urls=hit_download_urls,
+        )
 
     @async_exception_handler()
     async def bot_message_handler(

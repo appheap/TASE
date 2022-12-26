@@ -1244,7 +1244,7 @@ class AudioMethods:
             List of Audios if operation was successful, otherwise, return None
 
         """
-        if keys is None or not len(keys):
+        if not keys:
             return collections.deque()
 
         res = collections.deque()
