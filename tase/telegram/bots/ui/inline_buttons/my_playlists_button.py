@@ -75,11 +75,3 @@ class MyPlaylistsInlineButton(InlineButton):
                 from_user.user_id,
                 text="Enter your playlist title. Enter your playlist description in the next line\nYou can cancel anytime by sending /cancel",
             )
-        else:
-            # save inline message ID for the chosen playlist
-            await handler.db.document.set_playlist_inline_message_id(
-                handler.telegram_client.telegram_id,
-                from_user.user_id,
-                inline_query_id,
-                telegram_chosen_inline_result.inline_message_id,
-            )

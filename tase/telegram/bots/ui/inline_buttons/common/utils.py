@@ -377,7 +377,10 @@ def get_playlist_markup_keyboard(
             [
                 InlineButton.get_button(InlineButtonType.HOME).get_inline_keyboard_button(chosen_language_code),
                 InlineButton.get_button(InlineButtonType.BACK_TO_PLAYLISTS).get_inline_keyboard_button(chosen_language_code),
-                InlineButton.get_button(InlineButtonType.TOGGLE_PLAYLIST_SETTINGS).get_inline_keyboard_button(chosen_language_code, callback_arg=playlist.key),
+                InlineButton.get_button(InlineButtonType.TOGGLE_PLAYLIST_SETTINGS).get_inline_keyboard_button(
+                    chosen_language_code,
+                    callback_arg=f"{playlist.key}#{'1' if is_settings_visible else '0'}",
+                ),
             ],
         ]
 

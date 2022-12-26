@@ -25,8 +25,10 @@ class TogglePlaylistSettingsInlineButton(InlineButton):
     ):
         result_id_list = telegram_callback_query.data.split("->")
         button_type_value = result_id_list[0]
-        playlist_key = result_id_list[1]
+        playlist_key, is_settings_visible = result_id_list[1].split("#")
         chat_type = ChatType(int(result_id_list[2]))
+
+        is_settings_visible = bool(int(is_settings_visible))
 
         playlist = await handler.db.graph.get_user_playlist_by_key(
             from_user,
@@ -40,24 +42,13 @@ class TogglePlaylistSettingsInlineButton(InlineButton):
             await telegram_callback_query.answer("This playlist is deleted!")
             return
 
-        playlist_inline_message = await handler.db.document.find_playlist_inline_message_by_message_inline_id(
-            handler.telegram_client.telegram_id,
-            from_user.user_id,
-            telegram_callback_query.inline_message_id,
+        reply_markup = get_playlist_markup_keyboard(
+            playlist,
+            from_user.chosen_language_code,
+            is_settings_visible=not is_settings_visible,
         )
-        if playlist_inline_message:
-            await playlist_inline_message.toggle_settings_visibility()
 
-            reply_markup = get_playlist_markup_keyboard(
-                playlist,
-                from_user.chosen_language_code,
-                is_settings_visible=playlist_inline_message.is_settings_visible,
-            )
+        if reply_markup:
+            await client.edit_inline_reply_markup(telegram_callback_query.inline_message_id, reply_markup)
 
-            if reply_markup:
-                await client.edit_inline_reply_markup(telegram_callback_query.inline_message_id, reply_markup)
-
-            await telegram_callback_query.answer("")
-
-        else:
-            await telegram_callback_query.answer("This message is not valid anymore!")
+        await telegram_callback_query.answer("")
