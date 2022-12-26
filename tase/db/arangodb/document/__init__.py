@@ -6,6 +6,7 @@ from .audio_inline_message import (
 from .base_document import BaseDocument
 from .bot_task import BotTask, BotTaskMethods
 from .job import Job, JobMethods
+from .playlist_inline_message import PlaylistInlineMessage, PlaylistInlineMessageMethods
 from .rabbitmq_task import RabbitMQTask, RabbitMQTaskMethods
 
 
@@ -14,6 +15,7 @@ class ArangoDocumentMethods(
     AudioInlineMessageMethods,
     BotTaskMethods,
     JobMethods,
+    PlaylistInlineMessageMethods,
     RabbitMQTaskMethods,
 ):
     pass
@@ -24,5 +26,6 @@ document_classes = [
     AudioInlineMessage,
     BotTask,
     Job,
+    PlaylistInlineMessage,
     RabbitMQTask,
 ]
