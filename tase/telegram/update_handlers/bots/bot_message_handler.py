@@ -134,6 +134,7 @@ class BotMessageHandler(BaseHandler):
 
         es_audio_docs = None
         query_metadata = None
+        hit_download_urls = None
         if not query:
             found_any = False
         else:
