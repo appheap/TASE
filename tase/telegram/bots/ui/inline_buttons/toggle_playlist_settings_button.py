@@ -4,8 +4,8 @@ from tase.common.utils import _trans, emoji
 from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.enums import ChatType
 from tase.telegram.update_handlers.base import BaseHandler
-from .base import InlineButton, InlineButtonType, ButtonActionType
 from .common import get_playlist_markup_keyboard
+from ..base import InlineButton, InlineButtonType, ButtonActionType
 
 
 class TogglePlaylistSettingsInlineButton(InlineButton):
@@ -22,7 +22,7 @@ class TogglePlaylistSettingsInlineButton(InlineButton):
         client: pyrogram.Client,
         telegram_callback_query: pyrogram.types.CallbackQuery,
     ):
-        result_id_list = telegram_callback_query.data.split("->")
+        result_id_list = telegram_callback_query.data.split("|")
         button_type_value = result_id_list[0]
         playlist_key, is_settings_visible = result_id_list[1].split("#")
         chat_type = ChatType(int(result_id_list[2]))

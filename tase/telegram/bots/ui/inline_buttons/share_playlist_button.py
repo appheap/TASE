@@ -4,11 +4,10 @@ import pyrogram
 
 from tase.common.utils import _trans, emoji
 from tase.db.arangodb import graph as graph_models
-from tase.db.arangodb.enums import ChatType
+from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
-from .base import InlineButtonType, InlineButton, ButtonActionType
-from ..inline_items import PlaylistItem
+from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemInfo
 
 
 class SharePlaylistInlineButton(InlineButton):
@@ -32,6 +31,8 @@ class SharePlaylistInlineButton(InlineButton):
         playlist = await handler.db.graph.get_playlist_by_key(playlist_key)
 
         if result.is_first_page() and playlist and not playlist.is_soft_deleted and playlist.is_public:
+            from tase.telegram.bots.ui.inline_items import PlaylistItem
+
             result.add_item(
                 PlaylistItem.get_item(
                     playlist,
@@ -52,7 +53,9 @@ class SharePlaylistInlineButton(InlineButton):
         telegram_chosen_inline_result: pyrogram.types.ChosenInlineResult,
         reg: Match,
     ):
-        result_id_list = telegram_chosen_inline_result.result_id.split("->")
-        inline_query_id = result_id_list[0]
-        playlist_key = result_id_list[1]
-        chat_type = ChatType(int(result_id_list[2]))
+        from tase.telegram.bots.ui.inline_items.item_info import PlaylistItemInfo
+
+        inline_item_info: Optional[PlaylistItemInfo] = InlineItemInfo.get_info(telegram_chosen_inline_result.result_id)
+        if not inline_item_info or not isinstance(inline_item_info, PlaylistItemInfo):
+            logger.error(f"`{telegram_chosen_inline_result.result_id}` is not valid.")
+            return

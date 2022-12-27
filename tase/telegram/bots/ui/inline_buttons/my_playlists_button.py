@@ -1,15 +1,15 @@
-from typing import Match, Optional
+from typing import Match, Optional, Union
 
 import pyrogram
 
 from tase.common.utils import _trans, emoji
 from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.enums import BotTaskType, ChatType
+from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
-from .base import InlineButtonType, InlineButton, ButtonActionType
 from .common import populate_playlist_list
-from ..inline_items import NoPlaylistItem
+from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemInfo
 
 
 class MyPlaylistsInlineButton(InlineButton):
@@ -45,6 +45,8 @@ class MyPlaylistsInlineButton(InlineButton):
             )
 
             if not len(result) and result.is_first_page():
+                from tase.telegram.bots.ui.inline_items import NoPlaylistItem
+
                 result.set_results([NoPlaylistItem.get_item(from_user)])
 
         await result.answer_query()
@@ -57,10 +59,14 @@ class MyPlaylistsInlineButton(InlineButton):
         telegram_chosen_inline_result: pyrogram.types.ChosenInlineResult,
         reg: Match,
     ):
-        result_id_list = telegram_chosen_inline_result.result_id.split("->")
-        inline_query_id = result_id_list[0]
-        playlist_key = result_id_list[1]
-        chat_type = ChatType(int(result_id_list[2])) if len(result_id_list) == 3 else ChatType.UNKNOWN
+        from ..inline_items.item_info import PlaylistItemInfo, CreateNewPrivatePlaylistItemInfo
+
+        inline_item_info: Union[PlaylistItemInfo, CreateNewPrivatePlaylistItemInfo, None] = InlineItemInfo.get_info(telegram_chosen_inline_result.result_id)
+        if not inline_item_info or not isinstance(inline_item_info, (PlaylistItemInfo, CreateNewPrivatePlaylistItemInfo)):
+            logger.error(f"`{telegram_chosen_inline_result.result_id}` is not valid.")
+            return
+
+        playlist_key = inline_item_info.playlist_key if isinstance(inline_item_info, PlaylistItemInfo) else inline_item_info.item_key
 
         if playlist_key == "add_a_new_playlist":
             # start creating a new playlist

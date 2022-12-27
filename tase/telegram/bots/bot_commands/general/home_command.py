@@ -6,7 +6,7 @@ from pyrogram.types import InlineKeyboardMarkup
 from tase.db.arangodb import graph as graph_models
 from tase.telegram.bots.bot_commands.base_command import BaseCommand
 from tase.telegram.bots.bot_commands.bot_command_type import BotCommandType
-from tase.telegram.bots.ui.inline_buttons.base import InlineButton, InlineButtonType
+from tase.telegram.bots.ui.base import InlineButton, InlineButtonType
 from tase.telegram.bots.ui.templates import BaseTemplate, HomeData
 from tase.telegram.update_handlers.base import BaseHandler
 

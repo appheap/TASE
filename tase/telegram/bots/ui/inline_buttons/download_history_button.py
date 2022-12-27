@@ -5,18 +5,17 @@ import pyrogram
 
 from tase.common.utils import _trans, emoji
 from tase.db.arangodb import graph as graph_models
-from tase.db.arangodb.enums import ChatType, InteractionType, InlineQueryType
+from tase.db.arangodb.enums import InteractionType, InlineQueryType
 from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
-from .base import InlineButton, InlineButtonType
 from .common import populate_audio_items
-from ..inline_items import NoDownloadItem
+from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemInfo
 
 
 class DownloadHistoryInlineButton(InlineButton):
-    name = "download_history"
     type = InlineButtonType.DOWNLOAD_HISTORY
+    action = ButtonActionType.CURRENT_CHAT_INLINE
 
     s_my_downloads = _trans("My Downloads")
     text = f"{s_my_downloads} | {emoji._mobile_phone_with_arrow}"
@@ -45,6 +44,8 @@ class DownloadHistoryInlineButton(InlineButton):
         )
 
         if not len(result) and result.is_first_page():
+            from tase.telegram.bots.ui.inline_items import NoDownloadItem
+
             result.set_results([NoDownloadItem.get_item(from_user)])
 
         await result.answer_query()
@@ -70,10 +71,12 @@ class DownloadHistoryInlineButton(InlineButton):
         reg: Match,
     ):
 
-        result_id_list = telegram_chosen_inline_result.result_id.split("->")
-        inline_query_id = result_id_list[0]
-        hit_download_url = result_id_list[1]
-        chat_type = ChatType(int(result_id_list[2]))
+        from tase.telegram.bots.ui.inline_items.item_info import AudioItemInfo
+
+        inline_item_info: Optional[AudioItemInfo] = InlineItemInfo.get_info(telegram_chosen_inline_result.result_id)
+        if not inline_item_info or not isinstance(inline_item_info, AudioItemInfo):
+            logger.error(f"ChosenInlineResult `{telegram_chosen_inline_result.result_id}` is not valid.")
+            return
 
         # update the keyboard markup of the downloaded audio
         update_keyboard_task = asyncio.create_task(
@@ -81,17 +84,17 @@ class DownloadHistoryInlineButton(InlineButton):
                 client,
                 from_user,
                 telegram_chosen_inline_result,
-                hit_download_url,
-                chat_type,
+                inline_item_info.hit_download_url,
+                inline_item_info.chat_type,
             )
         )
 
         interaction_vertex = await handler.db.graph.create_interaction(
-            hit_download_url,
+            inline_item_info.hit_download_url,
             from_user,
             handler.telegram_client.telegram_id,
             InteractionType.SHARE,
-            chat_type,
+            inline_item_info.chat_type,
         )
         if not interaction_vertex:
             # could not create the download

@@ -1,5 +1,5 @@
 from tase.common.utils import _trans, emoji
-from .base import InlineButton, InlineButtonType, ButtonActionType
+from tase.telegram.bots.ui.base import InlineButton, InlineButtonType, ButtonActionType
 
 
 class AdvertisementInlineButton(InlineButton):

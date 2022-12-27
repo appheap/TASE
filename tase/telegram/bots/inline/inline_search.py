@@ -5,7 +5,6 @@ import pyrogram
 
 from tase.db.arangodb.enums import InlineQueryType
 from tase.db.arangodb.graph.vertices import User
-from tase.telegram.bots.ui.inline_items import AudioItem, NoResultItem
 from tase.telegram.update_handlers.base import BaseHandler
 from tase.telegram.update_interfaces import OnInlineQuery
 from . import CustomInlineQueryResult
@@ -27,6 +26,9 @@ class InlineSearch(OnInlineQuery):
         query_metadata = None
         es_audio_docs = None
         hit_download_urls = None
+
+        from tase.telegram.bots.ui.inline_items import AudioItem
+        from tase.telegram.bots.ui.inline_items import NoResultItem
 
         if telegram_inline_query.query is None or not len(telegram_inline_query.query):
             # todo: query is empty

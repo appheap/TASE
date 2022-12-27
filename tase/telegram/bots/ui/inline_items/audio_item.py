@@ -1,4 +1,3 @@
-import random
 import textwrap
 from datetime import timedelta, datetime
 from typing import Optional, Union
@@ -15,20 +14,12 @@ from tase.db.arangodb.helpers import AudioKeyboardStatus
 from tase.db.elasticsearchdb import models as elasticsearch_models
 from tase.telegram.bots.ui.templates import AudioCaptionData, BaseTemplate
 from .base_inline_item import BaseInlineItem
-from ..inline_buttons.base import InlineButton, InlineButtonType
+from .item_info import AudioItemInfo
+from ..base import InlineItemType, InlineButton, InlineButtonType
 
 
 class AudioItem(BaseInlineItem):
-    @classmethod
-    def parse_id(
-        cls,
-        telegram_inline_query: pyrogram.types.InlineQuery,
-        hit_download_url: str,
-        chat_type: Optional[ChatType] = None,
-    ) -> Optional[str]:
-        if chat_type is None:
-            chat_type = ChatType.parse_from_pyrogram(telegram_inline_query.chat_type)
-        return f"{telegram_inline_query.id}->{hit_download_url}->{chat_type.value}->{random.randint(1, 1_000_000)}"
+    __type__ = InlineItemType.AUDIO
 
     @classmethod
     def get_item(
@@ -47,7 +38,7 @@ class AudioItem(BaseInlineItem):
 
         chat_type = ChatType.parse_from_pyrogram(telegram_inline_query.chat_type)
 
-        result_id = cls.parse_id(
+        result_id = AudioItemInfo.parse_id(
             telegram_inline_query,
             hit_download_url,
             chat_type,
@@ -89,7 +80,7 @@ class AudioItem(BaseInlineItem):
 
         chat_type = ChatType.parse_from_pyrogram(telegram_inline_query.chat_type)
 
-        result_id = cls.parse_id(
+        result_id = AudioItemInfo.parse_id(
             telegram_inline_query,
             hit_download_url,
             chat_type,

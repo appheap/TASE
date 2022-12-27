@@ -3,8 +3,8 @@ import pyrogram
 from tase.common.utils import _trans, emoji
 from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.enums import BotTaskType
+from tase.telegram.bots.ui.base import InlineButton, InlineButtonType, ButtonActionType
 from tase.telegram.update_handlers.base import BaseHandler
-from .base import InlineButton, InlineButtonType, ButtonActionType
 
 
 class EditPlaylistTitleInlineButton(InlineButton):
@@ -28,7 +28,7 @@ class EditPlaylistTitleInlineButton(InlineButton):
             handler.telegram_client.telegram_id,
             BotTaskType.EDIT_PLAYLIST_TITLE,
             state_dict={
-                "playlist_key": telegram_callback_query.data.split("->")[1],
+                "playlist_key": telegram_callback_query.data.split("|")[1],
             },
         )
 

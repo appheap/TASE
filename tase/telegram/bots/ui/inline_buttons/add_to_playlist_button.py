@@ -1,10 +1,10 @@
-from typing import Match, Optional
+from typing import Match, Optional, Union
 
 import pyrogram
 
 from tase.common.utils import _trans, emoji
 from tase.db.arangodb import graph as graph_models
-from tase.db.arangodb.enums import BotTaskType, ChatType
+from tase.db.arangodb.enums import BotTaskType
 from tase.errors import (
     PlaylistDoesNotExists,
     HitDoesNotExists,
@@ -14,8 +14,8 @@ from tase.errors import (
 from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
-from .base import InlineButton, InlineButtonType, ButtonActionType
 from .common import populate_playlist_list
+from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemInfo
 
 
 class AddToPlaylistInlineButton(InlineButton):
@@ -57,10 +57,23 @@ class AddToPlaylistInlineButton(InlineButton):
         hit_download_url = reg.group("arg1")
         # todo: check if the user has downloaded this audio earlier, otherwise, the request is not valid
 
-        result_id_list = telegram_chosen_inline_result.result_id.split("->")
-        inline_query_id = result_id_list[0]
-        playlist_key = result_id_list[1]
-        chat_type = ChatType(int(result_id_list[2])) if len(result_id_list) == 3 else ChatType.UNKNOWN
+        from ..inline_items.item_info import CreateNewPrivatePlaylistItemInfo, CreateNewPublicPlaylistItemInfo, PlaylistItemInfo
+
+        inline_item_info: Union[
+            CreateNewPublicPlaylistItemInfo,
+            CreateNewPrivatePlaylistItemInfo,
+            PlaylistItemInfo,
+            None,
+        ] = InlineItemInfo.get_info(telegram_chosen_inline_result.result_id)
+
+        if not inline_item_info:
+            await client.send_message(
+                from_user.user_id,
+                "This item is not valid!",
+            )
+            return
+
+        playlist_key = inline_item_info.playlist_key if isinstance(inline_item_info, PlaylistItemInfo) else inline_item_info.item_key
 
         if playlist_key in ("add_a_new_private_playlist", "add_a_new_public_playlist"):
             # start creating a new playlist

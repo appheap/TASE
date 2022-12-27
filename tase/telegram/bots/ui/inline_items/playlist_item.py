@@ -11,10 +11,13 @@ from tase.common.utils import emoji
 from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.enums import ChatType
 from tase.telegram.bots.ui.templates import BaseTemplate, PlaylistData
+from tase.telegram.bots.ui.base import InlineItemType
 from .base_inline_item import BaseInlineItem
 
 
 class PlaylistItem(BaseInlineItem):
+    __type__ = InlineItemType.PLAYLIST
+
     @classmethod
     def get_item(
         cls,
@@ -38,7 +41,7 @@ class PlaylistItem(BaseInlineItem):
             return InlineQueryResultArticle(
                 title=playlist.title,
                 description=f"{playlist.description if playlist.description is not None else ' '}",
-                id=f"{telegram_inline_query.id}->{playlist.key}->{ChatType.parse_from_pyrogram(telegram_inline_query.chat_type).value}",
+                id=f"{cls.get_type_value()}|{telegram_inline_query.id}|{playlist.key}|{ChatType.parse_from_pyrogram(telegram_inline_query.chat_type).value}",
                 thumb_url="https://telegra.ph/file/ac2d210b9b0e5741470a1.jpg"
                 if not playlist.is_favorite
                 else "https://telegra.ph/file/07d5ca30dba31b5241bcf.jpg",
@@ -55,7 +58,7 @@ class PlaylistItem(BaseInlineItem):
             return InlineQueryResultArticle(
                 title=playlist.title,
                 description=f"{playlist.description if playlist.description is not None else ' '}",
-                id=f"{telegram_inline_query.id}->{playlist.key}->{ChatType.parse_from_pyrogram(telegram_inline_query.chat_type).value}",
+                id=f"{cls.get_type_value()}|{telegram_inline_query.id}|{playlist.key}|{ChatType.parse_from_pyrogram(telegram_inline_query.chat_type).value}",
                 thumb_url="https://telegra.ph/file/ac2d210b9b0e5741470a1.jpg"
                 if not playlist.is_favorite
                 else "https://telegra.ph/file/07d5ca30dba31b5241bcf.jpg",

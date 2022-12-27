@@ -7,9 +7,12 @@ from pyrogram.types import InlineQueryResultArticle, InputTextMessageContent
 from tase.common.utils import _trans, emoji
 from tase.db.arangodb import graph as graph_models
 from .base_inline_item import BaseInlineItem
+from ..base import InlineItemType
 
 
 class AudioInNoPlaylistItem(BaseInlineItem):
+    __type__ = InlineItemType.AUDIO_IN_NO_PLAYLIST
+
     @classmethod
     def get_item(
         cls,
@@ -19,6 +22,7 @@ class AudioInNoPlaylistItem(BaseInlineItem):
             return None
 
         return InlineQueryResultArticle(
+            id=f"{cls.get_type_value()}|",
             title=_trans("No Results Were Found", db_from_user.chosen_language_code),
             description=_trans(
                 "You haven't added this audio to any playlist yet",

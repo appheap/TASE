@@ -1,6 +1,7 @@
 import collections
 import gettext
 import json
+import os
 import re
 import secrets
 import time
@@ -65,9 +66,22 @@ language_mapping: Dict[str, Language] = {
 }
 
 if not len(languages):
+    POSTFIX = "../locales"
+
+    cwd = os.getcwd()
+    cwd = cwd[cwd.find("TASE/") :]
+
+    if cwd.endswith("tase"):
+        localedir = POSTFIX
+    else:
+        if "tase" in cwd:
+            localedir = "../" * (cwd.count("/") - 1) + POSTFIX
+        else:
+            localedir = "../" * (cwd.count("/")) + "tase/" + POSTFIX
+
     for lang_code in language_mapping.keys():
         logger.debug(f"lang_code: {lang_code}")
-        lang = gettext.translation("tase", localedir="../locales", languages=[lang_code])
+        lang = gettext.translation("tase", localedir=localedir, languages=[lang_code])
         lang.install()
         languages[lang_code] = lang.gettext
 

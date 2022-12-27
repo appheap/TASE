@@ -11,12 +11,7 @@ from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.enums import ChatType
 from tase.db.arangodb.helpers import AudioKeyboardStatus
 from tase.telegram.bots.inline import CustomInlineQueryResult
-from tase.telegram.bots.ui.inline_buttons.base import InlineButton, InlineButtonType
-from tase.telegram.bots.ui.inline_items import (
-    CreateNewPrivatePlaylistItem,
-    PlaylistItem,
-    AudioItem,
-)
+from tase.telegram.bots.ui.base import InlineButton, InlineButtonType
 from tase.telegram.update_handlers.base import BaseHandler
 
 
@@ -48,6 +43,8 @@ async def populate_playlist_list(
         Whether to show playlist item when clicked or not.
 
     """
+    from tase.telegram.bots.ui.inline_items import CreateNewPrivatePlaylistItem, PlaylistItem
+
     playlists = (
         await handler.db.graph.get_user_valid_playlists(
             from_user,
@@ -109,6 +106,8 @@ async def populate_audio_items(
     """
     if not audio_vertices:
         return collections.deque()
+
+    from tase.telegram.bots.ui.inline_items import AudioItem
 
     # todo: fix this
     chats_dict, invalid_audio_keys = await handler.update_audio_cache(audio_vertices)

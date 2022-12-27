@@ -10,7 +10,7 @@ from tase.common.preprocessing import telegram_url_regex, url_regex
 from tase.common.utils import get_now_timestamp, async_timed, async_exception_handler
 from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult, InlineSearch
-from tase.telegram.bots.ui.inline_buttons.base import InlineButton
+from tase.telegram.bots.ui.base import InlineButton
 from tase.telegram.update_handlers.base import BaseHandler, HandlerMetadata
 
 

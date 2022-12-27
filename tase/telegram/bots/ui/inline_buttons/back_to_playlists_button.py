@@ -6,8 +6,8 @@ from tase.common.utils import _trans, emoji
 from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.enums import ChatType
 from tase.telegram.update_handlers.base import BaseHandler
-from .base import InlineButtonType, ButtonActionType
 from .my_playlists_button import MyPlaylistsInlineButton
+from ..base import InlineButtonType, ButtonActionType
 from ...inline import CustomInlineQueryResult
 
 

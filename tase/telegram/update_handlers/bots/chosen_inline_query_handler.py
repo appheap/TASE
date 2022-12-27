@@ -7,7 +7,7 @@ from pyrogram import handlers
 from tase.common.utils import async_exception_handler
 from tase.db.arangodb.enums import ChatType
 from tase.my_logger import logger
-from tase.telegram.bots.ui.inline_buttons.base import InlineButton
+from tase.telegram.bots.ui.base import InlineButton
 from tase.telegram.update_handlers.base import BaseHandler, HandlerMetadata
 
 
@@ -51,7 +51,7 @@ class ChosenInlineQueryHandler(BaseHandler):
                 )
 
         else:
-            inline_query_id, hit_download_url, chat_type_value, _ = chosen_inline_result.result_id.split("->")
+            inline_query_id, hit_download_url, chat_type_value, _ = chosen_inline_result.result_id.split("|")
 
             chat_type = ChatType(int(chat_type_value))
 

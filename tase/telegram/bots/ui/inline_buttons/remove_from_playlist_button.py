@@ -1,10 +1,9 @@
-from typing import Match, Optional
+from typing import Match, Optional, Union
 
 import pyrogram
 
 from tase.common.utils import _trans, emoji, get_now_timestamp
 from tase.db.arangodb import graph as graph_models
-from tase.db.arangodb.enums import ChatType
 from tase.errors import (
     PlaylistDoesNotExists,
     HitDoesNotExists,
@@ -14,8 +13,7 @@ from tase.errors import (
 from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
-from .base import InlineButton, InlineButtonType, ButtonActionType
-from ..inline_items import PlaylistItem, AudioInNoPlaylistItem
+from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemInfo
 
 
 class RemoveFromPlaylistInlineButton(InlineButton):
@@ -52,6 +50,8 @@ class RemoveFromPlaylistInlineButton(InlineButton):
                 "Given download url is not valid anymore",
             )
         else:
+            from tase.telegram.bots.ui.inline_items import PlaylistItem
+
             for playlist in db_playlists:
                 result.add_item(
                     PlaylistItem.get_item(
@@ -64,6 +64,8 @@ class RemoveFromPlaylistInlineButton(InlineButton):
 
         if not len(result) and result.is_first_page():
             # what to show when user doesn't have any playlists yet or hasn't added this audio to any playlist
+            from tase.telegram.bots.ui.inline_items import AudioInNoPlaylistItem
+
             result.set_results([AudioInNoPlaylistItem.get_item(from_user)])
 
         await result.answer_query()
@@ -79,10 +81,14 @@ class RemoveFromPlaylistInlineButton(InlineButton):
         hit_download_url = reg.group("arg1")
         # todo: check if the user has downloaded this audio earlier, otherwise, the request is not valid
 
-        result_id_list = telegram_chosen_inline_result.result_id.split("->")
-        inline_query_id = result_id_list[0]
-        playlist_key = result_id_list[1]
-        chat_type = ChatType(int(result_id_list[2])) if len(result_id_list) == 3 else ChatType.UNKNOWN
+        from tase.telegram.bots.ui.inline_items.item_info import NoPlaylistItemInfo, PlaylistItemInfo
+
+        inline_item_info: Union[PlaylistItemInfo, NoPlaylistItemInfo, None] = InlineItemInfo.get_info(telegram_chosen_inline_result.result_id)
+        if not inline_item_info or not isinstance(inline_item_info, PlaylistItemInfo):
+            logger.error(f"`{telegram_chosen_inline_result.result_id}` is not valid.")
+            return
+
+        playlist_key = inline_item_info.playlist_key
 
         # remove the audio from the playlist
         try:

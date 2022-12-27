@@ -1,18 +1,17 @@
 import asyncio
-from typing import Match, Optional
+from typing import Match, Optional, Union
 
 import pyrogram
 
 from tase.common.utils import _trans, emoji
 from tase.db.arangodb import graph as graph_models
-from tase.db.arangodb.enums import InteractionType, ChatType, InlineQueryType
+from tase.db.arangodb.enums import InteractionType, InlineQueryType
 from tase.errors import PlaylistDoesNotExists
 from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
-from .base import InlineButton, InlineButtonType, ButtonActionType
 from .common import populate_audio_items
-from ..inline_items import PlaylistItem, NoDownloadItem
+from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemInfo
 
 
 class GetPlaylistAudioInlineButton(InlineButton):
@@ -39,6 +38,8 @@ class GetPlaylistAudioInlineButton(InlineButton):
         hit_download_urls = None
 
         if result.is_first_page():
+            from tase.telegram.bots.ui.inline_items import PlaylistItem
+
             playlist = await handler.db.graph.get_playlist_by_key(playlist_key)
 
             if playlist and not playlist.is_soft_deleted:
@@ -89,6 +90,8 @@ class GetPlaylistAudioInlineButton(InlineButton):
                 )
 
         if not len(result) and not playlist_is_valid and result.is_first_page():
+            from tase.telegram.bots.ui.inline_items import NoDownloadItem
+
             result.set_results([NoDownloadItem.get_item(from_user)])
 
         await result.answer_query()
@@ -114,11 +117,13 @@ class GetPlaylistAudioInlineButton(InlineButton):
         telegram_chosen_inline_result: pyrogram.types.ChosenInlineResult,
         reg: Match,
     ):
+        from tase.telegram.bots.ui.inline_items.item_info import AudioItemInfo, PlaylistItemInfo
 
-        result_id_list = telegram_chosen_inline_result.result_id.split("->")
-        inline_query_id = result_id_list[0]
-        hit_download_url = result_id_list[1]
-        chat_type = ChatType(int(result_id_list[2])) if len(result_id_list) == 3 else ChatType.UNKNOWN
+        inline_item_info: Union[AudioItemInfo, PlaylistItemInfo, None] = InlineItemInfo.get_info(telegram_chosen_inline_result.result_id)
+        # only if the user has clicked on an audio item, the rest of the code should be executed.
+        if not inline_item_info or not isinstance(inline_item_info, AudioItemInfo):
+            logger.error(f"`{telegram_chosen_inline_result.result_id}` is not valid.")
+            return
 
         # update the keyboard markup of the downloaded audio
         update_keyboard_task = asyncio.create_task(
@@ -126,17 +131,17 @@ class GetPlaylistAudioInlineButton(InlineButton):
                 client,
                 from_user,
                 telegram_chosen_inline_result,
-                hit_download_url,
-                chat_type,
+                inline_item_info.hit_download_url,
+                inline_item_info.chat_type,
             )
         )
 
         interaction_vertex = await handler.db.graph.create_interaction(
-            hit_download_url,
+            inline_item_info.hit_download_url,
             from_user,
             handler.telegram_client.telegram_id,
             InteractionType.SHARE,
-            chat_type,
+            inline_item_info.chat_type,
         )
         if not interaction_vertex:
             # could not create the interaction_vertex

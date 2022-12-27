@@ -1,14 +1,14 @@
-from typing import Match, Optional
+from typing import Match, Optional, Union
 
 import pyrogram
 
 from tase.common.utils import _trans, emoji
 from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.enums import BotTaskType, ChatType
+from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
-from .base import InlineButtonType, InlineButton, ButtonActionType
-from ..inline_items import NoPlaylistItem, CreateNewPublicPlaylistItem, PlaylistItem
+from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemInfo
 
 
 class MyPlaylistSubscriptionsInlineButton(InlineButton):
@@ -38,6 +38,8 @@ class MyPlaylistSubscriptionsInlineButton(InlineButton):
 
         if result.is_first_page() and chat_type == ChatType.BOT and user_playlist_count < 15:
             # a total number of 10 private playlists is allowed for each user (favorite playlist excluded)
+            from tase.telegram.bots.ui.inline_items import CreateNewPublicPlaylistItem
+
             result.add_item(
                 CreateNewPublicPlaylistItem.get_item(
                     from_user,
@@ -45,6 +47,8 @@ class MyPlaylistSubscriptionsInlineButton(InlineButton):
                 ),
                 count=False,
             )
+
+        from tase.telegram.bots.ui.inline_items import PlaylistItem
 
         for playlist in playlists:
             result.add_item(
@@ -57,6 +61,8 @@ class MyPlaylistSubscriptionsInlineButton(InlineButton):
             )
 
             if not len(result) and result.is_first_page():
+                from tase.telegram.bots.ui.inline_items import NoPlaylistItem
+
                 result.set_results([NoPlaylistItem.get_item(from_user)])
 
         await result.answer_query()
@@ -69,10 +75,14 @@ class MyPlaylistSubscriptionsInlineButton(InlineButton):
         telegram_chosen_inline_result: pyrogram.types.ChosenInlineResult,
         reg: Match,
     ):
-        result_id_list = telegram_chosen_inline_result.result_id.split("->")
-        inline_query_id = result_id_list[0]
-        playlist_key = result_id_list[1]
-        chat_type = ChatType(int(result_id_list[2])) if len(result_id_list) == 3 else ChatType.UNKNOWN
+        from tase.telegram.bots.ui.inline_items.item_info import PlaylistItemInfo, CreateNewPublicPlaylistItemInfo
+
+        inline_item_info: Union[PlaylistItemInfo, CreateNewPublicPlaylistItemInfo, None] = InlineItemInfo.get_info(telegram_chosen_inline_result.result_id)
+        if not inline_item_info or not isinstance(inline_item_info, (PlaylistItemInfo, CreateNewPublicPlaylistItemInfo)):
+            logger.error(f"`{telegram_chosen_inline_result.result_id}` is not valid.")
+            return
+
+        playlist_key = inline_item_info.playlist_key if isinstance(inline_item_info, PlaylistItemInfo) else inline_item_info.item_key
 
         if playlist_key in "add_a_new_public_playlist":
             # start creating a new playlist

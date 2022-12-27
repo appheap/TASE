@@ -2,8 +2,8 @@ import pyrogram
 
 from tase.common.utils import _trans
 from tase.db.arangodb import graph as graph_models
+from tase.telegram.bots.ui.base import InlineButton, InlineButtonType, ButtonActionType
 from tase.telegram.update_handlers.base import BaseHandler
-from .base import InlineButtonType, InlineButton, ButtonActionType
 
 
 class LoadingKeyboardInlineButton(InlineButton):

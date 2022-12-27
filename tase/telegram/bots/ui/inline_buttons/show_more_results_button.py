@@ -5,7 +5,7 @@ import pyrogram
 from tase.common.utils import _trans, emoji, get_now_timestamp
 from tase.db.arangodb import graph as graph_models
 from tase.telegram.update_handlers.base import BaseHandler
-from .base import InlineButtonType, InlineButton, ButtonActionType
+from ..base import InlineButton, InlineButtonType, ButtonActionType
 from ...inline import CustomInlineQueryResult, InlineSearch
 
 

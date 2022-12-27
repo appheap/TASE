@@ -9,9 +9,10 @@ from pyrogram.types import InlineKeyboardButton
 from tase.common.utils import translate_text
 from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.enums import ChatType
+from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
-from tase.telegram.bots.ui.inline_buttons.base.button_action_type import ButtonActionType
-from tase.telegram.bots.ui.inline_buttons.base.inline_button_type import InlineButtonType
+from tase.telegram.bots.ui.base.button_action_type import ButtonActionType
+from tase.telegram.bots.ui.base.inline_button_type import InlineButtonType
 from tase.telegram.update_handlers.base import BaseHandler
 from tase.telegram.update_interfaces import (
     OnCallbackQuery,
@@ -37,6 +38,7 @@ class InlineButton(
     def __init_subclass__(cls) -> None:
         temp = cls()
         InlineButton.__registry__[temp.type.value] = temp
+        logger.debug(f"init subclass of {InlineButton.__name__}: {cls.__name__}")
 
     @classmethod
     def find_button_by_type_value(
@@ -153,7 +155,7 @@ class InlineButton(
         if not self.is_callback():
             return None
 
-        return f"{self.type.value}->{callback_arg}->{chat_type.value}"
+        return f"{self.type.value}|{callback_arg}|{chat_type.value}"
 
     def _get_switch_inline_query_current_chat(
         self,
