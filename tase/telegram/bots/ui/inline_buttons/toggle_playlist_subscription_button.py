@@ -37,7 +37,7 @@ class TogglePlaylistSubscriptionInlineButton(InlineButton):
             return
 
         # user who has created the playlist must not be allowed to subscribe/unsubscribe.
-        if await handler.db.graph.get_user_playlist_by_key(from_user, playlist_key):
+        if playlist.owner_user_id == playlist.owner_user_id:
             await telegram_callback_query.answer("Operation is not allowed!")
             return
 
@@ -45,14 +45,5 @@ class TogglePlaylistSubscriptionInlineButton(InlineButton):
         if not successful:
             await telegram_callback_query.answer("Internal error occurred!")
             return
-
-        # reply_markup = get_playlist_markup_keyboard(
-        #     playlist,
-        #     from_user.chosen_language_code,
-        #     is_settings_visible=not is_settings_visible,
-        # )
-        #
-        # if reply_markup:
-        #     await client.edit_inline_reply_markup(telegram_callback_query.inline_message_id, reply_markup)
 
         await telegram_callback_query.answer(_trans("Subscribed!") if subscribed else _trans("Unsubscribed!"))

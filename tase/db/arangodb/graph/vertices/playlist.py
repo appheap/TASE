@@ -50,6 +50,8 @@ class Playlist(BaseVertex, BaseSoftDeletableDocument):
 
     __non_updatable_fields__ = ("is_favorite",)
 
+    owner_user_id: int
+
     title: str
     description: Optional[str]
 
@@ -406,6 +408,7 @@ class PlaylistMethods:
 
         v = Playlist(
             key=key,
+            owner_user_id=user.user_id,
             title=title,
             description=description,
             is_favorite=is_favorite,

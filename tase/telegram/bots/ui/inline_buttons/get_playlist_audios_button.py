@@ -44,12 +44,8 @@ class GetPlaylistAudioInlineButton(InlineButton):
 
             if playlist and not playlist.is_soft_deleted:
                 if not playlist.is_public:
-                    playlist = await handler.db.graph.get_user_playlist_by_key(
-                        from_user,
-                        playlist_key,
-                        filter_out_soft_deleted=True,
-                    )
-                    if playlist:
+                    # if this playlist is private, then it can only be accessed if the user querying it is the owner.
+                    if playlist.owner_user_id == from_user.user_id:
                         playlist_is_valid = True
                         result.add_item(
                             PlaylistItem.get_item(
@@ -72,6 +68,7 @@ class GetPlaylistAudioInlineButton(InlineButton):
                         count=False,
                     )
         else:
+            # since the playlist validation has been done in the first page, it is not necessary to redo it.
             playlist_is_valid = True
 
         if playlist_is_valid:
