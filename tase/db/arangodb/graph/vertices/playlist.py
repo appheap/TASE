@@ -55,6 +55,7 @@ class Playlist(BaseVertex, BaseSoftDeletableDocument):
 
     rank: int
     is_favorite: bool = Field(default=False)
+    is_public: bool = Field(default=False)
 
     async def update_title(
         self,
@@ -155,6 +156,13 @@ class PlaylistMethods:
     _get_user_playlists_query = (
         "for v,e in 1..1 outbound @start_vertex graph @graph_name options {order:'dfs', edgeCollections:[@has],vertexCollections:[@playlists]}"
         "   sort v.rank ASC, v.modified_at DESC"
+        "   limit @offset, @limit"
+        "   return v"
+    )
+
+    _get_user_subscribed_playlists_query = (
+        "for v,e in 1..1 outbound @start_vertex graph @graph_name options {order:'dfs', edgeCollections:[@subscribe_to],vertexCollections:[@playlists]}"
+        "   sort v.rank ASC, v.is_public DESC, v.modified_at DESC"
         "   limit @offset, @limit"
         "   return v"
     )
@@ -346,6 +354,7 @@ class PlaylistMethods:
         title: str,
         description: str,
         is_favorite: bool,
+        is_public: bool,
     ) -> Optional[Playlist]:
         """
         Create a `Playlist` for the given `user` and return it the operation was successful, otherwise, return `None`.
@@ -360,6 +369,8 @@ class PlaylistMethods:
             Description of the playlist
         is_favorite : bool
             Whether the created playlist is favorite or not.
+        is_public : bool
+            Whether the created playlist is public or not.
 
         Returns
         -------
@@ -370,6 +381,9 @@ class PlaylistMethods:
         -----
             Only `1` favorite playlist is allowed per user.
         """
+
+        if is_favorite and is_public:
+            return None
 
         # making sure of the `key` uniqueness
         while True:
@@ -386,6 +400,7 @@ class PlaylistMethods:
             title=title,
             description=description,
             is_favorite=is_favorite,
+            is_public=is_public,
             rank=1 if is_favorite else 2,
         )
 
@@ -413,6 +428,7 @@ class PlaylistMethods:
         title: str,
         description: str = None,
         is_favorite: bool = False,
+        is_public: bool = False,
     ) -> Optional[Playlist]:
         """
         Get a `Playlist` with the given `title` if it exists, otherwise, create it and return it.
@@ -427,6 +443,8 @@ class PlaylistMethods:
             Description of the playlist
         is_favorite : bool
             Whether this playlist is favorite or not.
+        is_public : bool, default : False
+            Whether the created playlist is public or not.
 
         Returns
         -------
@@ -453,7 +471,7 @@ class PlaylistMethods:
         if playlist:
             return playlist
 
-        return await self.create_playlist(user, title, description, is_favorite)
+        return await self.create_playlist(user, title, description, is_favorite, is_public)
 
     async def create_favorite_playlist(
         self,
@@ -478,6 +496,7 @@ class PlaylistMethods:
             title="Favorite",
             description="Favorite Playlist",
             is_favorite=True,
+            is_public=False,
         )
 
     async def get_or_create_favorite_playlist(
@@ -578,7 +597,7 @@ class PlaylistMethods:
         limit: int = 15,
     ) -> List[Playlist]:
         """
-        Get `User` playlists.
+        Get playlists that user has created them.
 
         Parameters
         ----------
@@ -606,6 +625,51 @@ class PlaylistMethods:
             bind_vars={
                 "start_vertex": user.id,
                 "has": Has.__collection_name__,
+                "playlists": Playlist.__collection_name__,
+                "offset": offset,
+                "limit": limit,
+            },
+        ) as cursor:
+            async for doc in cursor:
+                res.append(Playlist.from_collection(doc))
+
+        return list(res)
+
+    async def get_user_subscribed_playlists(
+        self,
+        user: User,
+        offset: int = 0,
+        limit: int = 15,
+    ) -> List[Playlist]:
+        """
+        Get playlists that the user has subscribed to.
+
+        Parameters
+        ----------
+        user : User
+            User to get playlist list for
+        offset : int, default : 0
+            Offset to get the playlists query after
+        limit : int, default : 15
+            Number of `Playlists`s to query
+
+        Returns
+        ------
+        list of Playlist
+            List of Playlists that the given user has
+
+        """
+        if user is None:
+            return []
+
+        from tase.db.arangodb.graph.edges import SubscribeTo
+
+        res = collections.deque()
+        async with await Playlist.execute_query(
+            self._get_user_subscribed_playlists_query,
+            bind_vars={
+                "start_vertex": user.id,
+                "subscribe_to": SubscribeTo.__collection_name__,
                 "playlists": Playlist.__collection_name__,
                 "offset": offset,
                 "limit": limit,

@@ -8,15 +8,14 @@ from tase.db.arangodb.enums import BotTaskType, ChatType
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
 from .base import InlineButtonType, InlineButton
-from .common import populate_playlist_list
-from ..inline_items import NoPlaylistItem
+from ..inline_items import NoPlaylistItem, CreateNewPublicPlaylistItem, PlaylistItem
 
 
-class MyPlaylistsInlineButton(InlineButton):
-    name = "my_playlists"
-    type = InlineButtonType.MY_PLAYLISTS
+class MyPlaylistSubscriptionsInlineButton(InlineButton):
+    name = "sub"
+    type = InlineButtonType.MY_PLAYLIST_SUBSCRIPTIONS
 
-    s_my_playlists = _trans("My Playlists")
+    s_my_playlists = _trans("Public Playlists")
     text = f"{s_my_playlists} | {emoji._headphone}"
     is_inline = True
 
@@ -31,18 +30,31 @@ class MyPlaylistsInlineButton(InlineButton):
         reg: Optional[Match] = None,
     ):
         chat_type = ChatType.parse_from_pyrogram(telegram_inline_query.chat_type)
-        if chat_type != ChatType.BOT:
-            result.set_results(
-                [],
-                count=True,
+        playlists = await handler.db.graph.get_user_subscribed_playlists(
+            from_user,
+            offset=result.from_,
+        )
+
+        user_playlist_count = await handler.db.graph.get_user_playlists_count(from_user)
+
+        if result.is_first_page() and chat_type == ChatType.BOT and user_playlist_count < 15:
+            # a total number of 10 private playlists is allowed for each user (favorite playlist excluded)
+            result.add_item(
+                CreateNewPublicPlaylistItem.get_item(
+                    from_user,
+                    telegram_inline_query,
+                ),
+                count=False,
             )
-        else:
-            await populate_playlist_list(
-                from_user,
-                handler,
-                result,
-                telegram_inline_query,
-                view_playlist=True,
+
+        for playlist in playlists:
+            result.add_item(
+                PlaylistItem.get_item(
+                    playlist,
+                    from_user,
+                    telegram_inline_query,
+                    view_playlist=True,
+                )
             )
 
             if not len(result) and result.is_first_page():
@@ -62,12 +74,12 @@ class MyPlaylistsInlineButton(InlineButton):
         inline_query_id = result_id_list[0]
         playlist_key = result_id_list[1]
 
-        if playlist_key == "add_a_new_playlist":
+        if playlist_key in "add_a_new_public_playlist":
             # start creating a new playlist
             await handler.db.document.create_bot_task(
                 from_user.user_id,
                 handler.telegram_client.telegram_id,
-                BotTaskType.CREATE_NEW_PRIVATE_PLAYLIST,
+                BotTaskType.CREATE_NEW_PUBLIC_PLAYLIST,
             )
 
             await client.send_message(

@@ -37,8 +37,11 @@ class HomeCommand(BaseCommand):
 
         markup = [
             [
-                InlineButton.get_button(InlineButtonType.DOWNLOAD_HISTORY).get_inline_keyboard_button(from_user.chosen_language_code),
                 InlineButton.get_button(InlineButtonType.MY_PLAYLISTS).get_inline_keyboard_button(from_user.chosen_language_code),
+                InlineButton.get_button(InlineButtonType.MY_PLAYLIST_SUBSCRIPTIONS).get_inline_keyboard_button(from_user.chosen_language_code),
+            ],
+            [
+                InlineButton.get_button(InlineButtonType.DOWNLOAD_HISTORY).get_inline_keyboard_button(from_user.chosen_language_code),
             ],
             [
                 InlineButton.get_button(InlineButtonType.SHOW_LANGUAGE_MENU).get_inline_keyboard_button(from_user.chosen_language_code),

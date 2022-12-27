@@ -13,7 +13,7 @@ from tase.db.arangodb.helpers import AudioKeyboardStatus
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.bots.ui.inline_buttons.base import InlineButton, InlineButtonType
 from tase.telegram.bots.ui.inline_items import (
-    CreateNewPlaylistItem,
+    CreateNewPrivatePlaylistItem,
     PlaylistItem,
     AudioItem,
 )
@@ -65,7 +65,7 @@ async def populate_playlist_list(
     if result.is_first_page() and user_playlist_count < 11:
         # a total number of 10 playlists is allowed for each user (favorite playlist excluded)
         result.add_item(
-            CreateNewPlaylistItem.get_item(
+            CreateNewPrivatePlaylistItem.get_item(
                 from_user,
                 telegram_inline_query,
             ),

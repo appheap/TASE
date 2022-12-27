@@ -11,6 +11,7 @@ from .has_made import HasMade, HasMadeMethods
 from .linked_chat import LinkedChat, LinkedChatMethods
 from .mentions import Mentions, MentionsMethods
 from .sent_by import SentBy, SentByMethods
+from .subscribe_to import SubscribeTo, SubscribeToMethods
 from .to_bot import ToBot, ToBotMethods
 from .via_bot import ViaBot, ViaBotMethods
 
@@ -27,6 +28,7 @@ edge_classes = [
     LinkedChat,
     Mentions,
     SentBy,
+    SubscribeTo,
     ToBot,
     ViaBot,
 ]
@@ -45,6 +47,7 @@ class ArangoEdgeMethods(
     LinkedChatMethods,
     MentionsMethods,
     SentByMethods,
+    SubscribeToMethods,
     ToBotMethods,
     ViaBotMethods,
 ):

@@ -9,7 +9,7 @@ from tase.db.arangodb import graph as graph_models
 from .base_inline_item import BaseInlineItem
 
 
-class CreateNewPlaylistItem(BaseInlineItem):
+class CreateNewPrivatePlaylistItem(BaseInlineItem):
     @classmethod
     def get_item(
         cls,
@@ -20,9 +20,9 @@ class CreateNewPlaylistItem(BaseInlineItem):
             return None
 
         return InlineQueryResultArticle(
-            title=_trans("Create A New Playlist", from_user.chosen_language_code),
-            description=_trans("Create a new playlist", from_user.chosen_language_code),
-            id=f"{telegram_inline_query.id}->add_a_new_playlist",
+            title=_trans("Create A New Private Playlist", from_user.chosen_language_code),
+            description=_trans("Create a new private playlist", from_user.chosen_language_code),
+            id=f"{telegram_inline_query.id}->add_a_new_private_playlist",
             thumb_url="https://telegra.ph/file/aaafdf705c6745e1a32ee.png",
             input_message_content=InputTextMessageContent(
                 message_text=emoji._clock_emoji,

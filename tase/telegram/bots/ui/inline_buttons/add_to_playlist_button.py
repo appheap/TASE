@@ -62,12 +62,12 @@ class AddToPlaylistInlineButton(InlineButton):
         inline_query_id = result_id_list[0]
         playlist_key = result_id_list[1]
 
-        if playlist_key == "add_a_new_playlist":
+        if playlist_key in ("add_a_new_private_playlist", "add_a_new_public_playlist"):
             # start creating a new playlist
             await handler.db.document.create_bot_task(
                 from_user.user_id,
                 handler.telegram_client.telegram_id,
-                BotTaskType.CREATE_NEW_PLAYLIST,
+                BotTaskType.CREATE_NEW_PRIVATE_PLAYLIST if playlist_key == "add_a_new_private_playlist" else BotTaskType.CREATE_NEW_PUBLIC_PLAYLIST,
                 state_dict={
                     "hit_download_url": hit_download_url,
                 },
