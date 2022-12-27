@@ -118,7 +118,7 @@ class GetPlaylistAudioInlineButton(InlineButton):
         result_id_list = telegram_chosen_inline_result.result_id.split("->")
         inline_query_id = result_id_list[0]
         hit_download_url = result_id_list[1]
-        chat_type = ChatType(int(result_id_list[2]))
+        chat_type = ChatType(int(result_id_list[2])) if len(result_id_list) == 3 else ChatType.UNKNOWN
 
         # update the keyboard markup of the downloaded audio
         update_keyboard_task = asyncio.create_task(

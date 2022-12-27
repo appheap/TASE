@@ -405,14 +405,16 @@ def get_playlist_markup_keyboard(
                     lang_code=chosen_language_code,
                     switch_inline_arg=playlist.key,
                 ),
+            ],
+            [
                 InlineButton.get_button(InlineButtonType.TOGGLE_PLAYLIST_SUBSCRIPTION).get_inline_keyboard_button(
                     lang_code=chosen_language_code,
                     callback_arg=playlist.key,
                 ),
-            ],
-            [
-                InlineButton.get_button(InlineButtonType.HOME).get_inline_keyboard_button(lang_code=chosen_language_code),
-                InlineButton.get_button(InlineButtonType.BACK_TO_PLAYLISTS).get_inline_keyboard_button(lang_code=chosen_language_code),
+                InlineButton.get_button(InlineButtonType.SHARE_PLAYLIST).get_inline_keyboard_button(
+                    lang_code=chosen_language_code,
+                    switch_inline_arg=playlist.key,
+                ),
             ],
         ]
 

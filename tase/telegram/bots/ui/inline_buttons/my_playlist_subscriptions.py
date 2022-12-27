@@ -16,7 +16,7 @@ class MyPlaylistSubscriptionsInlineButton(InlineButton):
     action = ButtonActionType.CURRENT_CHAT_INLINE
 
     s_my_playlists = _trans("Public Playlists")
-    text = f"{s_my_playlists} | {emoji._headphone}"
+    text = f"{s_my_playlists} | {emoji._bell}"
 
     async def on_inline_query(
         self,
@@ -72,6 +72,7 @@ class MyPlaylistSubscriptionsInlineButton(InlineButton):
         result_id_list = telegram_chosen_inline_result.result_id.split("->")
         inline_query_id = result_id_list[0]
         playlist_key = result_id_list[1]
+        chat_type = ChatType(int(result_id_list[2])) if len(result_id_list) == 3 else ChatType.UNKNOWN
 
         if playlist_key in "add_a_new_public_playlist":
             # start creating a new playlist

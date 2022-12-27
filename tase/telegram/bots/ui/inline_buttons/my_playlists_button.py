@@ -60,6 +60,7 @@ class MyPlaylistsInlineButton(InlineButton):
         result_id_list = telegram_chosen_inline_result.result_id.split("->")
         inline_query_id = result_id_list[0]
         playlist_key = result_id_list[1]
+        chat_type = ChatType(int(result_id_list[2])) if len(result_id_list) == 3 else ChatType.UNKNOWN
 
         if playlist_key == "add_a_new_playlist":
             # start creating a new playlist

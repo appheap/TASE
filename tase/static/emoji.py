@@ -40,6 +40,7 @@ class Emoji(BaseModel):
     # -------------music--------------------------
     _headphone = emoji.emojize(":headphone:", language="alias")
     _bell = emoji.emojize(":bell:", language="alias")
+    _link = emoji.emojize(":link:", language="alias")
     _cd = emoji.emojize(":optical_disk:", language="alias")
 
     _studio_microphone = emoji.emojize(":studio_microphone:", language="alias")
