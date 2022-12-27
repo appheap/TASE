@@ -20,7 +20,6 @@ class DownloadHistoryInlineButton(InlineButton):
 
     s_my_downloads = _trans("My Downloads")
     text = f"{s_my_downloads} | {emoji._mobile_phone_with_arrow}"
-    is_inline = True
 
     async def on_inline_query(
         self,

@@ -3,16 +3,15 @@ import pyrogram
 from tase.common.utils import _trans, emoji
 from tase.db.arangodb import graph as graph_models
 from tase.telegram.update_handlers.base import BaseHandler
-from .base import InlineButtonType, InlineButton
+from .base import InlineButtonType, InlineButton, ButtonActionType
 
 
 class BackInlineButton(InlineButton):
-    name = "back"
     type = InlineButtonType.BACK
+    action = ButtonActionType.CALLBACK
 
     s_back = _trans("Back")
     text = f"{s_back} | {emoji._BACK_arrow}"
-    is_inline = False
 
     async def on_callback_query(
         self,

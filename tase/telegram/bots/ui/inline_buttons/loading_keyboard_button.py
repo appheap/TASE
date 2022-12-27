@@ -3,17 +3,15 @@ import pyrogram
 from tase.common.utils import _trans
 from tase.db.arangodb import graph as graph_models
 from tase.telegram.update_handlers.base import BaseHandler
-from .base import InlineButtonType, InlineButton
+from .base import InlineButtonType, InlineButton, ButtonActionType
 
 
 class LoadingKeyboardInlineButton(InlineButton):
-    name = "loading_keyboard"
     type = InlineButtonType.LOADING_KEYBOARD
+    action = ButtonActionType.CALLBACK
 
     s_loading = _trans("Loading...")
     text = f"{s_loading}"
-    is_inline = False
-    is_url = False
 
     async def on_callback_query(
         self,

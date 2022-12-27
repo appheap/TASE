@@ -8,16 +8,15 @@ from tase.common.utils import _trans, emoji
 from tase.db.arangodb import graph as graph_models
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
-from .base import InlineButton, InlineButtonType
+from .base import InlineButton, InlineButtonType, ButtonActionType
 
 
 class HelpCatalogInlineButton(InlineButton):
-    name = "help_catalog"
     type = InlineButtonType.HELP_CATALOG
+    action = ButtonActionType.CURRENT_CHAT_INLINE
 
     s_help = _trans("Help")
     text = f"{s_help} | {emoji._exclamation_question_mark}"
-    is_inline = True
 
     async def on_inline_query(
         self,

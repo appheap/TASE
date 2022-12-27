@@ -7,18 +7,17 @@ from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.enums import BotTaskType, ChatType
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
-from .base import InlineButtonType, InlineButton
+from .base import InlineButtonType, InlineButton, ButtonActionType
 from .common import populate_playlist_list
 from ..inline_items import NoPlaylistItem
 
 
 class MyPlaylistsInlineButton(InlineButton):
-    name = "my_playlists"
     type = InlineButtonType.MY_PLAYLISTS
+    action = ButtonActionType.CURRENT_CHAT_INLINE
 
     s_my_playlists = _trans("My Playlists")
     text = f"{s_my_playlists} | {emoji._headphone}"
-    is_inline = True
 
     async def on_inline_query(
         self,

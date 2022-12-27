@@ -13,17 +13,16 @@ from tase.errors import (
 from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
-from .base import InlineButton, InlineButtonType
+from .base import InlineButton, InlineButtonType, ButtonActionType
 from ..inline_items import PlaylistItem, AudioInNoPlaylistItem
 
 
 class RemoveFromPlaylistInlineButton(InlineButton):
-    name = "remove_from_playlist"
     type = InlineButtonType.REMOVE_FROM_PLAYLIST
+    action = ButtonActionType.CURRENT_CHAT_INLINE
 
     s_remove_from_playlist = _trans("Remove From Playlist")
     text = f"{emoji._minus}"
-    is_inline = True
 
     async def on_inline_query(
         self,

@@ -4,16 +4,15 @@ from tase.common.utils import _trans, emoji
 from tase.db.arangodb import graph as graph_models
 from tase.telegram.bots import bot_commands
 from tase.telegram.update_handlers.base import BaseHandler
-from .base import InlineButton, InlineButtonType
+from .base import InlineButton, InlineButtonType, ButtonActionType
 
 
 class HomeInlineButton(InlineButton):
-    name = "home"
     type = InlineButtonType.HOME
+    action = ButtonActionType.CALLBACK
 
     s_home = _trans("Home")
     text = f"{s_home} | {emoji._house}"
-    is_inline = False
 
     async def on_callback_query(
         self,

@@ -4,17 +4,16 @@ from tase.common.utils import _trans, emoji
 from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.enums import ChatType
 from tase.telegram.update_handlers.base import BaseHandler
-from .base import InlineButton, InlineButtonType
+from .base import InlineButton, InlineButtonType, ButtonActionType
 from .common import get_playlist_markup_keyboard
 
 
 class TogglePlaylistSettingsInlineButton(InlineButton):
-    name = "toggle_playlist_settings_inline_button"
     type = InlineButtonType.TOGGLE_PLAYLIST_SETTINGS
+    action = ButtonActionType.CALLBACK
 
     s_settings = _trans("Settings")
     text = f"{s_settings} | {emoji._gear}"
-    is_inline = False
 
     async def on_callback_query(
         self,

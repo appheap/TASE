@@ -10,18 +10,17 @@ from tase.errors import PlaylistDoesNotExists
 from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
-from .base import InlineButton, InlineButtonType
+from .base import InlineButton, InlineButtonType, ButtonActionType
 from .common import populate_audio_items
 from ..inline_items import PlaylistItem, NoDownloadItem
 
 
 class GetPlaylistAudioInlineButton(InlineButton):
-    name = "get_playlist_audios"
     type = InlineButtonType.GET_PLAYLIST_AUDIOS
+    action = ButtonActionType.CURRENT_CHAT_INLINE
 
     s_audios = _trans("Audio Files")
     text = f"{s_audios} | {emoji._headphone}"
-    is_inline = True
 
     async def on_inline_query(
         self,

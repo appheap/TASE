@@ -4,16 +4,15 @@ from tase.common.utils import _trans, emoji
 from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.enums import ChatType
 from tase.telegram.update_handlers.base import BaseHandler
-from .base import InlineButton, InlineButtonType
+from .base import InlineButton, InlineButtonType, ButtonActionType
 
 
 class TogglePlaylistSubscriptionInlineButton(InlineButton):
-    name = "toggle_playlist_subscription"
     type = InlineButtonType.TOGGLE_PLAYLIST_SUBSCRIPTION
+    action = ButtonActionType.CALLBACK
 
     s_subscribe = _trans("Subscribe")
     text = f"{s_subscribe} | {emoji._bell}"
-    is_inline = False
 
     async def on_callback_query(
         self,

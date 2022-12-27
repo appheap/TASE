@@ -13,16 +13,15 @@ from tase.errors import (
 )
 from tase.my_logger import logger
 from tase.telegram.update_handlers.base import BaseHandler
-from .base import InlineButton, InlineButtonType
+from .base import InlineButton, InlineButtonType, ButtonActionType
 from .common import get_audio_markup_keyboard
 
 
 class ToggleDisLikeAudioInlineButton(InlineButton):
-    name = "dislike_audio"
     type = InlineButtonType.DISLIKE_AUDIO
+    action = ButtonActionType.CALLBACK
 
     text = f"{emoji._light_thumbs_down}"
-    is_inline = False
 
     async def on_callback_query(
         self,

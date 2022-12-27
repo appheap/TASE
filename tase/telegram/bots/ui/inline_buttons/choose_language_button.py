@@ -3,13 +3,12 @@ import pyrogram
 from tase.common.utils import _trans
 from tase.db.arangodb import graph as graph_models
 from tase.telegram.update_handlers.base import BaseHandler
-from .base import InlineButton, InlineButtonType
+from .base import InlineButton, InlineButtonType, ButtonActionType
 
 
 class ChooseLanguageInlineButton(InlineButton):
-    name = "choose_language"
     type = InlineButtonType.CHOOSE_LANGUAGE
-    is_inline = False
+    action = ButtonActionType.CALLBACK
 
     async def on_callback_query(
         self,

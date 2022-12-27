@@ -13,16 +13,15 @@ from tase.errors import (
 )
 from tase.my_logger import logger
 from tase.telegram.update_handlers.base import BaseHandler
-from .base import InlineButton, InlineButtonType
+from .base import InlineButton, InlineButtonType, ButtonActionType
 from .common import get_audio_markup_keyboard
 
 
 class ToggleLikeAudioInlineButton(InlineButton):
-    name = "like_audio"
     type = InlineButtonType.LIKE_AUDIO
+    action = ButtonActionType.CALLBACK
 
     text = f"{emoji._light_thumbs_up}"
-    is_inline = False
 
     async def on_callback_query(
         self,

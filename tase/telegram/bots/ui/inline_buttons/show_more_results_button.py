@@ -5,17 +5,16 @@ import pyrogram
 from tase.common.utils import _trans, emoji, get_now_timestamp
 from tase.db.arangodb import graph as graph_models
 from tase.telegram.update_handlers.base import BaseHandler
-from .base import InlineButtonType, InlineButton
+from .base import InlineButtonType, InlineButton, ButtonActionType
 from ...inline import CustomInlineQueryResult, InlineSearch
 
 
 class ShowMoreResultsInlineButton(InlineButton):
-    name = "show_more_results"
     type = InlineButtonType.SHOW_MORE_RESULTS
+    action = ButtonActionType.CURRENT_CHAT_INLINE
 
     s_more_results = _trans("More results")
     text = f"{s_more_results} | {emoji._plus}"
-    is_inline = True
 
     async def on_inline_query(
         self,

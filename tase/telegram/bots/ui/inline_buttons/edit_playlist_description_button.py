@@ -4,16 +4,15 @@ from tase.common.utils import _trans, emoji
 from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.enums import BotTaskType
 from tase.telegram.update_handlers.base import BaseHandler
-from .base import InlineButton, InlineButtonType
+from .base import InlineButton, InlineButtonType, ButtonActionType
 
 
 class EditPlaylistDescriptionInlineButton(InlineButton):
-    name = "edit_playlist_description"
     type = InlineButtonType.EDIT_PLAYLIST_DESCRIPTION
+    action = ButtonActionType.CALLBACK
 
     s_edit = _trans("Edit Description")
     text = f"{s_edit} | {emoji._gear}"
-    is_inline = False
 
     async def on_callback_query(
         self,

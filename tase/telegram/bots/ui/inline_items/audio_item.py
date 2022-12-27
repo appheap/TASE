@@ -68,9 +68,7 @@ class AudioItem(BaseInlineItem):
             reply_markup=InlineKeyboardMarkup(
                 [
                     [
-                        InlineButton.get_button(InlineButtonType.LOADING_KEYBOARD).get_inline_keyboard_button(
-                            from_user.chosen_language_code,
-                        ),
+                        InlineButton.get_button(InlineButtonType.LOADING_KEYBOARD).get_inline_keyboard_button(lang_code=from_user.chosen_language_code),
                     ]
                 ]
             ),
@@ -168,7 +166,7 @@ class AudioItem(BaseInlineItem):
                     [
                         [
                             InlineButton.get_button(InlineButtonType.DOWNLOAD_AUDIO).get_inline_keyboard_button(
-                                from_user.chosen_language_code,
+                                lang_code=from_user.chosen_language_code,
                                 url=f"https://t.me/{bot_username}?start=dl_{hit_download_url}",
                             ),
                         ]

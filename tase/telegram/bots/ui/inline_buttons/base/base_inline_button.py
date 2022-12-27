@@ -10,9 +10,8 @@ from tase.common.utils import translate_text
 from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.enums import ChatType
 from tase.telegram.bots.inline import CustomInlineQueryResult
-from tase.telegram.bots.ui.inline_buttons.base.inline_button_type import (
-    InlineButtonType,
-)
+from tase.telegram.bots.ui.inline_buttons.base.button_action_type import ButtonActionType
+from tase.telegram.bots.ui.inline_buttons.base.inline_button_type import InlineButtonType
 from tase.telegram.update_handlers.base import BaseHandler
 from tase.telegram.update_interfaces import (
     OnCallbackQuery,
@@ -27,19 +26,17 @@ class InlineButton(
     OnChosenInlineQuery,
     OnCallbackQuery,
 ):
-    _registry = dict()
-    name: str
     type: InlineButtonType = Field(default=InlineButtonType.BASE)
-
+    action: ButtonActionType = Field(default=ButtonActionType.CALLBACK)
     text: Optional[str]
-    is_inline: bool = Field(default=False)
-    is_url: bool = Field(default=False)
     url: Optional[str]
+
+    __registry__ = dict()
 
     @classmethod
     def __init_subclass__(cls) -> None:
         temp = cls()
-        InlineButton._registry[temp.type.value] = temp
+        InlineButton.__registry__[temp.type.value] = temp
 
     @classmethod
     def find_button_by_type_value(
@@ -80,9 +77,39 @@ class InlineButton(
         ):
             return None
 
-        return cls._registry.get(button_type.value, None)
+        return cls.__registry__.get(button_type.value, None)
 
-    def get_translated_text(
+    def is_inline_other_chat(self) -> bool:
+        return self.action == ButtonActionType.OTHER_CHAT_INLINE
+
+    def is_inline(self) -> bool:
+        return self.action == ButtonActionType.CURRENT_CHAT_INLINE
+
+    def is_url(self) -> bool:
+        return self.action == ButtonActionType.OPEN_URL
+
+    def is_callback(self) -> bool:
+        return self.action == ButtonActionType.CALLBACK
+
+    def get_inline_keyboard_button(
+        self,
+        *,
+        lang_code: str = "en",
+        switch_inline_arg=None,
+        callback_arg=None,
+        url: str = None,
+        chat_type: ChatType = ChatType.BOT,
+    ):
+        return InlineKeyboardButton(
+            text=self._get_text(lang_code),
+            callback_data=self._get_callback_data(chat_type, callback_arg),
+            url=self._get_url(url),
+            switch_inline_query_current_chat=self._get_switch_inline_query_current_chat(switch_inline_arg),
+            switch_inline_query=self._get_switch_inline_query_other_chat(switch_inline_arg),
+        )
+
+    ############################################################
+    def _get_translated_text(
         self,
         lang_code: str = "en",
     ) -> str:
@@ -100,65 +127,51 @@ class InlineButton(
 
         return temp if len(temp) else self.text
 
-    def get_text(
+    def _get_text(
         self,
         lang_code: str = "en",
     ) -> str:
-        return self.get_translated_text(lang_code)
+        return self._get_translated_text(lang_code)
 
-    def new_text(
-        self,
-        *args,
-        **kwargs,
-    ) -> str:
-        raise NotImplementedError
-
-    def change_text(
-        self,
-        *args,
-        **kwargs,
-    ) -> InlineButton:
-        raise NotImplementedError
-
-    def get_url(
+    def _get_url(
         self,
         url: str,
-    ) -> str:
+    ) -> Optional[str]:
+        if not self.is_url():
+            return None
+
         if url is None:
             return self.url
+
         return url
 
-    def get_callback_data(
+    def _get_callback_data(
         self,
         chat_type: ChatType,
         callback_arg=None,
     ) -> Optional[str]:
-        if self.is_inline or self.is_url:
+        if not self.is_callback():
             return None
+
         return f"{self.type.value}->{callback_arg}->{chat_type.value}"
 
-    def get_switch_inline_query_current_chat(
+    def _get_switch_inline_query_current_chat(
         self,
         arg=None,
     ) -> Optional[str]:
+        if not self.is_inline():
+            return None
+
         return f"#{self.type.value} {arg}" if arg is not None else f"#{self.type.value}"
 
-    def get_inline_keyboard_button(
+    def _get_switch_inline_query_other_chat(
         self,
-        lang_code: str = "en",
-        switch_inline_arg=None,
-        callback_arg=None,
-        url: str = None,
-        chat_type: ChatType = ChatType.BOT,
-    ):
-        return InlineKeyboardButton(
-            text=self.get_text(lang_code),
-            callback_data=self.get_callback_data(chat_type, callback_arg),
-            url=self.get_url(url),
-            switch_inline_query_current_chat=self.get_switch_inline_query_current_chat(
-                switch_inline_arg,
-            ),
-        )
+        arg=None,
+    ) -> Optional[str]:
+        if not self.is_inline_other_chat():
+            return None
+
+        return f"#{self.type.value} {arg}" if arg is not None else f"#{self.type.value}"
 
     ############################################################
 
@@ -191,4 +204,20 @@ class InlineButton(
         client: pyrogram.Client,
         telegram_callback_query: pyrogram.types.CallbackQuery,
     ):
+        raise NotImplementedError
+
+    ######################################################################
+
+    def new_text(
+        self,
+        *args,
+        **kwargs,
+    ) -> str:
+        raise NotImplementedError
+
+    def change_text(
+        self,
+        *args,
+        **kwargs,
+    ) -> InlineButton:
         raise NotImplementedError

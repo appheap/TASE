@@ -14,17 +14,16 @@ from tase.errors import (
 from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
-from .base import InlineButton, InlineButtonType
+from .base import InlineButton, InlineButtonType, ButtonActionType
 from .common import populate_playlist_list
 
 
 class AddToPlaylistInlineButton(InlineButton):
-    name = "add_to_playlist"
     type = InlineButtonType.ADD_TO_PLAYLIST
+    action = ButtonActionType.CURRENT_CHAT_INLINE
 
     s_add_to_playlist = _trans("Add To Playlist")
     text = f"{emoji._plus}"
-    is_inline = True
 
     async def on_inline_query(
         self,

@@ -14,16 +14,15 @@ from tase.errors import (
 )
 from tase.my_logger import logger
 from tase.telegram.update_handlers.base import BaseHandler
-from .base import InlineButton, InlineButtonType
+from .base import InlineButton, InlineButtonType, ButtonActionType
 from .common import get_audio_markup_keyboard
 
 
 class ToggleFavoritePlaylistInlineButton(InlineButton):
-    name = "add_to_fav_playlist"
     type = InlineButtonType.ADD_TO_FAVORITE_PLAYLIST
+    action = ButtonActionType.CALLBACK
 
     text = f"{emoji._red_heart}"
-    is_inline = False
 
     async def on_callback_query(
         self,
