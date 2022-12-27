@@ -36,7 +36,7 @@ class TogglePlaylistSubscriptionInlineButton(InlineButton):
             return
 
         # user who has created the playlist must not be allowed to subscribe/unsubscribe.
-        if playlist.owner_user_id == playlist.owner_user_id:
+        if playlist.owner_user_id == from_user.user_id:
             await telegram_callback_query.answer("Operation is not allowed!")
             return
 

@@ -7,7 +7,7 @@ from tase.db.arangodb import graph as graph_models
 from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
-from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemInfo
+from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemInfo, InlineItemType
 
 
 class SharePlaylistInlineButton(InlineButton):
@@ -56,6 +56,6 @@ class SharePlaylistInlineButton(InlineButton):
         from tase.telegram.bots.ui.inline_items.item_info import PlaylistItemInfo
 
         inline_item_info: Optional[PlaylistItemInfo] = InlineItemInfo.get_info(telegram_chosen_inline_result.result_id)
-        if not inline_item_info or not isinstance(inline_item_info, PlaylistItemInfo):
+        if not inline_item_info or inline_item_info.type != InlineItemType.PLAYLIST:
             logger.error(f"`{telegram_chosen_inline_result.result_id}` is not valid.")
             return

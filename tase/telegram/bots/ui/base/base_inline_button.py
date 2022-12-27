@@ -9,7 +9,6 @@ from pyrogram.types import InlineKeyboardButton
 from tase.common.utils import translate_text
 from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.enums import ChatType
-from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.bots.ui.base.button_action_type import ButtonActionType
 from tase.telegram.bots.ui.base.inline_button_type import InlineButtonType
@@ -38,7 +37,6 @@ class InlineButton(
     def __init_subclass__(cls) -> None:
         temp = cls()
         InlineButton.__registry__[temp.type.value] = temp
-        logger.debug(f"init subclass of {InlineButton.__name__}: {cls.__name__}")
 
     @classmethod
     def find_button_by_type_value(

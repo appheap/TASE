@@ -15,7 +15,7 @@ from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
 from .common import populate_playlist_list
-from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemInfo
+from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemInfo, InlineItemType
 
 
 class AddToPlaylistInlineButton(InlineButton):
@@ -66,14 +66,15 @@ class AddToPlaylistInlineButton(InlineButton):
             None,
         ] = InlineItemInfo.get_info(telegram_chosen_inline_result.result_id)
 
-        if not inline_item_info:
-            await client.send_message(
-                from_user.user_id,
-                "This item is not valid!",
-            )
+        if not inline_item_info or inline_item_info.type not in (
+            InlineItemType.PLAYLIST,
+            InlineItemType.CREATE_NEW_PUBLIC_PLAYLIST,
+            InlineItemType.CREATE_NEW_PRIVATE_PLAYLIST,
+        ):
+            await client.send_message(from_user.user_id, "This item is not valid!")
             return
 
-        playlist_key = inline_item_info.playlist_key if isinstance(inline_item_info, PlaylistItemInfo) else inline_item_info.item_key
+        playlist_key = inline_item_info.playlist_key if inline_item_info.type == InlineItemType.PLAYLIST else inline_item_info.item_key
 
         if playlist_key in ("add_a_new_private_playlist", "add_a_new_public_playlist"):
             # start creating a new playlist

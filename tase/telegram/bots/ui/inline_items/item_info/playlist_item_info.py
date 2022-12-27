@@ -9,7 +9,7 @@ from tase.telegram.bots.ui.base import InlineItemInfo, InlineItemType
 
 
 class PlaylistItemInfo(InlineItemInfo):
-    __item_type__ = InlineItemType.AUDIO_IN_NO_PLAYLIST
+    __item_type__ = InlineItemType.PLAYLIST
 
     telegram_inline_query_id: str
     playlist_key: str

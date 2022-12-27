@@ -8,7 +8,7 @@ from tase.db.arangodb.enums import BotTaskType, ChatType
 from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
-from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemInfo
+from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemInfo, InlineItemType
 
 
 class MyPlaylistSubscriptionsInlineButton(InlineButton):
@@ -78,11 +78,11 @@ class MyPlaylistSubscriptionsInlineButton(InlineButton):
         from tase.telegram.bots.ui.inline_items.item_info import PlaylistItemInfo, CreateNewPublicPlaylistItemInfo
 
         inline_item_info: Union[PlaylistItemInfo, CreateNewPublicPlaylistItemInfo, None] = InlineItemInfo.get_info(telegram_chosen_inline_result.result_id)
-        if not inline_item_info or not isinstance(inline_item_info, (PlaylistItemInfo, CreateNewPublicPlaylistItemInfo)):
+        if not inline_item_info or inline_item_info.type not in (InlineItemType.PLAYLIST, InlineItemType.CREATE_NEW_PUBLIC_PLAYLIST):
             logger.error(f"`{telegram_chosen_inline_result.result_id}` is not valid.")
             return
 
-        playlist_key = inline_item_info.playlist_key if isinstance(inline_item_info, PlaylistItemInfo) else inline_item_info.item_key
+        playlist_key = inline_item_info.playlist_key if inline_item_info.type == InlineItemType.PLAYLIST else inline_item_info.item_key
 
         if playlist_key in "add_a_new_public_playlist":
             # start creating a new playlist

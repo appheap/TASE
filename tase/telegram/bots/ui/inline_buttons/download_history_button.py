@@ -10,7 +10,7 @@ from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
 from .common import populate_audio_items
-from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemInfo
+from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemInfo, InlineItemType
 
 
 class DownloadHistoryInlineButton(InlineButton):
@@ -74,7 +74,7 @@ class DownloadHistoryInlineButton(InlineButton):
         from tase.telegram.bots.ui.inline_items.item_info import AudioItemInfo
 
         inline_item_info: Optional[AudioItemInfo] = InlineItemInfo.get_info(telegram_chosen_inline_result.result_id)
-        if not inline_item_info or not isinstance(inline_item_info, AudioItemInfo):
+        if not inline_item_info or inline_item_info.type != InlineItemType.AUDIO:
             logger.error(f"ChosenInlineResult `{telegram_chosen_inline_result.result_id}` is not valid.")
             return
 

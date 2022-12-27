@@ -10,6 +10,10 @@ from .inline_item_type import InlineItemType
 class InlineItemInfo(BaseModel):
     __item_type__: InlineItemType
 
+    @property
+    def type(self) -> InlineItemType:
+        return self.__item_type__
+
     @classmethod
     def get_type_value(cls) -> int:
         return cls.__item_type__.value
@@ -17,9 +21,6 @@ class InlineItemInfo(BaseModel):
     @classmethod
     def parse_id(cls, *args, **kwargs) -> Optional[str]:
         raise f"{cls.get_type_value()}|"
-
-    def __init_subclass__(cls, **kwargs):
-        print(cls.__name__)
 
     @classmethod
     def __parse_info__(

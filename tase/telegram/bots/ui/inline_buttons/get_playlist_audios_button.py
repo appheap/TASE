@@ -11,7 +11,7 @@ from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
 from .common import populate_audio_items
-from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemInfo
+from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemInfo, InlineItemType
 
 
 class GetPlaylistAudioInlineButton(InlineButton):
@@ -121,7 +121,7 @@ class GetPlaylistAudioInlineButton(InlineButton):
 
         inline_item_info: Union[AudioItemInfo, PlaylistItemInfo, None] = InlineItemInfo.get_info(telegram_chosen_inline_result.result_id)
         # only if the user has clicked on an audio item, the rest of the code should be executed.
-        if not inline_item_info or not isinstance(inline_item_info, AudioItemInfo):
+        if not inline_item_info or inline_item_info.type != InlineItemType.AUDIO:
             logger.error(f"`{telegram_chosen_inline_result.result_id}` is not valid.")
             return
 

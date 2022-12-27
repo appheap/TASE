@@ -13,7 +13,7 @@ from tase.errors import (
 from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
-from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemInfo
+from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemInfo, InlineItemType
 
 
 class RemoveFromPlaylistInlineButton(InlineButton):
@@ -84,7 +84,7 @@ class RemoveFromPlaylistInlineButton(InlineButton):
         from tase.telegram.bots.ui.inline_items.item_info import NoPlaylistItemInfo, PlaylistItemInfo
 
         inline_item_info: Union[PlaylistItemInfo, NoPlaylistItemInfo, None] = InlineItemInfo.get_info(telegram_chosen_inline_result.result_id)
-        if not inline_item_info or not isinstance(inline_item_info, PlaylistItemInfo):
+        if not inline_item_info or inline_item_info.type != InlineItemType.PLAYLIST:
             logger.error(f"`{telegram_chosen_inline_result.result_id}` is not valid.")
             return
 

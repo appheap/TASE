@@ -210,7 +210,7 @@ class BotTaskChecker(BaseModel):
 
                 hit_download_url = bot_task.state_dict.get("hit_download_url", None)
                 if hit_download_url is not None:
-                    created, successful = db.graph.add_audio_to_playlist(
+                    created, successful = await db.graph.add_audio_to_playlist(
                         from_user,
                         db_playlist.key,
                         hit_download_url,
