@@ -222,6 +222,15 @@ class PlaylistMethods:
         "       return true"
     )
 
+    async def get_playlist_by_key(
+        self,
+        playlist_key: str,
+    ) -> Optional[Playlist]:
+        if not playlist_key:
+            return None
+
+        return await Playlist.get(playlist_key)
+
     async def get_user_playlist_by_title(
         self,
         user: User,
@@ -945,7 +954,6 @@ class PlaylistMethods:
     @async_timed()
     async def get_playlist_audios(
         self: ArangoGraphMethods,
-        user: User,
         playlist_key: str,
         filter_by_valid_for_inline_search: bool = True,
         offset: int = 0,
@@ -956,8 +964,6 @@ class PlaylistMethods:
 
         Parameters
         ----------
-        user : User
-            User to get the playlist audios from
         playlist_key : str
             Playlist key to get the audios from
         filter_by_valid_for_inline_search : bool, default : True
@@ -977,20 +983,17 @@ class PlaylistMethods:
         PlaylistDoesNotExists
             If user does not have a playlist with the given playlist_key
         """
-        if user is None:
+        if not playlist_key:
             return collections.deque()
-
-        playlist = await self.get_user_playlist_by_key(user, playlist_key, filter_out_soft_deleted=True)
-        if playlist is None:
-            raise PlaylistDoesNotExists(user.key, playlist_key)
 
         from tase.db.arangodb.graph.edges import Has
 
         res = collections.deque()
+
         async with await Audio.execute_query(
             self._get_playlist_audios_for_inline_query if filter_by_valid_for_inline_search else self._get_playlist_audios_query,
             bind_vars={
-                "start_vertex": playlist.id,
+                "start_vertex": f"{Playlist.__collection_name__}/{playlist_key}",
                 "has": Has.__collection_name__,
                 "audios": Audio.__collection_name__,
                 "archived_lst": [AudioType.ARCHIVED.value, AudioType.UPLOADED.value, AudioType.SENT_BY_USERS.value],

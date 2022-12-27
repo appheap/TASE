@@ -21,6 +21,7 @@ from .toggle_dislike_audio_button import ToggleDisLikeAudioInlineButton
 from .toggle_favorite_playlist import ToggleFavoritePlaylistInlineButton
 from .toggle_like_audio_button import ToggleLikeAudioInlineButton
 from .toggle_playlist_settings_button import TogglePlaylistSettingsInlineButton
+from .toggle_playlist_subscription_button import TogglePlaylistSubscriptionInlineButton
 
 __all__ = [
     "AddToPlaylistInlineButton",
@@ -46,4 +47,5 @@ __all__ = [
     "ToggleFavoritePlaylistInlineButton",
     "ToggleLikeAudioInlineButton",
     "TogglePlaylistSettingsInlineButton",
+    "TogglePlaylistSubscriptionInlineButton",
 ]

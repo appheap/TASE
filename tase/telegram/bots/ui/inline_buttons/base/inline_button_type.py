@@ -26,6 +26,7 @@ class InlineButtonType(Enum):
     HELP_CATALOG = "help_catalog"
     HOME = "home"
     TOGGLE_PLAYLIST_SETTINGS = "toggle_playlist_settings"
+    TOGGLE_PLAYLIST_SUBSCRIPTION = "toggle_playlist_subscription"
     DOWNLOAD_AUDIO = "download_audio"
     LOADING_KEYBOARD = "loading_keyboard"
     MY_PLAYLISTS = "my_pl"

@@ -40,31 +40,43 @@ class GetPlaylistAudioInlineButton(InlineButton):
         hit_download_urls = None
 
         if result.is_first_page():
-            playlist = await handler.db.graph.get_user_playlist_by_key(
-                from_user,
-                playlist_key,
-                filter_out_soft_deleted=True,
-            )
-            if playlist:
-                playlist_is_valid = True
-                result.add_item(
-                    PlaylistItem.get_item(
-                        playlist,
+            playlist = await handler.db.graph.get_playlist_by_key(playlist_key)
+
+            if playlist and not playlist.is_soft_deleted:
+                if not playlist.is_public:
+                    playlist = await handler.db.graph.get_user_playlist_by_key(
                         from_user,
-                        telegram_inline_query,
-                        view_playlist=True,
-                    ),
-                    count=False,
-                )
-            else:
-                playlist_is_valid = False
+                        playlist_key,
+                        filter_out_soft_deleted=True,
+                    )
+                    if playlist:
+                        playlist_is_valid = True
+                        result.add_item(
+                            PlaylistItem.get_item(
+                                playlist,
+                                from_user,
+                                telegram_inline_query,
+                                view_playlist=True,
+                            ),
+                            count=False,
+                        )
+                else:
+                    playlist_is_valid = True
+                    result.add_item(
+                        PlaylistItem.get_item(
+                            playlist,
+                            from_user,
+                            telegram_inline_query,
+                            view_playlist=True,
+                        ),
+                        count=False,
+                    )
         else:
             playlist_is_valid = True
 
         if playlist_is_valid:
             try:
                 audio_vertices = await handler.db.graph.get_playlist_audios(
-                    from_user,
                     playlist_key,
                     offset=result.from_,
                 )
