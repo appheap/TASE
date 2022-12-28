@@ -41,6 +41,12 @@ class HomeCommand(BaseCommand):
                 InlineButton.get_button(InlineButtonType.MY_PLAYLIST_SUBSCRIPTIONS).get_inline_keyboard_button(lang_code=from_user.chosen_language_code),
             ],
             [
+                InlineButton.get_button(InlineButtonType.SEARCH_AMONG_PUBLIC_PLAYLISTS).get_inline_keyboard_button(
+                    lang_code=from_user.chosen_language_code,
+                    switch_inline_arg="",
+                ),
+            ],
+            [
                 InlineButton.get_button(InlineButtonType.DOWNLOAD_HISTORY).get_inline_keyboard_button(lang_code=from_user.chosen_language_code),
             ],
             [

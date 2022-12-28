@@ -15,7 +15,7 @@ class MyPlaylistSubscriptionsInlineButton(InlineButton):
     type = InlineButtonType.MY_PLAYLIST_SUBSCRIPTIONS
     action = ButtonActionType.CURRENT_CHAT_INLINE
 
-    s_my_playlists = _trans("Public Playlists")
+    s_my_playlists = _trans("Playlist subscriptions")
     text = f"{s_my_playlists} | {emoji._bell}"
 
     async def on_inline_query(
@@ -59,11 +59,6 @@ class MyPlaylistSubscriptionsInlineButton(InlineButton):
                     view_playlist=True,
                 )
             )
-
-            if not len(result) and result.is_first_page():
-                from tase.telegram.bots.ui.inline_items import NoPlaylistItem
-
-                result.set_results([NoPlaylistItem.get_item(from_user)])
 
         await result.answer_query()
 

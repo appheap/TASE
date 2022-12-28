@@ -31,6 +31,7 @@ class InlineButtonType(Enum):
     LOADING_KEYBOARD = "loading_keyboard"
     MY_PLAYLISTS = "my_pl"
     MY_PLAYLIST_SUBSCRIPTIONS = "sub"
+    SEARCH_AMONG_PUBLIC_PLAYLISTS = "search_sub"
     SHARE_PLAYLIST = "share_pl"
     REMOVE_FROM_PLAYLIST = "remove_from_pl"
     SHOW_LANGUAGE_MENU = "show_language_menu"

@@ -1,7 +1,7 @@
 import asyncio
 import collections
 import functools
-from typing import Deque, Optional
+from typing import Deque, Optional, Union
 
 import pyrogram
 from pyrogram.types import InlineKeyboardMarkup
@@ -10,6 +10,7 @@ from tase.common.utils import async_timed
 from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.enums import ChatType
 from tase.db.arangodb.helpers import AudioKeyboardStatus
+from tase.db.elasticsearchdb import models as elasticsearch_models
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.bots.ui.base import InlineButton, InlineButtonType
 from tase.telegram.update_handlers.base import BaseHandler
@@ -320,7 +321,7 @@ def get_more_results_markup_keyboad(
 
 
 def get_playlist_markup_keyboard(
-    playlist: graph_models.vertices.Playlist,
+    playlist: Union[graph_models.vertices.Playlist, elasticsearch_models.Playlist],
     chosen_language_code: str,
     is_settings_visible: Optional[bool] = False,
 ) -> InlineKeyboardMarkup:
@@ -342,13 +343,17 @@ def get_playlist_markup_keyboard(
         Markup keyboard for the playlist
 
     """
-    if not playlist.is_public:
-        if playlist.is_favorite:
+    is_public = True if isinstance(playlist, elasticsearch_models.Playlist) else playlist.is_public
+    is_favorite = False if isinstance(playlist, elasticsearch_models.Playlist) else playlist.is_favorite
+    playlist_key = playlist.id if isinstance(playlist, elasticsearch_models.Playlist) else playlist.key
+
+    if not is_public:
+        if is_favorite:
             markup = [
                 [
                     InlineButton.get_button(InlineButtonType.GET_PLAYLIST_AUDIOS).get_inline_keyboard_button(
                         lang_code=chosen_language_code,
-                        switch_inline_arg=playlist.key,
+                        switch_inline_arg=playlist_key,
                     ),
                     # todo: add a button to get the top 10 audios from this playlist as a message
                 ],
@@ -362,7 +367,7 @@ def get_playlist_markup_keyboard(
                 [
                     InlineButton.get_button(InlineButtonType.GET_PLAYLIST_AUDIOS).get_inline_keyboard_button(
                         lang_code=chosen_language_code,
-                        switch_inline_arg=playlist.key,
+                        switch_inline_arg=playlist_key,
                     ),
                     # todo: add a button to get the top 10 audios from this playlist as a message
                 ],
@@ -371,7 +376,7 @@ def get_playlist_markup_keyboard(
                     InlineButton.get_button(InlineButtonType.BACK_TO_PLAYLISTS).get_inline_keyboard_button(lang_code=chosen_language_code),
                     InlineButton.get_button(InlineButtonType.TOGGLE_PLAYLIST_SETTINGS).get_inline_keyboard_button(
                         lang_code=chosen_language_code,
-                        callback_arg=f"{playlist.key}#{'1' if is_settings_visible else '0'}",
+                        callback_arg=f"{playlist_key}#{'1' if is_settings_visible else '0'}",
                     ),
                 ],
             ]
@@ -381,11 +386,11 @@ def get_playlist_markup_keyboard(
                 [
                     InlineButton.get_button(InlineButtonType.EDIT_PLAYLIST_TITLE).get_inline_keyboard_button(
                         lang_code=chosen_language_code,
-                        callback_arg=playlist.key,
+                        callback_arg=playlist_key,
                     ),
                     InlineButton.get_button(InlineButtonType.EDIT_PLAYLIST_DESCRIPTION).get_inline_keyboard_button(
                         lang_code=chosen_language_code,
-                        callback_arg=playlist.key,
+                        callback_arg=playlist_key,
                     ),
                 ],
             )
@@ -393,7 +398,7 @@ def get_playlist_markup_keyboard(
                 [
                     InlineButton.get_button(InlineButtonType.DELETE_PLAYLIST).get_inline_keyboard_button(
                         lang_code=chosen_language_code,
-                        callback_arg=playlist.key,
+                        callback_arg=playlist_key,
                     ),
                 ],
             )
@@ -402,17 +407,23 @@ def get_playlist_markup_keyboard(
             [
                 InlineButton.get_button(InlineButtonType.GET_PLAYLIST_AUDIOS).get_inline_keyboard_button(
                     lang_code=chosen_language_code,
-                    switch_inline_arg=playlist.key,
+                    switch_inline_arg=playlist_key,
                 ),
             ],
             [
                 InlineButton.get_button(InlineButtonType.TOGGLE_PLAYLIST_SUBSCRIPTION).get_inline_keyboard_button(
                     lang_code=chosen_language_code,
-                    callback_arg=playlist.key,
+                    callback_arg=playlist_key,
                 ),
                 InlineButton.get_button(InlineButtonType.SHARE_PLAYLIST).get_inline_keyboard_button(
                     lang_code=chosen_language_code,
-                    switch_inline_arg=playlist.key,
+                    switch_inline_arg=playlist_key,
+                ),
+            ],
+            [
+                InlineButton.get_button(InlineButtonType.SEARCH_AMONG_PUBLIC_PLAYLISTS).get_inline_keyboard_button(
+                    lang_code=chosen_language_code,
+                    switch_inline_arg="",
                 ),
             ],
         ]

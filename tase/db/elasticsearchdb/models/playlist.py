@@ -1,12 +1,15 @@
 from __future__ import annotations
 
+import collections
 from typing import Optional, List, Tuple, Deque
 
+from elastic_transport import ObjectApiResponse
 from pydantic import Field
 
 from tase.common.utils import async_timed
 from tase.db.arangodb import graph as graph_models
 from tase.errors import PlaylistDoesNotExists
+from tase.my_logger import logger
 from .base_document import BaseDocument
 from ...arangodb.base import BaseSoftDeletableDocument
 from ...arangodb.helpers import ElasticQueryMetadata
@@ -298,7 +301,7 @@ class PlaylistMethods:
             List of playlist items matching the query alongside the query metadata.
 
         """
-        if query is None or not len(query) or from_ is None or size is None:
+        if from_ is None or not size:
             return None, None
 
         playlists, query_metadata = await Playlist.search(
@@ -307,3 +310,85 @@ class PlaylistMethods:
             size,
         )
         return playlists, query_metadata
+
+    async def get_top_playlists(
+        self,
+        from_: int = 0,
+        size: int = 10,
+    ) -> Tuple[Optional[Deque[Playlist]], Optional[ElasticQueryMetadata]]:
+        """
+        Search among the documents with the given query
+
+        Parameters
+        ----------
+        from_ : int, default : 0
+            Number of documents to skip in the query
+        size : int, default : 10
+            Number of documents to return
+
+
+        Returns
+        -------
+        tuple
+            List of documents matching the query alongside the query metadata
+
+        """
+
+        db_docs = collections.deque()
+        try:
+            res: ObjectApiResponse = await Playlist.__es__.search(
+                index=Playlist.__index_name__,
+                from_=from_,
+                size=size,
+                track_total_hits=False,
+                query={
+                    "bool": {
+                        "filter": [
+                            {"term": {"is_soft_deleted": False}},
+                        ],
+                    }
+                },
+                sort=Playlist.get_sort(),
+            )
+
+            hits = res.body["hits"]["hits"]
+
+            duration = res.meta.duration
+            try:
+                total_hits = res.body["hits"]["total"]["value"] or 0
+            except KeyError:
+                total_hits = None
+            try:
+                total_rel = res.body["hits"]["total"]["relation"]
+            except KeyError:
+                total_rel = None
+            max_score = res.body["hits"]["max_score"] or 0
+
+            query_metadata = {
+                "duration": duration,
+                "total_hits": total_hits,
+                "total_rel": total_rel,
+                "max_score": max_score,
+            }
+
+            query_metadata = ElasticQueryMetadata.parse(query_metadata)
+
+            for index, hit in enumerate(hits, start=1):
+                try:
+                    db_doc = Playlist.from_index(
+                        hit=hit,
+                        rank=index,
+                    )
+                except ValueError:
+                    # fixme: happens when the `hit` is None
+                    pass
+                else:
+                    db_docs.append(db_doc)
+
+        except Exception as e:
+            logger.exception(e)
+
+        else:
+            return db_docs, query_metadata
+
+        return None, None

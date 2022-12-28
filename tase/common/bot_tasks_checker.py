@@ -232,6 +232,14 @@ class BotTaskChecker(BaseModel):
                         )
 
                 if db_playlist.is_public:
+                    if not await db.index.get_or_create_playlist(
+                        from_user,
+                        db_playlist.key,
+                        db_playlist.title,
+                        db_playlist.description,
+                    ):
+                        logger.error(f"Error in creating `Playlist` document in the ElasticSearch : `{db_playlist.key}`")
+
                     successful, subscribed = await db.graph.toggle_playlist_subscription(from_user, db_playlist)
                     # subscribe_to_edge = SubscribeTo.get_or_create_edge(from_user, db_playlist)
                     if not successful or not subscribed:
