@@ -82,7 +82,7 @@ class BotTaskChecker(BaseModel):
                 deleted_at = get_now_timestamp()
 
                 try:
-                    deleted = db.graph.remove_playlist(
+                    deleted = db.remove_playlist(
                         from_user,
                         playlist_key,
                         deleted_at,

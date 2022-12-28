@@ -2,7 +2,7 @@ from typing import Optional
 
 import pyrogram
 
-from .arangodb import ArangoDB
+from .arangodb import ArangoDB, graph as graph_models
 from .arangodb.document import ArangoDocumentMethods
 from .arangodb.enums import AudioType
 from .arangodb.graph import ArangoGraphMethods
@@ -10,6 +10,7 @@ from .elasticsearchdb import ElasticsearchDatabase
 from .elasticsearchdb.models import ElasticSearchMethods
 from .helpers import ChatScores
 from ..configs import ArangoDBConfig, ElasticConfig
+from ..errors import PlaylistDoesNotExists
 from ..my_logger import logger
 
 
@@ -172,3 +173,45 @@ class DatabaseClient:
 
         await self.graph.mark_chat_audios_as_deleted(chat_id=chat_id)
         await self.index.mark_chat_audios_as_deleted(chat_id=chat_id)
+
+    async def remove_playlist(
+        self,
+        user: graph_models.vertices.User,
+        playlist_key: str,
+        deleted_at: int,
+    ) -> bool:
+        """
+        Remove the `Playlist` with the given `playlist_key` and return whether the deletion was successful or not.
+
+        This method deleted the playlist from both `ArangoDB` and `ElasticSearch`.
+
+        Parameters
+        ----------
+        user : graph_models.vertices.User
+            User that playlist belongs to
+        playlist_key : str
+            Key of the playlist to delete
+        deleted_at : int
+            Timestamp of the deletion
+
+        Raises
+        ------
+        PlaylistDoesNotExists
+            If the user does not have a playlist with the given `playlist_key` parameter
+
+        Returns
+        -------
+        bool
+            Whether the deletion operation was successful or not.
+        """
+        if not user or not playlist_key or deleted_at is None:
+            return False
+
+        graph_updated = await self.graph.remove_playlist(user, playlist_key, deleted_at)
+
+        try:
+            es_updated = await self.index.remove_playlist(user, playlist_key, deleted_at)
+        except PlaylistDoesNotExists:
+            es_updated = True
+
+        return graph_updated & es_updated

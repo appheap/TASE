@@ -120,9 +120,9 @@ class GetPlaylistAudioInlineButton(InlineButton):
         from tase.telegram.bots.ui.inline_items.item_info import AudioItemInfo, PlaylistItemInfo
 
         inline_item_info: Union[AudioItemInfo, PlaylistItemInfo, None] = InlineItemInfo.get_info(telegram_chosen_inline_result.result_id)
+
         # only if the user has clicked on an audio item, the rest of the code should be executed.
         if not inline_item_info or inline_item_info.type != InlineItemType.AUDIO:
-            logger.error(f"`{telegram_chosen_inline_result.result_id}` is not valid.")
             return
 
         # update the keyboard markup of the downloaded audio

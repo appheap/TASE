@@ -100,17 +100,7 @@ class QueryResultsData(BaseTemplateData):
     ):
         items = [
             cls.process_item(index, es_audio_doc, hit_download_url)
-            for index, (es_audio_doc, hit_download_url) in reversed(
-                list(
-                    enumerate(
-                        # filter(
-                        #     lambda args: args[0].title is not None,
-                        #     zip(db_audio_docs, hits),
-                        # )
-                        zip(es_audio_docs, hit_download_urls),
-                    )
-                )
-            )
+            for index, (es_audio_doc, hit_download_url) in reversed(list(enumerate(zip(es_audio_docs, hit_download_urls))))
         ]
 
         return QueryResultsData(
