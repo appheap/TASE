@@ -1,5 +1,5 @@
 import asyncio
-from typing import Match, Optional, Union, List
+from typing import Optional, Union, List
 
 import pyrogram
 
@@ -10,7 +10,8 @@ from tase.errors import PlaylistDoesNotExists
 from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
-from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemInfo, InlineItemType, InlineButtonData
+from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemType, InlineButtonData
+from ..inline_items.item_info import PlaylistItemInfo, AudioItemInfo
 
 
 class GetPlaylistAudiosButtonData(InlineButtonData):
@@ -37,6 +38,11 @@ class GetPlaylistAudioInlineButton(InlineButton):
     __type__ = InlineButtonType.GET_PLAYLIST_AUDIOS
     action = ButtonActionType.CURRENT_CHAT_INLINE
     __switch_inline_query__ = "get_pl"
+
+    __valid_inline_items__ = [
+        InlineItemType.AUDIO,
+        InlineItemType.PLAYLIST,
+    ]
 
     s_audios = _trans("Audio Files")
     text = f"{s_audios} | {emoji._headphone}"
@@ -151,13 +157,10 @@ class GetPlaylistAudioInlineButton(InlineButton):
         from_user: graph_models.vertices.User,
         telegram_chosen_inline_result: pyrogram.types.ChosenInlineResult,
         inline_button_data: GetPlaylistAudiosButtonData,
+        inline_item_info: Union[AudioItemInfo, PlaylistItemInfo],
     ):
-        from tase.telegram.bots.ui.inline_items.item_info import AudioItemInfo, PlaylistItemInfo
-
-        inline_item_info: Union[AudioItemInfo, PlaylistItemInfo, None] = InlineItemInfo.get_info(telegram_chosen_inline_result.result_id)
-
         # only if the user has clicked on an audio item, the rest of the code should be executed.
-        if not inline_item_info or inline_item_info.type != InlineItemType.AUDIO:
+        if inline_item_info.type != InlineItemType.AUDIO:
             return
 
         # update the keyboard markup of the downloaded audio

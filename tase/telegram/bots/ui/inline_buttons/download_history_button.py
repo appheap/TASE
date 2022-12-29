@@ -1,5 +1,5 @@
 import asyncio
-from typing import Match, Optional, List
+from typing import Optional, List
 
 import pyrogram
 
@@ -9,7 +9,8 @@ from tase.db.arangodb.enums import InteractionType, InlineQueryType
 from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
-from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemInfo, InlineItemType, InlineButtonData
+from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemType, InlineButtonData
+from ..inline_items.item_info import AudioItemInfo
 
 
 class DownloadHistoryButtonData(InlineButtonData):
@@ -31,6 +32,8 @@ class DownloadHistoryInlineButton(InlineButton):
     __type__ = InlineButtonType.DOWNLOAD_HISTORY
     action = ButtonActionType.CURRENT_CHAT_INLINE
     __switch_inline_query__ = "downloads"
+
+    __valid_inline_items__ = [InlineItemType.AUDIO]
 
     s_my_downloads = _trans("My Downloads")
     text = f"{s_my_downloads} | {emoji._mobile_phone_with_arrow}"
@@ -96,12 +99,9 @@ class DownloadHistoryInlineButton(InlineButton):
         from_user: graph_models.vertices.User,
         telegram_chosen_inline_result: pyrogram.types.ChosenInlineResult,
         inline_button_data: DownloadHistoryButtonData,
+        inline_item_info: AudioItemInfo,
     ):
-
-        from tase.telegram.bots.ui.inline_items.item_info import AudioItemInfo
-
-        inline_item_info: Optional[AudioItemInfo] = InlineItemInfo.get_info(telegram_chosen_inline_result.result_id)
-        if not inline_item_info or inline_item_info.type != InlineItemType.AUDIO:
+        if inline_item_info.type != InlineItemType.AUDIO:
             logger.error(f"ChosenInlineResult `{telegram_chosen_inline_result.result_id}` is not valid.")
             return
 

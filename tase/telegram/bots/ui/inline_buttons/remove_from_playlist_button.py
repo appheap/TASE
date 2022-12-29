@@ -1,4 +1,4 @@
-from typing import Match, Optional, Union, List
+from typing import Optional, Union, List
 
 import pyrogram
 
@@ -13,7 +13,8 @@ from tase.errors import (
 from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
-from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemInfo, InlineItemType, InlineButtonData
+from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemType, InlineButtonData
+from ..inline_items.item_info import PlaylistItemInfo, NoPlaylistItemInfo
 
 
 class RemoveFromPlaylistButtonData(InlineButtonData):
@@ -40,6 +41,11 @@ class RemoveFromPlaylistInlineButton(InlineButton):
     __type__ = InlineButtonType.REMOVE_FROM_PLAYLIST
     action = ButtonActionType.CURRENT_CHAT_INLINE
     __switch_inline_query__ = "remove_from_pl"
+
+    __valid_inline_items__ = [
+        InlineItemType.PLAYLIST,
+        InlineItemType.NO_PLAYLIST,
+    ]
 
     s_remove_from_playlist = _trans("Remove From Playlist")
     text = f"{emoji._minus}"
@@ -110,16 +116,13 @@ class RemoveFromPlaylistInlineButton(InlineButton):
         from_user: graph_models.vertices.User,
         telegram_chosen_inline_result: pyrogram.types.ChosenInlineResult,
         inline_button_data: RemoveFromPlaylistButtonData,
+        inline_item_info: Union[PlaylistItemInfo, NoPlaylistItemInfo],
     ):
+        if inline_item_info.type != InlineItemType.PLAYLIST:
+            return
+
         hit_download_url = inline_button_data.hit_download_url
         # todo: check if the user has downloaded this audio earlier, otherwise, the request is not valid
-
-        from tase.telegram.bots.ui.inline_items.item_info import NoPlaylistItemInfo, PlaylistItemInfo
-
-        inline_item_info: Union[PlaylistItemInfo, NoPlaylistItemInfo, None] = InlineItemInfo.get_info(telegram_chosen_inline_result.result_id)
-        if not inline_item_info or inline_item_info.type != InlineItemType.PLAYLIST:
-            logger.error(f"`{telegram_chosen_inline_result.result_id}` is not valid.")
-            return
 
         playlist_key = inline_item_info.playlist_key
 

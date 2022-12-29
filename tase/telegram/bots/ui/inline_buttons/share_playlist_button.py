@@ -1,13 +1,13 @@
-from typing import Match, Optional, List
+from typing import Optional, List
 
 import pyrogram
 
 from tase.common.utils import _trans, emoji
 from tase.db.arangodb import graph as graph_models
-from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
-from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemInfo, InlineItemType, InlineButtonData
+from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemType, InlineButtonData
+from ..inline_items.item_info import PlaylistItemInfo
 
 
 class SharePlaylistButtonData(InlineButtonData):
@@ -34,6 +34,8 @@ class SharePlaylistInlineButton(InlineButton):
     __type__ = InlineButtonType.SHARE_PLAYLIST
     action = ButtonActionType.OTHER_CHAT_INLINE
     __switch_inline_query__ = "share_pl"
+
+    __valid_inline_items__ = [InlineItemType.PLAYLIST]
 
     s_share = _trans("Share")
     text = f"{s_share} | {emoji._link}"
@@ -84,10 +86,6 @@ class SharePlaylistInlineButton(InlineButton):
         from_user: graph_models.vertices.User,
         telegram_chosen_inline_result: pyrogram.types.ChosenInlineResult,
         inline_button_data: SharePlaylistButtonData,
+        inline_item_info: PlaylistItemInfo,
     ):
-        from tase.telegram.bots.ui.inline_items.item_info import PlaylistItemInfo
-
-        inline_item_info: Optional[PlaylistItemInfo] = InlineItemInfo.get_info(telegram_chosen_inline_result.result_id)
-        if not inline_item_info or inline_item_info.type != InlineItemType.PLAYLIST:
-            logger.error(f"`{telegram_chosen_inline_result.result_id}` is not valid.")
-            return
+        pass

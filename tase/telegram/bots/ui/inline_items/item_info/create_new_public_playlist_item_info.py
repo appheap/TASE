@@ -17,9 +17,8 @@ class CreateNewPublicPlaylistItemInfo(InlineItemInfo):
     def parse_id(
         cls,
         telegram_inline_query: pyrogram.types.InlineQuery,
-        playlist_key: str,
     ) -> Optional[str]:
-        return f"{cls.get_type_value()}|{telegram_inline_query.id}|{playlist_key}"
+        return f"{cls.get_type_value()}|{telegram_inline_query.id}|add_a_new_public_playlist"
 
     @classmethod
     def __parse_info__(cls, id_split_lst: List[str]) -> Optional[CreateNewPublicPlaylistItemInfo]:

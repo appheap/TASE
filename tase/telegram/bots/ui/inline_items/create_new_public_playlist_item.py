@@ -8,6 +8,7 @@ from tase.common.utils import _trans, emoji
 from tase.db.arangodb import graph as graph_models
 from tase.telegram.bots.ui.base import InlineItemType
 from .base_inline_item import BaseInlineItem
+from .item_info import CreateNewPublicPlaylistItemInfo
 
 
 class CreateNewPublicPlaylistItem(BaseInlineItem):
@@ -23,9 +24,9 @@ class CreateNewPublicPlaylistItem(BaseInlineItem):
             return None
 
         return InlineQueryResultArticle(
+            id=CreateNewPublicPlaylistItemInfo.parse_id(telegram_inline_query),
             title=_trans("Create A New Public Playlist", from_user.chosen_language_code),
             description=_trans("Create a new public playlist", from_user.chosen_language_code),
-            id=f"{cls.get_type_value()}|{telegram_inline_query.id}|add_a_new_public_playlist",
             thumb_url="https://telegra.ph/file/aaafdf705c6745e1a32ee.png",
             input_message_content=InputTextMessageContent(
                 message_text=emoji._clock_emoji,

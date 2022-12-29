@@ -1,4 +1,4 @@
-from typing import Optional, Match, List
+from typing import Optional, List, Union
 
 import pyrogram
 
@@ -7,7 +7,8 @@ from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.enums import ChatType
 from tase.telegram.update_handlers.base import BaseHandler
 from .my_playlists_button import MyPlaylistsInlineButton
-from ..base import InlineButtonType, ButtonActionType, InlineButtonData
+from ..base import InlineButtonType, ButtonActionType, InlineButtonData, InlineItemType
+from ..inline_items.item_info import PlaylistItemInfo, CreateNewPrivatePlaylistItemInfo
 from ...inline import CustomInlineQueryResult
 
 
@@ -30,6 +31,11 @@ class BackToPlaylistsInlineButton(MyPlaylistsInlineButton):
     __type__ = InlineButtonType.BACK_TO_PLAYLISTS
     action = ButtonActionType.CURRENT_CHAT_INLINE
     __switch_inline_query__ = "back_to_pl"
+
+    __valid_inline_items__ = [
+        InlineItemType.PLAYLIST,
+        InlineItemType.CREATE_NEW_PRIVATE_PLAYLIST,
+    ]
 
     s_back = _trans("Back")
     text = f"{s_back} | {emoji._BACK_arrow}"
@@ -81,6 +87,7 @@ class BackToPlaylistsInlineButton(MyPlaylistsInlineButton):
         from_user: graph_models.vertices.User,
         telegram_chosen_inline_result: pyrogram.types.ChosenInlineResult,
         inline_button_data: InlineButtonData,
+        inline_item_info: Union[PlaylistItemInfo, CreateNewPrivatePlaylistItemInfo],
     ):
         await MyPlaylistsInlineButton.on_chosen_inline_query(
             self,
@@ -89,4 +96,5 @@ class BackToPlaylistsInlineButton(MyPlaylistsInlineButton):
             from_user,
             telegram_chosen_inline_result,
             inline_button_data,
+            inline_item_info,
         )

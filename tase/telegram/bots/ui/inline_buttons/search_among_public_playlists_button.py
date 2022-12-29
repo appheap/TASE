@@ -1,13 +1,13 @@
-from typing import Match, Optional, Union, List
+from typing import Optional, List
 
 import pyrogram
 
 from tase.common.utils import _trans, emoji
 from tase.db.arangodb import graph as graph_models
-from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
-from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemInfo, InlineItemType, InlineButtonData
+from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemType, InlineButtonData
+from ..inline_items.item_info import PlaylistItemInfo
 
 
 class SearchAmongPlaylistSubscriptionsButtonData(InlineButtonData):
@@ -31,6 +31,8 @@ class SearchAmongPublicPlaylistsInlineButton(InlineButton):
     __type__ = InlineButtonType.SEARCH_AMONG_PUBLIC_PLAYLISTS
     action = ButtonActionType.CURRENT_CHAT_INLINE
     __switch_inline_query__ = "search_sub"
+
+    __valid_inline_items__ = [InlineItemType.PLAYLIST]
 
     s_search_public_playlists = _trans("Search Public Playlists")
     text = f"{s_search_public_playlists} | {emoji._search_emoji}"
@@ -116,10 +118,6 @@ class SearchAmongPublicPlaylistsInlineButton(InlineButton):
         from_user: graph_models.vertices.User,
         telegram_chosen_inline_result: pyrogram.types.ChosenInlineResult,
         inline_button_data: SearchAmongPlaylistSubscriptionsButtonData,
+        inline_item_info: PlaylistItemInfo,
     ):
-        from tase.telegram.bots.ui.inline_items.item_info import PlaylistItemInfo
-
-        inline_item_info: Union[PlaylistItemInfo, None] = InlineItemInfo.get_info(telegram_chosen_inline_result.result_id)
-        if not inline_item_info or inline_item_info.type != InlineItemType.PLAYLIST:
-            logger.error(f"`{telegram_chosen_inline_result.result_id}` is not valid.")
-            return
+        pass

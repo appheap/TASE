@@ -1,14 +1,14 @@
-from typing import Match, Optional, Union, List
+from typing import Optional, Union, List
 
 import pyrogram
 
 from tase.common.utils import _trans, emoji
 from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.enums import BotTaskType, ChatType
-from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
-from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemInfo, InlineItemType, InlineButtonData
+from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemType, InlineButtonData
+from ..inline_items.item_info import PlaylistItemInfo, CreateNewPublicPlaylistItemInfo
 
 
 class MyPlaylistSubscriptionsButtonData(InlineButtonData):
@@ -30,6 +30,11 @@ class MyPlaylistSubscriptionsInlineButton(InlineButton):
     __type__ = InlineButtonType.MY_PLAYLIST_SUBSCRIPTIONS
     action = ButtonActionType.CURRENT_CHAT_INLINE
     __switch_inline_query__ = "sub"
+
+    __valid_inline_items__ = [
+        InlineItemType.PLAYLIST,
+        InlineItemType.CREATE_NEW_PUBLIC_PLAYLIST,
+    ]
 
     s_my_playlists = _trans("Playlist subscriptions")
     text = f"{s_my_playlists} | {emoji._bell}"
@@ -96,18 +101,10 @@ class MyPlaylistSubscriptionsInlineButton(InlineButton):
         from_user: graph_models.vertices.User,
         telegram_chosen_inline_result: pyrogram.types.ChosenInlineResult,
         inline_button_data: MyPlaylistSubscriptionsButtonData,
+        inline_item_info: Union[PlaylistItemInfo, CreateNewPublicPlaylistItemInfo],
     ):
-        from tase.telegram.bots.ui.inline_items.item_info import PlaylistItemInfo, CreateNewPublicPlaylistItemInfo
-
-        inline_item_info: Union[PlaylistItemInfo, CreateNewPublicPlaylistItemInfo, None] = InlineItemInfo.get_info(telegram_chosen_inline_result.result_id)
-        if not inline_item_info or inline_item_info.type not in (InlineItemType.PLAYLIST, InlineItemType.CREATE_NEW_PUBLIC_PLAYLIST):
-            logger.error(f"`{telegram_chosen_inline_result.result_id}` is not valid.")
-            return
-
-        playlist_key = inline_item_info.playlist_key if inline_item_info.type == InlineItemType.PLAYLIST else inline_item_info.item_key
-
-        if playlist_key in "add_a_new_public_playlist":
-            # start creating a new playlist
+        if inline_item_info.type == InlineItemType.CREATE_NEW_PUBLIC_PLAYLIST:
+            # start creating a new public playlist
             await handler.db.document.create_bot_task(
                 from_user.user_id,
                 handler.telegram_client.telegram_id,
@@ -118,3 +115,6 @@ class MyPlaylistSubscriptionsInlineButton(InlineButton):
                 from_user.user_id,
                 text="Enter your playlist title. Enter your playlist description in the next line\nYou can cancel anytime by sending /cancel",
             )
+        else:
+            # The chosen inline item is a public playlist.
+            pass

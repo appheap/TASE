@@ -12,5 +12,6 @@ class OnChosenInlineQuery:
         from_user: graph_models.vertices.User,
         telegram_chosen_inline_result: pyrogram.types.ChosenInlineResult,
         inline_button_data: "InlineButtonData",
+        inline_item_info: "InlineItemInfo",
     ):
         raise NotImplementedError

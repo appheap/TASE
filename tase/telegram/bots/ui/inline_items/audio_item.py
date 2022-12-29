@@ -16,7 +16,6 @@ from tase.telegram.bots.ui.templates import AudioCaptionData, BaseTemplate
 from .base_inline_item import BaseInlineItem
 from .item_info import AudioItemInfo
 from ..base import InlineItemType
-from ..inline_buttons import DownloadAudioInlineButton, LoadingKeyboardInlineButton
 
 
 class AudioItem(BaseInlineItem):
@@ -44,6 +43,8 @@ class AudioItem(BaseInlineItem):
             hit_download_url,
             chat_type,
         )
+
+        from tase.telegram.bots.ui.inline_buttons import LoadingKeyboardInlineButton
 
         return InlineQueryResultCachedAudio(
             audio_file_id=telegram_file_id,
@@ -135,6 +136,8 @@ class AudioItem(BaseInlineItem):
                 ),
             )
         else:
+            from tase.telegram.bots.ui.inline_buttons import DownloadAudioInlineButton
+
             return InlineQueryResultArticle(
                 id=result_id,
                 title=title,

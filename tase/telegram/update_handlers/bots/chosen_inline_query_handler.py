@@ -4,9 +4,8 @@ import pyrogram
 from pyrogram import handlers
 
 from tase.common.utils import async_exception_handler
-from tase.db.arangodb.enums import ChatType
 from tase.my_logger import logger
-from tase.telegram.bots.ui.base import InlineButton, InlineButtonData
+from tase.telegram.bots.ui.base import InlineButton, InlineButtonData, InlineItemInfo
 from tase.telegram.update_handlers.base import BaseHandler, HandlerMetadata
 
 
@@ -26,42 +25,43 @@ class ChosenInlineQueryHandler(BaseHandler):
         client: pyrogram.Client,
         chosen_inline_result: pyrogram.types.ChosenInlineResult,
     ):
-        logger.debug(f"on_chosen_inline_query: {chosen_inline_result}")
-
         from_user = await self.db.graph.get_interacted_user(chosen_inline_result.from_user)
 
-        data = InlineButtonData.parse_from_string(chosen_inline_result.query)
-        if data:
-            button = InlineButton.find_button_by_type_value(data.get_type_value())
+        inline_item_info = InlineItemInfo.get_info(chosen_inline_result.result_id)
+        if not inline_item_info:
+            logger.error(f"Inline chosen inline result:")
+            logger.error(chosen_inline_result)
+            return
 
-            if not button:
+        inline_button_data = InlineButtonData.parse_from_string(chosen_inline_result.query)
+        if inline_button_data:
+            source_inline_button = InlineButton.find_button_by_type_value(inline_button_data.get_type_value())
+
+            if not source_inline_button or not source_inline_button.is_inline_item_valid(inline_item_info.type):
                 return
 
-            # it's a custom command
             # todo: handle downloads from commands like `#download_history` in non-private chats
-            logger.info(chosen_inline_result)
 
-            await button.on_chosen_inline_query(
+            await source_inline_button.on_chosen_inline_query(
                 self,
                 client,
                 from_user,
                 chosen_inline_result,
-                data,
+                inline_button_data,
+                inline_item_info,
             )
 
         else:
-            inline_query_id, hit_download_url, chat_type_value, _ = chosen_inline_result.result_id.split("|")
-
-            chat_type = ChatType(int(chat_type_value))
-
             if not chosen_inline_result.inline_message_id:
                 # IMPORTANT: the item does not have any keyboard markup, so it is not considered as inline message. As a result, the `inline_message_id` is
                 # not set.
                 return
 
+            # IMPORTANT: Since no audio has been sent to the user, the action is not considered a valid download. It'll be counted after the user clicks on the
+            #  `download_audio` source_inline_button of the sent message.
+
             # update the keyboard markup of the downloaded audio
-            # TODO: since no audio has been sent to the user, the action is not considered a valid download. It'll be counted after the user clicks on the
-            #  `download_audio` button of the sent message.
+
             # await self.update_audio_keyboard_markup(
             #     client,
             #     from_user,

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Optional, Dict, TYPE_CHECKING
+from typing import Optional, Dict, TYPE_CHECKING, List
 
 import pyrogram
 from pydantic import BaseModel, Field
@@ -19,7 +19,7 @@ from tase.telegram.update_interfaces import (
 
 if TYPE_CHECKING:
     from tase.telegram.bots.inline import CustomInlineQueryResult
-    from tase.telegram.bots.ui.base import InlineButtonData
+    from tase.telegram.bots.ui.base import InlineButtonData, InlineItemInfo, InlineItemType
 
 
 class InlineButton(
@@ -33,6 +33,8 @@ class InlineButton(
     text: Optional[str]
     url: Optional[str]
     __switch_inline_query__: Optional[str] = Field(default=None)
+
+    __valid_inline_items__: List[InlineItemType] = Field(default_factory=list)
 
     __registry__: Dict[int, InlineButton] = dict()
     __inline_registry__: Dict[str, InlineButton] = dict()
@@ -184,6 +186,7 @@ class InlineButton(
         from_user: graph_models.vertices.User,
         telegram_chosen_inline_result: pyrogram.types.ChosenInlineResult,
         inline_button_data: InlineButtonData,
+        inline_item_info: InlineItemInfo,
     ):
         raise NotImplementedError
 
@@ -196,6 +199,13 @@ class InlineButton(
         inline_button_data: InlineButtonData,
     ):
         raise NotImplementedError
+
+    ######################################################################
+    def is_inline_item_valid(self, inline_item_type: InlineItemType) -> bool:
+        if not inline_item_type:
+            return False
+
+        return inline_item_type in self.__valid_inline_items__
 
     ######################################################################
 

@@ -30,6 +30,8 @@ class PlaylistItem(BaseInlineItem):
         if playlist is None or user is None:
             return None
 
+        from tase.telegram.bots.ui.inline_items.item_info import PlaylistItemInfo
+
         if view_playlist:
             data = PlaylistData(
                 title=playlist.title,
@@ -42,7 +44,7 @@ class PlaylistItem(BaseInlineItem):
             return InlineQueryResultArticle(
                 title=playlist.title,
                 description=f"{playlist.description if playlist.description is not None else ' '}",
-                id=f"{cls.get_type_value()}|{telegram_inline_query.id}|{playlist.key}|{ChatType.parse_from_pyrogram(telegram_inline_query.chat_type).value}",
+                id=PlaylistItemInfo.parse_id(telegram_inline_query, playlist.key, ChatType.parse_from_pyrogram(telegram_inline_query.chat_type)),
                 thumb_url="https://telegra.ph/file/ac2d210b9b0e5741470a1.jpg"
                 if not playlist.is_favorite
                 else "https://telegra.ph/file/07d5ca30dba31b5241bcf.jpg",
@@ -59,7 +61,7 @@ class PlaylistItem(BaseInlineItem):
             return InlineQueryResultArticle(
                 title=playlist.title,
                 description=f"{playlist.description if playlist.description is not None else ' '}",
-                id=f"{cls.get_type_value()}|{telegram_inline_query.id}|{playlist.key}|{ChatType.parse_from_pyrogram(telegram_inline_query.chat_type).value}",
+                id=PlaylistItemInfo.parse_id(telegram_inline_query, playlist.key, ChatType.parse_from_pyrogram(telegram_inline_query.chat_type)),
                 thumb_url="https://telegra.ph/file/ac2d210b9b0e5741470a1.jpg"
                 if not playlist.is_favorite
                 else "https://telegra.ph/file/07d5ca30dba31b5241bcf.jpg",

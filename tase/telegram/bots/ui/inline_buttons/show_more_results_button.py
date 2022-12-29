@@ -5,7 +5,8 @@ import pyrogram
 from tase.common.utils import _trans, emoji, get_now_timestamp
 from tase.db.arangodb import graph as graph_models
 from tase.telegram.update_handlers.base import BaseHandler
-from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineButtonData
+from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineButtonData, InlineItemType
+from ..inline_items.item_info import AudioItemInfo
 from ...inline import CustomInlineQueryResult, InlineSearch
 
 
@@ -37,6 +38,8 @@ class ShowMoreResultsInlineButton(InlineButton):
     __type__ = InlineButtonType.SHOW_MORE_RESULTS
     action = ButtonActionType.CURRENT_CHAT_INLINE
     __switch_inline_query__ = "more"
+
+    __valid_inline_items__ = [InlineItemType.AUDIO]
 
     s_more_results = _trans("More results")
     text = f"{s_more_results} | {emoji._plus}"
@@ -104,6 +107,7 @@ class ShowMoreResultsInlineButton(InlineButton):
         from_user: graph_models.vertices.User,
         telegram_chosen_inline_result: pyrogram.types.ChosenInlineResult,
         inline_button_data: ShowMoreResultsButtonData,
+        inline_item_info: AudioItemInfo,
     ):
         # Since the items sent to user are download URLs which is handled by `download_handler`, there is no need for it anymore.
         pass

@@ -37,10 +37,8 @@ class InlineQueryHandler(BaseHandler):
         client: pyrogram.Client,
         inline_query: pyrogram.types.InlineQuery,
     ):
-        logger.debug(f"on_inline_query: {inline_query}")
-        query_date = get_now_timestamp()
-
         from_user = await self.db.graph.get_interacted_user(inline_query.from_user)
+        query_date = get_now_timestamp()
 
         await InlineSearch.on_inline_query(
             self,
@@ -58,17 +56,17 @@ class InlineQueryHandler(BaseHandler):
         client: pyrogram.Client,
         inline_query: pyrogram.types.InlineQuery,
     ):
-        logger.debug(f"custom_commands_handler: {inline_query}")
-        query_date = get_now_timestamp()
-
         user = await self.db.graph.get_interacted_user(inline_query.from_user)
+        query_date = get_now_timestamp()
 
         data = InlineButtonData.parse_from_string(inline_query.query)
         if not data:
+            logger.error(f"invalid custom inline query: {inline_query}")
             return
 
         button = InlineButton.find_button_by_type_value(data.get_type_value())
         if not button:
+            logger.error(f"invalid custom inline query: {inline_query}")
             return
 
         await button.on_inline_query(
