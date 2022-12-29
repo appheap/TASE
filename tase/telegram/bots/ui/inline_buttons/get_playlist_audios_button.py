@@ -17,6 +17,7 @@ from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemI
 class GetPlaylistAudioInlineButton(InlineButton):
     type = InlineButtonType.GET_PLAYLIST_AUDIOS
     action = ButtonActionType.CURRENT_CHAT_INLINE
+    __switch_inline_query__ = "get_pl"
 
     s_audios = _trans("Audio Files")
     text = f"{s_audios} | {emoji._headphone}"

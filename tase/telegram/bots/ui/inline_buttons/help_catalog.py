@@ -14,6 +14,7 @@ from tase.telegram.update_handlers.base import BaseHandler
 class HelpCatalogInlineButton(InlineButton):
     type = InlineButtonType.HELP_CATALOG
     action = ButtonActionType.CURRENT_CHAT_INLINE
+    __switch_inline_query__ = "help_catalog"
 
     s_help = _trans("Help")
     text = f"{s_help} | {emoji._exclamation_question_mark}"

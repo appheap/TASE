@@ -15,6 +15,7 @@ from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemI
 class MyPlaylistsInlineButton(InlineButton):
     type = InlineButtonType.MY_PLAYLISTS
     action = ButtonActionType.CURRENT_CHAT_INLINE
+    __switch_inline_query__ = "my_pl"
 
     s_my_playlists = _trans("My Playlists")
     text = f"{s_my_playlists} | {emoji._headphone}"

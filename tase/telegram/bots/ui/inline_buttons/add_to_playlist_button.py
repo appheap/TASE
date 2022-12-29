@@ -21,6 +21,7 @@ from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemI
 class AddToPlaylistInlineButton(InlineButton):
     type = InlineButtonType.ADD_TO_PLAYLIST
     action = ButtonActionType.CURRENT_CHAT_INLINE
+    __switch_inline_query__ = "add_to_pl"
 
     s_add_to_playlist = _trans("Add To Playlist")
     text = f"{emoji._plus}"

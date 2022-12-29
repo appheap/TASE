@@ -19,6 +19,7 @@ from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemI
 class RemoveFromPlaylistInlineButton(InlineButton):
     type = InlineButtonType.REMOVE_FROM_PLAYLIST
     action = ButtonActionType.CURRENT_CHAT_INLINE
+    __switch_inline_query__ = "remove_from_pl"
 
     s_remove_from_playlist = _trans("Remove From Playlist")
     text = f"{emoji._minus}"

@@ -13,6 +13,7 @@ from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemI
 class SearchAmongPublicPlaylistsInlineButton(InlineButton):
     type = InlineButtonType.SEARCH_AMONG_PUBLIC_PLAYLISTS
     action = ButtonActionType.CURRENT_CHAT_INLINE
+    __switch_inline_query__ = "search_sub"
 
     s_search_public_playlists = _trans("Search Public Playlists")
     text = f"{s_search_public_playlists} | {emoji._search_emoji}"

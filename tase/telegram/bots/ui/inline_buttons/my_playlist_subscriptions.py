@@ -14,6 +14,7 @@ from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemI
 class MyPlaylistSubscriptionsInlineButton(InlineButton):
     type = InlineButtonType.MY_PLAYLIST_SUBSCRIPTIONS
     action = ButtonActionType.CURRENT_CHAT_INLINE
+    __switch_inline_query__ = "sub"
 
     s_my_playlists = _trans("Playlist subscriptions")
     text = f"{s_my_playlists} | {emoji._bell}"

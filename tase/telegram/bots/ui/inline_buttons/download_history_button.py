@@ -16,6 +16,7 @@ from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemI
 class DownloadHistoryInlineButton(InlineButton):
     type = InlineButtonType.DOWNLOAD_HISTORY
     action = ButtonActionType.CURRENT_CHAT_INLINE
+    __switch_inline_query__ = "downloads"
 
     s_my_downloads = _trans("My Downloads")
     text = f"{s_my_downloads} | {emoji._mobile_phone_with_arrow}"

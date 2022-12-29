@@ -13,6 +13,7 @@ from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemI
 class SharePlaylistInlineButton(InlineButton):
     type = InlineButtonType.SHARE_PLAYLIST
     action = ButtonActionType.OTHER_CHAT_INLINE
+    __switch_inline_query__ = "share_pl"
 
     s_share = _trans("Share")
     text = f"{s_share} | {emoji._link}"

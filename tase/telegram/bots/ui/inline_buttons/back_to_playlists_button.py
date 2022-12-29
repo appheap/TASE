@@ -14,6 +14,7 @@ from ...inline import CustomInlineQueryResult
 class BackToPlaylistsInlineButton(MyPlaylistsInlineButton):
     type = InlineButtonType.BACK_TO_PLAYLISTS
     action = ButtonActionType.CURRENT_CHAT_INLINE
+    __switch_inline_query__ = "back_to_pl"
 
     s_back = _trans("Back")
     text = f"{s_back} | {emoji._BACK_arrow}"

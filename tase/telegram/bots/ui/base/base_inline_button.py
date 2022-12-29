@@ -30,13 +30,17 @@ class InlineButton(
     action: ButtonActionType = Field(default=ButtonActionType.CALLBACK)
     text: Optional[str]
     url: Optional[str]
+    __switch_inline_query__: Optional[str]
 
-    __registry__ = dict()
+    __registry__: Dict[int, InlineButton] = dict()
 
     @classmethod
     def __init_subclass__(cls) -> None:
         temp = cls()
         InlineButton.__registry__[temp.type.value] = temp
+
+    def parse_data(self, *args, **kwargs) -> Optional[str]:
+        raise f"{self.type.value}|"
 
     @classmethod
     def find_button_by_type_value(
@@ -90,6 +94,10 @@ class InlineButton(
 
     def is_callback(self) -> bool:
         return self.action == ButtonActionType.CALLBACK
+
+    @property
+    def switch_inline_query(self) -> str:
+        return self.__switch_inline_query__
 
     def get_inline_keyboard_button(
         self,
@@ -153,7 +161,7 @@ class InlineButton(
         if not self.is_callback():
             return None
 
-        return f"{self.type.value}|{callback_arg}|{chat_type.value}"
+        return f"{self.type.value}|{chat_type.value}|{callback_arg}"
 
     def _get_switch_inline_query_current_chat(
         self,
@@ -162,7 +170,7 @@ class InlineButton(
         if not self.is_inline():
             return None
 
-        return f"#{self.type.value} {arg}" if arg is not None else f"#{self.type.value}"
+        return f"#{self.switch_inline_query} {arg}" if arg is not None else f"#{self.switch_inline_query}"
 
     def _get_switch_inline_query_other_chat(
         self,
@@ -171,7 +179,7 @@ class InlineButton(
         if not self.is_inline_other_chat():
             return None
 
-        return f"#{self.type.value} {arg}" if arg is not None else f"#{self.type.value}"
+        return f"#{self.switch_inline_query} {arg}" if arg is not None else f"#{self.switch_inline_query}"
 
     ############################################################
 

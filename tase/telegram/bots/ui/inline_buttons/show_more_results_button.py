@@ -12,6 +12,7 @@ from ...inline import CustomInlineQueryResult, InlineSearch
 class ShowMoreResultsInlineButton(InlineButton):
     type = InlineButtonType.SHOW_MORE_RESULTS
     action = ButtonActionType.CURRENT_CHAT_INLINE
+    __switch_inline_query__ = "more"
 
     s_more_results = _trans("More results")
     text = f"{s_more_results} | {emoji._plus}"
