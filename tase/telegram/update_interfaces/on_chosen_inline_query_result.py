@@ -1,5 +1,3 @@
-from re import Match
-
 import pyrogram
 
 from tase.db.arangodb import graph as graph_models
@@ -13,6 +11,6 @@ class OnChosenInlineQuery:
         client: pyrogram.Client,
         from_user: graph_models.vertices.User,
         telegram_chosen_inline_result: pyrogram.types.ChosenInlineResult,
-        reg: Match,
+        inline_button_data: "InlineButtonData",
     ):
         raise NotImplementedError

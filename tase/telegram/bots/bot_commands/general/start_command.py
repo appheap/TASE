@@ -5,7 +5,6 @@ from pyrogram.enums import ParseMode
 from tase.db.arangodb import graph as graph_models
 from tase.telegram.bots.bot_commands.base_command import BaseCommand
 from tase.telegram.bots.bot_commands.bot_command_type import BotCommandType
-from tase.telegram.bots.ui.templates import BaseTemplate, WelcomeData
 from tase.telegram.update_handlers.base import BaseHandler
 
 
@@ -25,6 +24,8 @@ class StartCommand(BaseCommand):
         from_user: graph_models.vertices.User,
         from_callback_query: bool,
     ) -> None:
+        from tase.telegram.bots.ui.templates import BaseTemplate, WelcomeData
+
         if len(message.command) == 1:
             data = WelcomeData(
                 name=message.from_user.first_name or message.from_user.last_name,

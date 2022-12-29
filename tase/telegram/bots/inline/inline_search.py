@@ -1,10 +1,10 @@
-from re import Match
 from typing import Optional
 
 import pyrogram
 
 from tase.db.arangodb.enums import InlineQueryType
 from tase.db.arangodb.graph.vertices import User
+from tase.telegram.bots.ui.base import InlineButtonData
 from tase.telegram.update_handlers.base import BaseHandler
 from tase.telegram.update_interfaces import OnInlineQuery
 from . import CustomInlineQueryResult
@@ -20,7 +20,7 @@ class InlineSearch(OnInlineQuery):
         client: pyrogram.Client,
         telegram_inline_query: pyrogram.types.InlineQuery,
         query_date: int,
-        reg: Optional[Match] = None,
+        inline_button_data: Optional[InlineButtonData] = None,
     ):
         found_any = True
         query_metadata = None

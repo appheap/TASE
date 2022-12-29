@@ -13,6 +13,22 @@ from tase.db.arangodb.helpers import AudioKeyboardStatus
 from tase.db.elasticsearchdb import models as elasticsearch_models
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.bots.ui.base import InlineButton, InlineButtonType
+from tase.telegram.bots.ui.inline_buttons import (
+    AddToPlaylistInlineButton,
+    BackToPlaylistsInlineButton,
+    DeletePlaylistInlineButton,
+    DownloadAudioInlineButton,
+    EditPlaylistDescriptionInlineButton,
+    EditPlaylistTitleInlineButton,
+    GetPlaylistAudioInlineButton,
+    HomeInlineButton,
+    RemoveFromPlaylistInlineButton,
+    SearchAmongPublicPlaylistsInlineButton,
+    SharePlaylistInlineButton,
+    ShowMoreResultsInlineButton,
+    TogglePlaylistSettingsInlineButton,
+    TogglePlaylistSubscriptionInlineButton,
+)
 from tase.telegram.update_handlers.base import BaseHandler
 
 
@@ -180,37 +196,40 @@ def get_audio_markup_keyboard(
         if valid_for_inline_search:
             markup = [
                 [
-                    InlineButton.get_button(InlineButtonType.ADD_TO_PLAYLIST).get_inline_keyboard_button(
+                    AddToPlaylistInlineButton.get_keyboard(
+                        hit_download_url=hit_download_url,
                         lang_code=chosen_language_code,
-                        switch_inline_arg=hit_download_url,
                     ),
-                    InlineButton.get_button(InlineButtonType.REMOVE_FROM_PLAYLIST).get_inline_keyboard_button(
+                    RemoveFromPlaylistInlineButton.get_keyboard(
+                        hit_download_url=hit_download_url,
                         lang_code=chosen_language_code,
-                        switch_inline_arg=hit_download_url,
                     ),
                     InlineButton.get_button(InlineButtonType.ADD_TO_FAVORITE_PLAYLIST)
                     .change_text(status.is_in_favorite_playlist)
-                    .get_inline_keyboard_button(
+                    .get_keyboard(
+                        chat_type=chat_type,
+                        hit_download_url=hit_download_url,
                         lang_code=chosen_language_code,
-                        callback_arg=hit_download_url,
                     ),
                 ],
                 [
                     InlineButton.get_button(InlineButtonType.DISLIKE_AUDIO)
                     .change_text(status.is_disliked)
-                    .get_inline_keyboard_button(
+                    .get_keyboard(
+                        chat_type=chat_type,
+                        hit_download_url=hit_download_url,
                         lang_code=chosen_language_code,
-                        callback_arg=hit_download_url,
                     ),
                     InlineButton.get_button(InlineButtonType.LIKE_AUDIO)
                     .change_text(status.is_liked)
-                    .get_inline_keyboard_button(
+                    .get_keyboard(
+                        chat_type=chat_type,
+                        hit_download_url=hit_download_url,
                         lang_code=chosen_language_code,
-                        callback_arg=hit_download_url,
                     ),
                 ],
                 [
-                    InlineButton.get_button(InlineButtonType.HOME).get_inline_keyboard_button(lang_code=chosen_language_code),
+                    HomeInlineButton.get_keyboard(lang_code=chosen_language_code),
                 ],
             ]
         else:
@@ -218,19 +237,21 @@ def get_audio_markup_keyboard(
                 [
                     InlineButton.get_button(InlineButtonType.DISLIKE_AUDIO)
                     .change_text(status.is_disliked)
-                    .get_inline_keyboard_button(
+                    .get_keyboard(
+                        chat_type=chat_type,
+                        hit_download_url=hit_download_url,
                         lang_code=chosen_language_code,
-                        callback_arg=hit_download_url,
                     ),
                     InlineButton.get_button(InlineButtonType.LIKE_AUDIO)
                     .change_text(status.is_liked)
-                    .get_inline_keyboard_button(
+                    .get_keyboard(
+                        chat_type=chat_type,
+                        hit_download_url=hit_download_url,
                         lang_code=chosen_language_code,
-                        callback_arg=hit_download_url,
                     ),
                 ],
                 [
-                    InlineButton.get_button(InlineButtonType.HOME).get_inline_keyboard_button(lang_code=chosen_language_code),
+                    HomeInlineButton.get_keyboard(lang_code=chosen_language_code),
                 ],
             ]
 
@@ -238,9 +259,9 @@ def get_audio_markup_keyboard(
     else:
         markup = [
             [
-                InlineButton.get_button(InlineButtonType.DOWNLOAD_AUDIO).get_inline_keyboard_button(
-                    lang_code=chosen_language_code,
+                DownloadAudioInlineButton.get_keyboard(
                     url=f"https://t.me/{bot_username}?start=dl_{hit_download_url}",
+                    lang_code=chosen_language_code,
                 ),
             ]
         ]
@@ -311,9 +332,10 @@ def get_more_results_markup_keyboad(
 
     markup = [
         [
-            InlineButton.get_button(InlineButtonType.SHOW_MORE_RESULTS).get_inline_keyboard_button(
+            ShowMoreResultsInlineButton.get_keyboard(
+                query_hash=u,
+                query=query,
                 lang_code=chosen_language_code,
-                switch_inline_arg=u + " \u200c " + query,
             ),
         ],
     ]
@@ -351,32 +373,32 @@ def get_playlist_markup_keyboard(
         if is_favorite:
             markup = [
                 [
-                    InlineButton.get_button(InlineButtonType.GET_PLAYLIST_AUDIOS).get_inline_keyboard_button(
+                    GetPlaylistAudioInlineButton.get_keyboard(
+                        playlist_key=playlist_key,
                         lang_code=chosen_language_code,
-                        switch_inline_arg=playlist_key,
                     ),
                     # todo: add a button to get the top 10 audios from this playlist as a message
                 ],
                 [
-                    InlineButton.get_button(InlineButtonType.HOME).get_inline_keyboard_button(lang_code=chosen_language_code),
-                    InlineButton.get_button(InlineButtonType.BACK_TO_PLAYLISTS).get_inline_keyboard_button(lang_code=chosen_language_code),
+                    HomeInlineButton.get_keyboard(lang_code=chosen_language_code),
+                    BackToPlaylistsInlineButton.get_keyboard(lang_code=chosen_language_code),
                 ],
             ]
         else:
             markup = [
                 [
-                    InlineButton.get_button(InlineButtonType.GET_PLAYLIST_AUDIOS).get_inline_keyboard_button(
+                    GetPlaylistAudioInlineButton.get_keyboard(
                         lang_code=chosen_language_code,
-                        switch_inline_arg=playlist_key,
+                        playlist_key=playlist_key,
                     ),
-                    # todo: add a button to get the top 10 audios from this playlist as a message
                 ],
                 [
-                    InlineButton.get_button(InlineButtonType.HOME).get_inline_keyboard_button(lang_code=chosen_language_code),
-                    InlineButton.get_button(InlineButtonType.BACK_TO_PLAYLISTS).get_inline_keyboard_button(lang_code=chosen_language_code),
-                    InlineButton.get_button(InlineButtonType.TOGGLE_PLAYLIST_SETTINGS).get_inline_keyboard_button(
+                    HomeInlineButton.get_keyboard(lang_code=chosen_language_code),
+                    BackToPlaylistsInlineButton.get_keyboard(lang_code=chosen_language_code),
+                    TogglePlaylistSettingsInlineButton.get_keyboard(
+                        playlist_key=playlist_key,
+                        is_settings_visible=is_settings_visible,
                         lang_code=chosen_language_code,
-                        callback_arg=f"{playlist_key}#{'1' if is_settings_visible else '0'}",
                     ),
                 ],
             ]
@@ -384,47 +406,41 @@ def get_playlist_markup_keyboard(
         if is_settings_visible:
             markup.append(
                 [
-                    InlineButton.get_button(InlineButtonType.EDIT_PLAYLIST_TITLE).get_inline_keyboard_button(
+                    EditPlaylistTitleInlineButton.get_keyboard(
+                        playlist_key=playlist_key,
                         lang_code=chosen_language_code,
-                        callback_arg=playlist_key,
                     ),
-                    InlineButton.get_button(InlineButtonType.EDIT_PLAYLIST_DESCRIPTION).get_inline_keyboard_button(
+                    EditPlaylistDescriptionInlineButton.get_keyboard(
+                        playlist_key=playlist_key,
                         lang_code=chosen_language_code,
-                        callback_arg=playlist_key,
                     ),
                 ],
             )
             markup.append(
                 [
-                    InlineButton.get_button(InlineButtonType.DELETE_PLAYLIST).get_inline_keyboard_button(
-                        lang_code=chosen_language_code,
-                        callback_arg=playlist_key,
-                    ),
+                    DeletePlaylistInlineButton.get_keyboard(playlist_key=playlist_key, lang_code=chosen_language_code),
                 ],
             )
     else:
         markup = [
             [
-                InlineButton.get_button(InlineButtonType.GET_PLAYLIST_AUDIOS).get_inline_keyboard_button(
+                GetPlaylistAudioInlineButton.get_keyboard(
                     lang_code=chosen_language_code,
-                    switch_inline_arg=playlist_key,
+                    playlist_key=playlist_key,
                 ),
             ],
             [
-                InlineButton.get_button(InlineButtonType.TOGGLE_PLAYLIST_SUBSCRIPTION).get_inline_keyboard_button(
+                TogglePlaylistSubscriptionInlineButton.get_keyboard(
+                    playlist_key=playlist_key,
                     lang_code=chosen_language_code,
-                    callback_arg=playlist_key,
                 ),
-                InlineButton.get_button(InlineButtonType.SHARE_PLAYLIST).get_inline_keyboard_button(
+                SharePlaylistInlineButton.get_keyboard(
+                    playlist_key=playlist_key,
                     lang_code=chosen_language_code,
-                    switch_inline_arg=playlist_key,
                 ),
             ],
             [
-                InlineButton.get_button(InlineButtonType.SEARCH_AMONG_PUBLIC_PLAYLISTS).get_inline_keyboard_button(
-                    lang_code=chosen_language_code,
-                    switch_inline_arg="",
-                ),
+                SearchAmongPublicPlaylistsInlineButton.get_keyboard(lang_code=chosen_language_code),
             ],
         ]
 

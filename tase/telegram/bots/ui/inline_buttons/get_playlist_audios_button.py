@@ -1,5 +1,5 @@
 import asyncio
-from typing import Match, Optional, Union
+from typing import Match, Optional, Union, List
 
 import pyrogram
 
@@ -10,17 +10,48 @@ from tase.errors import PlaylistDoesNotExists
 from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
-from .common import populate_audio_items
-from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemInfo, InlineItemType
+from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemInfo, InlineItemType, InlineButtonData
+
+
+class GetPlaylistAudiosButtonData(InlineButtonData):
+    __button_type__ = InlineButtonType.GET_PLAYLIST_AUDIOS
+
+    playlist_key: str
+
+    @classmethod
+    def generate_data(cls, playlist_key: str) -> Optional[str]:
+        return f"#{cls.get_type_value()}|{playlist_key}"
+
+    @classmethod
+    def __parse__(
+        cls,
+        data_split_lst: List[str],
+    ) -> Optional[InlineButtonData]:
+        if len(data_split_lst) != 2:
+            return None
+
+        return GetPlaylistAudiosButtonData(playlist_key=data_split_lst[1])
 
 
 class GetPlaylistAudioInlineButton(InlineButton):
-    type = InlineButtonType.GET_PLAYLIST_AUDIOS
+    __type__ = InlineButtonType.GET_PLAYLIST_AUDIOS
     action = ButtonActionType.CURRENT_CHAT_INLINE
     __switch_inline_query__ = "get_pl"
 
     s_audios = _trans("Audio Files")
     text = f"{s_audios} | {emoji._headphone}"
+
+    @classmethod
+    def get_keyboard(
+        cls,
+        *,
+        playlist_key: str,
+        lang_code: Optional[str] = "en",
+    ) -> pyrogram.types.InlineKeyboardButton:
+        return cls.get_button(cls.__type__).__parse_keyboard_button__(
+            switch_inline_query_current_chat=GetPlaylistAudiosButtonData.generate_data(playlist_key),
+            lang_code=lang_code,
+        )
 
     async def on_inline_query(
         self,
@@ -30,9 +61,10 @@ class GetPlaylistAudioInlineButton(InlineButton):
         client: pyrogram.Client,
         telegram_inline_query: pyrogram.types.InlineQuery,
         query_date: int,
-        reg: Optional[Match] = None,
+        inline_button_data: Optional[InlineButtonData] = None,
     ):
-        playlist_key = reg.group("arg1")
+        inline_button_data: GetPlaylistAudiosButtonData = inline_button_data
+        playlist_key = inline_button_data.playlist_key
 
         playlist_is_valid = False  # whether the requested playlist belongs to the user or not
         audio_vertices = None
@@ -82,6 +114,8 @@ class GetPlaylistAudioInlineButton(InlineButton):
                 # since it is already been checked that the playlist belongs to the user, this exception will not occur
                 pass
             else:
+                from tase.telegram.bots.ui.inline_buttons.common import populate_audio_items
+
                 hit_download_urls = await populate_audio_items(
                     audio_vertices,
                     from_user,
@@ -116,7 +150,7 @@ class GetPlaylistAudioInlineButton(InlineButton):
         client: pyrogram.Client,
         from_user: graph_models.vertices.User,
         telegram_chosen_inline_result: pyrogram.types.ChosenInlineResult,
-        reg: Match,
+        inline_button_data: GetPlaylistAudiosButtonData,
     ):
         from tase.telegram.bots.ui.inline_items.item_info import AudioItemInfo, PlaylistItemInfo
 

@@ -15,7 +15,8 @@ from tase.db.elasticsearchdb import models as elasticsearch_models
 from tase.telegram.bots.ui.templates import AudioCaptionData, BaseTemplate
 from .base_inline_item import BaseInlineItem
 from .item_info import AudioItemInfo
-from ..base import InlineItemType, InlineButton, InlineButtonType
+from ..base import InlineItemType
+from ..inline_buttons import DownloadAudioInlineButton, LoadingKeyboardInlineButton
 
 
 class AudioItem(BaseInlineItem):
@@ -59,7 +60,7 @@ class AudioItem(BaseInlineItem):
             reply_markup=InlineKeyboardMarkup(
                 [
                     [
-                        InlineButton.get_button(InlineButtonType.LOADING_KEYBOARD).get_inline_keyboard_button(lang_code=from_user.chosen_language_code),
+                        LoadingKeyboardInlineButton.get_keyboard(lang_code=from_user.chosen_language_code),
                     ]
                 ]
             ),
@@ -156,9 +157,9 @@ class AudioItem(BaseInlineItem):
                 reply_markup=InlineKeyboardMarkup(
                     [
                         [
-                            InlineButton.get_button(InlineButtonType.DOWNLOAD_AUDIO).get_inline_keyboard_button(
-                                lang_code=from_user.chosen_language_code,
+                            DownloadAudioInlineButton.get_keyboard(
                                 url=f"https://t.me/{bot_username}?start=dl_{hit_download_url}",
+                                lang_code=from_user.chosen_language_code,
                             ),
                         ]
                     ]

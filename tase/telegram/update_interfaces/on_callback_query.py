@@ -11,5 +11,6 @@ class OnCallbackQuery:
         from_user: graph_models.vertices.User,
         client: pyrogram.Client,
         telegram_callback_query: pyrogram.types.CallbackQuery,
+        inline_button_data: "InlineButtonData",
     ):
         raise NotImplementedError

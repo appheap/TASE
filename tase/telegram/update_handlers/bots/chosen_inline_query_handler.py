@@ -1,4 +1,3 @@
-import re
 from typing import List
 
 import pyrogram
@@ -7,7 +6,7 @@ from pyrogram import handlers
 from tase.common.utils import async_exception_handler
 from tase.db.arangodb.enums import ChatType
 from tase.my_logger import logger
-from tase.telegram.bots.ui.base import InlineButton
+from tase.telegram.bots.ui.base import InlineButton, InlineButtonData
 from tase.telegram.update_handlers.base import BaseHandler, HandlerMetadata
 
 
@@ -31,24 +30,24 @@ class ChosenInlineQueryHandler(BaseHandler):
 
         from_user = await self.db.graph.get_interacted_user(chosen_inline_result.from_user)
 
-        reg = re.search(
-            "^#(?P<command>[a-zA-Z0-9_]+)(\s(?P<arg1>[a-zA-Z0-9_]+))?",
-            chosen_inline_result.query,
-        )
-        if reg:
+        data = InlineButtonData.parse_from_string(chosen_inline_result.query)
+        if data:
+            button = InlineButton.find_button_by_type_value(data.get_type_value())
+
+            if not button:
+                return
+
             # it's a custom command
             # todo: handle downloads from commands like `#download_history` in non-private chats
             logger.info(chosen_inline_result)
 
-            button = InlineButton.find_button_by_type_value(reg.group("command"))
-            if button:
-                await button.on_chosen_inline_query(
-                    self,
-                    client,
-                    from_user,
-                    chosen_inline_result,
-                    reg,
-                )
+            await button.on_chosen_inline_query(
+                self,
+                client,
+                from_user,
+                chosen_inline_result,
+                data,
+            )
 
         else:
             inline_query_id, hit_download_url, chat_type_value, _ = chosen_inline_result.result_id.split("|")

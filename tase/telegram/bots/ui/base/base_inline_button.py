@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Match, Optional
+from typing import Optional, Dict, TYPE_CHECKING
 
 import pyrogram
 from pydantic import BaseModel, Field
@@ -8,8 +8,6 @@ from pyrogram.types import InlineKeyboardButton
 
 from tase.common.utils import translate_text
 from tase.db.arangodb import graph as graph_models
-from tase.db.arangodb.enums import ChatType
-from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.bots.ui.base.button_action_type import ButtonActionType
 from tase.telegram.bots.ui.base.inline_button_type import InlineButtonType
 from tase.telegram.update_handlers.base import BaseHandler
@@ -19,6 +17,10 @@ from tase.telegram.update_interfaces import (
     OnInlineQuery,
 )
 
+if TYPE_CHECKING:
+    from tase.telegram.bots.inline import CustomInlineQueryResult
+    from tase.telegram.bots.ui.base import InlineButtonData
+
 
 class InlineButton(
     BaseModel,
@@ -26,33 +28,45 @@ class InlineButton(
     OnChosenInlineQuery,
     OnCallbackQuery,
 ):
-    type: InlineButtonType = Field(default=InlineButtonType.BASE)
+    __type__: InlineButtonType = Field(default=InlineButtonType.BASE)
     action: ButtonActionType = Field(default=ButtonActionType.CALLBACK)
     text: Optional[str]
     url: Optional[str]
-    __switch_inline_query__: Optional[str]
+    __switch_inline_query__: Optional[str] = Field(default=None)
 
     __registry__: Dict[int, InlineButton] = dict()
+    __inline_registry__: Dict[str, InlineButton] = dict()
 
     @classmethod
     def __init_subclass__(cls) -> None:
         temp = cls()
-        InlineButton.__registry__[temp.type.value] = temp
+        InlineButton.__registry__[temp.__type__.value] = temp
 
-    def parse_data(self, *args, **kwargs) -> Optional[str]:
-        raise f"{self.type.value}|"
+        if cls.switch_inline_query():
+            InlineButton.__inline_registry__[temp.switch_inline_query()] = temp
+
+    @classmethod
+    def get_type_value(cls) -> int:
+        return cls.__type__.value
+
+    @classmethod
+    def find_button_by_alias(cls, alias: str) -> Optional[InlineButton]:
+        if not str:
+            return None
+
+        return cls.__inline_registry__.get(alias, None)
 
     @classmethod
     def find_button_by_type_value(
         cls,
-        button_type_value: str,
+        button_type_value: int,
     ) -> Optional[InlineButton]:
         """
         Find the InlineButton with the given `button_type_value`
 
         Parameters
         ----------
-        button_type_value : str
+        button_type_value : int
             Value of `InlineButtonType` to find the inline button by
 
         Returns
@@ -95,25 +109,33 @@ class InlineButton(
     def is_callback(self) -> bool:
         return self.action == ButtonActionType.CALLBACK
 
-    @property
-    def switch_inline_query(self) -> str:
-        return self.__switch_inline_query__
+    @classmethod
+    def switch_inline_query(cls) -> str:
+        return cls.__switch_inline_query__
 
-    def get_inline_keyboard_button(
+    @classmethod
+    def get_keyboard(
+        cls,
+        *args,
+        **kwargs,
+    ) -> pyrogram.types.InlineKeyboardButton:
+        raise NotImplementedError
+
+    def __parse_keyboard_button__(
         self,
         *,
         lang_code: str = "en",
-        switch_inline_arg=None,
-        callback_arg=None,
+        callback_data=None,
         url: str = None,
-        chat_type: ChatType = ChatType.BOT,
-    ):
+        switch_inline_query_current_chat=None,
+        switch_inline_query_other_chat=None,
+    ) -> pyrogram.types.InlineKeyboardButton:
         return InlineKeyboardButton(
             text=self._get_text(lang_code),
-            callback_data=self._get_callback_data(chat_type, callback_arg),
-            url=self._get_url(url),
-            switch_inline_query_current_chat=self._get_switch_inline_query_current_chat(switch_inline_arg),
-            switch_inline_query=self._get_switch_inline_query_other_chat(switch_inline_arg),
+            callback_data=callback_data,
+            url=url,
+            switch_inline_query_current_chat=switch_inline_query_current_chat,
+            switch_inline_query=switch_inline_query_other_chat,
         )
 
     ############################################################
@@ -141,46 +163,6 @@ class InlineButton(
     ) -> str:
         return self._get_translated_text(lang_code)
 
-    def _get_url(
-        self,
-        url: str,
-    ) -> Optional[str]:
-        if not self.is_url():
-            return None
-
-        if url is None:
-            return self.url
-
-        return url
-
-    def _get_callback_data(
-        self,
-        chat_type: ChatType,
-        callback_arg=None,
-    ) -> Optional[str]:
-        if not self.is_callback():
-            return None
-
-        return f"{self.type.value}|{chat_type.value}|{callback_arg}"
-
-    def _get_switch_inline_query_current_chat(
-        self,
-        arg=None,
-    ) -> Optional[str]:
-        if not self.is_inline():
-            return None
-
-        return f"#{self.switch_inline_query} {arg}" if arg is not None else f"#{self.switch_inline_query}"
-
-    def _get_switch_inline_query_other_chat(
-        self,
-        arg=None,
-    ) -> Optional[str]:
-        if not self.is_inline_other_chat():
-            return None
-
-        return f"#{self.switch_inline_query} {arg}" if arg is not None else f"#{self.switch_inline_query}"
-
     ############################################################
 
     async def on_inline_query(
@@ -191,7 +173,7 @@ class InlineButton(
         client: pyrogram.Client,
         telegram_inline_query: pyrogram.types.InlineQuery,
         query_date: int,
-        reg: Optional[Match] = None,
+        inline_button_data: Optional[InlineButtonData] = None,
     ):
         raise NotImplementedError
 
@@ -201,7 +183,7 @@ class InlineButton(
         client: pyrogram.Client,
         from_user: graph_models.vertices.User,
         telegram_chosen_inline_result: pyrogram.types.ChosenInlineResult,
-        reg: Match,
+        inline_button_data: InlineButtonData,
     ):
         raise NotImplementedError
 
@@ -211,6 +193,7 @@ class InlineButton(
         from_user: graph_models.vertices.User,
         client: pyrogram.Client,
         telegram_callback_query: pyrogram.types.CallbackQuery,
+        inline_button_data: InlineButtonData,
     ):
         raise NotImplementedError
 

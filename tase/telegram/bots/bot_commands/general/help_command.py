@@ -6,8 +6,6 @@ from pyrogram.types import InlineKeyboardMarkup
 from tase.db.arangodb import graph as graph_models
 from tase.telegram.bots.bot_commands.base_command import BaseCommand
 from tase.telegram.bots.bot_commands.bot_command_type import BotCommandType
-from tase.telegram.bots.ui.base import InlineButton, InlineButtonType
-from tase.telegram.bots.ui.templates import BaseTemplate, HelpData
 from tase.telegram.update_handlers.base import BaseHandler
 
 
@@ -27,6 +25,16 @@ class HelpCommand(BaseCommand):
         from_user: graph_models.vertices.User,
         from_callback_query: bool,
     ) -> None:
+        from tase.telegram.bots.ui.inline_buttons import (
+            AdvertisementInlineButton,
+            BackInlineButton,
+            DownloadHistoryInlineButton,
+            HelpCatalogInlineButton,
+            MyPlaylistsInlineButton,
+        )
+
+        from tase.telegram.bots.ui.templates import BaseTemplate, HelpData
+
         data = HelpData(
             support_channel_username="support_channel_username",
             url1="https://github.com/appheap/TASE",
@@ -36,15 +44,15 @@ class HelpCommand(BaseCommand):
 
         markup = [
             [
-                InlineButton.get_button(InlineButtonType.DOWNLOAD_HISTORY).get_inline_keyboard_button(lang_code=from_user.chosen_language_code),
-                InlineButton.get_button(InlineButtonType.MY_PLAYLISTS).get_inline_keyboard_button(lang_code=from_user.chosen_language_code),
+                DownloadHistoryInlineButton.get_keyboard(lang_code=from_user.chosen_language_code),
+                MyPlaylistsInlineButton.get_keyboard(lang_code=from_user.chosen_language_code),
             ],
             [
-                InlineButton.get_button(InlineButtonType.BACK).get_inline_keyboard_button(lang_code=from_user.chosen_language_code),
+                BackInlineButton.get_keyboard(lang_code=from_user.chosen_language_code),
             ],
             [
-                InlineButton.get_button(InlineButtonType.ADVERTISEMENT).get_inline_keyboard_button(lang_code=from_user.chosen_language_code),
-                InlineButton.get_button(InlineButtonType.HELP_CATALOG).get_inline_keyboard_button(lang_code=from_user.chosen_language_code),
+                AdvertisementInlineButton.get_keyboard(url=None, lang_code=from_user.chosen_language_code),
+                HelpCatalogInlineButton.get_keyboard(lang_code=from_user.chosen_language_code),
             ],
         ]
 

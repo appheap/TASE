@@ -1,4 +1,4 @@
-from typing import Optional, Match
+from typing import Optional, Match, List
 
 import pyrogram
 
@@ -7,17 +7,42 @@ from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.enums import ChatType
 from tase.telegram.update_handlers.base import BaseHandler
 from .my_playlists_button import MyPlaylistsInlineButton
-from ..base import InlineButtonType, ButtonActionType
+from ..base import InlineButtonType, ButtonActionType, InlineButtonData
 from ...inline import CustomInlineQueryResult
 
 
+class BackToPlaylistsButtonData(InlineButtonData):
+    __button_type__ = InlineButtonType.BACK_TO_PLAYLISTS
+
+    @classmethod
+    def generate_data(cls, inline_command: str) -> Optional[str]:
+        return f"#{inline_command}"
+
+    @classmethod
+    def __parse__(
+        cls,
+        data_split_lst: List[str],
+    ) -> Optional[InlineButtonData]:
+        return BackToPlaylistsButtonData()
+
+
 class BackToPlaylistsInlineButton(MyPlaylistsInlineButton):
-    type = InlineButtonType.BACK_TO_PLAYLISTS
+    __type__ = InlineButtonType.BACK_TO_PLAYLISTS
     action = ButtonActionType.CURRENT_CHAT_INLINE
     __switch_inline_query__ = "back_to_pl"
 
     s_back = _trans("Back")
     text = f"{s_back} | {emoji._BACK_arrow}"
+
+    @classmethod
+    def get_keyboard(
+        cls,
+        lang_code: Optional[str] = "en",
+    ) -> pyrogram.types.InlineKeyboardButton:
+        return cls.get_button(cls.__type__).__parse_keyboard_button__(
+            switch_inline_query_current_chat=BackToPlaylistsButtonData.generate_data(cls.switch_inline_query()),
+            lang_code=lang_code,
+        )
 
     async def on_inline_query(
         self,
@@ -27,7 +52,7 @@ class BackToPlaylistsInlineButton(MyPlaylistsInlineButton):
         client: pyrogram.Client,
         telegram_inline_query: pyrogram.types.InlineQuery,
         query_date: int,
-        reg: Optional[Match] = None,
+        inline_button_data: Optional[InlineButtonData] = None,
     ):
         chat_type = ChatType.parse_from_pyrogram(telegram_inline_query.chat_type)
         if chat_type != ChatType.BOT:
@@ -44,7 +69,7 @@ class BackToPlaylistsInlineButton(MyPlaylistsInlineButton):
                 client,
                 telegram_inline_query,
                 query_date,
-                reg,
+                inline_button_data,
             )
 
         await result.answer_query()
@@ -55,7 +80,7 @@ class BackToPlaylistsInlineButton(MyPlaylistsInlineButton):
         client: pyrogram.Client,
         from_user: graph_models.vertices.User,
         telegram_chosen_inline_result: pyrogram.types.ChosenInlineResult,
-        reg: Match,
+        inline_button_data: InlineButtonData,
     ):
         await MyPlaylistsInlineButton.on_chosen_inline_query(
             self,
@@ -63,5 +88,5 @@ class BackToPlaylistsInlineButton(MyPlaylistsInlineButton):
             client,
             from_user,
             telegram_chosen_inline_result,
-            reg,
+            inline_button_data,
         )

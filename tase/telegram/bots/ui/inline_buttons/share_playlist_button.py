@@ -1,4 +1,4 @@
-from typing import Match, Optional
+from typing import Match, Optional, List
 
 import pyrogram
 
@@ -7,16 +7,48 @@ from tase.db.arangodb import graph as graph_models
 from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
-from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemInfo, InlineItemType
+from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemInfo, InlineItemType, InlineButtonData
+
+
+class SharePlaylistButtonData(InlineButtonData):
+    __button_type__ = InlineButtonType.SHARE_PLAYLIST
+
+    playlist_key: str
+
+    @classmethod
+    def generate_data(cls, playlist_key: str) -> Optional[str]:
+        return f"#{cls.get_type_value()}|{playlist_key}"
+
+    @classmethod
+    def __parse__(
+        cls,
+        data_split_lst: List[str],
+    ) -> Optional[InlineButtonData]:
+        if len(data_split_lst) != 2:
+            return None
+
+        return SharePlaylistButtonData(playlist_key=data_split_lst[1])
 
 
 class SharePlaylistInlineButton(InlineButton):
-    type = InlineButtonType.SHARE_PLAYLIST
+    __type__ = InlineButtonType.SHARE_PLAYLIST
     action = ButtonActionType.OTHER_CHAT_INLINE
     __switch_inline_query__ = "share_pl"
 
     s_share = _trans("Share")
     text = f"{s_share} | {emoji._link}"
+
+    @classmethod
+    def get_keyboard(
+        cls,
+        *,
+        playlist_key: str,
+        lang_code: Optional[str] = "en",
+    ) -> pyrogram.types.InlineKeyboardButton:
+        return cls.get_button(cls.__type__).__parse_keyboard_button__(
+            switch_inline_query_other_chat=SharePlaylistButtonData.generate_data(playlist_key),
+            lang_code=lang_code,
+        )
 
     async def on_inline_query(
         self,
@@ -26,10 +58,9 @@ class SharePlaylistInlineButton(InlineButton):
         client: pyrogram.Client,
         telegram_inline_query: pyrogram.types.InlineQuery,
         query_date: int,
-        reg: Optional[Match] = None,
+        inline_button_data: Optional[SharePlaylistButtonData] = None,
     ):
-        playlist_key = reg.group("arg1")
-        playlist = await handler.db.graph.get_playlist_by_key(playlist_key)
+        playlist = await handler.db.graph.get_playlist_by_key(inline_button_data.playlist_key)
 
         if result.is_first_page() and playlist and not playlist.is_soft_deleted and playlist.is_public:
             from tase.telegram.bots.ui.inline_items import PlaylistItem
@@ -52,7 +83,7 @@ class SharePlaylistInlineButton(InlineButton):
         client: pyrogram.Client,
         from_user: graph_models.vertices.User,
         telegram_chosen_inline_result: pyrogram.types.ChosenInlineResult,
-        reg: Match,
+        inline_button_data: SharePlaylistButtonData,
     ):
         from tase.telegram.bots.ui.inline_items.item_info import PlaylistItemInfo
 

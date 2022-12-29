@@ -1,4 +1,4 @@
-from typing import Match, Optional, Union
+from typing import Match, Optional, Union, List
 
 import pyrogram
 
@@ -8,17 +8,42 @@ from tase.db.arangodb.enums import BotTaskType, ChatType
 from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
-from .common import populate_playlist_list
-from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemInfo, InlineItemType
+from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemInfo, InlineItemType, InlineButtonData
+
+
+class MyPlaylistsButtonData(InlineButtonData):
+    __button_type__ = InlineButtonType.MY_PLAYLISTS
+
+    @classmethod
+    def generate_data(cls, inline_command: str) -> Optional[str]:
+        return f"#{inline_command} "
+
+    @classmethod
+    def __parse__(
+        cls,
+        data_split_lst: List[str],
+    ) -> Optional[InlineButtonData]:
+        return MyPlaylistsButtonData()
 
 
 class MyPlaylistsInlineButton(InlineButton):
-    type = InlineButtonType.MY_PLAYLISTS
+    __type__ = InlineButtonType.MY_PLAYLISTS
     action = ButtonActionType.CURRENT_CHAT_INLINE
     __switch_inline_query__ = "my_pl"
 
     s_my_playlists = _trans("My Playlists")
     text = f"{s_my_playlists} | {emoji._headphone}"
+
+    @classmethod
+    def get_keyboard(
+        cls,
+        *,
+        lang_code: Optional[str] = "en",
+    ) -> pyrogram.types.InlineKeyboardButton:
+        return cls.get_button(cls.__type__).__parse_keyboard_button__(
+            switch_inline_query_current_chat=MyPlaylistsButtonData.generate_data(cls.switch_inline_query()),
+            lang_code=lang_code,
+        )
 
     async def on_inline_query(
         self,
@@ -28,7 +53,7 @@ class MyPlaylistsInlineButton(InlineButton):
         client: pyrogram.Client,
         telegram_inline_query: pyrogram.types.InlineQuery,
         query_date: int,
-        reg: Optional[Match] = None,
+        inline_button_data: Optional[MyPlaylistsButtonData] = None,
     ):
         chat_type = ChatType.parse_from_pyrogram(telegram_inline_query.chat_type)
         if chat_type != ChatType.BOT:
@@ -37,6 +62,8 @@ class MyPlaylistsInlineButton(InlineButton):
                 count=True,
             )
         else:
+            from tase.telegram.bots.ui.inline_buttons.common import populate_playlist_list
+
             await populate_playlist_list(
                 from_user,
                 handler,
@@ -58,7 +85,7 @@ class MyPlaylistsInlineButton(InlineButton):
         client: pyrogram.Client,
         from_user: graph_models.vertices.User,
         telegram_chosen_inline_result: pyrogram.types.ChosenInlineResult,
-        reg: Match,
+        inline_button_data: MyPlaylistsButtonData,
     ):
         from ..inline_items.item_info import PlaylistItemInfo, CreateNewPrivatePlaylistItemInfo
 

@@ -1,4 +1,4 @@
-from typing import Match, Optional, Union
+from typing import Match, Optional, Union, List
 
 import pyrogram
 
@@ -8,16 +8,42 @@ from tase.db.arangodb.enums import BotTaskType, ChatType
 from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
-from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemInfo, InlineItemType
+from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemInfo, InlineItemType, InlineButtonData
+
+
+class MyPlaylistSubscriptionsButtonData(InlineButtonData):
+    __button_type__ = InlineButtonType.MY_PLAYLIST_SUBSCRIPTIONS
+
+    @classmethod
+    def generate_data(cls, inline_command: str) -> Optional[str]:
+        return f"#{inline_command} "
+
+    @classmethod
+    def __parse__(
+        cls,
+        data_split_lst: List[str],
+    ) -> Optional[InlineButtonData]:
+        return MyPlaylistSubscriptionsButtonData()
 
 
 class MyPlaylistSubscriptionsInlineButton(InlineButton):
-    type = InlineButtonType.MY_PLAYLIST_SUBSCRIPTIONS
+    __type__ = InlineButtonType.MY_PLAYLIST_SUBSCRIPTIONS
     action = ButtonActionType.CURRENT_CHAT_INLINE
     __switch_inline_query__ = "sub"
 
     s_my_playlists = _trans("Playlist subscriptions")
     text = f"{s_my_playlists} | {emoji._bell}"
+
+    @classmethod
+    def get_keyboard(
+        cls,
+        *,
+        lang_code: Optional[str] = "en",
+    ) -> pyrogram.types.InlineKeyboardButton:
+        return cls.get_button(cls.__type__).__parse_keyboard_button__(
+            switch_inline_query_current_chat=MyPlaylistSubscriptionsButtonData.generate_data(cls.switch_inline_query()),
+            lang_code=lang_code,
+        )
 
     async def on_inline_query(
         self,
@@ -27,7 +53,7 @@ class MyPlaylistSubscriptionsInlineButton(InlineButton):
         client: pyrogram.Client,
         telegram_inline_query: pyrogram.types.InlineQuery,
         query_date: int,
-        reg: Optional[Match] = None,
+        inline_button_data: Optional[MyPlaylistSubscriptionsButtonData] = None,
     ):
         chat_type = ChatType.parse_from_pyrogram(telegram_inline_query.chat_type)
         playlists = await handler.db.graph.get_user_subscribed_playlists(
@@ -69,7 +95,7 @@ class MyPlaylistSubscriptionsInlineButton(InlineButton):
         client: pyrogram.Client,
         from_user: graph_models.vertices.User,
         telegram_chosen_inline_result: pyrogram.types.ChosenInlineResult,
-        reg: Match,
+        inline_button_data: MyPlaylistSubscriptionsButtonData,
     ):
         from tase.telegram.bots.ui.inline_items.item_info import PlaylistItemInfo, CreateNewPublicPlaylistItemInfo
 

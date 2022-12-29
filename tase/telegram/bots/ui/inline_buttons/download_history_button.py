@@ -1,5 +1,5 @@
 import asyncio
-from typing import Match, Optional
+from typing import Match, Optional, List
 
 import pyrogram
 
@@ -9,17 +9,41 @@ from tase.db.arangodb.enums import InteractionType, InlineQueryType
 from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
-from .common import populate_audio_items
-from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemInfo, InlineItemType
+from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemInfo, InlineItemType, InlineButtonData
+
+
+class DownloadHistoryButtonData(InlineButtonData):
+    __button_type__ = InlineButtonType.DOWNLOAD_HISTORY
+
+    @classmethod
+    def generate_data(cls, inline_command: str) -> Optional[str]:
+        return f"#{inline_command}"
+
+    @classmethod
+    def __parse__(
+        cls,
+        data_split_lst: List[str],
+    ) -> Optional[InlineButtonData]:
+        return DownloadHistoryButtonData()
 
 
 class DownloadHistoryInlineButton(InlineButton):
-    type = InlineButtonType.DOWNLOAD_HISTORY
+    __type__ = InlineButtonType.DOWNLOAD_HISTORY
     action = ButtonActionType.CURRENT_CHAT_INLINE
     __switch_inline_query__ = "downloads"
 
     s_my_downloads = _trans("My Downloads")
     text = f"{s_my_downloads} | {emoji._mobile_phone_with_arrow}"
+
+    @classmethod
+    def get_keyboard(
+        cls,
+        lang_code: Optional[str] = "en",
+    ) -> pyrogram.types.InlineKeyboardButton:
+        return cls.get_button(cls.__type__).__parse_keyboard_button__(
+            switch_inline_query_current_chat=DownloadHistoryButtonData.generate_data(cls.switch_inline_query()),
+            lang_code=lang_code,
+        )
 
     async def on_inline_query(
         self,
@@ -29,12 +53,14 @@ class DownloadHistoryInlineButton(InlineButton):
         client: pyrogram.Client,
         telegram_inline_query: pyrogram.types.InlineQuery,
         query_date: int,
-        reg: Optional[Match] = None,
+        inline_button_data: Optional[DownloadHistoryButtonData] = None,
     ):
         audio_vertices = await handler.db.graph.get_user_download_history(
             from_user,
             offset=result.from_,
         )
+
+        from tase.telegram.bots.ui.inline_buttons.common import populate_audio_items
 
         hit_download_urls = await populate_audio_items(
             audio_vertices,
@@ -69,7 +95,7 @@ class DownloadHistoryInlineButton(InlineButton):
         client: pyrogram.Client,
         from_user: graph_models.vertices.User,
         telegram_chosen_inline_result: pyrogram.types.ChosenInlineResult,
-        reg: Match,
+        inline_button_data: DownloadHistoryButtonData,
     ):
 
         from tase.telegram.bots.ui.inline_items.item_info import AudioItemInfo

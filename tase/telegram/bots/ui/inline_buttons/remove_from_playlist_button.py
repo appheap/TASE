@@ -1,4 +1,4 @@
-from typing import Match, Optional, Union
+from typing import Match, Optional, Union, List
 
 import pyrogram
 
@@ -13,16 +13,48 @@ from tase.errors import (
 from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
-from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemInfo, InlineItemType
+from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemInfo, InlineItemType, InlineButtonData
+
+
+class RemoveFromPlaylistButtonData(InlineButtonData):
+    __button_type__ = InlineButtonType.REMOVE_FROM_PLAYLIST
+
+    hit_download_url: str
+
+    @classmethod
+    def generate_data(cls, hit_download_url: str) -> Optional[str]:
+        return f"#{cls.get_type_value()}|{hit_download_url}"
+
+    @classmethod
+    def __parse__(
+        cls,
+        data_split_lst: List[str],
+    ) -> Optional[InlineButtonData]:
+        if len(data_split_lst) != 2:
+            return None
+
+        return RemoveFromPlaylistButtonData(hit_download_url=data_split_lst[1])
 
 
 class RemoveFromPlaylistInlineButton(InlineButton):
-    type = InlineButtonType.REMOVE_FROM_PLAYLIST
+    __type__ = InlineButtonType.REMOVE_FROM_PLAYLIST
     action = ButtonActionType.CURRENT_CHAT_INLINE
     __switch_inline_query__ = "remove_from_pl"
 
     s_remove_from_playlist = _trans("Remove From Playlist")
     text = f"{emoji._minus}"
+
+    @classmethod
+    def get_keyboard(
+        cls,
+        *,
+        hit_download_url: str,
+        lang_code: Optional[str] = "en",
+    ) -> pyrogram.types.InlineKeyboardButton:
+        return cls.get_button(cls.__type__).__parse_keyboard_button__(
+            switch_inline_query_current_chat=RemoveFromPlaylistButtonData.generate_data(hit_download_url),
+            lang_code=lang_code,
+        )
 
     async def on_inline_query(
         self,
@@ -32,9 +64,9 @@ class RemoveFromPlaylistInlineButton(InlineButton):
         client: pyrogram.Client,
         telegram_inline_query: pyrogram.types.InlineQuery,
         query_date: int,
-        reg: Optional[Match] = None,
+        inline_button_data: Optional[RemoveFromPlaylistButtonData] = None,
     ):
-        hit_download_url = reg.group("arg1")
+        hit_download_url = inline_button_data.hit_download_url
         valid = True if hit_download_url is not None else False
 
         try:
@@ -77,9 +109,9 @@ class RemoveFromPlaylistInlineButton(InlineButton):
         client: pyrogram.Client,
         from_user: graph_models.vertices.User,
         telegram_chosen_inline_result: pyrogram.types.ChosenInlineResult,
-        reg: Match,
+        inline_button_data: RemoveFromPlaylistButtonData,
     ):
-        hit_download_url = reg.group("arg1")
+        hit_download_url = inline_button_data.hit_download_url
         # todo: check if the user has downloaded this audio earlier, otherwise, the request is not valid
 
         from tase.telegram.bots.ui.inline_items.item_info import NoPlaylistItemInfo, PlaylistItemInfo

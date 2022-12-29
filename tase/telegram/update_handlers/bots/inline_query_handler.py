@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import re
 from typing import List
 
 import pyrogram
@@ -10,7 +9,7 @@ from tase.common.preprocessing import telegram_url_regex, url_regex
 from tase.common.utils import get_now_timestamp, async_timed, async_exception_handler
 from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult, InlineSearch
-from tase.telegram.bots.ui.base import InlineButton
+from tase.telegram.bots.ui.base import InlineButton, InlineButtonData
 from tase.telegram.update_handlers.base import BaseHandler, HandlerMetadata
 
 
@@ -20,7 +19,7 @@ class InlineQueryHandler(BaseHandler):
             HandlerMetadata(
                 cls=handlers.InlineQueryHandler,
                 callback=self.custom_commands_handler,
-                filters=filters.regex(r"^#(?P<command>[a-zA-Z0-9_]+)(\s(?P<arg1>[a-zA-Z0-9_]+))?"),
+                filters=filters.regex(r"^#(?P<command>[a-zA-Z0-9_]+)"),
                 group=0,
             ),
             HandlerMetadata(
@@ -64,20 +63,20 @@ class InlineQueryHandler(BaseHandler):
 
         user = await self.db.graph.get_interacted_user(inline_query.from_user)
 
-        reg = re.search(
-            r"^#(?P<command>[a-zA-Z0-9_]+)(\s(?P<arg1>[a-zA-Z0-9_]+))?",
-            inline_query.query,
+        data = InlineButtonData.parse_from_string(inline_query.query)
+        if not data:
+            return
+
+        button = InlineButton.find_button_by_type_value(data.get_type_value())
+        if not button:
+            return
+
+        await button.on_inline_query(
+            self,
+            CustomInlineQueryResult(inline_query),
+            user,
+            client,
+            inline_query,
+            query_date,
+            data,
         )
-        button = InlineButton.find_button_by_type_value(reg.group("command"))
-        if button:
-            await button.on_inline_query(
-                self,
-                CustomInlineQueryResult(inline_query),
-                user,
-                client,
-                inline_query,
-                query_date,
-                reg,
-            )
-        else:
-            pass
