@@ -11,8 +11,9 @@ from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.enums import ChatType
 from tase.db.arangodb.helpers import AudioKeyboardStatus
 from tase.db.elasticsearchdb import models as elasticsearch_models
+from tase.db.helpers import AudioAccessSourceType
 from tase.telegram.bots.inline import CustomInlineQueryResult
-from tase.telegram.bots.ui.base import InlineButton, InlineButtonType, AudioAccessSourceType
+from tase.telegram.bots.ui.base import InlineButton, InlineButtonType
 from tase.telegram.bots.ui.inline_buttons import (
     AddToPlaylistInlineButton,
     BackToPlaylistsInlineButton,

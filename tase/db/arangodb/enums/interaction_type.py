@@ -4,6 +4,10 @@ from enum import Enum
 class InteractionType(Enum):
     UNKNOWN = 0
 
+    ###################################
+    # Interaction with audios
+    ###################################
+
     DOWNLOAD_AUDIO = 1
     REDOWNLOAD_AUDIO = 2
     LIKE_AUDIO = 3

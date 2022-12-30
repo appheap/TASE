@@ -4,7 +4,8 @@ import pyrogram
 
 from tase.db.arangodb.enums import InlineQueryType
 from tase.db.arangodb.graph.vertices import User
-from tase.telegram.bots.ui.base import InlineButtonData, AudioAccessSourceType
+from tase.db.helpers import AudioAccessSourceType
+from tase.telegram.bots.ui.base import InlineButtonData
 from tase.telegram.update_handlers.base import BaseHandler
 from tase.telegram.update_interfaces import OnInlineQuery
 from . import CustomInlineQueryResult

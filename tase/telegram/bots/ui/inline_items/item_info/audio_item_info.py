@@ -6,7 +6,8 @@ from typing import Optional, List
 import pyrogram
 
 from tase.db.arangodb.enums import ChatType
-from tase.telegram.bots.ui.base import InlineItemInfo, InlineItemType, AudioAccessSourceType
+from tase.db.helpers import AudioAccessSourceType
+from tase.telegram.bots.ui.base import InlineItemInfo, InlineItemType
 
 
 class AudioItemInfo(InlineItemInfo):

@@ -3,8 +3,8 @@ from typing import Tuple, Union, Optional
 import pyrogram
 
 from tase.db.arangodb.enums import TelegramAudioType, InteractionType, ChatType
+from tase.db.helpers import AudioAccessSourceType
 from tase.errors import TelegramMessageWithNoAudio
-from tase.telegram.bots.ui.base import AudioAccessSourceType
 
 
 def get_telegram_message_media_type(

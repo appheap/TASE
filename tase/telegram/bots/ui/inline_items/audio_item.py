@@ -12,10 +12,11 @@ from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.enums import ChatType
 from tase.db.arangodb.helpers import AudioKeyboardStatus
 from tase.db.elasticsearchdb import models as elasticsearch_models
+from tase.db.helpers import AudioAccessSourceType
 from tase.telegram.bots.ui.templates import AudioCaptionData, BaseTemplate
 from .base_inline_item import BaseInlineItem
 from .item_info import AudioItemInfo
-from ..base import InlineItemType, AudioAccessSourceType
+from ..base import InlineItemType
 
 
 class AudioItem(BaseInlineItem):

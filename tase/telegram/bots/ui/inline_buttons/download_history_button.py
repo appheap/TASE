@@ -7,10 +7,11 @@ from tase.common.utils import _trans, emoji
 from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.enums import InlineQueryType
 from tase.db.db_utils import get_interaction_type_from_chat_type_and_audio_access_source
+from tase.db.helpers import AudioAccessSourceType
 from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
-from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemType, InlineButtonData, AudioAccessSourceType
+from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemType, InlineButtonData
 from ..inline_items.item_info import AudioItemInfo
 
 
