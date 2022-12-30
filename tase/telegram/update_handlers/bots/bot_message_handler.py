@@ -102,6 +102,7 @@ class BotMessageHandler(BaseHandler):
             from_user,
             message.text,
             message,
+            False,
         )
 
     @async_exception_handler()

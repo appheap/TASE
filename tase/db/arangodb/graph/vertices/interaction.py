@@ -107,7 +107,7 @@ class InteractionMethods:
         "   return {audio_key, interaction_type, count_, is_active}"
     )
 
-    async def create_interaction(
+    async def create_audio_interaction(
         self: ArangoGraphMethods,
         hit_download_url: str,
         user: User,
@@ -116,7 +116,7 @@ class InteractionMethods:
         chat_type: ChatType,
     ) -> Optional[Interaction]:
         """
-        Create `Download` vertex from the given `hit_download_url` parameter.
+        Create an interaction vertex for and audio vertex from the given `hit_download_url` parameter.
 
         Parameters
         ----------
@@ -307,10 +307,10 @@ class InteractionMethods:
         ValueError
             If the given `Hit` vertex has more than one linked `Audio` vertices.
         """
-        if user is None or (hit_download_url is None and audio_vertex_key is None):
+        if user is None or (not hit_download_url and not audio_vertex_key):
             return None
 
-        if hit_download_url is not None:
+        if hit_download_url:
             hit = await self.find_hit_by_download_url(hit_download_url)
             if hit is None:
                 raise HitDoesNotExists(hit_download_url)
@@ -327,7 +327,7 @@ class InteractionMethods:
 
         from tase.db.arangodb.graph.vertices import Audio
 
-        cursor = await Interaction.execute_query(
+        async with await Interaction.execute_query(
             self._is_audio_interacted_by_user_query,
             bind_vars={
                 "user_id": user.id,
@@ -337,9 +337,8 @@ class InteractionMethods:
                 "interactions": Interaction.__collection_name__,
                 "audios": Audio.__collection_name__,
             },
-        )
-
-        return True if cursor is not None and len(cursor) else False
+        ) as cursor:
+            return not cursor.empty()
 
     async def toggle_interaction(
         self: ArangoGraphMethods,
@@ -408,7 +407,7 @@ class InteractionMethods:
             return successful, has_interacted
         else:
             # user has not interacted with the audio, create the interaction
-            interaction = await self.create_interaction(
+            interaction = await self.create_audio_interaction(
                 hit_download_url,
                 user,
                 bot_id,

@@ -13,3 +13,4 @@ class InteractionType(Enum):
     LIKE_AUDIO = 3
     DISLIKE_AUDIO = 4
     SHARE_AUDIO = 5
+    SHARE_AUDIO_LINK = 6

@@ -116,6 +116,7 @@ class Audio(BaseDocument):
 
     views: int = Field(default=0)
     downloads: int = Field(default=0)
+    redownloads: int = Field(default=0)
     shares: int = Field(default=0)
     search_hits: int = Field(default=0)
     non_search_hits: int = Field(default=0)
@@ -512,6 +513,7 @@ class Audio(BaseDocument):
             "date": {"order": "desc"},
             "downloads": {"order": "desc"},
             "shares": {"order": "desc"},
+            "redownloads": {"order": "desc"},
             "search_hits": {"order": "desc"},
             "non_search_hits": {"order": "desc"},
             "likes": {"order": "desc"},
@@ -543,6 +545,8 @@ class Audio(BaseDocument):
         if interaction_count.interaction_type == InteractionType.DOWNLOAD_AUDIO:
             self_copy.downloads += interaction_count.count
         elif interaction_count.interaction_type == InteractionType.REDOWNLOAD_AUDIO:
+            self_copy.redownloads += interaction_count.count
+        elif interaction_count.interaction_type == InteractionType.SHARE_AUDIO:
             self_copy.shares += interaction_count.count
         elif interaction_count.interaction_type == InteractionType.LIKE_AUDIO:
             if interaction_count.is_active:
@@ -556,6 +560,10 @@ class Audio(BaseDocument):
             else:
                 if self_copy.dislikes > 0:
                     self_copy.dislikes -= interaction_count.count
+        elif interaction_count.interaction_type == InteractionType.SHARE_AUDIO_LINK:
+            return True
+        else:
+            return False
 
         return await self.update(
             self_copy,

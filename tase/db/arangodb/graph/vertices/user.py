@@ -12,6 +12,7 @@ from aioarango.models import PersistentIndex
 from tase.common.utils import prettify, get_now_timestamp
 from tase.my_logger import logger
 from .base_vertex import BaseVertex
+from ...enums import InteractionType
 
 if TYPE_CHECKING:
     from .. import ArangoGraphMethods
@@ -278,6 +279,24 @@ class UserMethods:
         "for user in @@users" "   filter user.has_interacted_with_bot == true" "   collect with count into total_users_count" "   return total_users_count"
     )
 
+    _get_user_from_hit_download_url_query = (
+        "for hit in @@hits"
+        "   filter hit.download_url == @hit_download_url"
+        "   for interaction in 1..1 inbound hit graph @graph_name options {order:'dfs', vertexCollections:[@interactions], edgeCollections:[@from_hit]}"
+        "       filter interaction.type == @interaction_type"
+        "       for user in 1..1 inbound interaction graph @graph_name options {order:'dfs', vertexCollections:[@users], edgeCollections:[@has]}"
+        "           return user"
+    )
+
+    _user_has_created_download_url_query = (
+        "for hit in @@hits"
+        "   filter hit.download_url == @hit_download_url"
+        "   for query in 1..1 inbound hit graph @graph_name options {order:'dfs', vertexCollections:[@queries], edgeCollections:[@has]}"
+        "       for user in 1..1 inbound query graph @graph_name options {order:'dfs', vertexCollections:[@users], edgeCollections:[@has_made]}"
+        "           filter user.user_id == @user_id"
+        "           return user"
+    )
+
     async def _get_or_create_favorite_playlist(
         self: ArangoGraphMethods,
         user: User,
@@ -446,6 +465,84 @@ class UserMethods:
                 res.append(User.from_collection(doc))
 
         return list(res)
+
+    async def get_audio_link_sender(
+        self,
+        hit_download_url: str,
+    ) -> Optional[User]:
+        """
+        Get the User who has sent this audio link.
+
+        Parameters
+        ----------
+        hit_download_url : str
+            Hit download URL to find the user by.
+
+        Returns
+        -------
+        User, optional
+            User vertex if the operation was successful, otherwise return None.
+        """
+        if not hit_download_url:
+            return None
+
+        from tase.db.arangodb.graph.edges import FromHit, Has
+        from tase.db.arangodb.graph.vertices import Hit, Interaction
+
+        async with await User.execute_query(
+            self._get_user_from_hit_download_url_query,
+            bind_vars={
+                "@hits": Hit.__collection_name__,
+                "hit_download_url": hit_download_url,
+                "interactions": Interaction.__collection_name__,
+                "interaction_type": InteractionType.SHARE_AUDIO_LINK.value,
+                "from_hit": FromHit.__collection_name__,
+                "users": User.__collection_name__,
+                "has": Has.__collection_name__,
+            },
+        ) as cursor:
+            async for doc in cursor:
+                return User.from_collection(doc)
+
+    async def user_has_initiated_query(
+        self,
+        user: User,
+        hit_download_url: str,
+    ) -> bool:
+        """
+        Check whether the given user has initiated the search query for the given hit download URL or not.
+
+        Parameters
+        ----------
+        user : User
+            User to check.
+        hit_download_url : str
+            Hit download URL to find the user by.
+
+        Returns
+        -------
+        bool
+            whether the given user has initiated the search query for the given hit download URL or not.
+        """
+        if not user or not hit_download_url:
+            return False
+
+        from tase.db.arangodb.graph.edges import HasMade, Has
+        from tase.db.arangodb.graph.vertices import Hit, Query
+
+        async with await User.execute_query(
+            self._user_has_created_download_url_query,
+            bind_vars={
+                "@hits": Hit.__collection_name__,
+                "hit_download_url": hit_download_url,
+                "queries": Query.__collection_name__,
+                "has_made": HasMade.__collection_name__,
+                "users": User.__collection_name__,
+                "user_id": user.user_id,
+                "has": Has.__collection_name__,
+            },
+        ) as cursor:
+            return not cursor.empty()
 
     @classmethod
     def get_bot_command_for_telegram_user(

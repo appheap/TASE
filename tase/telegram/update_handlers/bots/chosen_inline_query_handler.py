@@ -4,8 +4,10 @@ import pyrogram
 from pyrogram import handlers
 
 from tase.common.utils import async_exception_handler
+from tase.db.arangodb.enums import InteractionType
 from tase.my_logger import logger
-from tase.telegram.bots.ui.base import InlineButton, InlineButtonData, InlineItemInfo
+from tase.telegram.bots.ui.base import InlineButton, InlineButtonData, InlineItemInfo, InlineItemType
+from tase.telegram.bots.ui.inline_items.item_info import AudioItemInfo
 from tase.telegram.update_handlers.base import BaseHandler, HandlerMetadata
 
 
@@ -60,8 +62,24 @@ class ChosenInlineQueryHandler(BaseHandler):
             # IMPORTANT: Since no audio has been sent to the user, the action is not considered a valid download. It'll be counted after the user clicks on the
             #  `download_audio` source_inline_button of the sent message.
 
-            # update the keyboard markup of the downloaded audio
+            if inline_item_info.type != InlineItemType.AUDIO:
+                return
 
+            inline_item_info: AudioItemInfo = inline_item_info
+
+            interaction_vertex = await self.db.graph.create_audio_interaction(
+                inline_item_info.hit_download_url,
+                from_user,
+                self.telegram_client.telegram_id,
+                InteractionType.SHARE_AUDIO_LINK,
+                inline_item_info.chat_type,
+            )
+            if not interaction_vertex:
+                # could not create the interaction_vertex
+                logger.error("Could not create the `interaction_vertex` vertex:")
+                logger.error(chosen_inline_result)
+
+            # update the keyboard markup of the downloaded audio
             # await self.update_audio_keyboard_markup(
             #     client,
             #     from_user,
@@ -69,16 +87,3 @@ class ChosenInlineQueryHandler(BaseHandler):
             #     hit_download_url,
             #     chat_type,
             # )
-
-            # interaction_vertex = await self.db.graph.create_interaction(
-            #     hit_download_url,
-            #     from_user,
-            #     self.telegram_client.telegram_id,
-            #     InteractionType.DOWNLOAD,
-            #     chat_type,
-            # )
-            # if not interaction_vertex:
-            #     # could not create the interaction_vertex
-            #     logger.error("Could not create the `interaction_vertex` vertex:")
-            #     logger.error(chosen_inline_result)
-            #

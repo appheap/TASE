@@ -174,7 +174,7 @@ class GetPlaylistAudioInlineButton(InlineButton):
             )
         )
 
-        interaction_vertex = await handler.db.graph.create_interaction(
+        interaction_vertex = await handler.db.graph.create_audio_interaction(
             inline_item_info.hit_download_url,
             from_user,
             handler.telegram_client.telegram_id,
