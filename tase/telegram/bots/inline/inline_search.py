@@ -4,7 +4,6 @@ import pyrogram
 
 from tase.db.arangodb.enums import InlineQueryType
 from tase.db.arangodb.graph.vertices import User
-from tase.db.helpers import AudioAccessSourceType
 from tase.telegram.bots.ui.base import InlineButtonData
 from tase.telegram.update_handlers.base import BaseHandler
 from tase.telegram.update_interfaces import OnInlineQuery
@@ -69,7 +68,7 @@ class InlineSearch(OnInlineQuery):
                                 telegram_inline_query,
                                 chats_dict,
                                 hit_download_url,
-                                AudioAccessSourceType.AUDIO_SEARCH,
+                                InlineQueryType.AUDIO_SEARCH,
                             )
                             for es_audio_doc, hit_download_url in zip(es_audio_docs, hit_download_urls)
                             if es_audio_doc
@@ -101,7 +100,7 @@ class InlineSearch(OnInlineQuery):
             query_metadata,
             search_metadata_lst,
             telegram_inline_query,
-            InlineQueryType.SEARCH,
+            InlineQueryType.AUDIO_SEARCH,
             result.get_next_offset(only_countable=True),
             hit_download_urls=hit_download_urls,
         )

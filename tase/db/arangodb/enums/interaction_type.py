@@ -7,7 +7,6 @@ class InteractionType(Enum):
     ###################################
     # Interaction with audios
     ###################################
-
     DOWNLOAD_AUDIO = 1
     REDOWNLOAD_AUDIO = 2
     LIKE_AUDIO = 3

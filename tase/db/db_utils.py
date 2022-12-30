@@ -2,8 +2,7 @@ from typing import Tuple, Union, Optional
 
 import pyrogram
 
-from tase.db.arangodb.enums import TelegramAudioType, InteractionType, ChatType
-from tase.db.helpers import AudioAccessSourceType
+from tase.db.arangodb.enums import TelegramAudioType, InteractionType, ChatType, InlineQueryType
 from tase.errors import TelegramMessageWithNoAudio
 
 
@@ -150,8 +149,8 @@ def parse_audio_document_key_from_raw_attributes(
     return f"{telegram_client_id}:{chat_id}:{telegram_message_id}:{file_unique_id}"
 
 
-def get_interaction_type_from_chat_type_and_audio_access_source(
-    audio_access_source_type: AudioAccessSourceType,
+def get_interaction_type(
+    inline_query_type: InlineQueryType,
     chat_type: ChatType,
 ) -> Optional[InteractionType]:
     """
@@ -159,8 +158,8 @@ def get_interaction_type_from_chat_type_and_audio_access_source(
 
     Parameters
     ----------
-    audio_access_source_type : AudioAccessSourceType
-            Type of the source which this audio was accessed from.
+    inline_query_type : InlineQueryType
+        Type of inline query.
     chat_type : ChatType
         Type of the chat the interaction happened in.
 
@@ -169,22 +168,22 @@ def get_interaction_type_from_chat_type_and_audio_access_source(
     InteractionType, optional
         Type of the interaction.
     """
-    if not audio_access_source_type or not chat_type:
+    if not inline_query_type or not chat_type:
         return None
 
-    if audio_access_source_type == AudioAccessSourceType.AUDIO_SEARCH:
+    if inline_query_type == InlineQueryType.AUDIO_SEARCH:
         type_ = InteractionType.DOWNLOAD_AUDIO
 
-    elif audio_access_source_type == AudioAccessSourceType.DOWNLOAD_HISTORY:
+    elif inline_query_type == InlineQueryType.AUDIO_COMMAND:
         if chat_type == ChatType.BOT:
             type_ = InteractionType.REDOWNLOAD_AUDIO
         else:
             type_ = InteractionType.SHARE_AUDIO
 
-    elif audio_access_source_type == AudioAccessSourceType.PRIVATE_PLAYLIST:
+    elif inline_query_type == InlineQueryType.PRIVATE_PLAYLIST_COMMAND:
         type_ = InteractionType.REDOWNLOAD_AUDIO
 
-    elif audio_access_source_type == AudioAccessSourceType.PUBLIC_PLAYLIST:
+    elif inline_query_type == InlineQueryType.PUBLIC_PLAYLIST_COMMAND:
         if chat_type == ChatType.BOT:
             type_ = InteractionType.REDOWNLOAD_AUDIO
         else:

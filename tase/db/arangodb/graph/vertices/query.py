@@ -243,15 +243,26 @@ class QueryMethods:
 
             hit_type = HitType.UNKNOWN
             if inline_query_type is not None and telegram_inline_query is not None:
-                if inline_query_type == InlineQueryType.SEARCH:
-                    hit_type = HitType.INLINE_SEARCH
-                elif inline_query_type == InlineQueryType.COMMAND:
-                    hit_type = HitType.INLINE_COMMAND
+                if inline_query_type == InlineQueryType.AUDIO_SEARCH:
+                    hit_type = HitType.INLINE_AUDIO_SEARCH
+
+                elif inline_query_type == InlineQueryType.AUDIO_COMMAND:
+                    hit_type = HitType.INLINE_AUDIO_COMMAND
+
+                elif inline_query_type == InlineQueryType.PRIVATE_PLAYLIST_COMMAND:
+                    hit_type = HitType.INLINE_PRIVATE_PLAYLIST_SEARCH
+
+                elif inline_query_type == InlineQueryType.PUBLIC_PLAYLIST_SEARCH:
+                    hit_type = HitType.INLINE_PUBLIC_PLAYLIST_SEARCH
+
+                elif inline_query_type == InlineQueryType.PUBLIC_PLAYLIST_COMMAND:
+                    hit_type = HitType.INLINE_PUBLIC_PLAYLIST_COMMAND
+
                 else:
                     # unexpected hit_type
                     hit_type = HitType.UNKNOWN
             else:
-                hit_type = HitType.SEARCH
+                hit_type = HitType.NON_INLINE_AUDIO_SEARCH
 
             hits = collections.deque()
 

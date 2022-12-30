@@ -13,4 +13,4 @@ class InlineQueryMetadata(BaseCollectionAttributes):
     offset: str
     next_offset: Optional[str]
 
-    type: InlineQueryType = Field(default=InlineQueryType.SEARCH)
+    type: InlineQueryType = Field(default=InlineQueryType.AUDIO_SEARCH)

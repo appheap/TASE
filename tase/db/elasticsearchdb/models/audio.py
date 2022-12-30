@@ -594,9 +594,9 @@ class Audio(BaseDocument):
             return False
 
         self_copy: Audio = self.copy(deep=True)
-        if hit_count.hit_type in (HitType.SEARCH, HitType.INLINE_SEARCH):
+        if hit_count.hit_type in (HitType.NON_INLINE_AUDIO_SEARCH, HitType.INLINE_AUDIO_SEARCH):
             self_copy.search_hits += hit_count.count
-        elif hit_count.hit_type == HitType.INLINE_COMMAND:
+        elif hit_count.hit_type == HitType.INLINE_AUDIO_COMMAND:
             self_copy.non_search_hits += hit_count.count
 
         return await self.update(

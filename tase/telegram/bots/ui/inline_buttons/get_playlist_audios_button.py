@@ -6,8 +6,7 @@ import pyrogram
 from tase.common.utils import _trans, emoji
 from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.enums import InlineQueryType
-from tase.db.db_utils import get_interaction_type_from_chat_type_and_audio_access_source
-from tase.db.helpers import AudioAccessSourceType
+from tase.db.db_utils import get_interaction_type
 from tase.errors import PlaylistDoesNotExists
 from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
@@ -127,7 +126,7 @@ class GetPlaylistAudioInlineButton(InlineButton):
                     handler,
                     result,
                     telegram_inline_query,
-                    AudioAccessSourceType.PUBLIC_PLAYLIST if playlist.is_public else AudioAccessSourceType.PRIVATE_PLAYLIST,
+                    InlineQueryType.PUBLIC_PLAYLIST_COMMAND if playlist.is_public else InlineQueryType.PRIVATE_PLAYLIST_COMMAND,
                 )
 
         if not len(result) and not playlist_is_valid and result.is_first_page():
@@ -145,7 +144,7 @@ class GetPlaylistAudioInlineButton(InlineButton):
                 query_date,
                 audio_vertices,
                 telegram_inline_query=telegram_inline_query,
-                inline_query_type=InlineQueryType.COMMAND,
+                inline_query_type=InlineQueryType.PUBLIC_PLAYLIST_COMMAND if playlist.is_public else InlineQueryType.PRIVATE_PLAYLIST_COMMAND,
                 next_offset=result.get_next_offset(only_countable=True),
                 hit_download_urls=hit_download_urls,
             )
@@ -178,8 +177,8 @@ class GetPlaylistAudioInlineButton(InlineButton):
             inline_item_info.hit_download_url,
             from_user,
             handler.telegram_client.telegram_id,
-            get_interaction_type_from_chat_type_and_audio_access_source(
-                inline_item_info.audio_access_source_type,
+            get_interaction_type(
+                inline_item_info.inline_query_type,
                 inline_item_info.chat_type,
             ),
             inline_item_info.chat_type,

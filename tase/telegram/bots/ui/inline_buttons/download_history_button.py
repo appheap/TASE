@@ -6,8 +6,7 @@ import pyrogram
 from tase.common.utils import _trans, emoji
 from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.enums import InlineQueryType
-from tase.db.db_utils import get_interaction_type_from_chat_type_and_audio_access_source
-from tase.db.helpers import AudioAccessSourceType
+from tase.db.db_utils import get_interaction_type
 from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
@@ -73,7 +72,7 @@ class DownloadHistoryInlineButton(InlineButton):
             handler,
             result,
             telegram_inline_query,
-            AudioAccessSourceType.DOWNLOAD_HISTORY,
+            InlineQueryType.AUDIO_COMMAND,
         )
 
         if not len(result) and result.is_first_page():
@@ -90,7 +89,7 @@ class DownloadHistoryInlineButton(InlineButton):
             query_date,
             audio_vertices,
             telegram_inline_query=telegram_inline_query,
-            inline_query_type=InlineQueryType.COMMAND,
+            inline_query_type=InlineQueryType.AUDIO_COMMAND,
             next_offset=result.get_next_offset(only_countable=True),
             hit_download_urls=hit_download_urls,
         )
@@ -123,8 +122,8 @@ class DownloadHistoryInlineButton(InlineButton):
             inline_item_info.hit_download_url,
             from_user,
             handler.telegram_client.telegram_id,
-            get_interaction_type_from_chat_type_and_audio_access_source(
-                inline_item_info.audio_access_source_type,
+            get_interaction_type(
+                inline_item_info.inline_query_type,
                 inline_item_info.chat_type,
             ),
             inline_item_info.chat_type,
