@@ -36,13 +36,13 @@ class AudioKeyboardStatus(BaseModel):
         return AudioKeyboardStatus(
             is_liked=await db.graph.audio_is_interacted_by_user(
                 from_user,
-                InteractionType.LIKE,
+                InteractionType.LIKE_AUDIO,
                 hit_download_url=hit_download_url,
                 audio_vertex_key=audio_vertex_key,
             ),
             is_disliked=await db.graph.audio_is_interacted_by_user(
                 from_user,
-                InteractionType.DISLIKE,
+                InteractionType.DISLIKE_AUDIO,
                 hit_download_url=hit_download_url,
                 audio_vertex_key=audio_vertex_key,
             ),

@@ -540,17 +540,17 @@ class Audio(BaseDocument):
             return False
 
         self_copy: Audio = self.copy(deep=True)
-        if interaction_count.interaction_type == InteractionType.DOWNLOAD:
+        if interaction_count.interaction_type == InteractionType.DOWNLOAD_AUDIO:
             self_copy.downloads += interaction_count.count
-        elif interaction_count.interaction_type == InteractionType.SHARE:
+        elif interaction_count.interaction_type == InteractionType.REDOWNLOAD_AUDIO:
             self_copy.shares += interaction_count.count
-        elif interaction_count.interaction_type == InteractionType.LIKE:
+        elif interaction_count.interaction_type == InteractionType.LIKE_AUDIO:
             if interaction_count.is_active:
                 self_copy.likes += interaction_count.count
             else:
                 if self_copy.likes > 0:
                     self_copy.likes -= interaction_count.count
-        elif interaction_count.interaction_type == InteractionType.DISLIKE:
+        elif interaction_count.interaction_type == InteractionType.DISLIKE_AUDIO:
             if interaction_count.is_active:
                 self_copy.dislikes += interaction_count.count
             else:

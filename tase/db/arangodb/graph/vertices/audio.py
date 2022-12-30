@@ -1215,7 +1215,7 @@ class AudioMethods:
                 "has": Has.__collection_name__,
                 "audios": Audio.__collection_name__,
                 "interactions": Interaction.__collection_name__,
-                "interaction_type": InteractionType.DOWNLOAD.value,
+                "interaction_type": InteractionType.DOWNLOAD_AUDIO.value,
                 "archived_lst": [AudioType.ARCHIVED.value, AudioType.UPLOADED.value, AudioType.SENT_BY_USERS.value],
                 "offset": offset,
                 "limit": limit,
@@ -1500,7 +1500,7 @@ class AudioMethods:
                 "audios": Audio.__collection_name__,
                 "has": Has.__collection_name__,
                 "now": get_now_timestamp(),
-                "interaction_type": InteractionType.DOWNLOAD.value,
+                "interaction_type": InteractionType.DOWNLOAD_AUDIO.value,
                 "not_archived_type": AudioType.NOT_ARCHIVED.value,
             },
         ) as cursor:

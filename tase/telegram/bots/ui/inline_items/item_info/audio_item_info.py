@@ -6,7 +6,7 @@ from typing import Optional, List
 import pyrogram
 
 from tase.db.arangodb.enums import ChatType
-from tase.telegram.bots.ui.base import InlineItemInfo, InlineItemType
+from tase.telegram.bots.ui.base import InlineItemInfo, InlineItemType, AudioAccessSourceType
 
 
 class AudioItemInfo(InlineItemInfo):
@@ -15,6 +15,7 @@ class AudioItemInfo(InlineItemInfo):
     telegram_inline_query_id: str
     hit_download_url: str
     chat_type: ChatType
+    audio_access_source_type: AudioAccessSourceType
     random_integer: int
 
     @classmethod
@@ -22,31 +23,26 @@ class AudioItemInfo(InlineItemInfo):
         cls,
         telegram_inline_query: pyrogram.types.InlineQuery,
         hit_download_url: str,
+        audio_access_source_type: AudioAccessSourceType,
         chat_type: Optional[ChatType] = None,
     ) -> Optional[str]:
         if chat_type is None:
             chat_type = ChatType.parse_from_pyrogram(telegram_inline_query.chat_type)
 
-        return f"{cls.get_type_value()}|{telegram_inline_query.id}|{hit_download_url}|{chat_type.value}|{random.randint(1, 1_000_000)}"
+        return (
+            f"{cls.get_type_value()}|{telegram_inline_query.id}|{hit_download_url}|{chat_type.value}|{audio_access_source_type.value}"
+            f"|{random.randint(1, 1_000_000)}"
+        )
 
     @classmethod
     def __parse_info__(cls, id_split_lst: List[str]) -> Optional[AudioItemInfo]:
-        if len(id_split_lst) != 5:
+        if len(id_split_lst) != 6:
             return None
 
         return AudioItemInfo(
             telegram_inline_query_id=id_split_lst[1],
             hit_download_url=id_split_lst[2],
             chat_type=ChatType(int(id_split_lst[3])),
-            random_integer=int(id_split_lst[4]),
+            audio_access_source_type=AudioAccessSourceType(int(id_split_lst[4])),
+            random_integer=int(id_split_lst[5]),
         )
-
-
-if __name__ == "__main__":
-    item = AudioItemInfo(
-        telegram_inline_query_id="query_id",
-        hit_download_url="ljsflsj",
-        chat_type=ChatType.PRIVATE,
-        random_integer=223,
-    )
-    print()

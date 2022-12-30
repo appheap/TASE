@@ -12,7 +12,7 @@ from tase.db.arangodb.enums import ChatType
 from tase.db.arangodb.helpers import AudioKeyboardStatus
 from tase.db.elasticsearchdb import models as elasticsearch_models
 from tase.telegram.bots.inline import CustomInlineQueryResult
-from tase.telegram.bots.ui.base import InlineButton, InlineButtonType
+from tase.telegram.bots.ui.base import InlineButton, InlineButtonType, AudioAccessSourceType
 from tase.telegram.bots.ui.inline_buttons import (
     AddToPlaylistInlineButton,
     BackToPlaylistsInlineButton,
@@ -104,6 +104,7 @@ async def populate_audio_items(
     handler: BaseHandler,
     result: CustomInlineQueryResult,
     telegram_inline_query: pyrogram.types.InlineQuery,
+    audio_access_source_type: AudioAccessSourceType,
 ) -> Deque[str]:
     """
     Populate a list of `AudioItem` objects
@@ -120,6 +121,8 @@ async def populate_audio_items(
         Result object to used for populating playlists
     telegram_inline_query : pyrogram.types.InlineQuery
         Telegram Inline Query object
+    audio_access_source_type : AudioAccessSourceType
+        Type of the source which this audio was accessed from.
     """
     if not audio_vertices:
         return collections.deque()
@@ -151,6 +154,7 @@ async def populate_audio_items(
                 telegram_inline_query,
                 chats_dict,
                 hit_download_url,
+                audio_access_source_type,
             )
             for audio_doc, audio_vertex, hit_download_url, in zip(audio_docs, audio_vertices, hit_download_urls)
             if audio_doc and audio_vertex and audio_doc.key not in invalid_audio_keys

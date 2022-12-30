@@ -137,7 +137,7 @@ class InteractionMethods:
             Interaction vertex if the creation was successful, otherwise, return None
 
         """
-        if hit_download_url is None or user is None or bot_id is None or type_ is None or chat_type is None:
+        if not hit_download_url or not user or bot_id is None or not chat_type or not type_:
             return None
 
         bot = await self.get_user_by_telegram_id(bot_id)

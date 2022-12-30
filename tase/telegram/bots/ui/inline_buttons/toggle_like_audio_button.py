@@ -78,7 +78,7 @@ class ToggleLikeAudioInlineButton(InlineButton):
                 handler.telegram_client.telegram_id,
                 hit_download_url,
                 chat_type,
-                InteractionType.LIKE,
+                InteractionType.LIKE_AUDIO,
             )
         except PlaylistDoesNotExists as e:
             await telegram_callback_query.answer("You do not have the playlist you have chosen")
@@ -94,7 +94,7 @@ class ToggleLikeAudioInlineButton(InlineButton):
             if successful:
                 is_disliked = await handler.db.graph.audio_is_interacted_by_user(
                     from_user,
-                    InteractionType.DISLIKE,
+                    InteractionType.DISLIKE_AUDIO,
                     hit_download_url=hit_download_url,
                 )
                 update_dislike_button = False
@@ -104,7 +104,7 @@ class ToggleLikeAudioInlineButton(InlineButton):
                         handler.telegram_client.telegram_id,
                         hit_download_url,
                         chat_type,
-                        InteractionType.DISLIKE,
+                        InteractionType.DISLIKE_AUDIO,
                     )
                     update_dislike_button = True
 

@@ -15,7 +15,7 @@ from tase.db.elasticsearchdb import models as elasticsearch_models
 from tase.telegram.bots.ui.templates import AudioCaptionData, BaseTemplate
 from .base_inline_item import BaseInlineItem
 from .item_info import AudioItemInfo
-from ..base import InlineItemType
+from ..base import InlineItemType, AudioAccessSourceType
 
 
 class AudioItem(BaseInlineItem):
@@ -31,6 +31,7 @@ class AudioItem(BaseInlineItem):
         telegram_inline_query: pyrogram.types.InlineQuery,
         chats_dict: dict,
         hit_download_url: str,
+        audio_access_source_type: AudioAccessSourceType,
         status: Optional[AudioKeyboardStatus] = None,
     ) -> Optional[pyrogram.types.InlineQueryResult]:
         if telegram_file_id is None or from_user is None:
@@ -41,6 +42,7 @@ class AudioItem(BaseInlineItem):
         result_id = AudioItemInfo.parse_id(
             telegram_inline_query,
             hit_download_url,
+            audio_access_source_type,
             chat_type,
         )
 
@@ -76,6 +78,7 @@ class AudioItem(BaseInlineItem):
         telegram_inline_query: pyrogram.types.InlineQuery,
         chats_dict: dict,
         hit_download_url: str,
+        audio_access_source_type: AudioAccessSourceType,
     ) -> Optional[pyrogram.types.InlineQueryResult]:
         if from_user is None:
             return None
@@ -85,6 +88,7 @@ class AudioItem(BaseInlineItem):
         result_id = AudioItemInfo.parse_id(
             telegram_inline_query,
             hit_download_url,
+            audio_access_source_type,
             chat_type,
         )
 

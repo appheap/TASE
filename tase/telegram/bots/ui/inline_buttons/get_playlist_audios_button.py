@@ -5,12 +5,13 @@ import pyrogram
 
 from tase.common.utils import _trans, emoji
 from tase.db.arangodb import graph as graph_models
-from tase.db.arangodb.enums import InteractionType, InlineQueryType
+from tase.db.arangodb.enums import InlineQueryType
+from tase.db.db_utils import get_interaction_type_from_chat_type_and_audio_access_source
 from tase.errors import PlaylistDoesNotExists
 from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
-from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemType, InlineButtonData
+from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemType, InlineButtonData, AudioAccessSourceType
 from ..inline_items.item_info import PlaylistItemInfo, AudioItemInfo
 
 
@@ -67,19 +68,16 @@ class GetPlaylistAudioInlineButton(InlineButton):
         client: pyrogram.Client,
         telegram_inline_query: pyrogram.types.InlineQuery,
         query_date: int,
-        inline_button_data: Optional[InlineButtonData] = None,
+        inline_button_data: Optional[GetPlaylistAudiosButtonData] = None,
     ):
-        inline_button_data: GetPlaylistAudiosButtonData = inline_button_data
-        playlist_key = inline_button_data.playlist_key
-
         playlist_is_valid = False  # whether the requested playlist belongs to the user or not
         audio_vertices = None
         hit_download_urls = None
 
+        playlist = await handler.db.graph.get_playlist_by_key(inline_button_data.playlist_key)
+
         if result.is_first_page():
             from tase.telegram.bots.ui.inline_items import PlaylistItem
-
-            playlist = await handler.db.graph.get_playlist_by_key(playlist_key)
 
             if playlist and not playlist.is_soft_deleted:
                 if not playlist.is_public:
@@ -113,7 +111,7 @@ class GetPlaylistAudioInlineButton(InlineButton):
         if playlist_is_valid:
             try:
                 audio_vertices = await handler.db.graph.get_playlist_audios(
-                    playlist_key,
+                    inline_button_data.playlist_key,
                     offset=result.from_,
                 )
             except PlaylistDoesNotExists:
@@ -128,6 +126,7 @@ class GetPlaylistAudioInlineButton(InlineButton):
                     handler,
                     result,
                     telegram_inline_query,
+                    AudioAccessSourceType.PUBLIC_PLAYLIST if playlist.is_public else AudioAccessSourceType.PRIVATE_PLAYLIST,
                 )
 
         if not len(result) and not playlist_is_valid and result.is_first_page():
@@ -178,7 +177,10 @@ class GetPlaylistAudioInlineButton(InlineButton):
             inline_item_info.hit_download_url,
             from_user,
             handler.telegram_client.telegram_id,
-            InteractionType.SHARE,
+            get_interaction_type_from_chat_type_and_audio_access_source(
+                inline_item_info.audio_access_source_type,
+                inline_item_info.chat_type,
+            ),
             inline_item_info.chat_type,
         )
         if not interaction_vertex:
