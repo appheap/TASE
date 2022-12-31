@@ -27,7 +27,7 @@ class CreateNewPrivatePlaylistItem(BaseInlineItem):
             id=CreateNewPrivatePlaylistItemInfo.parse_id(telegram_inline_query),
             title=_trans("Create A New Private Playlist", from_user.chosen_language_code),
             description=_trans("Create a new private playlist", from_user.chosen_language_code),
-            thumb_url="https://telegra.ph/file/aaafdf705c6745e1a32ee.png",
+            thumb_url="https://telegra.ph/file/f016463855dbaf876e8ba.png",
             input_message_content=InputTextMessageContent(
                 message_text=emoji._clock_emoji,
                 parse_mode=ParseMode.HTML,
