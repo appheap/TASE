@@ -182,12 +182,12 @@ class BaseHandler(BaseModel):
                     # has been shared with him/her by another user.
 
                     # todo: do not create share interaction if one has already been created recently.
-                    await self.db.graph.create_audio_interaction(
-                        hit_download_url,
+                    await self.db.graph.create_interaction(
                         sender_user_vertex,
                         self.telegram_client.telegram_id,
                         InteractionType.SHARE_AUDIO,
                         ChatType.BOT,
+                        audio_hit_download_url=hit_download_url,
                     )
             else:
                 # todo: check for SPAM
@@ -319,12 +319,12 @@ class BaseHandler(BaseModel):
 
         valid = True
 
-        create_download_interaction = self.db.graph.create_audio_interaction(
-            hit_download_url,
+        create_download_interaction = self.db.graph.create_interaction(
             from_user,
             self.telegram_client.telegram_id,
             InteractionType.DOWNLOAD_AUDIO,
             ChatType.BOT,
+            audio_hit_download_url=hit_download_url,
         )
         if update_audio_task:
             await asyncio.gather(*(create_download_interaction, update_audio_task))
@@ -355,11 +355,15 @@ class BaseHandler(BaseModel):
         while retry_left:
             audio_vertex = await self.db.graph.get_audio_from_hit_download_url(hit_download_url)
             if not audio_vertex:
+                retry_left -= 1
+
                 # fixme: this should not happen
                 logger.error("This should not happen")
                 await asyncio.sleep(2)
 
-            retry_left -= 1
+                continue
+
+            break
 
         if not audio_vertex:
             logger.error("This should not happen at all!")

@@ -29,6 +29,8 @@ class Playlist(BaseDocument, BaseSoftDeletableDocument):
             "description": {"type": "text"},
             "subscribers": {"type": "long"},
             "shares": {"type": "long"},
+            "playlist_downloads": {"type": "long"},
+            "audio_downloads": {"type": "long"},
             ####################################
             "is_soft_deleted": {"type": "boolean"},
             "soft_deleted_at": {"type": "long"},
@@ -52,6 +54,8 @@ class Playlist(BaseDocument, BaseSoftDeletableDocument):
 
     subscribers: int = Field(default=1)
     shares: int = Field(default=0)
+    playlist_downloads: int = Field(default=0)
+    audio_downloads: int = Field(default=0)
 
     async def update_title(
         self,

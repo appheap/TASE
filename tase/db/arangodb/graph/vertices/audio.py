@@ -564,9 +564,7 @@ class Audio(BaseVertex):
 
 class AudioMethods:
     _get_audio_from_hit_query = (
-        "for v,e in 1..1 outbound @start_vertex graph @graph_name options {order:'dfs', edgeCollections:[@has], vertexCollections:[@audios]}"
-        "   limit 1"
-        "   return v"
+        "for v,e in 1..1 outbound @start_vertex graph @graph_name options {order:'dfs', edgeCollections:[@has], vertexCollections:[@audios]}" "   return v"
     )
 
     _check_audio_validity_for_inline_mode_by_hit_download_url = (

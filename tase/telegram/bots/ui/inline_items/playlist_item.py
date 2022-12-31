@@ -14,6 +14,7 @@ from tase.db.elasticsearchdb import models as elasticsearch_models
 from tase.telegram.bots.ui.base import InlineItemType
 from tase.telegram.bots.ui.templates import BaseTemplate, PlaylistData
 from .base_inline_item import BaseInlineItem
+from .item_info import PlaylistItemInfo
 
 
 class PlaylistItem(BaseInlineItem):
@@ -26,6 +27,7 @@ class PlaylistItem(BaseInlineItem):
         user: graph_models.vertices.User,
         telegram_inline_query: pyrogram.types.InlineQuery,
         view_playlist: Optional[bool] = True,
+        hit_download_url: Optional[str] = None,
     ) -> Optional[pyrogram.types.InlineQueryResult]:
         if playlist is None or user is None:
             return None
@@ -44,7 +46,12 @@ class PlaylistItem(BaseInlineItem):
             return InlineQueryResultArticle(
                 title=playlist.title,
                 description=f"{playlist.description if playlist.description is not None else ' '}",
-                id=PlaylistItemInfo.parse_id(telegram_inline_query, playlist.key, ChatType.parse_from_pyrogram(telegram_inline_query.chat_type)),
+                id=PlaylistItemInfo.parse_id(
+                    telegram_inline_query,
+                    playlist.key,
+                    ChatType.parse_from_pyrogram(telegram_inline_query.chat_type),
+                    hit_download_url,
+                ),
                 thumb_url="https://telegra.ph/file/ac2d210b9b0e5741470a1.jpg"
                 if not playlist.is_favorite
                 else "https://telegra.ph/file/07d5ca30dba31b5241bcf.jpg",
@@ -61,7 +68,12 @@ class PlaylistItem(BaseInlineItem):
             return InlineQueryResultArticle(
                 title=playlist.title,
                 description=f"{playlist.description if playlist.description is not None else ' '}",
-                id=PlaylistItemInfo.parse_id(telegram_inline_query, playlist.key, ChatType.parse_from_pyrogram(telegram_inline_query.chat_type)),
+                id=PlaylistItemInfo.parse_id(
+                    telegram_inline_query,
+                    playlist.key,
+                    ChatType.parse_from_pyrogram(telegram_inline_query.chat_type),
+                    hit_download_url,
+                ),
                 thumb_url="https://telegra.ph/file/ac2d210b9b0e5741470a1.jpg"
                 if not playlist.is_favorite
                 else "https://telegra.ph/file/07d5ca30dba31b5241bcf.jpg",
@@ -77,6 +89,7 @@ class PlaylistItem(BaseInlineItem):
         playlist: elasticsearch_models.Playlist,
         user: graph_models.vertices.User,
         telegram_inline_query: pyrogram.types.InlineQuery,
+        hit_download_url: str,
         view_playlist: Optional[bool] = True,
     ) -> Optional[pyrogram.types.InlineQueryResult]:
         if playlist is None or user is None:
@@ -94,7 +107,11 @@ class PlaylistItem(BaseInlineItem):
             return InlineQueryResultArticle(
                 title=playlist.title,
                 description=f"{playlist.description if playlist.description is not None else ' '}",
-                id=f"{cls.get_type_value()}|{telegram_inline_query.id}|{playlist.id}|{ChatType.parse_from_pyrogram(telegram_inline_query.chat_type).value}",
+                id=PlaylistItemInfo.parse_id(
+                    telegram_inline_query,
+                    playlist.id,
+                    hit_download_url=hit_download_url,
+                ),
                 thumb_url="https://telegra.ph/file/ac2d210b9b0e5741470a1.jpg",
                 input_message_content=InputTextMessageContent(
                     message_text=BaseTemplate.registry.playlist_template.render(data),
@@ -109,7 +126,11 @@ class PlaylistItem(BaseInlineItem):
             return InlineQueryResultArticle(
                 title=playlist.title,
                 description=f"{playlist.description if playlist.description is not None else ' '}",
-                id=f"{cls.get_type_value()}|{telegram_inline_query.id}|{playlist.id}|{ChatType.parse_from_pyrogram(telegram_inline_query.chat_type).value}",
+                id=PlaylistItemInfo.parse_id(
+                    telegram_inline_query,
+                    playlist.id,
+                    hit_download_url=hit_download_url,
+                ),
                 thumb_url="https://telegra.ph/file/ac2d210b9b0e5741470a1.jpg",
                 input_message_content=InputTextMessageContent(
                     message_text=emoji._clock_emoji,

@@ -4,6 +4,8 @@ import pyrogram
 
 from tase.common.utils import _trans, emoji
 from tase.db.arangodb import graph as graph_models
+from tase.db.arangodb.enums import InteractionType
+from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
 from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemType, InlineButtonData
@@ -88,4 +90,11 @@ class SharePlaylistInlineButton(InlineButton):
         inline_button_data: SharePlaylistButtonData,
         inline_item_info: PlaylistItemInfo,
     ):
-        pass
+        if not await handler.db.graph.create_interaction(
+            from_user,
+            handler.telegram_client.telegram_id,
+            InteractionType.SHARE_PUBLIC_PLAYLIST,
+            inline_item_info.chat_type,
+            playlist_key=inline_item_info.playlist_key,
+        ):
+            logger.error(f"Error in creating interaction for playlist `{inline_item_info.playlist_key}`")

@@ -13,3 +13,9 @@ class InteractionType(Enum):
     DISLIKE_AUDIO = 4
     SHARE_AUDIO = 5
     SHARE_AUDIO_LINK = 6
+
+    ###################################
+    # Interaction with playlists
+    ###################################
+    DOWNLOAD_PUBLIC_PLAYLIST = 7
+    SHARE_PUBLIC_PLAYLIST = 8

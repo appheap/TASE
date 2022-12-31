@@ -4,6 +4,8 @@ import pyrogram
 
 from tase.common.utils import _trans, emoji
 from tase.db.arangodb import graph as graph_models
+from tase.db.arangodb.enums import InteractionType, InlineQueryType
+from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
 from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemType, InlineButtonData
@@ -58,6 +60,11 @@ class SearchAmongPublicPlaylistsInlineButton(InlineButton):
         query_date: int,
         inline_button_data: Optional[SearchAmongPlaylistSubscriptionsButtonData] = None,
     ):
+        es_playlist_docs = None
+        hit_download_urls = None
+        query_metadata = None
+        search_metadata_lst = None
+
         query = inline_button_data.query
         if telegram_inline_query:
             from tase.telegram.bots.ui.inline_items import PlaylistItem
@@ -72,15 +79,17 @@ class SearchAmongPublicPlaylistsInlineButton(InlineButton):
                     )
 
                     if es_playlist_docs and query_metadata:
+                        hit_download_urls = await handler.db.graph.generate_hit_download_urls(size=len(es_playlist_docs))
                         result.extend_results(
                             [
                                 PlaylistItem.get_item_from_es_doc(
                                     es_playlist_doc,
                                     from_user,
                                     telegram_inline_query,
+                                    hit_download_url=hit_download_url,
                                     view_playlist=True,
                                 )
-                                for es_playlist_doc in es_playlist_docs
+                                for es_playlist_doc, hit_download_url in zip(es_playlist_docs, hit_download_urls)
                             ]
                         )
 
@@ -92,15 +101,17 @@ class SearchAmongPublicPlaylistsInlineButton(InlineButton):
                 )
 
                 if es_playlist_docs and query_metadata:
+                    hit_download_urls = await handler.db.graph.generate_hit_download_urls(size=len(es_playlist_docs))
                     result.extend_results(
                         [
                             PlaylistItem.get_item_from_es_doc(
                                 es_playlist_doc,
                                 from_user,
                                 telegram_inline_query,
+                                hit_download_url=hit_download_url,
                                 view_playlist=True,
                             )
-                            for es_playlist_doc in es_playlist_docs
+                            for es_playlist_doc, hit_download_url in zip(es_playlist_docs, hit_download_urls)
                         ]
                     )
 
@@ -111,6 +122,26 @@ class SearchAmongPublicPlaylistsInlineButton(InlineButton):
 
         await result.answer_query()
 
+        if query:
+            playlist_vertices = None
+            if es_playlist_docs:
+                playlist_vertices = await handler.db.graph.get_playlists_from_keys([es_playlist_doc.id for es_playlist_doc in es_playlist_docs])
+                search_metadata_lst = [es_playlist_doc.search_metadata for es_playlist_doc in es_playlist_docs]
+
+            await handler.db.graph.get_or_create_query(
+                handler.telegram_client.telegram_id,
+                from_user,
+                telegram_inline_query.query,
+                query_date,
+                playlist_vertices,
+                query_metadata,
+                search_metadata_lst,
+                telegram_inline_query=telegram_inline_query,
+                inline_query_type=InlineQueryType.PUBLIC_PLAYLIST_SEARCH,
+                next_offset=result.get_next_offset(only_countable=True),
+                hit_download_urls=hit_download_urls,
+            )
+
     async def on_chosen_inline_query(
         self,
         handler: BaseHandler,
@@ -120,4 +151,12 @@ class SearchAmongPublicPlaylistsInlineButton(InlineButton):
         inline_button_data: SearchAmongPlaylistSubscriptionsButtonData,
         inline_item_info: PlaylistItemInfo,
     ):
-        pass
+        if not await handler.db.graph.create_interaction(
+            from_user,
+            handler.telegram_client.telegram_id,
+            InteractionType.DOWNLOAD_PUBLIC_PLAYLIST,
+            inline_item_info.chat_type,
+            playlist_hit_download_url=inline_item_info.hit_download_url,
+            playlist_key=inline_item_info.playlist_key,
+        ):
+            logger.error(f"Error in creating interaction for playlist `{inline_item_info.playlist_key}`")

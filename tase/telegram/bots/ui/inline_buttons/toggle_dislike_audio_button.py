@@ -73,7 +73,7 @@ class ToggleDisLikeAudioInlineButton(InlineButton):
         chat_type = inline_button_data.chat_type
 
         try:
-            successful, has_disliked = await handler.db.graph.toggle_interaction(
+            successful, has_disliked = await handler.db.graph.toggle_audio_interaction(
                 from_user,
                 handler.telegram_client.telegram_id,
                 hit_download_url,
@@ -99,7 +99,7 @@ class ToggleDisLikeAudioInlineButton(InlineButton):
                 )
                 update_like_button = False
                 if not has_disliked and is_liked:
-                    await handler.db.graph.toggle_interaction(
+                    await handler.db.graph.toggle_audio_interaction(
                         from_user,
                         handler.telegram_client.telegram_id,
                         hit_download_url,

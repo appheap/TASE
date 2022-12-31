@@ -2,7 +2,7 @@ from typing import Tuple, Union, Optional
 
 import pyrogram
 
-from tase.db.arangodb.enums import TelegramAudioType, InteractionType, ChatType, InlineQueryType
+from tase.db.arangodb.enums import TelegramAudioType
 from tase.errors import TelegramMessageWithNoAudio
 
 
@@ -147,52 +147,6 @@ def parse_audio_document_key_from_raw_attributes(
         return None
 
     return f"{telegram_client_id}:{chat_id}:{telegram_message_id}:{file_unique_id}"
-
-
-def get_interaction_type(
-    inline_query_type: InlineQueryType,
-    chat_type: ChatType,
-) -> Optional[InteractionType]:
-    """
-    Find the type of interaction based on where and how the audio was accessed.
-
-    Parameters
-    ----------
-    inline_query_type : InlineQueryType
-        Type of inline query.
-    chat_type : ChatType
-        Type of the chat the interaction happened in.
-
-    Returns
-    -------
-    InteractionType, optional
-        Type of the interaction.
-    """
-    if not inline_query_type or not chat_type:
-        return None
-
-    if inline_query_type == InlineQueryType.AUDIO_SEARCH:
-        type_ = InteractionType.DOWNLOAD_AUDIO
-
-    elif inline_query_type == InlineQueryType.AUDIO_COMMAND:
-        if chat_type == ChatType.BOT:
-            type_ = InteractionType.REDOWNLOAD_AUDIO
-        else:
-            type_ = InteractionType.SHARE_AUDIO
-
-    elif inline_query_type == InlineQueryType.PRIVATE_PLAYLIST_COMMAND:
-        type_ = InteractionType.REDOWNLOAD_AUDIO
-
-    elif inline_query_type == InlineQueryType.PUBLIC_PLAYLIST_COMMAND:
-        if chat_type == ChatType.BOT:
-            type_ = InteractionType.REDOWNLOAD_AUDIO
-        else:
-            type_ = InteractionType.SHARE_AUDIO
-
-    else:
-        type_ = None
-
-    return type_
 
 
 forbidden_mime_types = (

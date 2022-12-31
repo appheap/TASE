@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import collections
-from typing import Optional, TYPE_CHECKING, List, Deque, Set
+from typing import Optional, TYPE_CHECKING, List, Deque, Set, Union
 
 from aioarango.models import PersistentIndex
 from tase.common.utils import generate_token_urlsafe, async_timed
@@ -17,6 +17,8 @@ if TYPE_CHECKING:
 if TYPE_CHECKING:
     from .audio import Audio
     from .query import Query
+    from .playlist import Playlist
+
 from .base_vertex import BaseVertex
 from ...enums import HitType
 
@@ -75,12 +77,12 @@ class Hit(BaseVertex):
     def parse_key(
         cls,
         query: Query,
-        audio: Audio,
+        audio_or_playlist: Union[Audio, Playlist],
     ) -> Optional[str]:
-        if query is None or audio is None:
+        if query is None or audio_or_playlist is None:
             return None
 
-        return f"{query.key}:{audio.key}:{query.query_date}"
+        return f"{query.key}:{audio_or_playlist.key}:{query.query_date}"
 
     @classmethod
     def parse(
@@ -155,7 +157,7 @@ class HitMethods:
     async def create_hit(
         self: ArangoGraphMethods,
         query: Query,
-        audio: Audio,
+        audio_or_playlist: Union[Audio, Playlist],
         hit_type: HitType,
         hit_download_url: str = None,
         search_metadata: Optional[SearchMetaData] = None,
@@ -167,14 +169,14 @@ class HitMethods:
         ----------
         query : Query
             Query this hit belongs to
-        audio : Audio
-            Audio this Hit has hit
+        audio_or_playlist : Audio or Playlist
+            Audio or Playlist this Hit has hit
         hit_type: HitType
             Type of `Hit` vertex
         hit_download_url : str, default : None
             Hit download URL to initialize the object with
         search_metadata : SearchMetaData, default : None
-            Search metadata related to the given Audio returned from ElasticSearch
+            Search metadata related to the given Audio or Playlist returned from ElasticSearch
 
         Returns
         -------
@@ -186,7 +188,7 @@ class HitMethods:
         EdgeCreationFailed
             If creation of the `has` edge from `Hit` vertex to `Audio` vertex
         """
-        if query is None or audio is None or hit_type is None:
+        if query is None or audio_or_playlist is None or hit_type is None:
             return None
 
         if not hit_download_url:
@@ -196,18 +198,18 @@ class HitMethods:
                 if not await self.find_hit_by_download_url(hit_download_url):
                     break
 
-        hit = Hit.parse(query, audio, hit_type, search_metadata, hit_download_url)
+        hit = Hit.parse(query, audio_or_playlist, hit_type, search_metadata, hit_download_url)
 
         hit, successful = await Hit.insert(hit)
         if hit and successful:
             try:
                 from tase.db.arangodb.graph.edges import Has
 
-                has_audio_edge = await Has.get_or_create_edge(hit, audio)
+                has_audio_edge = await Has.get_or_create_edge(hit, audio_or_playlist)
                 if has_audio_edge is None:
                     raise EdgeCreationFailed(Has.__class__.__name__)
             except (InvalidFromVertex, InvalidToVertex):
-                logger.error("ValueError: Could not create `has` edge from `hit` vertex to `audio` vertex")
+                logger.error(f"ValueError: Could not create `has` edge from `{hit.id}` vertex to `{audio_or_playlist.id}` vertex")
 
             return hit
 
@@ -216,7 +218,7 @@ class HitMethods:
     async def get_or_create_hit(
         self,
         query: Query,
-        audio: Audio,
+        audio_or_playlist: Union[Audio, Playlist],
         hit_type: HitType,
         hit_download_url: str = None,
         search_metadata: Optional[SearchMetaData] = None,
@@ -228,14 +230,14 @@ class HitMethods:
         ----------
         query : Query
             Query this hit belongs to
-        audio : Audio
-            Audio this Hit has hit
+        audio_or_playlist : Audio or Playlist
+            Audio or Playlist this Hit has hit
         hit_type: HitType
             Type of `Hit` vertex
         hit_download_url : str, default : None
             Hit download URL to initialize the object with
         search_metadata : SearchMetaData, default : None
-            Search metadata related to the given Audio returned from ElasticSearch
+            Search metadata related to the given Audio or Playlist returned from ElasticSearch
 
         Returns
         -------
@@ -247,12 +249,12 @@ class HitMethods:
         Exception
             If could not create the `has` edge from `Hit` vertex to `Audio` vertex
         """
-        if query is None or audio is None or hit_type is None:
+        if query is None or audio_or_playlist is None or hit_type is None:
             return None
 
-        hit = await Hit.get(Hit.parse_key(query, audio))
+        hit = await Hit.get(Hit.parse_key(query, audio_or_playlist))
         if hit is None:
-            hit = await self.create_hit(query, audio, hit_type, hit_download_url, search_metadata)
+            hit = await self.create_hit(query, audio_or_playlist, hit_type, hit_download_url, search_metadata)
 
         return hit
 

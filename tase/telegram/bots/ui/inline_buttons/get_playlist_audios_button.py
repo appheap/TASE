@@ -5,8 +5,7 @@ import pyrogram
 
 from tase.common.utils import _trans, emoji
 from tase.db.arangodb import graph as graph_models
-from tase.db.arangodb.enums import InlineQueryType
-from tase.db.db_utils import get_interaction_type
+from tase.db.arangodb.enums import InlineQueryType, ChatType, InteractionType
 from tase.errors import PlaylistDoesNotExists
 from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
@@ -127,6 +126,7 @@ class GetPlaylistAudioInlineButton(InlineButton):
                     result,
                     telegram_inline_query,
                     InlineQueryType.PUBLIC_PLAYLIST_COMMAND if playlist.is_public else InlineQueryType.PRIVATE_PLAYLIST_COMMAND,
+                    playlist_key=playlist.key,
                 )
 
         if not len(result) and not playlist_is_valid and result.is_first_page():
@@ -173,17 +173,31 @@ class GetPlaylistAudioInlineButton(InlineButton):
             )
         )
 
-        interaction_vertex = await handler.db.graph.create_audio_interaction(
-            inline_item_info.hit_download_url,
+        playlist = await handler.db.graph.get_playlist_by_key(inline_item_info.playlist_key)
+        if not playlist:
+            return
+
+        if inline_item_info.inline_query_type == InlineQueryType.PRIVATE_PLAYLIST_COMMAND:
+            type_ = InteractionType.REDOWNLOAD_AUDIO
+        elif inline_item_info.inline_query_type == InlineQueryType.PUBLIC_PLAYLIST_COMMAND:
+            if inline_item_info.chat_type == ChatType.BOT:
+                type_ = InteractionType.REDOWNLOAD_AUDIO
+            else:
+                if from_user.user_id == playlist.owner_user_id:
+                    type_ = InteractionType.SHARE_AUDIO
+                else:
+                    type_ = InteractionType.DOWNLOAD_AUDIO
+        else:
+            return
+
+        if not await handler.db.graph.create_interaction(
             from_user,
             handler.telegram_client.telegram_id,
-            get_interaction_type(
-                inline_item_info.inline_query_type,
-                inline_item_info.chat_type,
-            ),
+            type_,
             inline_item_info.chat_type,
-        )
-        if not interaction_vertex:
+            audio_hit_download_url=inline_item_info.hit_download_url,
+            playlist_key=inline_item_info.playlist_key,
+        ):
             # could not create the interaction_vertex
             logger.error("Could not create the `interaction_vertex` vertex:")
             logger.error(telegram_chosen_inline_result)

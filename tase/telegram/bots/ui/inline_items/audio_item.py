@@ -33,6 +33,7 @@ class AudioItem(BaseInlineItem):
         hit_download_url: str,
         inline_query_type: InlineQueryType,
         status: Optional[AudioKeyboardStatus] = None,
+        playlist_key: Optional[str] = None,
     ) -> Optional[pyrogram.types.InlineQueryResult]:
         if telegram_file_id is None or from_user is None:
             return None
@@ -44,6 +45,7 @@ class AudioItem(BaseInlineItem):
             hit_download_url,
             inline_query_type,
             chat_type,
+            playlist_key,
         )
 
         from tase.telegram.bots.ui.inline_buttons import LoadingKeyboardInlineButton

@@ -14,7 +14,7 @@ class HitType(Enum):
     ###################################
     # HIT type for playlists
     ###################################
-    INLINE_PRIVATE_PLAYLIST_SEARCH = 4
+    INLINE_PRIVATE_PLAYLIST_COMMAND = 4
 
     INLINE_PUBLIC_PLAYLIST_SEARCH = 5
     INLINE_PUBLIC_PLAYLIST_COMMAND = 6

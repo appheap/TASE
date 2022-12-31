@@ -105,6 +105,7 @@ async def populate_audio_items(
     result: CustomInlineQueryResult,
     telegram_inline_query: pyrogram.types.InlineQuery,
     inline_query_type: InlineQueryType,
+    playlist_key: Optional[str] = None,
 ) -> Deque[str]:
     """
     Populate a list of `AudioItem` objects
@@ -123,6 +124,8 @@ async def populate_audio_items(
         Telegram Inline Query object
     inline_query_type : InlineQueryType
         Type of inline query.
+    playlist_key : str
+        Key of the playlist where this audio downloaded from.
     """
     if not audio_vertices:
         return collections.deque()
@@ -155,6 +158,7 @@ async def populate_audio_items(
                 chats_dict,
                 hit_download_url,
                 inline_query_type,
+                playlist_key=playlist_key,
             )
             for audio_doc, audio_vertex, hit_download_url, in zip(audio_docs, audio_vertices, hit_download_urls)
             if audio_doc and audio_vertex and audio_doc.key not in invalid_audio_keys

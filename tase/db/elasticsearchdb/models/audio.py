@@ -57,6 +57,7 @@ class Audio(BaseDocument):
             "views": {"type": "long"},
             "downloads": {"type": "long"},
             "shares": {"type": "long"},
+            "link_shares": {"type": "long"},
             "search_hits": {"type": "long"},
             "non_search_hits": {"type": "long"},
             "likes": {"type": "long"},
@@ -118,6 +119,7 @@ class Audio(BaseDocument):
     downloads: int = Field(default=0)
     redownloads: int = Field(default=0)
     shares: int = Field(default=0)
+    link_shares: int = Field(default=0)
     search_hits: int = Field(default=0)
     non_search_hits: int = Field(default=0)
     likes: int = Field(default=0)
@@ -518,6 +520,7 @@ class Audio(BaseDocument):
             "non_search_hits": {"order": "desc"},
             "likes": {"order": "desc"},
             "dislikes": {"order": "asc"},
+            "link_shares": {"order": "desc"},
         }
 
     async def update_by_interaction_count(
@@ -530,7 +533,7 @@ class Audio(BaseDocument):
         Parameters
         ----------
         interaction_count : InteractionCount
-            InteractionCount object to update the index document with
+            `InteractionCount` object to update the index document with
 
         Returns
         -------
@@ -548,6 +551,8 @@ class Audio(BaseDocument):
             self_copy.redownloads += interaction_count.count
         elif interaction_count.interaction_type == InteractionType.SHARE_AUDIO:
             self_copy.shares += interaction_count.count
+        elif interaction_count.interaction_type == InteractionType.SHARE_AUDIO_LINK:
+            self_copy.link_shares += interaction_count.count
         elif interaction_count.interaction_type == InteractionType.LIKE_AUDIO:
             if interaction_count.is_active:
                 self_copy.likes += interaction_count.count
@@ -560,8 +565,6 @@ class Audio(BaseDocument):
             else:
                 if self_copy.dislikes > 0:
                     self_copy.dislikes -= interaction_count.count
-        elif interaction_count.interaction_type == InteractionType.SHARE_AUDIO_LINK:
-            return True
         else:
             return False
 
