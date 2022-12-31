@@ -132,9 +132,9 @@ class AudioItem(BaseInlineItem):
         if chat_type == ChatType.BOT:
             return InlineQueryResultArticle(
                 id=result_id,
-                title=f"‎{title}‎",
+                title=f"‎{title}‎",  # todo: set the direction based on the given query.
                 description=description,
-                thumb_url="https://telegra.ph/file/ac2d210b9b0e5741470a1.jpg",
+                thumb_url="https://telegra.ph/file/764498c89f7f1bea502d5.png",
                 input_message_content=InputTextMessageContent(  # todo: add a task to delete this message after the downloaded audio has been sent.
                     f"/dl_{hit_download_url}",
                     disable_web_page_preview=True,
@@ -146,9 +146,9 @@ class AudioItem(BaseInlineItem):
 
             return InlineQueryResultArticle(
                 id=result_id,
-                title=title,
+                title=f"‎{title}‎",
                 description=description,
-                thumb_url="https://telegra.ph/file/ac2d210b9b0e5741470a1.jpg",
+                thumb_url="https://telegra.ph/file/764498c89f7f1bea502d5.png",
                 input_message_content=InputTextMessageContent(
                     BaseTemplate.registry.audio_caption_template.render(
                         AudioCaptionData.parse_from_audio(

@@ -20,6 +20,20 @@ from .item_info import PlaylistItemInfo
 class PlaylistItem(BaseInlineItem):
     __type__ = InlineItemType.PLAYLIST
 
+    __fav_url__ = "https://telegra.ph/file/aa20ca49bd60cab907d3b.png"
+    __private_url__ = "https://telegra.ph/file/188fb4171d01e12445dc8.jpg"
+    __public_url__ = "https://telegra.ph/file/ac2d210b9b0e5741470a1.jpg"
+
+    @classmethod
+    def get_playlist_thumbnail_url(cls, playlist: graph_models.vertices.Playlist) -> str:
+        if playlist.is_favorite:
+            return cls.__fav_url__
+
+        if playlist.is_public:
+            return cls.__public_url__
+        else:
+            return cls.__private_url__
+
     @classmethod
     def get_item(
         cls,
@@ -52,9 +66,7 @@ class PlaylistItem(BaseInlineItem):
                     ChatType.parse_from_pyrogram(telegram_inline_query.chat_type),
                     hit_download_url,
                 ),
-                thumb_url="https://telegra.ph/file/ac2d210b9b0e5741470a1.jpg"
-                if not playlist.is_favorite
-                else "https://telegra.ph/file/07d5ca30dba31b5241bcf.jpg",
+                thumb_url=cls.get_playlist_thumbnail_url(playlist),
                 input_message_content=InputTextMessageContent(
                     message_text=BaseTemplate.registry.playlist_template.render(data),
                     parse_mode=ParseMode.HTML,
@@ -74,9 +86,7 @@ class PlaylistItem(BaseInlineItem):
                     ChatType.parse_from_pyrogram(telegram_inline_query.chat_type),
                     hit_download_url,
                 ),
-                thumb_url="https://telegra.ph/file/ac2d210b9b0e5741470a1.jpg"
-                if not playlist.is_favorite
-                else "https://telegra.ph/file/07d5ca30dba31b5241bcf.jpg",
+                thumb_url=cls.get_playlist_thumbnail_url(playlist),
                 input_message_content=InputTextMessageContent(
                     message_text=emoji._clock_emoji,
                     parse_mode=ParseMode.HTML,
@@ -112,7 +122,7 @@ class PlaylistItem(BaseInlineItem):
                     playlist.id,
                     hit_download_url=hit_download_url,
                 ),
-                thumb_url="https://telegra.ph/file/ac2d210b9b0e5741470a1.jpg",
+                thumb_url=cls.__public_url__,
                 input_message_content=InputTextMessageContent(
                     message_text=BaseTemplate.registry.playlist_template.render(data),
                     parse_mode=ParseMode.HTML,
@@ -131,7 +141,7 @@ class PlaylistItem(BaseInlineItem):
                     playlist.id,
                     hit_download_url=hit_download_url,
                 ),
-                thumb_url="https://telegra.ph/file/ac2d210b9b0e5741470a1.jpg",
+                thumb_url=cls.__public_url__,
                 input_message_content=InputTextMessageContent(
                     message_text=emoji._clock_emoji,
                     parse_mode=ParseMode.HTML,
