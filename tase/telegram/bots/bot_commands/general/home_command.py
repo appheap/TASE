@@ -48,6 +48,8 @@ class HomeCommand(BaseCommand):
         markup = [
             [
                 MyPlaylistsInlineButton.get_keyboard(lang_code=from_user.chosen_language_code),
+            ],
+            [
                 MyPlaylistSubscriptionsInlineButton.get_keyboard(lang_code=from_user.chosen_language_code),
             ],
             [
