@@ -8,19 +8,19 @@ import time
 from collections import OrderedDict
 from datetime import datetime
 from functools import wraps
-from typing import Optional, List, Tuple, Dict, Match, Union, Callable, Any
+from typing import Optional, List, Tuple, Dict, Match, Union, Callable, Any, Set
 
 import arrow
 import psutil
 import tomli
 from pydantic import BaseModel
 
+from tase.common.preprocessing import clean_hashtag, hashtags_regex
+from tase.db.arangodb.enums import MentionSource
+from tase.errors import NotEnoughRamError
 from tase.languages import Language, Languages
 from tase.my_logger import logger
 from tase.static import Emoji
-from .preprocessing import hashtags_regex, clean_hashtag
-from ..db.arangodb.enums import MentionSource
-from ..errors import NotEnoughRamError
 
 # todo: it's not a good practice to hardcode like this, fix it
 languages = dict()
@@ -362,6 +362,23 @@ def find_hashtags(
         hashtags.append((match.group(), match.start(), mention_source))
 
     return list(hashtags)
+
+
+def find_unique_hashtag_strings(
+    text_: str,
+) -> Set[str]:
+    if not text_:
+        return set()
+
+    text_ = clean_hashtag(text_)
+    if not text_:
+        return set()
+
+    hashtags = set()
+    for match in re.finditer(hashtags_regex, text_):
+        hashtags.add(str(match.group())[1:])
+
+    return hashtags
 
 
 def find_hashtags_in_text(

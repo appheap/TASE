@@ -29,7 +29,6 @@ from tase.errors import (
 )
 from tase.my_logger import logger
 from .base_vertex import BaseVertex
-from .hashtag import Hashtag
 from .hit import Hit
 from .interaction import Interaction
 from .user import User
@@ -953,72 +952,13 @@ class AudioMethods:
         EdgeCreationFailed
             If creation of the related edges was unsuccessful.
         """
-        from tase.db.arangodb.graph.edges import HasHashtag
 
         try:
             hashtags = audio.find_hashtags()
         except ValueError:
             pass
         else:
-            # get the current hashtag vertices and edges connected to this audio vertex
-            current_hashtags_and_edges_list = await self.get_audio_hashtags_with_edges(audio.id)
-            current_vertices = {hashtag.key for hashtag, _ in current_hashtags_and_edges_list}
-            current_edges = {edge.key for _, edge, in current_hashtags_and_edges_list}
-
-            current_vertices_mapping = {hashtag.key: hashtag for hashtag, _ in current_hashtags_and_edges_list}
-            current_edges_mapping = {edge.key: edge for _, edge, in current_hashtags_and_edges_list}
-
-            # find the new hashtag vertices and edges keys
-            new_vertices = set()
-            new_edges = set()
-
-            new_vertices_mapping = dict()
-            new_edges_mapping = dict()
-
-            for hashtag_string, start_index, mention_source in hashtags:
-                hashtag_key = Hashtag.parse_key(hashtag_string)
-                edge_key = HasHashtag.parse_has_hashtag_key(audio.key, hashtag_key, mention_source, start_index)
-
-                new_vertices.add(hashtag_key)
-                new_edges.add(edge_key)
-
-                new_vertices_mapping[hashtag_key] = hashtag_string
-                new_edges_mapping[edge_key] = (hashtag_key, start_index, mention_source)
-
-            # find the difference between the current and new state of vertices and edges
-            removed_vertices = current_vertices - new_vertices  # since a hashtag vertex might be connected to other audio vertices, it's best not to delete it.
-            removed_edges = current_edges - new_edges
-
-            to_create_vertices = new_vertices - current_vertices
-            to_create_edges = new_edges - current_edges
-
-            # delete the removed edges
-            for edge_key in removed_edges:
-                to_be_removed_edge: HasHashtag = current_edges_mapping[edge_key]
-                if not await to_be_removed_edge.delete():
-                    logger.error(f"Error in deleting `HasHashtag` edge with key `{to_be_removed_edge.key}`")
-
-            # create new hashtag vertices
-            for hashtag_key in to_create_vertices:
-                hashtag_string: str = new_vertices_mapping.get(hashtag_key, None)
-                if hashtag_string:
-                    _vertex = await self.get_or_create_hashtag(hashtag_string)
-                    if _vertex:
-                        current_vertices_mapping[hashtag_key] = _vertex
-
-            # create the new edges
-            for edge_key in to_create_edges:
-                hashtag_key, start_index, mention_source = new_edges_mapping[edge_key]
-                hashtag_vertex = current_vertices_mapping.get(hashtag_key, None)
-                if hashtag_vertex:
-                    has_hashtag = await HasHashtag.get_or_create_edge(
-                        audio,
-                        hashtag_vertex,
-                        mention_source,
-                        start_index,
-                    )
-                    if has_hashtag is None:
-                        raise EdgeCreationFailed(HasHashtag.__class__.__name__)
+            await self.update_connected_hashtags(audio, hashtags)
 
     async def find_audio_by_download_url(
         self,

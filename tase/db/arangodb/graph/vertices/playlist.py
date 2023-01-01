@@ -6,7 +6,7 @@ from typing import Optional, Tuple, TYPE_CHECKING, List, Deque
 from pydantic import Field
 
 from aioarango.models import PersistentIndex
-from tase.common.utils import generate_token_urlsafe, prettify, get_now_timestamp, async_timed
+from tase.common.utils import generate_token_urlsafe, prettify, get_now_timestamp, async_timed, find_hashtags_in_text
 from tase.errors import (
     PlaylistDoesNotExists,
     HitDoesNotExists,
@@ -27,7 +27,7 @@ if TYPE_CHECKING:
     from .hit import Hit
 
 from ...base import BaseSoftDeletableDocument
-from ...enums import TelegramAudioType, AudioType
+from ...enums import TelegramAudioType, AudioType, MentionSource
 
 
 class Playlist(BaseVertex, BaseSoftDeletableDocument):
@@ -125,6 +125,31 @@ class Playlist(BaseVertex, BaseSoftDeletableDocument):
         return await self.update(
             self.copy(deep=True),
             reserve_non_updatable_fields=True,
+        )
+
+    def find_hashtags(self) -> List[Tuple[str, int, MentionSource]]:
+        """
+        Find hashtags in text attributes of this playlist vertex.
+
+        Returns
+        -------
+        list
+            A list containing a tuple of the `hashtag` string, its starting index, and its mention source.
+
+        Raises
+        ------
+        ValueError
+            If input data is invalid.
+        """
+        return find_hashtags_in_text(
+            [
+                self.title,
+                self.description,
+            ],
+            [
+                MentionSource.PLAYLIST_TITLE,
+                MentionSource.PLAYLIST_DESCRIPTION,
+            ],
         )
 
 
@@ -450,7 +475,7 @@ class PlaylistMethods:
         return None
 
     async def create_playlist(
-        self,
+        self: ArangoGraphMethods,
         user: User,
         title: str,
         description: str,
@@ -520,7 +545,15 @@ class PlaylistMethods:
                     # todo: could not delete the playlist, what now?
                     logger.error(f"Could not delete playlist: {prettify(playlist)}")
             else:
-                return playlist if has_edge else None
+                if not has_edge:
+                    logger.error(f"Error in creating `Has` edge from `{user.id}` to `{playlist.id}`")
+                    await playlist.delete()
+                    return None
+
+                # Create hashtag vertices and connect them together.
+                await self.update_connected_hashtags(playlist, playlist.find_hashtags())
+
+                return playlist
 
         return playlist
 

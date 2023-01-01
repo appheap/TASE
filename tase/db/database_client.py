@@ -6,6 +6,7 @@ from .arangodb import ArangoDB, graph as graph_models
 from .arangodb.document import ArangoDocumentMethods
 from .arangodb.enums import AudioType
 from .arangodb.graph import ArangoGraphMethods
+from .arangodb.graph.edges import SubscribeTo
 from .elasticsearchdb import ElasticsearchDatabase
 from .elasticsearchdb.models import ElasticSearchMethods
 from .helpers import ChatScores
@@ -215,3 +216,112 @@ class DatabaseClient:
             es_updated = True
 
         return graph_updated & es_updated
+
+    async def update_playlist_title(
+        self,
+        from_user: graph_models.vertices.User,
+        playlist_key: str,
+        title: str,
+    ) -> bool:
+        if not playlist_key or not title:
+            return False
+
+        playlist_vertex = await self.graph.get_user_playlist_by_key(
+            from_user,
+            playlist_key,
+            filter_out_soft_deleted=True,
+        )
+        if not playlist_vertex:
+            return False
+
+        graph_successful = await playlist_vertex.update_title(title)
+        if not graph_successful:
+            return False
+
+        await self.graph.update_connected_hashtags(playlist_vertex, playlist_vertex.find_hashtags())
+
+        if playlist_vertex.is_public:
+            es_playlist_doc = await self.index.get_playlist_by_id(playlist_key)
+            if not es_playlist_doc:
+                return False
+
+            es_successful = await es_playlist_doc.update_title(title)
+            if not es_successful:
+                return False
+
+            return graph_successful & es_successful
+
+        return graph_successful
+
+    async def update_playlist_description(
+        self,
+        from_user: graph_models.vertices.User,
+        playlist_key: str,
+        description: str,
+    ) -> bool:
+        if not playlist_key or not description:
+            return False
+
+        playlist_vertex = await self.graph.get_user_playlist_by_key(
+            from_user,
+            playlist_key,
+            filter_out_soft_deleted=True,
+        )
+        if not playlist_vertex:
+            return False
+
+        graph_successful = await playlist_vertex.update_description(description)
+        if not graph_successful:
+            return False
+
+        await self.graph.update_connected_hashtags(playlist_vertex, playlist_vertex.find_hashtags())
+
+        if playlist_vertex.is_public:
+            es_playlist_doc = await self.index.get_playlist_by_id(playlist_key)
+            if not es_playlist_doc:
+                return False
+
+            es_successful = await es_playlist_doc.update_description(description)
+            if not es_successful:
+                return False
+
+            return graph_successful & es_successful
+
+        return graph_successful
+
+    async def get_or_create_playlist(
+        self,
+        user: graph_models.vertices.User,
+        title: str,
+        description: str,
+        is_favorite: bool,
+        is_public: bool,
+    ) -> Optional[graph_models.vertices.Playlist]:
+        if not user or not title:
+            return None
+
+        if is_favorite and is_public:
+            raise ValueError(f"Playlist cannot be favorite and public at the same time.")
+
+        db_playlist = await self.graph.get_or_create_playlist(
+            user,
+            title,
+            description,
+            is_favorite=False,
+            is_public=is_public,
+        )
+        if not db_playlist:
+            return None
+
+        if db_playlist.is_public:
+            if not await self.index.get_or_create_playlist(
+                user,
+                db_playlist.key,
+                db_playlist.title,
+                db_playlist.description,
+            ):
+                logger.error(f"Error in creating `Playlist` document in the ElasticSearch : `{db_playlist.key}`")
+
+            successful, subscribed = await self.graph.toggle_playlist_subscription(user, db_playlist)
+            if not successful or not subscribed:
+                logger.error(f"Error in creating `{SubscribeTo.__class__.__name__}` edge from `{user.key}` to `{db_playlist.key}`")

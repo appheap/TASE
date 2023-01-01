@@ -8,9 +8,7 @@ from tase.db import DatabaseClient
 from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.document import BotTask
 from tase.db.arangodb.enums import BotTaskType, BotTaskStatus
-from tase.db.arangodb.graph.edges import SubscribeTo
 from tase.errors import PlaylistDoesNotExists
-from tase.my_logger import logger
 
 
 class BotTaskChecker(BaseModel):
@@ -118,18 +116,17 @@ class BotTaskChecker(BaseModel):
         else:
             if error_message is None:
                 # update playlist description
-                playlist = await db.graph.get_user_playlist_by_key(
+                updated = await db.update_playlist_description(
                     from_user,
                     playlist_key,
-                    filter_out_soft_deleted=True,
+                    description,
                 )
-                if playlist:
-                    await playlist.update_description(description)
+                if updated:
                     await bot_task.update_status(BotTaskStatus.DONE)
                     await message.reply_text("Successfully updated the playlist.")
                 else:
                     await bot_task.update_status(BotTaskStatus.FAILED)
-                    await message.reply_text("The target playlist does not exist!")
+                    await message.reply_text("Could not update the playlist!")
 
             else:
                 await message.reply_text(error_message)
@@ -152,18 +149,17 @@ class BotTaskChecker(BaseModel):
         else:
             if error_message is None:
                 # update playlist title
-                playlist = await db.graph.get_user_playlist_by_key(
+                updated = await db.update_playlist_title(
                     from_user,
                     playlist_key,
-                    filter_out_soft_deleted=True,
+                    title,
                 )
-                if playlist:
-                    await playlist.update_title(title)
+                if updated:
                     await bot_task.update_status(BotTaskStatus.DONE)
                     await message.reply_text("Successfully updated the playlist.")
                 else:
                     await bot_task.update_status(BotTaskStatus.FAILED)
-                    await message.reply_text("The target playlist does not exist!")
+                    await message.reply_text("Could not update the playlist!")
             else:
                 await message.reply_text(error_message)
                 await bot_task.update_retry_count()
@@ -192,63 +188,57 @@ class BotTaskChecker(BaseModel):
         else:
             title = items[0]
             description = None
+
         error_message = cls.validate_playlist_title(title)
         if error_message is None:
             error_message = cls.validate_playlist_description(description)
+
         # if the inputs are valid, change the status of the task to `done`
         if error_message is None:
-            db_playlist = await db.graph.get_or_create_playlist(
-                from_user,
-                title,
-                description,
-                is_favorite=False,
-                is_public=True if bot_task.type == BotTaskType.CREATE_NEW_PUBLIC_PLAYLIST else False,
-            )
-            if db_playlist:
-                await bot_task.update_status(BotTaskStatus.DONE)
-                await message.reply_text("Successfully created the playlist.")
-
-                hit_download_url = bot_task.state_dict.get("hit_download_url", None)
-                if hit_download_url is not None:
-                    created, successful = await db.graph.add_audio_to_playlist(
-                        from_user,
-                        db_playlist.key,
-                        hit_download_url,
-                    )
-
-                    # todo: update these messages
-                    if successful:
-                        if created:
-                            await message.reply_text(
-                                "Added to the playlist",
-                            )
-                        else:
-                            await message.reply_text(
-                                "It's already on the playlist",
-                            )
-                    else:
-                        await message.reply_text(
-                            "Did not add to the playlist",
-                        )
-
-                if db_playlist.is_public:
-                    if not await db.index.get_or_create_playlist(
-                        from_user,
-                        db_playlist.key,
-                        db_playlist.title,
-                        db_playlist.description,
-                    ):
-                        logger.error(f"Error in creating `Playlist` document in the ElasticSearch : `{db_playlist.key}`")
-
-                    successful, subscribed = await db.graph.toggle_playlist_subscription(from_user, db_playlist)
-                    # subscribe_to_edge = SubscribeTo.get_or_create_edge(from_user, db_playlist)
-                    if not successful or not subscribed:
-                        logger.error(f"Error in creating `{SubscribeTo.__class__.__name__}` edge from `{from_user.key}` to `{db_playlist.key}`")
-
-            else:
+            try:
+                db_playlist = await db.get_or_create_playlist(
+                    from_user,
+                    title,
+                    description,
+                    is_favorite=False,
+                    is_public=True if bot_task.type == BotTaskType.CREATE_NEW_PUBLIC_PLAYLIST else False,
+                )
+            except ValueError:
+                # playlist cannot be public and favorite at the same time
                 # todo: make this translatable
                 await bot_task.update_status(BotTaskStatus.FAILED)
-                await message.reply_text("An error has occurred")
+                await message.reply_text("playlist cannot be `public` and `favorite` at the same time")
+            else:
+                if db_playlist:
+                    await bot_task.update_status(BotTaskStatus.DONE)
+                    await message.reply_text("Successfully created the playlist.")
+
+                    hit_download_url = bot_task.state_dict.get("hit_download_url", None)
+                    if hit_download_url is not None:
+                        created, successful = await db.graph.add_audio_to_playlist(
+                            from_user,
+                            db_playlist.key,
+                            hit_download_url,
+                        )
+
+                        # todo: update these messages
+                        if successful:
+                            if created:
+                                await message.reply_text(
+                                    "Added to the playlist",
+                                )
+                            else:
+                                await message.reply_text(
+                                    "It's already on the playlist",
+                                )
+                        else:
+                            await message.reply_text(
+                                "Did not add to the playlist",
+                            )
+                else:
+                    # todo: make this translatable
+                    await bot_task.update_status(BotTaskStatus.FAILED)
+                    await message.reply_text("An error has occurred")
 
         else:
             await message.reply_text(error_message)

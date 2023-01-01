@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import collections
+from itertools import chain
 from typing import Optional, List, Tuple, Deque
 
 from elastic_transport import ObjectApiResponse
 from pydantic import Field
 
-from tase.common.utils import async_timed
+from tase.common.utils import async_timed, find_unique_hashtag_strings
 from tase.db.arangodb import graph as graph_models
 from tase.errors import PlaylistDoesNotExists
 from tase.my_logger import logger
@@ -79,6 +80,11 @@ class Playlist(BaseDocument, BaseSoftDeletableDocument):
 
         self_copy = self.copy(deep=True)
         self_copy.title = title
+
+        hashtags = list(set(chain(find_unique_hashtag_strings(self.title), find_unique_hashtag_strings(self.description))))
+        if hashtags:
+            self_copy.hashtags = hashtags
+
         return await self.update(self_copy, reserve_non_updatable_fields=False)
 
     async def update_description(
@@ -103,6 +109,11 @@ class Playlist(BaseDocument, BaseSoftDeletableDocument):
 
         self_copy = self.copy(deep=True)
         self_copy.description = description
+
+        hashtags = list(set(chain(find_unique_hashtag_strings(self.title), find_unique_hashtag_strings(self.description))))
+        if hashtags:
+            self_copy.hashtags = hashtags
+
         return await self.update(self_copy, reserve_non_updatable_fields=False)
 
     async def update_last_modified_date(self):
@@ -194,6 +205,12 @@ class PlaylistMethods:
             title=title,
             description=description,
         )
+        if not v:
+            return None
+
+        hashtags = list(set(chain(find_unique_hashtag_strings(title), find_unique_hashtag_strings(description))))
+        if hashtags:
+            v.hashtags = hashtags
 
         playlist, successful = await Playlist.create(v)
 
@@ -396,3 +413,23 @@ class PlaylistMethods:
             return db_docs, query_metadata
 
         return None, None
+
+    async def get_playlist_by_id(
+        self,
+        id: str,
+    ) -> Optional[Playlist]:
+        """
+        Get `Playlist` by its `ID`
+
+        Parameters
+        ----------
+        id : str
+            ID of the `Playlist` to get
+
+        Returns
+        -------
+        Playlist, optional
+            Playlist if it exists in ElasticSearch, otherwise, return None
+
+        """
+        return await Playlist.get(id)

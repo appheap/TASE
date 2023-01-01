@@ -40,6 +40,12 @@ class MentionSource(Enum):
     VIDEO_FILE_NAME = 10
     "mention source is video file name"
 
+    PLAYLIST_TITLE = 11
+    "mention source is a playlist title"
+
+    PLAYLIST_DESCRIPTION = 12
+    "mention source is a playlist description"
+
     @classmethod
     def is_direct_mention(
         cls,
@@ -59,4 +65,6 @@ is_direct_mentions_dict = {
     MentionSource.INLINE_KEYBOARD_TEXT: False,
     MentionSource.INLINE_KEYBOARD_TEXT_LINK: True,
     MentionSource.VIDEO_FILE_NAME: False,
+    MentionSource.PLAYLIST_TITLE: True,
+    MentionSource.PLAYLIST_DESCRIPTION: True,
 }
