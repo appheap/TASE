@@ -219,15 +219,32 @@ class DatabaseClient:
 
     async def update_playlist_title(
         self,
-        from_user: graph_models.vertices.User,
+        user: graph_models.vertices.User,
         playlist_key: str,
         title: str,
     ) -> bool:
+        """
+        Update playlist's title.
+
+        Parameters
+        ----------
+        user : graph_models.vertices.User
+            User requesting this update.
+        playlist_key : str
+            Key of the playlist to update its title.
+        title : str
+            New title for the playlist.
+
+        Returns
+        -------
+        bool
+            Whether the update was successful or not.
+        """
         if not playlist_key or not title:
             return False
 
         playlist_vertex = await self.graph.get_user_playlist_by_key(
-            from_user,
+            user,
             playlist_key,
             filter_out_soft_deleted=True,
         )
@@ -255,15 +272,32 @@ class DatabaseClient:
 
     async def update_playlist_description(
         self,
-        from_user: graph_models.vertices.User,
+        user: graph_models.vertices.User,
         playlist_key: str,
         description: str,
     ) -> bool:
+        """
+        Update playlist's description.
+
+        Parameters
+        ----------
+        user : graph_models.vertices.User
+            User requesting this update.
+        playlist_key : str
+            Key of the playlist to update its description.
+        description : str
+            New description for the playlist.
+
+        Returns
+        -------
+        bool
+            Whether the update was successful or not.
+        """
         if not playlist_key or not description:
             return False
 
         playlist_vertex = await self.graph.get_user_playlist_by_key(
-            from_user,
+            user,
             playlist_key,
             filter_out_soft_deleted=True,
         )
@@ -297,6 +331,32 @@ class DatabaseClient:
         is_favorite: bool,
         is_public: bool,
     ) -> Optional[graph_models.vertices.Playlist]:
+        """
+        Get a `Playlist` with the given `title` if it exists, otherwise, create it and return it.
+
+        Parameters
+        ----------
+        user : User
+            User to get/create this playlist.
+        title : str
+            Title of the Playlist
+        description : str, default : None
+            Description of the playlist
+        is_favorite : bool
+            Whether this playlist is favorite or not.
+        is_public : bool, default : False
+            Whether the created playlist is public or not.
+
+        Returns
+        -------
+        Playlist, optional
+            Created/Retrieved `Playlist` if the operation successful, return `None` otherwise.
+
+        Raises
+        ------
+        ValueError
+            If `is_public` and `is_favorite` are **True** at the same time.
+        """
         if not user or not title:
             return None
 
