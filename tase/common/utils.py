@@ -8,14 +8,14 @@ import time
 from collections import OrderedDict
 from datetime import datetime
 from functools import wraps
-from typing import Optional, List, Tuple, Dict, Match, Union, Callable, Any, Set
+from typing import Optional, List, Tuple, Dict, Match, Union, Callable, Any
 
 import arrow
 import psutil
 import tomli
 from pydantic import BaseModel
 
-from tase.common.preprocessing import clean_hashtag, hashtags_regex
+from tase.common.preprocessing import clean_hashtag, hashtags_regex, is_non_digit
 from tase.db.arangodb.enums import MentionSource
 from tase.errors import NotEnoughRamError
 from tase.languages import Language, Languages
@@ -359,26 +359,31 @@ def find_hashtags(
 
     hashtags = collections.deque()
     for match in re.finditer(hashtags_regex, text):
-        hashtags.append((match.group(), match.start(), mention_source))
+        h = match.group("hashtag")
+        if is_non_digit(h[1:]):
+            hashtags.append((h, match.start(), mention_source))
 
     return list(hashtags)
 
 
 def find_unique_hashtag_strings(
     text_: str,
-) -> Set[str]:
+    remove_hashtag_sign: Optional[bool] = True,
+) -> List[str]:
     if not text_:
-        return set()
+        return []
 
     text_ = clean_hashtag(text_)
     if not text_:
-        return set()
+        return []
 
     hashtags = set()
     for match in re.finditer(hashtags_regex, text_):
-        hashtags.add(str(match.group())[1:])
+        h = str(match.group("hashtag"))
+        if is_non_digit(h[1:]):
+            hashtags.add(h[1:] if remove_hashtag_sign else h)
 
-    return hashtags
+    return list(hashtags)
 
 
 def find_hashtags_in_text(

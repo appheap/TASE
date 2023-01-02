@@ -385,3 +385,5 @@ class DatabaseClient:
             successful, subscribed = await self.graph.toggle_playlist_subscription(user, db_playlist)
             if not successful or not subscribed:
                 logger.error(f"Error in creating `{SubscribeTo.__class__.__name__}` edge from `{user.key}` to `{db_playlist.key}`")
+
+        return db_playlist

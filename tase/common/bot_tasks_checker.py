@@ -29,7 +29,7 @@ class BotTaskChecker(BaseModel):
             Database Client
         bot_task : BotTask
             Bot task to check
-        from_user : graph_modesl.vertices.User
+        from_user : graph_models.vertices.User
             User to check this bot task belongs to
         message : pyrogram.types.Message
             Telegram Message which contains the initiated this check

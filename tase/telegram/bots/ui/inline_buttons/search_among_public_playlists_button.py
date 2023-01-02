@@ -26,7 +26,7 @@ class SearchAmongPlaylistSubscriptionsButtonData(InlineButtonData):
         cls,
         data_split_lst: List[str],
     ) -> Optional[InlineButtonData]:
-        return SearchAmongPlaylistSubscriptionsButtonData(query=data_split_lst[1] if len(data_split_lst) > 1 else None)
+        return SearchAmongPlaylistSubscriptionsButtonData(query=" ".join(data_split_lst[1:]) if len(data_split_lst) > 1 else None)
 
 
 class SearchAmongPublicPlaylistsInlineButton(InlineButton):
