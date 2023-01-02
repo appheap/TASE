@@ -19,7 +19,7 @@ class SearchAmongPlaylistSubscriptionsButtonData(InlineButtonData):
 
     @classmethod
     def generate_data(cls, inline_command: str) -> Optional[str]:
-        return f"#{inline_command} "
+        return f"${inline_command} "
 
     @classmethod
     def __parse__(

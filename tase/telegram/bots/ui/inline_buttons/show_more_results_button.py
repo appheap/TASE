@@ -18,7 +18,7 @@ class ShowMoreResultsButtonData(InlineButtonData):
 
     @classmethod
     def generate_data(cls, query_hash: str, query: str) -> Optional[str]:
-        return f"#{cls.get_type_value()}|{query_hash}| {query}"
+        return f"${cls.get_type_value()}|{query_hash}| {query}"
 
     @classmethod
     def __parse__(

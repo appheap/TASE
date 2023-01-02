@@ -19,7 +19,7 @@ class SharePlaylistButtonData(InlineButtonData):
 
     @classmethod
     def generate_data(cls, playlist_key: str) -> Optional[str]:
-        return f"#{cls.get_type_value()}|{playlist_key}"
+        return f"${cls.get_type_value()}|{playlist_key}"
 
     @classmethod
     def __parse__(

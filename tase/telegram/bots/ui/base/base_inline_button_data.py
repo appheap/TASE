@@ -56,10 +56,10 @@ class InlineButtonData(BaseModel):
         if not data:
             return None
 
-        if not data.startswith("#") and "|" not in data:
+        if not data.startswith("$") and "|" not in data:
             return None
 
-        if data.startswith("#"):
+        if data.startswith("$"):
             data = data[1:]
             sep = " " if "|" not in data else "|"
         else:

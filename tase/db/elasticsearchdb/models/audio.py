@@ -1,14 +1,15 @@
 from __future__ import annotations
 
 import copy
-from typing import Optional, Tuple, Deque
+from itertools import chain
+from typing import Optional, Tuple, Deque, List
 
 import pyrogram
 from elastic_transport import ObjectApiResponse
 from pydantic import Field
 
-from tase.common.preprocessing import clean_text, empty_to_null
-from tase.common.utils import datetime_to_timestamp, async_timed, get_now_timestamp
+from tase.common.preprocessing import clean_text, empty_to_null, remove_hashtags, is_non_digit, is_non_space
+from tase.common.utils import datetime_to_timestamp, async_timed, get_now_timestamp, find_unique_hashtag_strings
 from tase.db.arangodb import graph as graph_models
 from tase.errors import TelegramMessageWithNoAudio
 from tase.my_logger import logger
@@ -115,6 +116,8 @@ class Audio(BaseDocument):
     file_size: int
     date: int
 
+    hashtags: List[str] = Field(default_factory=list)
+
     views: int = Field(default=0)
     downloads: int = Field(default=0)
     redownloads: int = Field(default=0)
@@ -176,6 +179,18 @@ class Audio(BaseDocument):
         """
         return parse_audio_key(telegram_message, chat_id)
 
+    def find_unique_hashtags(self) -> List[str]:
+        return list(
+            set(
+                chain(
+                    find_unique_hashtag_strings(self.raw_title),
+                    find_unique_hashtag_strings(self.raw_performer),
+                    find_unique_hashtag_strings(self.raw_file_name),
+                    find_unique_hashtag_strings(self.raw_message_caption),
+                )
+            )
+        )
+
     @classmethod
     def parse(
         cls,
@@ -235,7 +250,7 @@ class Audio(BaseDocument):
 
         duration = getattr(audio, "duration", None)
 
-        return Audio(
+        audio = Audio(
             id=_id,
             chat_id=telegram_message.chat.id,
             message_id=telegram_message.id,
@@ -270,6 +285,12 @@ class Audio(BaseDocument):
             is_edited=True if telegram_message.edit_date else False,
         )
 
+        hashtags = audio.find_unique_hashtags()
+        if hashtags:
+            audio.hashtags = hashtags
+
+        return audio
+
     @classmethod
     def parse_from_audio_vertex(cls, audio_vertex: graph_models.vertices.Audio) -> Optional[Audio]:
         """
@@ -289,7 +310,7 @@ class Audio(BaseDocument):
         if not audio_vertex or not audio_vertex.key:
             return None
 
-        return Audio(
+        audio = Audio(
             id=audio_vertex.key,
             created_at=audio_vertex.created_at,
             modified_at=audio_vertex.modified_at,
@@ -322,6 +343,12 @@ class Audio(BaseDocument):
             deleted_at=audio_vertex.deleted_at,
             is_edited=audio_vertex.is_edited,
         )
+
+        hashtags = audio.find_unique_hashtags()
+        if hashtags:
+            audio.hashtags = hashtags
+
+        return audio
 
     async def mark_as_deleted(self) -> bool:
         """
@@ -462,7 +489,31 @@ class Audio(BaseDocument):
         query: Optional[str],
         filter_by_valid_for_inline_search: Optional[bool] = True,
     ) -> Optional[dict]:
+        has_query = False
+
+        hashtags_lst = find_unique_hashtag_strings(query)
+        if hashtags_lst:
+            filter_ = [
+                {"term": {"is_deleted": False}},
+                {"terms": {"hashtags": hashtags_lst}},
+            ]
+
+            query = remove_hashtags(query)
+            if query:
+                query = query.strip()
+                if query and is_non_digit(query) and is_non_space(query):
+                    has_query = True
+
+        else:
+            has_query = True
+            filter_ = [
+                {"term": {"is_deleted": False}},
+            ]
+
         if filter_by_valid_for_inline_search:
+            filter_.append({"term": {"valid_for_inline_search": True}})
+
+        if has_query:
             return {
                 "bool": {
                     "must": {
@@ -477,30 +528,16 @@ class Audio(BaseDocument):
                     "must_not": [
                         {"term": {"audio_type": {"value": TelegramAudioType.NON_AUDIO.value}}},
                     ],
-                    "filter": [
-                        {"term": {"is_deleted": False}},
-                        {"term": {"valid_for_inline_search": True}},
-                    ],
+                    "filter": filter_,
                 }
             }
         else:
             return {
                 "bool": {
-                    "must": {
-                        "multi_match": {
-                            "query": query,
-                            "fuzziness": "AUTO",
-                            "type": "best_fields",
-                            "minimum_should_match": "75%",
-                            "fields": cls.__search_fields__,
-                        }
-                    },
                     "must_not": [
                         {"term": {"audio_type": {"value": TelegramAudioType.NON_AUDIO.value}}},
                     ],
-                    "filter": [
-                        {"term": {"is_deleted": False}},
-                    ],
+                    "filter": filter_,
                 }
             }
 
