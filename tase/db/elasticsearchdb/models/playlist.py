@@ -43,6 +43,8 @@ class Playlist(BaseDocument, BaseSoftDeletableDocument):
     __non_updatable_fields__ = (
         "subscribers",
         "shares",
+        "playlist_downloads",
+        "audio_downloads",
     )
     __search_fields__ = [
         "title",
@@ -82,7 +84,7 @@ class Playlist(BaseDocument, BaseSoftDeletableDocument):
         self_copy = self.copy(deep=True)
         self_copy.title = title
 
-        hashtags = list(set(chain(find_unique_hashtag_strings(self.title), find_unique_hashtag_strings(self.description))))
+        hashtags = list(set(chain(find_unique_hashtag_strings(self_copy.title), find_unique_hashtag_strings(self_copy.description))))
         if hashtags:
             self_copy.hashtags = hashtags
 
@@ -111,7 +113,7 @@ class Playlist(BaseDocument, BaseSoftDeletableDocument):
         self_copy = self.copy(deep=True)
         self_copy.description = description
 
-        hashtags = list(set(chain(find_unique_hashtag_strings(self.title), find_unique_hashtag_strings(self.description))))
+        hashtags = list(set(chain(find_unique_hashtag_strings(self_copy.title), find_unique_hashtag_strings(self_copy.description))))
         if hashtags:
             self_copy.hashtags = hashtags
 
@@ -156,6 +158,7 @@ class Playlist(BaseDocument, BaseSoftDeletableDocument):
                     has_query = True
 
         else:
+            has_query = True
             filter_ = [
                 {"term": {"is_soft_deleted": False}},
             ]
