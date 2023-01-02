@@ -7,6 +7,7 @@ from typing import Optional, List, Tuple, Deque
 from elastic_transport import ObjectApiResponse
 from pydantic import Field
 
+from tase.common.preprocessing import remove_hashtags, is_non_digit, is_non_space
 from tase.common.utils import async_timed, find_unique_hashtag_strings
 from tase.db.arangodb import graph as graph_models
 from tase.errors import PlaylistDoesNotExists
@@ -140,22 +141,46 @@ class Playlist(BaseDocument, BaseSoftDeletableDocument):
         query: Optional[str],
         filter_by_valid_for_inline_search: Optional[bool] = True,
     ) -> Optional[dict]:
-        return {
-            "bool": {
-                "must": {
-                    "multi_match": {
-                        "query": query,
-                        "fuzziness": "AUTO",
-                        "type": "best_fields",
-                        "minimum_should_match": "75%",
-                        "fields": cls.__search_fields__,
-                    }
-                },
-                "filter": [
-                    {"term": {"is_soft_deleted": False}},
-                ],
+        has_query = False
+
+        hashtags_lst = find_unique_hashtag_strings(query)
+        if hashtags_lst:
+            filter_ = [
+                {"term": {"is_soft_deleted": False}},
+                {"terms": {"hashtags": hashtags_lst}},
+            ]
+            query = remove_hashtags(query)
+            if query:
+                query = query.strip()
+                if query and is_non_digit(query) and is_non_space(query):
+                    has_query = True
+
+        else:
+            filter_ = [
+                {"term": {"is_soft_deleted": False}},
+            ]
+
+        if has_query:
+            return {
+                "bool": {
+                    "must": {
+                        "multi_match": {
+                            "query": query,
+                            "fuzziness": "AUTO",
+                            "type": "best_fields",
+                            "minimum_should_match": "75%",
+                            "fields": cls.__search_fields__,
+                        }
+                    },
+                    "filter": filter_,
+                }
             }
-        }
+        else:
+            return {
+                "bool": {
+                    "filter": filter_,
+                }
+            }
 
     @classmethod
     def get_sort(
