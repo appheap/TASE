@@ -4,6 +4,7 @@ import pyrogram
 
 from tase.common.utils import _trans, emoji
 from tase.db.arangodb import graph as graph_models
+from tase.db.arangodb.enums import ChatType
 from tase.telegram.update_handlers.base import BaseHandler
 from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineButtonData
 
@@ -83,7 +84,8 @@ class TogglePlaylistSettingsInlineButton(InlineButton):
 
         reply_markup = get_playlist_markup_keyboard(
             playlist,
-            from_user.chosen_language_code,
+            from_user,
+            ChatType.BOT,
             is_settings_visible=not is_settings_visible,
         )
 

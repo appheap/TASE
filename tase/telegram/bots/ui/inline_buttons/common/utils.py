@@ -352,7 +352,8 @@ def get_more_results_markup_keyboad(
 
 def get_playlist_markup_keyboard(
     playlist: Union[graph_models.vertices.Playlist, elasticsearch_models.Playlist],
-    chosen_language_code: str,
+    user: graph_models.vertices.User,
+    chat_type: ChatType,
     is_settings_visible: Optional[bool] = False,
 ) -> InlineKeyboardMarkup:
     """
@@ -361,9 +362,11 @@ def get_playlist_markup_keyboard(
     Parameters
     ----------
     playlist : graph_models.vertices.Playlist
-        Playlist vertex object
-    chosen_language_code : str
-        Language code chosen by the user who owns this playlist
+        Playlist vertex object.
+    user : graph_models.vertices.User
+        User that initiated this request.
+    chat_type : ChatType
+        Type of the chat this request originated from.
     is_settings_visible : bool, default : False
         Whether to show settings for non-favorite playlists or not.
 
@@ -383,30 +386,30 @@ def get_playlist_markup_keyboard(
                 [
                     GetPlaylistAudioInlineButton.get_keyboard(
                         playlist_key=playlist_key,
-                        lang_code=chosen_language_code,
+                        lang_code=user.chosen_language_code,
                     ),
                     # todo: add a button to get the top 10 audios from this playlist as a message
                 ],
                 [
-                    HomeInlineButton.get_keyboard(lang_code=chosen_language_code),
-                    BackToPlaylistsInlineButton.get_keyboard(lang_code=chosen_language_code),
+                    HomeInlineButton.get_keyboard(lang_code=user.chosen_language_code),
+                    BackToPlaylistsInlineButton.get_keyboard(lang_code=user.chosen_language_code),
                 ],
             ]
         else:
             markup = [
                 [
                     GetPlaylistAudioInlineButton.get_keyboard(
-                        lang_code=chosen_language_code,
+                        lang_code=user.chosen_language_code,
                         playlist_key=playlist_key,
                     ),
                 ],
                 [
-                    HomeInlineButton.get_keyboard(lang_code=chosen_language_code),
-                    BackToPlaylistsInlineButton.get_keyboard(lang_code=chosen_language_code),
+                    HomeInlineButton.get_keyboard(lang_code=user.chosen_language_code),
+                    BackToPlaylistsInlineButton.get_keyboard(lang_code=user.chosen_language_code),
                     TogglePlaylistSettingsInlineButton.get_keyboard(
                         playlist_key=playlist_key,
                         is_settings_visible=is_settings_visible,
-                        lang_code=chosen_language_code,
+                        lang_code=user.chosen_language_code,
                     ),
                 ],
             ]
@@ -416,40 +419,68 @@ def get_playlist_markup_keyboard(
                 [
                     EditPlaylistTitleInlineButton.get_keyboard(
                         playlist_key=playlist_key,
-                        lang_code=chosen_language_code,
+                        lang_code=user.chosen_language_code,
                     ),
                     EditPlaylistDescriptionInlineButton.get_keyboard(
                         playlist_key=playlist_key,
-                        lang_code=chosen_language_code,
+                        lang_code=user.chosen_language_code,
                     ),
                 ],
             )
             markup.append(
                 [
-                    DeletePlaylistInlineButton.get_keyboard(playlist_key=playlist_key, lang_code=chosen_language_code),
+                    DeletePlaylistInlineButton.get_keyboard(playlist_key=playlist_key, lang_code=user.chosen_language_code),
                 ],
             )
     else:
         markup = [
             [
                 GetPlaylistAudioInlineButton.get_keyboard(
-                    lang_code=chosen_language_code,
+                    lang_code=user.chosen_language_code,
                     playlist_key=playlist_key,
                 ),
             ],
             [
                 TogglePlaylistSubscriptionInlineButton.get_keyboard(
                     playlist_key=playlist_key,
-                    lang_code=chosen_language_code,
+                    lang_code=user.chosen_language_code,
                 ),
                 SharePlaylistInlineButton.get_keyboard(
                     playlist_key=playlist_key,
-                    lang_code=chosen_language_code,
+                    lang_code=user.chosen_language_code,
                 ),
             ],
             [
-                SearchAmongPublicPlaylistsInlineButton.get_keyboard(lang_code=chosen_language_code),
+                SearchAmongPublicPlaylistsInlineButton.get_keyboard(lang_code=user.chosen_language_code),
             ],
         ]
+        if user.user_id == playlist.owner_user_id and chat_type == ChatType.BOT:
+            markup.append(
+                [
+                    TogglePlaylistSettingsInlineButton.get_keyboard(
+                        playlist_key=playlist_key,
+                        is_settings_visible=is_settings_visible,
+                        lang_code=user.chosen_language_code,
+                    ),
+                ]
+            )
+            if is_settings_visible:
+                markup.append(
+                    [
+                        EditPlaylistTitleInlineButton.get_keyboard(
+                            playlist_key=playlist_key,
+                            lang_code=user.chosen_language_code,
+                        ),
+                        EditPlaylistDescriptionInlineButton.get_keyboard(
+                            playlist_key=playlist_key,
+                            lang_code=user.chosen_language_code,
+                        ),
+                    ],
+                )
+                markup.append(
+                    [
+                        DeletePlaylistInlineButton.get_keyboard(playlist_key=playlist_key, lang_code=user.chosen_language_code),
+                    ],
+                )
 
     return InlineKeyboardMarkup(markup)

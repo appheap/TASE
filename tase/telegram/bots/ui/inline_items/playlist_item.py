@@ -48,6 +48,8 @@ class PlaylistItem(BaseInlineItem):
 
         from tase.telegram.bots.ui.inline_items.item_info import PlaylistItemInfo
 
+        chat_type = ChatType.parse_from_pyrogram(telegram_inline_query.chat_type)
+
         if view_playlist:
             data = PlaylistData(
                 title=playlist.title,
@@ -63,7 +65,7 @@ class PlaylistItem(BaseInlineItem):
                 id=PlaylistItemInfo.parse_id(
                     telegram_inline_query,
                     playlist.key,
-                    ChatType.parse_from_pyrogram(telegram_inline_query.chat_type),
+                    chat_type,
                     hit_download_url,
                 ),
                 thumb_url=cls.get_playlist_thumbnail_url(playlist),
@@ -73,7 +75,8 @@ class PlaylistItem(BaseInlineItem):
                 ),
                 reply_markup=get_playlist_markup_keyboard(
                     playlist,
-                    user.chosen_language_code,
+                    user,
+                    chat_type,
                 ),
             )
         else:
@@ -83,7 +86,7 @@ class PlaylistItem(BaseInlineItem):
                 id=PlaylistItemInfo.parse_id(
                     telegram_inline_query,
                     playlist.key,
-                    ChatType.parse_from_pyrogram(telegram_inline_query.chat_type),
+                    chat_type,
                     hit_download_url,
                 ),
                 thumb_url=cls.get_playlist_thumbnail_url(playlist),
@@ -105,6 +108,8 @@ class PlaylistItem(BaseInlineItem):
         if playlist is None or user is None:
             return None
 
+        chat_type = ChatType.parse_from_pyrogram(telegram_inline_query.chat_type)
+
         if view_playlist:
             data = PlaylistData(
                 title=playlist.title,
@@ -120,6 +125,7 @@ class PlaylistItem(BaseInlineItem):
                 id=PlaylistItemInfo.parse_id(
                     telegram_inline_query,
                     playlist.id,
+                    chat_type,
                     hit_download_url=hit_download_url,
                 ),
                 thumb_url=cls.__public_url__,
@@ -129,7 +135,8 @@ class PlaylistItem(BaseInlineItem):
                 ),
                 reply_markup=get_playlist_markup_keyboard(
                     playlist,
-                    user.chosen_language_code,
+                    user,
+                    chat_type,
                 ),
             )
         else:
@@ -139,6 +146,7 @@ class PlaylistItem(BaseInlineItem):
                 id=PlaylistItemInfo.parse_id(
                     telegram_inline_query,
                     playlist.id,
+                    chat_type,
                     hit_download_url=hit_download_url,
                 ),
                 thumb_url=cls.__public_url__,
