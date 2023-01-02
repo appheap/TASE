@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import List, Optional
+
 import pyrogram
 
 from tase.common.utils import emoji
@@ -14,16 +16,51 @@ from tase.errors import (
 )
 from tase.my_logger import logger
 from tase.telegram.update_handlers.base import BaseHandler
-from .base import InlineButton, InlineButtonType
-from .common import get_audio_markup_keyboard
+from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineButtonData
+
+
+class ToggleFavoritePlaylistButtonData(InlineButtonData):
+    __button_type__ = InlineButtonType.ADD_TO_FAVORITE_PLAYLIST
+
+    chat_type: ChatType
+    hit_download_url: str
+
+    @classmethod
+    def generate_data(cls, chat_type: ChatType, hit_download_url: str) -> Optional[str]:
+        return f"{cls.get_type_value()}|{chat_type.value}|{hit_download_url}"
+
+    @classmethod
+    def __parse__(
+        cls,
+        data_split_lst: List[str],
+    ) -> Optional[InlineButtonData]:
+        if len(data_split_lst) != 3:
+            return None
+
+        return ToggleFavoritePlaylistButtonData(
+            chat_type=ChatType(int(data_split_lst[1])),
+            hit_download_url=data_split_lst[2],
+        )
 
 
 class ToggleFavoritePlaylistInlineButton(InlineButton):
-    name = "add_to_fav_playlist"
-    type = InlineButtonType.ADD_TO_FAVORITE_PLAYLIST
+    __type__ = InlineButtonType.ADD_TO_FAVORITE_PLAYLIST
+    action = ButtonActionType.CALLBACK
 
     text = f"{emoji._red_heart}"
-    is_inline = False
+
+    @classmethod
+    def get_keyboard(
+        cls,
+        *,
+        chat_type: ChatType,
+        hit_download_url: str,
+        lang_code: Optional[str] = "en",
+    ) -> pyrogram.types.InlineKeyboardButton:
+        return cls.get_button(cls.__type__).__parse_keyboard_button__(
+            callback_data=ToggleFavoritePlaylistButtonData.generate_data(chat_type, hit_download_url),
+            lang_code=lang_code,
+        )
 
     async def on_callback_query(
         self,
@@ -31,11 +68,10 @@ class ToggleFavoritePlaylistInlineButton(InlineButton):
         from_user: graph_models.vertices.User,
         client: pyrogram.Client,
         telegram_callback_query: pyrogram.types.CallbackQuery,
+        inline_button_data: ToggleFavoritePlaylistButtonData,
     ):
-        result_id_list = telegram_callback_query.data.split("->")
-        button_type_value = result_id_list[0]
-        hit_download_url = result_id_list[1]
-        chat_type = ChatType(int(result_id_list[2]))
+        hit_download_url = inline_button_data.hit_download_url
+        chat_type = inline_button_data.chat_type
 
         # add the audio to the playlist
         try:
@@ -70,6 +106,8 @@ class ToggleFavoritePlaylistInlineButton(InlineButton):
                             from_user,
                             hit_download_url=hit_download_url,
                         )
+                        from tase.telegram.bots.ui.inline_buttons.common import get_audio_markup_keyboard
+
                         reply_markup = get_audio_markup_keyboard(
                             (await handler.telegram_client.get_me()).username,
                             chat_type,

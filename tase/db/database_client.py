@@ -2,14 +2,16 @@ from typing import Optional
 
 import pyrogram
 
-from .arangodb import ArangoDB
+from .arangodb import ArangoDB, graph as graph_models
 from .arangodb.document import ArangoDocumentMethods
 from .arangodb.enums import AudioType
 from .arangodb.graph import ArangoGraphMethods
+from .arangodb.graph.edges import SubscribeTo
 from .elasticsearchdb import ElasticsearchDatabase
 from .elasticsearchdb.models import ElasticSearchMethods
 from .helpers import ChatScores
 from ..configs import ArangoDBConfig, ElasticConfig
+from ..errors import PlaylistDoesNotExists
 from ..my_logger import logger
 
 
@@ -172,3 +174,216 @@ class DatabaseClient:
 
         await self.graph.mark_chat_audios_as_deleted(chat_id=chat_id)
         await self.index.mark_chat_audios_as_deleted(chat_id=chat_id)
+
+    async def remove_playlist(
+        self,
+        user: graph_models.vertices.User,
+        playlist_key: str,
+        deleted_at: int,
+    ) -> bool:
+        """
+        Remove the `Playlist` with the given `playlist_key` and return whether the deletion was successful or not.
+
+        This method deleted the playlist from both `ArangoDB` and `ElasticSearch`.
+
+        Parameters
+        ----------
+        user : graph_models.vertices.User
+            User that playlist belongs to
+        playlist_key : str
+            Key of the playlist to delete
+        deleted_at : int
+            Timestamp of the deletion
+
+        Raises
+        ------
+        PlaylistDoesNotExists
+            If the user does not have a playlist with the given `playlist_key` parameter
+
+        Returns
+        -------
+        bool
+            Whether the deletion operation was successful or not.
+        """
+        if not user or not playlist_key or deleted_at is None:
+            return False
+
+        graph_updated = await self.graph.remove_playlist(user, playlist_key, deleted_at)
+
+        try:
+            es_updated = await self.index.remove_playlist(user, playlist_key, deleted_at)
+        except PlaylistDoesNotExists:
+            es_updated = True
+
+        return graph_updated & es_updated
+
+    async def update_playlist_title(
+        self,
+        user: graph_models.vertices.User,
+        playlist_key: str,
+        title: str,
+    ) -> bool:
+        """
+        Update playlist's title.
+
+        Parameters
+        ----------
+        user : graph_models.vertices.User
+            User requesting this update.
+        playlist_key : str
+            Key of the playlist to update its title.
+        title : str
+            New title for the playlist.
+
+        Returns
+        -------
+        bool
+            Whether the update was successful or not.
+        """
+        if not playlist_key or not title:
+            return False
+
+        playlist_vertex = await self.graph.get_user_playlist_by_key(
+            user,
+            playlist_key,
+            filter_out_soft_deleted=True,
+        )
+        if not playlist_vertex:
+            return False
+
+        graph_successful = await playlist_vertex.update_title(title)
+        if not graph_successful:
+            return False
+
+        await self.graph.update_connected_hashtags(playlist_vertex, playlist_vertex.find_hashtags())
+
+        if playlist_vertex.is_public:
+            es_playlist_doc = await self.index.get_playlist_by_id(playlist_key)
+            if not es_playlist_doc:
+                return False
+
+            es_successful = await es_playlist_doc.update_title(title)
+            if not es_successful:
+                return False
+
+            return graph_successful & es_successful
+
+        return graph_successful
+
+    async def update_playlist_description(
+        self,
+        user: graph_models.vertices.User,
+        playlist_key: str,
+        description: str,
+    ) -> bool:
+        """
+        Update playlist's description.
+
+        Parameters
+        ----------
+        user : graph_models.vertices.User
+            User requesting this update.
+        playlist_key : str
+            Key of the playlist to update its description.
+        description : str
+            New description for the playlist.
+
+        Returns
+        -------
+        bool
+            Whether the update was successful or not.
+        """
+        if not playlist_key or not description:
+            return False
+
+        playlist_vertex = await self.graph.get_user_playlist_by_key(
+            user,
+            playlist_key,
+            filter_out_soft_deleted=True,
+        )
+        if not playlist_vertex:
+            return False
+
+        graph_successful = await playlist_vertex.update_description(description)
+        if not graph_successful:
+            return False
+
+        await self.graph.update_connected_hashtags(playlist_vertex, playlist_vertex.find_hashtags())
+
+        if playlist_vertex.is_public:
+            es_playlist_doc = await self.index.get_playlist_by_id(playlist_key)
+            if not es_playlist_doc:
+                return False
+
+            es_successful = await es_playlist_doc.update_description(description)
+            if not es_successful:
+                return False
+
+            return graph_successful & es_successful
+
+        return graph_successful
+
+    async def get_or_create_playlist(
+        self,
+        user: graph_models.vertices.User,
+        title: str,
+        description: str,
+        is_favorite: bool,
+        is_public: bool,
+    ) -> Optional[graph_models.vertices.Playlist]:
+        """
+        Get a `Playlist` with the given `title` if it exists, otherwise, create it and return it.
+
+        Parameters
+        ----------
+        user : User
+            User to get/create this playlist.
+        title : str
+            Title of the Playlist
+        description : str, default : None
+            Description of the playlist
+        is_favorite : bool
+            Whether this playlist is favorite or not.
+        is_public : bool, default : False
+            Whether the created playlist is public or not.
+
+        Returns
+        -------
+        Playlist, optional
+            Created/Retrieved `Playlist` if the operation successful, return `None` otherwise.
+
+        Raises
+        ------
+        ValueError
+            If `is_public` and `is_favorite` are **True** at the same time.
+        """
+        if not user or not title:
+            return None
+
+        if is_favorite and is_public:
+            raise ValueError(f"Playlist cannot be favorite and public at the same time.")
+
+        db_playlist = await self.graph.get_or_create_playlist(
+            user,
+            title,
+            description,
+            is_favorite=False,
+            is_public=is_public,
+        )
+        if not db_playlist:
+            return None
+
+        if db_playlist.is_public:
+            if not await self.index.get_or_create_playlist(
+                user,
+                db_playlist.key,
+                db_playlist.title,
+                db_playlist.description,
+            ):
+                logger.error(f"Error in creating `Playlist` document in the ElasticSearch : `{db_playlist.key}`")
+
+            successful, subscribed = await self.graph.toggle_playlist_subscription(user, db_playlist)
+            if not successful or not subscribed:
+                logger.error(f"Error in creating `{SubscribeTo.__class__.__name__}` edge from `{user.key}` to `{db_playlist.key}`")
+
+        return db_playlist

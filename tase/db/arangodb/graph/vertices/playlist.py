@@ -6,7 +6,7 @@ from typing import Optional, Tuple, TYPE_CHECKING, List, Deque
 from pydantic import Field
 
 from aioarango.models import PersistentIndex
-from tase.common.utils import generate_token_urlsafe, prettify, get_now_timestamp, async_timed
+from tase.common.utils import generate_token_urlsafe, prettify, get_now_timestamp, async_timed, find_hashtags_in_text
 from tase.errors import (
     PlaylistDoesNotExists,
     HitDoesNotExists,
@@ -18,14 +18,16 @@ from tase.errors import (
     AudioVertexDoesNotExist,
 )
 from tase.my_logger import logger
-from . import Audio
 from .base_vertex import BaseVertex
 from .user import User
 
 if TYPE_CHECKING:
     from .. import ArangoGraphMethods
+    from .audio import Audio
+    from .hit import Hit
+
 from ...base import BaseSoftDeletableDocument
-from ...enums import TelegramAudioType, AudioType
+from ...enums import TelegramAudioType, AudioType, MentionSource
 
 
 class Playlist(BaseVertex, BaseSoftDeletableDocument):
@@ -50,11 +52,14 @@ class Playlist(BaseVertex, BaseSoftDeletableDocument):
 
     __non_updatable_fields__ = ("is_favorite",)
 
+    owner_user_id: int
+
     title: str
     description: Optional[str]
 
     rank: int
     is_favorite: bool = Field(default=False)
+    is_public: bool = Field(default=False)
 
     async def update_title(
         self,
@@ -122,6 +127,31 @@ class Playlist(BaseVertex, BaseSoftDeletableDocument):
             reserve_non_updatable_fields=True,
         )
 
+    def find_hashtags(self) -> List[Tuple[str, int, MentionSource]]:
+        """
+        Find hashtags in text attributes of this playlist vertex.
+
+        Returns
+        -------
+        list
+            A list containing a tuple of the `hashtag` string, its starting index, and its mention source.
+
+        Raises
+        ------
+        ValueError
+            If input data is invalid.
+        """
+        return find_hashtags_in_text(
+            [
+                self.title,
+                self.description,
+            ],
+            [
+                MentionSource.PLAYLIST_TITLE,
+                MentionSource.PLAYLIST_DESCRIPTION,
+            ],
+        )
+
 
 class PlaylistMethods:
     _get_user_playlist_by_title_query = (
@@ -155,6 +185,13 @@ class PlaylistMethods:
     _get_user_playlists_query = (
         "for v,e in 1..1 outbound @start_vertex graph @graph_name options {order:'dfs', edgeCollections:[@has],vertexCollections:[@playlists]}"
         "   sort v.rank ASC, v.modified_at DESC"
+        "   limit @offset, @limit"
+        "   return v"
+    )
+
+    _get_user_subscribed_playlists_query = (
+        "for v,e in 1..1 outbound @start_vertex graph @graph_name options {order:'dfs', edgeCollections:[@subscribe_to],vertexCollections:[@playlists]}"
+        "   sort v.rank ASC, v.is_public DESC, v.modified_at DESC"
         "   limit @offset, @limit"
         "   return v"
     )
@@ -213,6 +250,103 @@ class PlaylistMethods:
         "       filter v_aud._key == @audio_key"
         "       return true"
     )
+
+    _get_playlists_by_keys = "return document(@@playlists, @playlist_keys)"
+
+    _get_playlist_from_hit_query = (
+        "for v,e in 1..1 outbound @start_vertex graph @graph_name options {order:'dfs', edgeCollections:[@has], vertexCollections:[@playlists]}" "   return v"
+    )
+
+    async def get_playlists_from_keys(
+        self,
+        keys: List[str],
+    ) -> Deque[Playlist]:
+        """
+        Get a list of Playlists from a list of keys.
+
+        Parameters
+        ----------
+        keys : List[str]
+            List of keys to get the playlists from.
+
+        Returns
+        -------
+        Deque
+            List of Playlists if operation was successful, otherwise, return None
+
+        """
+        if not keys:
+            return collections.deque()
+
+        res = collections.deque()
+        async with await Playlist.execute_query(
+            self._get_playlists_by_keys,
+            bind_vars={
+                "@playlists": Playlist.__collection_name__,
+                "playlist_keys": list(keys),
+            },
+        ) as cursor:
+            async for playlist_lst in cursor:
+                for doc in playlist_lst:
+                    res.append(Playlist.from_collection(doc))
+
+        return res
+
+    async def get_playlist_from_hit(
+        self,
+        hit: Hit,
+    ) -> Optional[Playlist]:
+        """
+        Get an `Playlist` vertex from the given `Hit` vertex
+
+        Parameters
+        ----------
+        hit : Hit
+            Hit to get the playlist from.
+
+        Returns
+        -------
+        Playlist, optional
+            Playlist if operation was successful, otherwise, return None
+
+        Raises
+        ------
+        ValueError
+            If the given `Hit` vertex has more than one linked `Playlist` vertices.
+        """
+        if hit is None:
+            return
+
+        from tase.db.arangodb.graph.edges import Has
+
+        res = collections.deque()
+        async with await Playlist.execute_query(
+            self._get_playlist_from_hit_query,
+            bind_vars={
+                "start_vertex": hit.id,
+                "playlists": Playlist.__collection_name__,
+                "has": Has.__collection_name__,
+            },
+        ) as cursor:
+            async for doc in cursor:
+                res.append(Playlist.from_collection(doc))
+
+        if len(res) > 1:
+            raise ValueError(f"Hit with id `{hit.id}` have more than one linked audios.")
+
+        if res:
+            return res[0]
+
+        return None
+
+    async def get_playlist_by_key(
+        self,
+        playlist_key: str,
+    ) -> Optional[Playlist]:
+        if not playlist_key:
+            return None
+
+        return await Playlist.get(playlist_key)
 
     async def get_user_playlist_by_title(
         self,
@@ -341,11 +475,12 @@ class PlaylistMethods:
         return None
 
     async def create_playlist(
-        self,
+        self: ArangoGraphMethods,
         user: User,
         title: str,
         description: str,
         is_favorite: bool,
+        is_public: bool,
     ) -> Optional[Playlist]:
         """
         Create a `Playlist` for the given `user` and return it the operation was successful, otherwise, return `None`.
@@ -360,6 +495,8 @@ class PlaylistMethods:
             Description of the playlist
         is_favorite : bool
             Whether the created playlist is favorite or not.
+        is_public : bool
+            Whether the created playlist is public or not.
 
         Returns
         -------
@@ -370,6 +507,9 @@ class PlaylistMethods:
         -----
             Only `1` favorite playlist is allowed per user.
         """
+
+        if is_favorite and is_public:
+            return None
 
         # making sure of the `key` uniqueness
         while True:
@@ -383,9 +523,11 @@ class PlaylistMethods:
 
         v = Playlist(
             key=key,
+            owner_user_id=user.user_id,
             title=title,
             description=description,
             is_favorite=is_favorite,
+            is_public=is_public,
             rank=1 if is_favorite else 2,
         )
 
@@ -403,7 +545,15 @@ class PlaylistMethods:
                     # todo: could not delete the playlist, what now?
                     logger.error(f"Could not delete playlist: {prettify(playlist)}")
             else:
-                return playlist if has_edge else None
+                if not has_edge:
+                    logger.error(f"Error in creating `Has` edge from `{user.id}` to `{playlist.id}`")
+                    await playlist.delete()
+                    return None
+
+                # Create hashtag vertices and connect them together.
+                await self.update_connected_hashtags(playlist, playlist.find_hashtags())
+
+                return playlist
 
         return playlist
 
@@ -413,6 +563,7 @@ class PlaylistMethods:
         title: str,
         description: str = None,
         is_favorite: bool = False,
+        is_public: bool = False,
     ) -> Optional[Playlist]:
         """
         Get a `Playlist` with the given `title` if it exists, otherwise, create it and return it.
@@ -427,6 +578,8 @@ class PlaylistMethods:
             Description of the playlist
         is_favorite : bool
             Whether this playlist is favorite or not.
+        is_public : bool, default : False
+            Whether the created playlist is public or not.
 
         Returns
         -------
@@ -453,7 +606,7 @@ class PlaylistMethods:
         if playlist:
             return playlist
 
-        return await self.create_playlist(user, title, description, is_favorite)
+        return await self.create_playlist(user, title, description, is_favorite, is_public)
 
     async def create_favorite_playlist(
         self,
@@ -478,6 +631,7 @@ class PlaylistMethods:
             title="Favorite",
             description="Favorite Playlist",
             is_favorite=True,
+            is_public=False,
         )
 
     async def get_or_create_favorite_playlist(
@@ -578,7 +732,7 @@ class PlaylistMethods:
         limit: int = 15,
     ) -> List[Playlist]:
         """
-        Get `User` playlists.
+        Get playlists that user has created them.
 
         Parameters
         ----------
@@ -606,6 +760,51 @@ class PlaylistMethods:
             bind_vars={
                 "start_vertex": user.id,
                 "has": Has.__collection_name__,
+                "playlists": Playlist.__collection_name__,
+                "offset": offset,
+                "limit": limit,
+            },
+        ) as cursor:
+            async for doc in cursor:
+                res.append(Playlist.from_collection(doc))
+
+        return list(res)
+
+    async def get_user_subscribed_playlists(
+        self,
+        user: User,
+        offset: int = 0,
+        limit: int = 15,
+    ) -> List[Playlist]:
+        """
+        Get playlists that the user has subscribed to.
+
+        Parameters
+        ----------
+        user : User
+            User to get playlist list for
+        offset : int, default : 0
+            Offset to get the playlists query after
+        limit : int, default : 15
+            Number of `Playlists`s to query
+
+        Returns
+        ------
+        list of Playlist
+            List of Playlists that the given user has
+
+        """
+        if user is None:
+            return []
+
+        from tase.db.arangodb.graph.edges import SubscribeTo
+
+        res = collections.deque()
+        async with await Playlist.execute_query(
+            self._get_user_subscribed_playlists_query,
+            bind_vars={
+                "start_vertex": user.id,
+                "subscribe_to": SubscribeTo.__collection_name__,
                 "playlists": Playlist.__collection_name__,
                 "offset": offset,
                 "limit": limit,
@@ -647,6 +846,7 @@ class PlaylistMethods:
             return []
 
         from tase.db.arangodb.graph.edges import Has
+        from tase.db.arangodb.graph.vertices import Audio
 
         res = collections.deque()
         async with await Playlist.execute_query(
@@ -881,7 +1081,6 @@ class PlaylistMethods:
     @async_timed()
     async def get_playlist_audios(
         self: ArangoGraphMethods,
-        user: User,
         playlist_key: str,
         filter_by_valid_for_inline_search: bool = True,
         offset: int = 0,
@@ -892,8 +1091,6 @@ class PlaylistMethods:
 
         Parameters
         ----------
-        user : User
-            User to get the playlist audios from
         playlist_key : str
             Playlist key to get the audios from
         filter_by_valid_for_inline_search : bool, default : True
@@ -913,20 +1110,18 @@ class PlaylistMethods:
         PlaylistDoesNotExists
             If user does not have a playlist with the given playlist_key
         """
-        if user is None:
+        if not playlist_key:
             return collections.deque()
 
-        playlist = await self.get_user_playlist_by_key(user, playlist_key, filter_out_soft_deleted=True)
-        if playlist is None:
-            raise PlaylistDoesNotExists(user.key, playlist_key)
-
         from tase.db.arangodb.graph.edges import Has
+        from tase.db.arangodb.graph.vertices import Audio
 
         res = collections.deque()
-        async with await Audio.execute_query(
+
+        async with await Playlist.execute_query(
             self._get_playlist_audios_for_inline_query if filter_by_valid_for_inline_search else self._get_playlist_audios_query,
             bind_vars={
-                "start_vertex": playlist.id,
+                "start_vertex": f"{Playlist.__collection_name__}/{playlist_key}",
                 "has": Has.__collection_name__,
                 "audios": Audio.__collection_name__,
                 "archived_lst": [AudioType.ARCHIVED.value, AudioType.UPLOADED.value, AudioType.SENT_BY_USERS.value],
@@ -1055,6 +1250,7 @@ class PlaylistMethods:
             raise InvalidAudioForInlineMode(audio.key)
 
         from tase.db.arangodb.graph.edges import Has
+        from tase.db.arangodb.graph.vertices import Audio
 
         async with await Playlist.execute_query(
             self._audio_in_favorite_playlist_query,

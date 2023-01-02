@@ -1,27 +1,63 @@
 import asyncio
-from typing import Match, Optional
+from typing import Optional, Union, List
 
 import pyrogram
 
 from tase.common.utils import _trans, emoji
 from tase.db.arangodb import graph as graph_models
-from tase.db.arangodb.enums import InteractionType, ChatType, InlineQueryType
+from tase.db.arangodb.enums import InlineQueryType, ChatType, InteractionType
 from tase.errors import PlaylistDoesNotExists
 from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
-from .base import InlineButton, InlineButtonType
-from .common import populate_audio_items
-from ..inline_items import PlaylistItem, NoDownloadItem
+from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemType, InlineButtonData
+from ..inline_items.item_info import PlaylistItemInfo, AudioItemInfo
+
+
+class GetPlaylistAudiosButtonData(InlineButtonData):
+    __button_type__ = InlineButtonType.GET_PLAYLIST_AUDIOS
+
+    playlist_key: str
+
+    @classmethod
+    def generate_data(cls, playlist_key: str) -> Optional[str]:
+        return f"#{cls.get_type_value()}|{playlist_key}"
+
+    @classmethod
+    def __parse__(
+        cls,
+        data_split_lst: List[str],
+    ) -> Optional[InlineButtonData]:
+        if len(data_split_lst) != 2:
+            return None
+
+        return GetPlaylistAudiosButtonData(playlist_key=data_split_lst[1])
 
 
 class GetPlaylistAudioInlineButton(InlineButton):
-    name = "get_playlist_audios"
-    type = InlineButtonType.GET_PLAYLIST_AUDIOS
+    __type__ = InlineButtonType.GET_PLAYLIST_AUDIOS
+    action = ButtonActionType.CURRENT_CHAT_INLINE
+    __switch_inline_query__ = "get_pl"
+
+    __valid_inline_items__ = [
+        InlineItemType.AUDIO,
+        InlineItemType.PLAYLIST,
+    ]
 
     s_audios = _trans("Audio Files")
     text = f"{s_audios} | {emoji._headphone}"
-    is_inline = True
+
+    @classmethod
+    def get_keyboard(
+        cls,
+        *,
+        playlist_key: str,
+        lang_code: Optional[str] = "en",
+    ) -> pyrogram.types.InlineKeyboardButton:
+        return cls.get_button(cls.__type__).__parse_keyboard_button__(
+            switch_inline_query_current_chat=GetPlaylistAudiosButtonData.generate_data(playlist_key),
+            lang_code=lang_code,
+        )
 
     async def on_inline_query(
         self,
@@ -31,56 +67,71 @@ class GetPlaylistAudioInlineButton(InlineButton):
         client: pyrogram.Client,
         telegram_inline_query: pyrogram.types.InlineQuery,
         query_date: int,
-        reg: Optional[Match] = None,
+        inline_button_data: Optional[GetPlaylistAudiosButtonData] = None,
     ):
-        playlist_key = reg.group("arg1")
-
         playlist_is_valid = False  # whether the requested playlist belongs to the user or not
         audio_vertices = None
         hit_download_urls = None
 
+        playlist = await handler.db.graph.get_playlist_by_key(inline_button_data.playlist_key)
+
         if result.is_first_page():
-            playlist = await handler.db.graph.get_user_playlist_by_key(
-                from_user,
-                playlist_key,
-                filter_out_soft_deleted=True,
-            )
-            if playlist:
-                playlist_is_valid = True
-                result.add_item(
-                    PlaylistItem.get_item(
-                        playlist,
-                        from_user,
-                        telegram_inline_query,
-                        view_playlist=True,
-                    ),
-                    count=False,
-                )
-            else:
-                playlist_is_valid = False
+            from tase.telegram.bots.ui.inline_items import PlaylistItem
+
+            if playlist and not playlist.is_soft_deleted:
+                if not playlist.is_public:
+                    # if this playlist is private, then it can only be accessed if the user querying it is the owner.
+                    if playlist.owner_user_id == from_user.user_id:
+                        playlist_is_valid = True
+                        result.add_item(
+                            PlaylistItem.get_item(
+                                playlist,
+                                from_user,
+                                telegram_inline_query,
+                                view_playlist=True,
+                            ),
+                            count=False,
+                        )
+                else:
+                    playlist_is_valid = True
+                    result.add_item(
+                        PlaylistItem.get_item(
+                            playlist,
+                            from_user,
+                            telegram_inline_query,
+                            view_playlist=True,
+                        ),
+                        count=False,
+                    )
         else:
+            # since the playlist validation has been done in the first page, it is not necessary to redo it.
             playlist_is_valid = True
 
         if playlist_is_valid:
             try:
                 audio_vertices = await handler.db.graph.get_playlist_audios(
-                    from_user,
-                    playlist_key,
+                    inline_button_data.playlist_key,
                     offset=result.from_,
                 )
             except PlaylistDoesNotExists:
                 # since it is already been checked that the playlist belongs to the user, this exception will not occur
                 pass
             else:
+                from tase.telegram.bots.ui.inline_buttons.common import populate_audio_items
+
                 hit_download_urls = await populate_audio_items(
                     audio_vertices,
                     from_user,
                     handler,
                     result,
                     telegram_inline_query,
+                    InlineQueryType.PUBLIC_PLAYLIST_COMMAND if playlist.is_public else InlineQueryType.PRIVATE_PLAYLIST_COMMAND,
+                    playlist_key=playlist.key,
                 )
 
         if not len(result) and not playlist_is_valid and result.is_first_page():
+            from tase.telegram.bots.ui.inline_items import NoDownloadItem
+
             result.set_results([NoDownloadItem.get_item(from_user)])
 
         await result.answer_query()
@@ -93,7 +144,7 @@ class GetPlaylistAudioInlineButton(InlineButton):
                 query_date,
                 audio_vertices,
                 telegram_inline_query=telegram_inline_query,
-                inline_query_type=InlineQueryType.COMMAND,
+                inline_query_type=InlineQueryType.PUBLIC_PLAYLIST_COMMAND if playlist.is_public else InlineQueryType.PRIVATE_PLAYLIST_COMMAND,
                 next_offset=result.get_next_offset(only_countable=True),
                 hit_download_urls=hit_download_urls,
             )
@@ -104,13 +155,12 @@ class GetPlaylistAudioInlineButton(InlineButton):
         client: pyrogram.Client,
         from_user: graph_models.vertices.User,
         telegram_chosen_inline_result: pyrogram.types.ChosenInlineResult,
-        reg: Match,
+        inline_button_data: GetPlaylistAudiosButtonData,
+        inline_item_info: Union[AudioItemInfo, PlaylistItemInfo],
     ):
-
-        result_id_list = telegram_chosen_inline_result.result_id.split("->")
-        inline_query_id = result_id_list[0]
-        hit_download_url = result_id_list[1]
-        chat_type = ChatType(int(result_id_list[2]))
+        # only if the user has clicked on an audio item, the rest of the code should be executed.
+        if inline_item_info.type != InlineItemType.AUDIO:
+            return
 
         # update the keyboard markup of the downloaded audio
         update_keyboard_task = asyncio.create_task(
@@ -118,19 +168,36 @@ class GetPlaylistAudioInlineButton(InlineButton):
                 client,
                 from_user,
                 telegram_chosen_inline_result,
-                hit_download_url,
-                chat_type,
+                inline_item_info.hit_download_url,
+                inline_item_info.chat_type,
             )
         )
 
-        interaction_vertex = await handler.db.graph.create_interaction(
-            hit_download_url,
+        playlist = await handler.db.graph.get_playlist_by_key(inline_item_info.playlist_key)
+        if not playlist:
+            return
+
+        if inline_item_info.inline_query_type == InlineQueryType.PRIVATE_PLAYLIST_COMMAND:
+            type_ = InteractionType.REDOWNLOAD_AUDIO
+        elif inline_item_info.inline_query_type == InlineQueryType.PUBLIC_PLAYLIST_COMMAND:
+            if inline_item_info.chat_type == ChatType.BOT:
+                type_ = InteractionType.REDOWNLOAD_AUDIO
+            else:
+                if from_user.user_id == playlist.owner_user_id:
+                    type_ = InteractionType.SHARE_AUDIO
+                else:
+                    type_ = InteractionType.DOWNLOAD_AUDIO
+        else:
+            return
+
+        if not await handler.db.graph.create_interaction(
             from_user,
             handler.telegram_client.telegram_id,
-            InteractionType.SHARE,
-            chat_type,
-        )
-        if not interaction_vertex:
+            type_,
+            inline_item_info.chat_type,
+            audio_hit_download_url=inline_item_info.hit_download_url,
+            playlist_key=inline_item_info.playlist_key,
+        ):
             # could not create the interaction_vertex
             logger.error("Could not create the `interaction_vertex` vertex:")
             logger.error(telegram_chosen_inline_result)

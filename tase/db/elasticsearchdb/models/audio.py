@@ -57,6 +57,7 @@ class Audio(BaseDocument):
             "views": {"type": "long"},
             "downloads": {"type": "long"},
             "shares": {"type": "long"},
+            "link_shares": {"type": "long"},
             "search_hits": {"type": "long"},
             "non_search_hits": {"type": "long"},
             "likes": {"type": "long"},
@@ -116,7 +117,9 @@ class Audio(BaseDocument):
 
     views: int = Field(default=0)
     downloads: int = Field(default=0)
+    redownloads: int = Field(default=0)
     shares: int = Field(default=0)
+    link_shares: int = Field(default=0)
     search_hits: int = Field(default=0)
     non_search_hits: int = Field(default=0)
     likes: int = Field(default=0)
@@ -512,10 +515,12 @@ class Audio(BaseDocument):
             "date": {"order": "desc"},
             "downloads": {"order": "desc"},
             "shares": {"order": "desc"},
+            "redownloads": {"order": "desc"},
             "search_hits": {"order": "desc"},
             "non_search_hits": {"order": "desc"},
             "likes": {"order": "desc"},
             "dislikes": {"order": "asc"},
+            "link_shares": {"order": "desc"},
         }
 
     async def update_by_interaction_count(
@@ -528,7 +533,7 @@ class Audio(BaseDocument):
         Parameters
         ----------
         interaction_count : InteractionCount
-            InteractionCount object to update the index document with
+            `InteractionCount` object to update the index document with
 
         Returns
         -------
@@ -540,22 +545,28 @@ class Audio(BaseDocument):
             return False
 
         self_copy: Audio = self.copy(deep=True)
-        if interaction_count.interaction_type == InteractionType.DOWNLOAD:
+        if interaction_count.interaction_type == InteractionType.DOWNLOAD_AUDIO:
             self_copy.downloads += interaction_count.count
-        elif interaction_count.interaction_type == InteractionType.SHARE:
+        elif interaction_count.interaction_type == InteractionType.REDOWNLOAD_AUDIO:
+            self_copy.redownloads += interaction_count.count
+        elif interaction_count.interaction_type == InteractionType.SHARE_AUDIO:
             self_copy.shares += interaction_count.count
-        elif interaction_count.interaction_type == InteractionType.LIKE:
+        elif interaction_count.interaction_type == InteractionType.SHARE_AUDIO_LINK:
+            self_copy.link_shares += interaction_count.count
+        elif interaction_count.interaction_type == InteractionType.LIKE_AUDIO:
             if interaction_count.is_active:
                 self_copy.likes += interaction_count.count
             else:
                 if self_copy.likes > 0:
                     self_copy.likes -= interaction_count.count
-        elif interaction_count.interaction_type == InteractionType.DISLIKE:
+        elif interaction_count.interaction_type == InteractionType.DISLIKE_AUDIO:
             if interaction_count.is_active:
                 self_copy.dislikes += interaction_count.count
             else:
                 if self_copy.dislikes > 0:
                     self_copy.dislikes -= interaction_count.count
+        else:
+            return False
 
         return await self.update(
             self_copy,
@@ -586,9 +597,9 @@ class Audio(BaseDocument):
             return False
 
         self_copy: Audio = self.copy(deep=True)
-        if hit_count.hit_type in (HitType.SEARCH, HitType.INLINE_SEARCH):
+        if hit_count.hit_type in (HitType.NON_INLINE_AUDIO_SEARCH, HitType.INLINE_AUDIO_SEARCH):
             self_copy.search_hits += hit_count.count
-        elif hit_count.hit_type == HitType.INLINE_COMMAND:
+        elif hit_count.hit_type == HitType.INLINE_AUDIO_COMMAND:
             self_copy.non_search_hits += hit_count.count
 
         return await self.update(

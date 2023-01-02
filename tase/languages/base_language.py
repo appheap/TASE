@@ -1,5 +1,7 @@
 from pydantic import BaseModel
 
+from tase.db.arangodb.enums import ChatType
+
 
 class Language(BaseModel):
     code: str
@@ -10,4 +12,6 @@ class Language(BaseModel):
         return f" {self.flag} {self.name}"
 
     def get_choose_language_callback_data(self) -> str:
-        return f"choose_language->{self.code}->{0}"
+        from tase.telegram.bots.ui.base import InlineButtonType
+
+        return f"{InlineButtonType.CHOOSE_LANGUAGE.value}|{ChatType.BOT.value}|{self.code}"

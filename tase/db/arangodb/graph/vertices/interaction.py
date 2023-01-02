@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import collections
 import uuid
 from typing import Optional, TYPE_CHECKING, Tuple, List
@@ -13,6 +14,7 @@ from tase.errors import (
     HitDoesNotExists,
     HitNoLinkedAudio,
     AudioVertexDoesNotExist,
+    HitNoLinkedPlaylist,
 )
 from tase.my_logger import logger
 from .base_vertex import BaseVertex
@@ -65,7 +67,7 @@ class Interaction(BaseVertex):
         type_: InteractionType,
         chat_type: ChatType,
     ) -> Optional[Interaction]:
-        if key is None:
+        if not key or not type_ or not chat_type:
             return None
 
         return Interaction(
@@ -89,11 +91,19 @@ class InteractionMethods:
         "       return true"
     )
 
-    _interaction_by_user_query = (
+    _get_audio_interaction_by_user_query = (
         "for v_int in 1..1 outbound @user_id graph @graph_name options {order : 'dfs', edgeCollections : [@has], vertexCollections : [@interactions]}"
         "   filter v_int.type == @interaction_type"
         "   for v_aud in 1..1 outbound v_int._id graph @graph_name options {order : 'dfs', edgeCollections : [@has], vertexCollections : [@audios]}"
         "       filter v_aud._key == @audio_key"
+        "       return v_int"
+    )
+
+    _get_playlist_interaction_by_user_query = (
+        "for v_int in 1..1 outbound @user_id graph @graph_name options {order : 'dfs', edgeCollections : [@has], vertexCollections : [@interactions]}"
+        "   filter v_int.type == @interaction_type"
+        "   for v_playlist in 1..1 outbound v_int._id graph @graph_name options {order : 'dfs', edgeCollections : [@has], vertexCollections : [@playlists]}"
+        "       filter v_playlist._key == @playlist_key"
         "       return v_int"
     )
 
@@ -109,19 +119,19 @@ class InteractionMethods:
 
     async def create_interaction(
         self: ArangoGraphMethods,
-        hit_download_url: str,
         user: User,
         bot_id: int,
         type_: InteractionType,
         chat_type: ChatType,
+        audio_hit_download_url: Optional[str] = None,
+        playlist_hit_download_url: Optional[str] = None,
+        playlist_key: Optional[str] = None,
     ) -> Optional[Interaction]:
         """
-        Create `Download` vertex from the given `hit_download_url` parameter.
+        Create an interaction vertex for and audio vertex from the given `hit_download_url` parameter.
 
         Parameters
         ----------
-        hit_download_url : str
-            Hit's `download_url` to create the `Download` vertex
         user : User
             User to create the `Download` vertex for
         bot_id : int
@@ -130,6 +140,12 @@ class InteractionMethods:
             Type of interaction to create
         chat_type : ChatType
             Type of the chat this interaction happened in
+        audio_hit_download_url : str, default : None
+            Hit's `download_url` to create the `Interaction` vertex from.
+        playlist_hit_download_url : str, default : None
+            Hit's `download_url` to create the `Interaction` vertex from.
+        playlist_key : str, default : None
+            Key of the playlist to create the interaction for.
 
         Returns
         -------
@@ -137,21 +153,54 @@ class InteractionMethods:
             Interaction vertex if the creation was successful, otherwise, return None
 
         """
-        if hit_download_url is None or user is None or bot_id is None or type_ is None or chat_type is None:
+        if not user or bot_id is None or not chat_type or not type_:
+            return None
+
+        if not audio_hit_download_url and not playlist_hit_download_url and not playlist_key:
+            return None
+
+        audio = None
+        playlist = None
+        hit = None
+
+        if audio_hit_download_url or playlist_hit_download_url:
+            retry_left = 5
+            hit = None
+            while retry_left:
+                hit = await self.find_hit_by_download_url(audio_hit_download_url or playlist_hit_download_url)
+                if not hit:
+                    retry_left -= 1
+                    await asyncio.sleep(2)
+                    continue
+
+                break
+
+            if not hit:
+                return None
+
+        if playlist_key:
+            playlist = await self.get_playlist_by_key(playlist_key)
+            if not playlist:
+                return None
+
+        if audio_hit_download_url:
+            try:
+                audio = await self.get_audio_from_hit(hit)
+            except ValueError:
+                # happens when the `Hit` has more than linked `Audio` vertices
+                return None
+
+        if audio_hit_download_url and not audio:
+            return None
+
+        if playlist_key and not playlist:
+            return None
+
+        if (audio_hit_download_url or playlist_hit_download_url) and not hit:
             return None
 
         bot = await self.get_user_by_telegram_id(bot_id)
         if bot is None:
-            return None
-
-        hit = await self.find_hit_by_download_url(hit_download_url)
-        if hit is None:
-            return None
-
-        try:
-            audio = await self.get_audio_from_hit(hit)
-        except ValueError:
-            # happens when the `Hit` has more than linked `Audio` vertices
             return None
 
         while True:
@@ -178,17 +227,26 @@ class InteractionMethods:
 
         # from tase.db.arangodb.graph.edges import FromBot
 
-        try:
-            await Has.get_or_create_edge(interaction, audio)
-        except (InvalidFromVertex, InvalidToVertex):
-            logger.error("ValueError: Could not create `has` edge from `Interaction` vertex to `Audio` vertex")
-            return None
+        if playlist:
+            try:
+                await Has.get_or_create_edge(interaction, playlist)
+            except (InvalidFromVertex, InvalidToVertex):
+                logger.error("ValueError: Could not create `has` edge from `Interaction` vertex to `Playlist` vertex")
+                return None
 
-        try:
-            await FromHit.get_or_create_edge(interaction, hit)
-        except (InvalidFromVertex, InvalidToVertex):
-            logger.error("ValueError: Could not create `from_hit` edge from `Interaction` vertex to `Hit` vertex")
-            return None
+        if audio:
+            try:
+                await Has.get_or_create_edge(interaction, audio)
+            except (InvalidFromVertex, InvalidToVertex):
+                logger.error("ValueError: Could not create `has` edge from `Interaction` vertex to `Audio` vertex")
+                return None
+
+        if hit:
+            try:
+                await FromHit.get_or_create_edge(interaction, hit)
+            except (InvalidFromVertex, InvalidToVertex):
+                logger.error("ValueError: Could not create `from_hit` edge from `Interaction` vertex to `Hit` vertex")
+                return None
 
         try:
             await Has.get_or_create_edge(user, interaction)
@@ -218,11 +276,11 @@ class InteractionMethods:
         Parameters
         ----------
         user : User
-            User to run the query on
+            User to run the query on.
         hit_download_url : str
-            Hit download_url to get the audio from
+            Hit download_url to get the audio from.
         interaction_type : InteractionType
-            Type of the interaction to check
+            Type of the interaction to check.
 
         Returns
         -------
@@ -232,9 +290,9 @@ class InteractionMethods:
         Raises
         ------
         HitDoesNotExists
-            If `Hit` vertex does not exist with the `hit_download_url` parameter
+            If `Hit` vertex does not exist with the `hit_download_url` parameter.
         HitNoLinkedAudio
-            If `Hit` vertex does not have any linked `Audio` vertex with it
+            If `Hit` vertex does not have any linked `Audio` vertex with it.
         ValueError
             If the given `Hit` vertex has more than one linked `Audio` vertices.
         """
@@ -254,7 +312,7 @@ class InteractionMethods:
         from tase.db.arangodb.graph.vertices import Audio
 
         async with await Interaction.execute_query(
-            self._interaction_by_user_query,
+            self._get_audio_interaction_by_user_query,
             bind_vars={
                 "user_id": user.id,
                 "audio_key": audio.key,
@@ -262,6 +320,69 @@ class InteractionMethods:
                 "has": Has.__collection_name__,
                 "interactions": Interaction.__collection_name__,
                 "audios": Audio.__collection_name__,
+            },
+        ) as cursor:
+            async for doc in cursor:
+                return Interaction.from_collection(doc)
+
+        return None
+
+    async def get_playlist_interaction_by_user(
+        self: ArangoGraphMethods,
+        user: User,
+        hit_download_url: str,
+        interaction_type: InteractionType,
+    ) -> Optional[Interaction]:
+        """
+        Get `Interaction` vertex with an `Playlist` by a user.
+
+        Parameters
+        ----------
+        user : User
+            User to run the query on
+        hit_download_url : str
+            Hit download_url to get the playlist from
+        interaction_type : InteractionType
+            Type of the interaction to check
+
+        Returns
+        -------
+        Interaction, optional
+            Whether the playlist is liked by a user or not.
+
+        Raises
+        ------
+        HitDoesNotExists
+            If `Hit` vertex does not exist with the `hit_download_url` parameter.
+        HitNoLinkedPlaylist
+            If `Hit` vertex does not have any linked `Playlist` vertex with it.
+        ValueError
+            If the given `Hit` vertex has more than one linked `Playlist` vertices.
+        """
+        if user is None or hit_download_url is None:
+            return None
+
+        hit = await self.find_hit_by_download_url(hit_download_url)
+        if hit is None:
+            raise HitDoesNotExists(hit_download_url)
+
+        playlist = await self.get_playlist_from_hit(hit)
+        if playlist is None:
+            raise HitNoLinkedPlaylist(hit_download_url)
+
+        from tase.db.arangodb.graph.edges import Has
+
+        from tase.db.arangodb.graph.vertices import Playlist
+
+        async with await Interaction.execute_query(
+            self._get_playlist_interaction_by_user_query,
+            bind_vars={
+                "user_id": user.id,
+                "playlist_key": playlist.key,
+                "interaction_type": interaction_type.value,
+                "has": Has.__collection_name__,
+                "interactions": Interaction.__collection_name__,
+                "playlists": Playlist.__collection_name__,
             },
         ) as cursor:
             async for doc in cursor:
@@ -307,10 +428,10 @@ class InteractionMethods:
         ValueError
             If the given `Hit` vertex has more than one linked `Audio` vertices.
         """
-        if user is None or (hit_download_url is None and audio_vertex_key is None):
+        if user is None or (not hit_download_url and not audio_vertex_key):
             return None
 
-        if hit_download_url is not None:
+        if hit_download_url:
             hit = await self.find_hit_by_download_url(hit_download_url)
             if hit is None:
                 raise HitDoesNotExists(hit_download_url)
@@ -327,7 +448,7 @@ class InteractionMethods:
 
         from tase.db.arangodb.graph.vertices import Audio
 
-        cursor = await Interaction.execute_query(
+        async with await Interaction.execute_query(
             self._is_audio_interacted_by_user_query,
             bind_vars={
                 "user_id": user.id,
@@ -337,11 +458,10 @@ class InteractionMethods:
                 "interactions": Interaction.__collection_name__,
                 "audios": Audio.__collection_name__,
             },
-        )
+        ) as cursor:
+            return not cursor.empty()
 
-        return True if cursor is not None and len(cursor) else False
-
-    async def toggle_interaction(
+    async def toggle_audio_interaction(
         self: ArangoGraphMethods,
         user: User,
         bot_id: int,
@@ -355,11 +475,112 @@ class InteractionMethods:
         Parameters
         ----------
         user : User
+            User to run the query on.
+        bot_id : int
+            ID of the BOT this query was ran on.
+        hit_download_url : str
+            Hit download_url to get the audio from.
+        chat_type : ChatType
+            Type of the chat this interaction happened in.
+        interaction_type : InteractionType
+            Type of the interaction to toggle.
+
+        Returns
+        -------
+        tuple
+            Whether the operation was successful and the user had interacted with the audio in the first place
+
+        Raises
+        ------
+        HitDoesNotExists
+            If `Hit` vertex does not exist with the `hit_download_url` parameter.
+        HitNoLinkedAudio
+            If `Hit` vertex does not have any linked `Audio` vertex with it.
+        EdgeDeletionFailed
+            If deletion of an edge fails.
+        ValueError
+            If the given `Hit` vertex has more than one linked `Audio` vertices.
+        """
+        return await self._toggle_interaction(
+            user=user,
+            bot_id=bot_id,
+            chat_type=chat_type,
+            interaction_type=interaction_type,
+            audio_hit_download_url=hit_download_url,
+        )
+
+    async def toggle_playlist_interaction(
+        self: ArangoGraphMethods,
+        user: User,
+        bot_id: int,
+        hit_download_url: str,
+        chat_type: ChatType,
+        interaction_type: InteractionType,
+    ) -> Tuple[bool, bool]:
+        """
+        Toggle an interaction with an `Playlist` by a user
+
+        Parameters
+        ----------
+        user : User
             User to run the query on
         bot_id : int
             ID of the BOT this query was ran on
         hit_download_url : str
-            Hit download_url to get the audio from
+            Hit download_url to get the audio from.
+        chat_type : ChatType
+            Type of the chat this interaction happened in
+        interaction_type : InteractionType
+            Type of the interaction to toggle
+
+        Returns
+        -------
+        tuple
+            Whether the operation was successful and the user had interacted with the playlist in the first place
+
+        Raises
+        ------
+        PlaylistDoesNotExists
+            If `Playlist` vertex does not exist with the `playlist_key` parameter.
+        HitDoesNotExists
+            If `Hit` vertex does not exist with the `hit_download_url` parameter.
+        HitNoLinkedPlaylist
+            If `Hit` vertex does not have any linked `Playlist` vertex with it.
+        EdgeDeletionFailed
+            If deletion of an edge fails.
+        ValueError
+            If the given `Hit` vertex has more than one linked `Playlist` vertices.
+        """
+        return await self._toggle_interaction(
+            user=user,
+            bot_id=bot_id,
+            chat_type=chat_type,
+            interaction_type=interaction_type,
+            playlist_hit_download_url=hit_download_url,
+        )
+
+    async def _toggle_interaction(
+        self: ArangoGraphMethods,
+        user: User,
+        bot_id: int,
+        chat_type: ChatType,
+        interaction_type: InteractionType,
+        audio_hit_download_url: Optional[str] = None,
+        playlist_hit_download_url: Optional[str] = None,
+    ) -> Tuple[bool, bool]:
+        """
+        Toggle an interaction with an `Audio` by a user
+
+        Parameters
+        ----------
+        user : User
+            User to run the query on
+        bot_id : int
+            ID of the BOT this query was ran on
+        audio_hit_download_url : str
+            Hit download_url to get the audio from.
+        playlist_hit_download_url : str
+            Hit download_url to get the playlist from.
         chat_type : ChatType
             Type of the chat this interaction happened in
         interaction_type : InteractionType
@@ -373,30 +594,45 @@ class InteractionMethods:
         Raises
         ------
         PlaylistDoesNotExists
-            If `Playlist` vertex does not exist with the `playlist_key` parameter
+            If `Playlist` vertex does not exist with the `playlist_key` parameter.
         HitDoesNotExists
-            If `Hit` vertex does not exist with the `hit_download_url` parameter
+            If `Hit` vertex does not exist with the `hit_download_url` parameter.
         HitNoLinkedAudio
-            If `Hit` vertex does not have any linked `Audio` vertex with it
+            If `Hit` vertex does not have any linked `Audio` vertex with it.
+        HitNoLinkedPlaylist
+            If `Hit` vertex does not have any linked `Playlist` vertex with it.
         EdgeDeletionFailed
-            If deletion of an edge fails
+            If deletion of an edge fails.
+        ValueError
+            If the given `Hit` vertex has more than one linked `Audio` or `Playlist` vertices.
         """
-        if user is None or hit_download_url is None:
+        if (not audio_hit_download_url and not playlist_hit_download_url) or not user:
             return False, False
 
-        hit = await self.find_hit_by_download_url(hit_download_url)
+        hit = await self.find_hit_by_download_url(audio_hit_download_url or playlist_hit_download_url)
         if hit is None:
-            raise HitDoesNotExists(hit_download_url)
+            raise HitDoesNotExists(audio_hit_download_url or playlist_hit_download_url)
 
-        audio = await self.get_audio_from_hit(hit)
-        if audio is None:
-            raise HitNoLinkedAudio(hit_download_url)
+        if audio_hit_download_url:
+            audio = await self.get_audio_from_hit(hit)
+            if audio is None:
+                raise HitNoLinkedAudio(audio_hit_download_url)
 
-        interaction_vertex = await self.get_audio_interaction_by_user(
-            user,
-            hit_download_url,
-            interaction_type,
-        )
+            interaction_vertex = await self.get_audio_interaction_by_user(
+                user,
+                audio_hit_download_url,
+                interaction_type,
+            )
+        else:
+            playlist = await self.get_playlist_from_hit(hit)
+            if playlist is None:
+                raise HitNoLinkedPlaylist(playlist_hit_download_url)
+
+            interaction_vertex = await self.get_playlist_interaction_by_user(
+                user,
+                playlist_hit_download_url,
+                interaction_type,
+            )
         has_interacted = interaction_vertex is not None and interaction_vertex.is_active
 
         if interaction_vertex:
@@ -407,13 +643,14 @@ class InteractionMethods:
 
             return successful, has_interacted
         else:
-            # user has not interacted with the audio, create the interaction
+            # user has not interacted with the audio or playlist, create the interaction
             interaction = await self.create_interaction(
-                hit_download_url,
                 user,
                 bot_id,
                 interaction_type,
                 chat_type,
+                audio_hit_download_url=audio_hit_download_url,
+                playlist_hit_download_url=playlist_hit_download_url,
             )
             if interaction is not None:
                 return True, has_interacted

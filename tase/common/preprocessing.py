@@ -23,9 +23,14 @@ html_tags_regex = r"""(?x)                              # Turn on free-spacing
           <[^>]+>                                       # Remove <html> tags
           | &([a-z0-9]+|\#[0-9]{1,6}|\#x[0-9a-f]{1,6}); # Remove &nbsp;
           """
-hashtags_regex = r"#\w+"
+# hashtags_regex = r"(?um)(?:^|\s)[＃#]{1}(?P<hashtag>\w{2,})"
+# hashtags_regex = r"(?um)(?:^|\s)(?P<hashtag>[＃#]{1}\w{2,})"
+hashtags_regex = r"(?um)(?:^|\s|\W+)(?P<hashtag>[＃#]{1}\w{2,})"
 telegram_url_regex = r"(?:(?:https?://)?(?:www\.)?(?:t(?:elegram)?\.(?:org|me|dog)/(?:joinchat/|\+))([\w-]+)|(?:https?://)?(?:www\.)?(?:t(?:elegram)?\.(?:org|me|dog)/)(proxy\?.+)|(?:https?://)?(?:www\.)?(?:t(?:elegram)?\.(?:org|me|dog)/)(c/\d+/\d+/?)|(?:(?:(?:(?:https?://)?t(?:elegram)?)\.me\/)(?P<username1>[a-zA-Z0-9_]{5,32})|((?:https?://)?(?P<username0>[a-zA-Z0-9_]{5,32})(\.t(elegram)?\.me)))(?:(/\d+/?)|.+)?)"
 telegram_username_regex = r"(?:@)(?P<username>[a-zA-Z0-9_]{5,32})"
+
+non_digit_pattern = r"(?um)\D+"
+non_space_pattern = r"(?um)\S+"
 
 if __name__ == "__main__":
     mime_types_file_path = "mime_types_file"
@@ -64,6 +69,20 @@ def empty_to_null(text: str) -> Optional[str]:
         return None
 
     return text
+
+
+def is_non_digit(text: str) -> bool:
+    if not text:
+        return False
+
+    return re.search(non_digit_pattern, text) is not None
+
+
+def is_non_space(text: str) -> bool:
+    if not text:
+        return False
+
+    return re.search(non_space_pattern, text) is not None
 
 
 def replace_telegram_urls(
@@ -282,7 +301,7 @@ def remove_extra_spaces(text: str) -> Optional[str]:
     if text is None:
         return None
 
-    return re.sub(r"\s{2}", " ", text).strip()
+    return re.sub(r"\s{2,}", " ", text).strip()
 
 
 def guess_mime_type(filename: str) -> Optional[str]:
@@ -555,7 +574,3 @@ def find_telegram_usernames(
                 usernames.append((username, match.start()) if return_start_index else username)
 
     return list(usernames) if return_start_index else list(set(usernames))
-
-
-if __name__ == "__main__":
-    print(remove_audio_file_extension("test.mp3"))  # must print `text`

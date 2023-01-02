@@ -1,4 +1,4 @@
-from typing import Match, Optional
+from typing import Optional, Union, List
 
 import pyrogram
 
@@ -14,17 +14,55 @@ from tase.errors import (
 from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
-from .base import InlineButton, InlineButtonType
-from .common import populate_playlist_list
+from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemType, InlineButtonData
+from ..inline_items.item_info import CreateNewPublicPlaylistItemInfo, CreateNewPrivatePlaylistItemInfo, PlaylistItemInfo
+
+
+class AddToPlaylistButtonData(InlineButtonData):
+    __button_type__ = InlineButtonType.ADD_TO_PLAYLIST
+
+    hit_download_url: str
+
+    @classmethod
+    def generate_data(cls, hit_download_url: str) -> Optional[str]:
+        return f"#{cls.get_type_value()}|{hit_download_url}"
+
+    @classmethod
+    def __parse__(
+        cls,
+        data_split_lst: List[str],
+    ) -> Optional[InlineButtonData]:
+        if len(data_split_lst) != 2:
+            return None
+
+        return AddToPlaylistButtonData(hit_download_url=data_split_lst[1])
 
 
 class AddToPlaylistInlineButton(InlineButton):
-    name = "add_to_playlist"
-    type = InlineButtonType.ADD_TO_PLAYLIST
+    __type__ = InlineButtonType.ADD_TO_PLAYLIST
+    action = ButtonActionType.CURRENT_CHAT_INLINE
+    __switch_inline_query__ = "add_to_pl"
+
+    __valid_inline_items__ = [
+        InlineItemType.PLAYLIST,
+        InlineItemType.CREATE_NEW_PUBLIC_PLAYLIST,
+        InlineItemType.CREATE_NEW_PRIVATE_PLAYLIST,
+    ]
 
     s_add_to_playlist = _trans("Add To Playlist")
     text = f"{emoji._plus}"
-    is_inline = True
+
+    @classmethod
+    def get_keyboard(
+        cls,
+        *,
+        hit_download_url: str,
+        lang_code: Optional[str] = "en",
+    ) -> pyrogram.types.InlineKeyboardButton:
+        return InlineButton.get_button(cls.__type__).__parse_keyboard_button__(
+            lang_code=lang_code,
+            switch_inline_query_current_chat=AddToPlaylistButtonData.generate_data(hit_download_url=hit_download_url),
+        )
 
     async def on_inline_query(
         self,
@@ -34,8 +72,10 @@ class AddToPlaylistInlineButton(InlineButton):
         client: pyrogram.Client,
         telegram_inline_query: pyrogram.types.InlineQuery,
         query_date: int,
-        reg: Optional[Match] = None,
+        inline_button_data: Optional[AddToPlaylistButtonData] = None,
     ):
+        from tase.telegram.bots.ui.inline_buttons.common import populate_playlist_list
+
         await populate_playlist_list(
             from_user,
             handler,
@@ -53,21 +93,20 @@ class AddToPlaylistInlineButton(InlineButton):
         client: pyrogram.Client,
         from_user: graph_models.vertices.User,
         telegram_chosen_inline_result: pyrogram.types.ChosenInlineResult,
-        reg: Match,
+        inline_button_data: AddToPlaylistButtonData,
+        inline_item_info: Union[CreateNewPublicPlaylistItemInfo, CreateNewPrivatePlaylistItemInfo, PlaylistItemInfo],
     ):
-        hit_download_url = reg.group("arg1")
+        hit_download_url = inline_button_data.hit_download_url
         # todo: check if the user has downloaded this audio earlier, otherwise, the request is not valid
 
-        result_id_list = telegram_chosen_inline_result.result_id.split("->")
-        inline_query_id = result_id_list[0]
-        playlist_key = result_id_list[1]
+        playlist_key = inline_item_info.playlist_key if inline_item_info.type == InlineItemType.PLAYLIST else inline_item_info.item_key
 
-        if playlist_key == "add_a_new_playlist":
+        if playlist_key in ("add_a_new_private_playlist", "add_a_new_public_playlist"):
             # start creating a new playlist
             await handler.db.document.create_bot_task(
                 from_user.user_id,
                 handler.telegram_client.telegram_id,
-                BotTaskType.CREATE_NEW_PLAYLIST,
+                BotTaskType.CREATE_NEW_PRIVATE_PLAYLIST if playlist_key == "add_a_new_private_playlist" else BotTaskType.CREATE_NEW_PUBLIC_PLAYLIST,
                 state_dict={
                     "hit_download_url": hit_download_url,
                 },

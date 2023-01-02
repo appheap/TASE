@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field, ValidationError
 from tase.common.utils import get_now_timestamp
 from tase.db.arangodb.helpers import ElasticQueryMetadata
 from tase.db.helpers import SearchMetaData
+from tase.errors import NotSoftDeletableSubclass
 from tase.my_logger import logger
 
 TBaseDocument = TypeVar("TBaseDocument", bound="BaseDocument")
@@ -420,9 +421,23 @@ class BaseDocument(BaseModel):
 
         return document, successful
 
-    async def delete(self) -> bool:
+    async def delete(
+        self,
+        soft_delete: Optional[bool] = False,
+        is_exact_date: Optional[bool] = False,
+        deleted_at: Optional[int] = None,
+    ) -> bool:
         """
         Remove a document from the index.
+
+        Parameters
+        ----------
+        soft_delete : bool, default: False
+            If this parameter is set to `True`, the document will not be deleted, but, it will be marked as deleted.
+        is_exact_date : bool, default: False
+            Whether the time of deletion is exact or an estimation.
+        deleted_at : int, default: None
+            Timestamp of deletion.
 
         Returns
         -------
@@ -433,11 +448,23 @@ class BaseDocument(BaseModel):
             return False
 
         try:
-            resp = await self.__es__.delete(
-                index=self.__index_name__,
-                id=self.id,
-                refresh=False,
-            )
+            if soft_delete:
+                from tase.db.arangodb.base import BaseSoftDeletableDocument
+
+                if issubclass(type(self), BaseSoftDeletableDocument):
+                    self_copy = self.copy(deep=True)
+                    self_copy.is_soft_deleted = True
+                    self_copy.is_soft_deleted_time_precise = is_exact_date
+                    self_copy.soft_deleted_at = get_now_timestamp() if deleted_at is None else deleted_at
+                    return await self.update(self_copy, reserve_non_updatable_fields=False)
+                else:
+                    raise NotSoftDeletableSubclass(self.__class__.__name__)
+            else:
+                resp = await self.__es__.delete(
+                    index=self.__index_name__,
+                    id=self.id,
+                    refresh=False,
+                )
         except Exception as e:
             logger.exception(e)
         else:
@@ -597,7 +624,7 @@ class BaseDocument(BaseModel):
                 try:
                     db_doc = cls.from_index(
                         hit=hit,
-                        rank=len(hits) - index + 1,
+                        rank=index,
                     )
                 except ValueError:
                     # fixme: happens when the `hit` is None

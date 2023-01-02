@@ -1,6 +1,7 @@
 import collections
 import gettext
 import json
+import os
 import re
 import secrets
 import time
@@ -14,12 +15,12 @@ import psutil
 import tomli
 from pydantic import BaseModel
 
+from tase.common.preprocessing import clean_hashtag, hashtags_regex, is_non_digit
+from tase.db.arangodb.enums import MentionSource
+from tase.errors import NotEnoughRamError
 from tase.languages import Language, Languages
 from tase.my_logger import logger
 from tase.static import Emoji
-from .preprocessing import hashtags_regex, clean_hashtag
-from ..db.arangodb.enums import MentionSource
-from ..errors import NotEnoughRamError
 
 # todo: it's not a good practice to hardcode like this, fix it
 languages = dict()
@@ -65,9 +66,22 @@ language_mapping: Dict[str, Language] = {
 }
 
 if not len(languages):
+    POSTFIX = "../locales"
+
+    cwd = os.getcwd()
+    cwd = cwd[cwd.find("TASE/") :]
+
+    if cwd.endswith("tase"):
+        localedir = POSTFIX
+    else:
+        if "tase" in cwd:
+            localedir = "../" * (cwd.count("/") - 1) + POSTFIX
+        else:
+            localedir = "../" * (cwd.count("/")) + "tase/" + POSTFIX
+
     for lang_code in language_mapping.keys():
         logger.debug(f"lang_code: {lang_code}")
-        lang = gettext.translation("tase", localedir="../locales", languages=[lang_code])
+        lang = gettext.translation("tase", localedir=localedir, languages=[lang_code])
         lang.install()
         languages[lang_code] = lang.gettext
 
@@ -345,7 +359,29 @@ def find_hashtags(
 
     hashtags = collections.deque()
     for match in re.finditer(hashtags_regex, text):
-        hashtags.append((match.group(), match.start(), mention_source))
+        h = match.group("hashtag")
+        if is_non_digit(h[1:]):
+            hashtags.append((h, match.start(), mention_source))
+
+    return list(hashtags)
+
+
+def find_unique_hashtag_strings(
+    text_: str,
+    remove_hashtag_sign: Optional[bool] = True,
+) -> List[str]:
+    if not text_:
+        return []
+
+    text_ = clean_hashtag(text_)
+    if not text_:
+        return []
+
+    hashtags = set()
+    for match in re.finditer(hashtags_regex, text_):
+        h = str(match.group("hashtag"))
+        if is_non_digit(h[1:]):
+            hashtags.add(h[1:] if remove_hashtag_sign else h)
 
     return list(hashtags)
 

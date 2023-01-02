@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Optional, List
+
 import pyrogram
 
 from tase.common.utils import emoji
@@ -13,16 +15,51 @@ from tase.errors import (
 )
 from tase.my_logger import logger
 from tase.telegram.update_handlers.base import BaseHandler
-from .base import InlineButton, InlineButtonType
-from .common import get_audio_markup_keyboard
+from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineButtonData
+
+
+class ToggleLikeAudioButtonData(InlineButtonData):
+    __button_type__ = InlineButtonType.LIKE_AUDIO
+
+    chat_type: ChatType
+    hit_download_url: str
+
+    @classmethod
+    def generate_data(cls, chat_type: ChatType, hit_download_url: str) -> Optional[str]:
+        return f"{cls.get_type_value()}|{chat_type.value}|{hit_download_url}"
+
+    @classmethod
+    def __parse__(
+        cls,
+        data_split_lst: List[str],
+    ) -> Optional[InlineButtonData]:
+        if len(data_split_lst) != 3:
+            return None
+
+        return ToggleLikeAudioButtonData(
+            chat_type=ChatType(int(data_split_lst[1])),
+            hit_download_url=data_split_lst[2],
+        )
 
 
 class ToggleLikeAudioInlineButton(InlineButton):
-    name = "like_audio"
-    type = InlineButtonType.LIKE_AUDIO
+    __type__ = InlineButtonType.LIKE_AUDIO
+    action = ButtonActionType.CALLBACK
 
     text = f"{emoji._light_thumbs_up}"
-    is_inline = False
+
+    @classmethod
+    def get_keyboard(
+        cls,
+        *,
+        chat_type: ChatType,
+        hit_download_url: str,
+        lang_code: Optional[str] = "en",
+    ) -> pyrogram.types.InlineKeyboardButton:
+        return cls.get_button(cls.__type__).__parse_keyboard_button__(
+            callback_data=ToggleLikeAudioButtonData.generate_data(chat_type, hit_download_url),
+            lang_code=lang_code,
+        )
 
     async def on_callback_query(
         self,
@@ -30,19 +67,18 @@ class ToggleLikeAudioInlineButton(InlineButton):
         from_user: graph_models.vertices.User,
         client: pyrogram.Client,
         telegram_callback_query: pyrogram.types.CallbackQuery,
+        inline_button_data: ToggleLikeAudioButtonData,
     ):
-        result_id_list = telegram_callback_query.data.split("->")
-        button_type_value = result_id_list[0]
-        hit_download_url = result_id_list[1]
-        chat_type = ChatType(int(result_id_list[2]))
+        hit_download_url = inline_button_data.hit_download_url
+        chat_type = inline_button_data.chat_type
 
         try:
-            successful, has_liked = await handler.db.graph.toggle_interaction(
+            successful, has_liked = await handler.db.graph.toggle_audio_interaction(
                 from_user,
                 handler.telegram_client.telegram_id,
                 hit_download_url,
                 chat_type,
-                InteractionType.LIKE,
+                InteractionType.LIKE_AUDIO,
             )
         except PlaylistDoesNotExists as e:
             await telegram_callback_query.answer("You do not have the playlist you have chosen")
@@ -58,17 +94,17 @@ class ToggleLikeAudioInlineButton(InlineButton):
             if successful:
                 is_disliked = await handler.db.graph.audio_is_interacted_by_user(
                     from_user,
-                    InteractionType.DISLIKE,
+                    InteractionType.DISLIKE_AUDIO,
                     hit_download_url=hit_download_url,
                 )
                 update_dislike_button = False
                 if not has_liked and is_disliked:
-                    await handler.db.graph.toggle_interaction(
+                    await handler.db.graph.toggle_audio_interaction(
                         from_user,
                         handler.telegram_client.telegram_id,
                         hit_download_url,
                         chat_type,
-                        InteractionType.DISLIKE,
+                        InteractionType.DISLIKE_AUDIO,
                     )
                     update_dislike_button = True
 
@@ -94,6 +130,8 @@ class ToggleLikeAudioInlineButton(InlineButton):
                         from_user,
                         hit_download_url=hit_download_url,
                     )
+
+                    from tase.telegram.bots.ui.inline_buttons.common import get_audio_markup_keyboard
 
                     reply_markup = get_audio_markup_keyboard(
                         (await handler.telegram_client.get_me()).username,

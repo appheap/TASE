@@ -11,7 +11,6 @@ from tase.my_logger import logger
 from tase.telegram.update_handlers.base import BaseHandler
 from ..base_command import BaseCommand
 from ..bot_command_type import BotCommandType
-from ...ui.templates import BaseTemplate, BotStatusData
 
 
 class CheckBotStatusCommand(BaseCommand):
@@ -56,6 +55,9 @@ class CheckBotStatusCommand(BaseCommand):
                 total_queries_task,
             ]
         )
+
+        from tase.telegram.bots.ui.templates import BotStatusData
+        from tase.telegram.bots.ui.templates import BaseTemplate
 
         data = BotStatusData(
             new_users=f"{new_users:,}",

@@ -1,4 +1,4 @@
-from typing import Match, Optional
+from typing import Optional, List
 
 import pyrogram
 from pyrogram.enums import ParseMode
@@ -7,17 +7,43 @@ from pyrogram.types import InlineQueryResultArticle, InputTextMessageContent
 from tase.common.utils import _trans, emoji
 from tase.db.arangodb import graph as graph_models
 from tase.telegram.bots.inline import CustomInlineQueryResult
+from tase.telegram.bots.ui.base import InlineButton, InlineButtonType, ButtonActionType, InlineButtonData
 from tase.telegram.update_handlers.base import BaseHandler
-from .base import InlineButton, InlineButtonType
+
+
+class HelpCatalogButtonData(InlineButtonData):
+    __button_type__ = InlineButtonType.HELP_CATALOG
+
+    @classmethod
+    def generate_data(cls, inline_command: str) -> Optional[str]:
+        return f"#{inline_command}"
+
+    @classmethod
+    def __parse__(
+        cls,
+        data_split_lst: List[str],
+    ) -> Optional[InlineButtonData]:
+        return HelpCatalogButtonData()
 
 
 class HelpCatalogInlineButton(InlineButton):
-    name = "help_catalog"
-    type = InlineButtonType.HELP_CATALOG
+    __type__ = InlineButtonType.HELP_CATALOG
+    action = ButtonActionType.CURRENT_CHAT_INLINE
+    __switch_inline_query__ = "help_catalog"
 
     s_help = _trans("Help")
     text = f"{s_help} | {emoji._exclamation_question_mark}"
-    is_inline = True
+
+    @classmethod
+    def get_keyboard(
+        cls,
+        *,
+        lang_code: Optional[str] = "en",
+    ) -> pyrogram.types.InlineKeyboardButton:
+        return cls.get_button(cls.__type__).__parse_keyboard_button__(
+            switch_inline_query_current_chat=HelpCatalogButtonData.generate_data(cls.switch_inline_query()),
+            lang_code=lang_code,
+        )
 
     async def on_inline_query(
         self,
@@ -27,7 +53,7 @@ class HelpCatalogInlineButton(InlineButton):
         client: pyrogram.Client,
         telegram_inline_query: pyrogram.types.InlineQuery,
         query_date: int,
-        reg: Optional[Match] = None,
+        inline_button_data: Optional[HelpCatalogButtonData] = None,
     ):
         # todo: make these messages translatable
         results = [

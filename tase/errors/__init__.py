@@ -3,6 +3,7 @@ from .edge_creation_failed import EdgeCreationFailed
 from .edge_deletion_failed import EdgeDeletionFailed
 from .hit_does_not_exists import HitDoesNotExists
 from .hit_no_linked_audio import HitNoLinkedAudio
+from .hit_no_linked_playlist import HitNoLinkedPlaylist
 from .invalid_audio_for_inline_mode import InvalidAudioForInlineMode
 from .invalid_from_vertex import InvalidFromVertex
 from .invalid_to_vertex import InvalidToVertex
@@ -23,6 +24,7 @@ __all__ = [
     "EdgeDeletionFailed",
     "HitDoesNotExists",
     "HitNoLinkedAudio",
+    "HitNoLinkedPlaylist",
     "InvalidAudioForInlineMode",
     "InvalidFromVertex",
     "InvalidToVertex",

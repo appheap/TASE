@@ -5,7 +5,6 @@ from pyrogram.enums import ParseMode
 from tase.db.arangodb import graph as graph_models
 from tase.telegram.bots.bot_commands.base_command import BaseCommand
 from tase.telegram.bots.bot_commands.bot_command_type import BotCommandType
-from tase.telegram.bots.ui.templates import BaseTemplate, WelcomeData
 from tase.telegram.update_handlers.base import BaseHandler
 
 
@@ -25,6 +24,8 @@ class StartCommand(BaseCommand):
         from_user: graph_models.vertices.User,
         from_callback_query: bool,
     ) -> None:
+        from tase.telegram.bots.ui.templates import BaseTemplate, WelcomeData
+
         if len(message.command) == 1:
             data = WelcomeData(
                 name=message.from_user.first_name or message.from_user.last_name,
@@ -39,12 +40,13 @@ class StartCommand(BaseCommand):
         elif len(message.command) == 2:
             arg = message.command[1]
             from_user = await handler.db.graph.get_interacted_user(message.from_user)
-            if "dl_" in arg:
+            if arg.startswith("dl_"):
                 await handler.download_audio(
                     client,
                     from_user,
                     arg,
                     message,
+                    True,
                 )
         else:
             pass

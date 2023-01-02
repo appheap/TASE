@@ -10,9 +10,11 @@ from tase.common.utils import get_now_timestamp, async_timed
 from tase.db.helpers import SearchMetaData
 from tase.errors import InvalidToVertex, InvalidFromVertex, EdgeCreationFailed
 from tase.my_logger import logger
-from . import Audio, Hit
+from .audio import Audio
 from .base_vertex import BaseVertex
 from .chat import ChatType
+from .hit import Hit
+from .playlist import Playlist
 from .user import User
 
 if TYPE_CHECKING:
@@ -148,7 +150,7 @@ class QueryMethods:
         user: User,
         query: str,
         query_date: int,
-        audio_vertices: Deque[Audio],
+        audio_or_playlist_vertices: Union[Deque[Audio], Deque[Playlist]],
         query_metadata: Optional[ElasticQueryMetadata] = None,
         search_metadata_list: Optional[List[SearchMetaData]] = None,
         # following parameters are meant to be used with inline query
@@ -170,8 +172,8 @@ class QueryMethods:
             Query string
         query_date : int
             Timestamp of making the query
-        audio_vertices : Deque[Audio]
-            List of audios this query matches to
+        audio_or_playlist_vertices : Deque[Audio] or Deque[Playlist]
+            List of audios or playlists this query matches to
         query_metadata : ElasticQueryMetadata, default : None
             Metadata of this query that on ElasticSearch.
         search_metadata_list : List[SearchMetadata], default : None
@@ -237,38 +239,49 @@ class QueryMethods:
                 if to_bot_edge is None:
                     raise EdgeCreationFailed(ToBot.__class__.__name__)
 
-            if not audio_vertices:
+            if not audio_or_playlist_vertices:
                 # if the query doesn't have any results, create the query vertex but not the hits vertices
                 return db_query, None
 
             hit_type = HitType.UNKNOWN
             if inline_query_type is not None and telegram_inline_query is not None:
-                if inline_query_type == InlineQueryType.SEARCH:
-                    hit_type = HitType.INLINE_SEARCH
-                elif inline_query_type == InlineQueryType.COMMAND:
-                    hit_type = HitType.INLINE_COMMAND
+                if inline_query_type == InlineQueryType.AUDIO_SEARCH:
+                    hit_type = HitType.INLINE_AUDIO_SEARCH
+
+                elif inline_query_type == InlineQueryType.AUDIO_COMMAND:
+                    hit_type = HitType.INLINE_AUDIO_COMMAND
+
+                elif inline_query_type == InlineQueryType.PRIVATE_PLAYLIST_COMMAND:
+                    hit_type = HitType.INLINE_PRIVATE_PLAYLIST_COMMAND
+
+                elif inline_query_type == InlineQueryType.PUBLIC_PLAYLIST_SEARCH:
+                    hit_type = HitType.INLINE_PUBLIC_PLAYLIST_SEARCH
+
+                elif inline_query_type == InlineQueryType.PUBLIC_PLAYLIST_COMMAND:
+                    hit_type = HitType.INLINE_PUBLIC_PLAYLIST_COMMAND
+
                 else:
                     # unexpected hit_type
                     hit_type = HitType.UNKNOWN
             else:
-                hit_type = HitType.SEARCH
+                hit_type = HitType.NON_INLINE_AUDIO_SEARCH
 
             hits = collections.deque()
 
             if search_metadata_list is None or not len(search_metadata_list):
-                search_metadata_list = (None for _ in range(len(audio_vertices)))
+                search_metadata_list = (None for _ in range(len(audio_or_playlist_vertices)))
 
             if hit_download_urls is None or not len(hit_download_urls):
-                hit_download_urls = (None for _ in range(len(audio_vertices)))
+                hit_download_urls = (None for _ in range(len(audio_or_playlist_vertices)))
 
-            for audio_vertex, search_metadata, hit_download_url in zip(audio_vertices, search_metadata_list, hit_download_urls):
-                if audio_vertex is None:
+            for audio_or_playlist_vertex, search_metadata, hit_download_url in zip(audio_or_playlist_vertices, search_metadata_list, hit_download_urls):
+                if audio_or_playlist_vertex is None:
                     # todo: what now?
                     continue
 
                 hit = await self.get_or_create_hit(
                     db_query,
-                    audio_vertex,
+                    audio_or_playlist_vertex,
                     hit_type,
                     hit_download_url,
                     search_metadata,
@@ -297,7 +310,7 @@ class QueryMethods:
         user: User,
         query: str,
         query_date: int,
-        audio_vertices: Deque[Audio],
+        audio_or_playlist_vertices: Union[Deque[Audio], Deque[Playlist]],
         query_metadata: Optional[ElasticQueryMetadata] = None,
         search_metadata_list: Optional[List[SearchMetaData]] = None,
         # following parameters are meant to be used with inline query
@@ -320,7 +333,7 @@ class QueryMethods:
             Query string
         query_date : int
             Timestamp of making the query
-        audio_vertices : Deque[Audio]
+        audio_or_playlist_vertices : Deque[Audio] or Deque[Playlist]
             List of audios this query matches to
         query_metadata : ElasticQueryMetadata, default : None
             Metadata of this query that on ElasticSearch.
@@ -337,7 +350,7 @@ class QueryMethods:
 
         Returns
         -------
-        tuple of query and list of hits
+        tuple
             Query object and list of hits if the operation in the DB was successful, otherwise, return None
 
         Raises
@@ -355,7 +368,7 @@ class QueryMethods:
                 user,
                 query,
                 query_date,
-                audio_vertices,
+                audio_or_playlist_vertices,
                 query_metadata,
                 search_metadata_list,
                 telegram_inline_query,
@@ -390,7 +403,7 @@ class QueryMethods:
         from tase.db.arangodb.graph.edges import Has
 
         res = collections.deque()
-        async with await Hit.execute_query(
+        async with await Query.execute_query(
             self._get_query_hits_query,
             bind_vars={
                 "start_vertex": query.id,

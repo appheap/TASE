@@ -29,7 +29,7 @@ class BotTaskChecker(BaseModel):
             Database Client
         bot_task : BotTask
             Bot task to check
-        from_user : graph_modesl.vertices.User
+        from_user : graph_models.vertices.User
             User to check this bot task belongs to
         message : pyrogram.types.Message
             Telegram Message which contains the initiated this check
@@ -44,44 +44,178 @@ class BotTaskChecker(BaseModel):
         if bot_task is None:
             return False
 
-        if bot_task.type == BotTaskType.CREATE_NEW_PLAYLIST:
-            error_message = None
+        if bot_task.type in (BotTaskType.CREATE_NEW_PRIVATE_PLAYLIST, BotTaskType.CREATE_NEW_PUBLIC_PLAYLIST):
+            await cls.create_new_playlist(bot_task, db, from_user, message)
 
-            items = message.text.split("\n")
-            if len(items) > 1:
-                title, description = items
-                if isinstance(description, list):
-                    temp_desc = []
-                    for item in description:
-                        if item is not None and len(item):
-                            temp_desc.append(item)
+        elif bot_task.type == BotTaskType.EDIT_PLAYLIST_TITLE:
+            await cls.edit_playlist_title(bot_task, db, from_user, message)
 
-                    description = "\n".join(temp_desc)
+        elif bot_task.type == BotTaskType.EDIT_PLAYLIST_DESCRIPTION:
+            await cls.edit_playlist_description(bot_task, db, from_user, message)
+
+        elif bot_task.type == BotTaskType.DELETE_PLAYLIST:
+            await cls.delete_playlist(bot_task, db, from_user, message)
+
+        else:
+            # check for other types of bot tasks
+            pass
+
+        return True
+
+    @classmethod
+    async def delete_playlist(
+        cls,
+        bot_task: BotTask,
+        db: DatabaseClient,
+        from_user: graph_models.vertices.User,
+        message: pyrogram.types.Message,
+    ) -> None:
+        playlist_key = bot_task.state_dict.get("playlist_key", None)
+        result = bot_task.state_dict.get("result", None)
+        if playlist_key is None or result is None:
+            # todo: An error has occurred, notify user
+            pass
+        else:
+            if message.text == result:
+                deleted_at = get_now_timestamp()
+
+                try:
+                    deleted = db.remove_playlist(
+                        from_user,
+                        playlist_key,
+                        deleted_at,
+                    )
+                except PlaylistDoesNotExists:
+                    await bot_task.update_status(BotTaskStatus.FAILED)
+                    await message.reply_text("The target playlist does not exist!")
                 else:
-                    pass
+                    if deleted:
+                        await bot_task.update_status(BotTaskStatus.DONE)
+                        await message.reply_text("Successfully Deleted The Playlist")
+                    else:
+                        await message.reply_text("Could not delete the playlist")
             else:
-                title = items[0]
-                description = None
+                # message sent does not equal to the result, send an error
+                await message.reply_text("Confirmation code is wrong")
+                await bot_task.update_retry_count()
 
-            error_message = cls.validate_playlist_title(title)
-
+    @classmethod
+    async def edit_playlist_description(
+        cls,
+        bot_task: BotTask,
+        db: DatabaseClient,
+        from_user: graph_models.vertices.User,
+        message: pyrogram.types.Message,
+    ) -> None:
+        description = message.text
+        error_message = cls.validate_playlist_description(description)
+        playlist_key = bot_task.state_dict["playlist_key"]
+        if playlist_key is None:
+            # todo: An error has occurred, notify user
+            pass
+        else:
             if error_message is None:
-                error_message = cls.validate_playlist_description(description)
+                # update playlist description
+                updated = await db.update_playlist_description(
+                    from_user,
+                    playlist_key,
+                    description,
+                )
+                if updated:
+                    await bot_task.update_status(BotTaskStatus.DONE)
+                    await message.reply_text("Successfully updated the playlist.")
+                else:
+                    await bot_task.update_status(BotTaskStatus.FAILED)
+                    await message.reply_text("Could not update the playlist!")
 
-            # if the inputs are valid, change the status of the task to `done`
+            else:
+                await message.reply_text(error_message)
+                await bot_task.update_retry_count()
+
+    @classmethod
+    async def edit_playlist_title(
+        cls,
+        bot_task: BotTask,
+        db: DatabaseClient,
+        from_user: graph_models.vertices.User,
+        message: pyrogram.types.Message,
+    ) -> None:
+        title = message.text
+        error_message = cls.validate_playlist_title(title)
+        playlist_key = bot_task.state_dict["playlist_key"]
+        if playlist_key is None:
+            # todo: An error has occurred, notify user
+            pass
+        else:
             if error_message is None:
-                db_playlist = await db.graph.get_or_create_playlist(
+                # update playlist title
+                updated = await db.update_playlist_title(
+                    from_user,
+                    playlist_key,
+                    title,
+                )
+                if updated:
+                    await bot_task.update_status(BotTaskStatus.DONE)
+                    await message.reply_text("Successfully updated the playlist.")
+                else:
+                    await bot_task.update_status(BotTaskStatus.FAILED)
+                    await message.reply_text("Could not update the playlist!")
+            else:
+                await message.reply_text(error_message)
+                await bot_task.update_retry_count()
+
+    @classmethod
+    async def create_new_playlist(
+        cls,
+        bot_task: BotTask,
+        db: DatabaseClient,
+        from_user: graph_models.vertices.User,
+        message: pyrogram.types.Message,
+    ) -> None:
+        error_message = None
+        items = message.text.split("\n")
+        if len(items) > 1:
+            title, description = items
+            if isinstance(description, list):
+                temp_desc = []
+                for item in description:
+                    if item is not None and len(item):
+                        temp_desc.append(item)
+
+                description = "\n".join(temp_desc)
+            else:
+                pass
+        else:
+            title = items[0]
+            description = None
+
+        error_message = cls.validate_playlist_title(title)
+        if error_message is None:
+            error_message = cls.validate_playlist_description(description)
+
+        # if the inputs are valid, change the status of the task to `done`
+        if error_message is None:
+            try:
+                db_playlist = await db.get_or_create_playlist(
                     from_user,
                     title,
                     description,
+                    is_favorite=False,
+                    is_public=True if bot_task.type == BotTaskType.CREATE_NEW_PUBLIC_PLAYLIST else False,
                 )
+            except ValueError:
+                # playlist cannot be public and favorite at the same time
+                # todo: make this translatable
+                await bot_task.update_status(BotTaskStatus.FAILED)
+                await message.reply_text("playlist cannot be `public` and `favorite` at the same time")
+            else:
                 if db_playlist:
                     await bot_task.update_status(BotTaskStatus.DONE)
                     await message.reply_text("Successfully created the playlist.")
 
                     hit_download_url = bot_task.state_dict.get("hit_download_url", None)
                     if hit_download_url is not None:
-                        created, successful = db.graph.add_audio_to_playlist(
+                        created, successful = await db.graph.add_audio_to_playlist(
                             from_user,
                             db_playlist.key,
                             hit_download_url,
@@ -101,110 +235,18 @@ class BotTaskChecker(BaseModel):
                             await message.reply_text(
                                 "Did not add to the playlist",
                             )
-
                 else:
                     # todo: make this translatable
                     await bot_task.update_status(BotTaskStatus.FAILED)
                     await message.reply_text("An error has occurred")
 
-            else:
-                await message.reply_text(error_message)
-
-                if bot_task.retry_count + 1 >= bot_task.max_retry_count:
-                    await message.reply_text("Failed to create the Playlist")
-
-                await bot_task.update_retry_count()
-
-        elif bot_task.type == BotTaskType.EDIT_PLAYLIST_TITLE:
-            title = message.text
-            error_message = cls.validate_playlist_title(title)
-
-            playlist_key = bot_task.state_dict["playlist_key"]
-            if playlist_key is None:
-                # todo: An error has occurred, notify user
-                pass
-            else:
-                if error_message is None:
-                    # update playlist title
-                    playlist = await db.graph.get_user_playlist_by_key(
-                        from_user,
-                        playlist_key,
-                        filter_out_soft_deleted=True,
-                    )
-                    if playlist:
-                        await playlist.update_title(title)
-                        await bot_task.update_status(BotTaskStatus.DONE)
-                        await message.reply_text("Successfully updated the playlist.")
-                    else:
-                        await bot_task.update_status(BotTaskStatus.FAILED)
-                        await message.reply_text("The target playlist does not exist!")
-                else:
-                    await message.reply_text(error_message)
-                    await bot_task.update_retry_count()
-
-        elif bot_task.type == BotTaskType.EDIT_PLAYLIST_DESCRIPTION:
-            description = message.text
-            error_message = cls.validate_playlist_description(description)
-
-            playlist_key = bot_task.state_dict["playlist_key"]
-            if playlist_key is None:
-                # todo: An error has occurred, notify user
-                pass
-            else:
-                if error_message is None:
-                    # update playlist description
-                    playlist = await db.graph.get_user_playlist_by_key(
-                        from_user,
-                        playlist_key,
-                        filter_out_soft_deleted=True,
-                    )
-                    if playlist:
-                        await playlist.update_description(description)
-                        await bot_task.update_status(BotTaskStatus.DONE)
-                        await message.reply_text("Successfully updated the playlist.")
-                    else:
-                        await bot_task.update_status(BotTaskStatus.FAILED)
-                        await message.reply_text("The target playlist does not exist!")
-
-                else:
-                    await message.reply_text(error_message)
-                    await bot_task.update_retry_count()
-
-        elif bot_task.type == BotTaskType.DELETE_PLAYLIST:
-            playlist_key = bot_task.state_dict.get("playlist_key", None)
-            result = bot_task.state_dict.get("result", None)
-            if playlist_key is None or result is None:
-                # todo: An error has occurred, notify user
-                pass
-            else:
-                if message.text == result:
-                    deleted_at = get_now_timestamp()
-
-                    try:
-                        deleted = db.graph.remove_playlist(
-                            from_user,
-                            playlist_key,
-                            deleted_at,
-                        )
-                    except PlaylistDoesNotExists:
-                        await bot_task.update_status(BotTaskStatus.FAILED)
-                        await message.reply_text("The target playlist does not exist!")
-                    else:
-                        if deleted:
-                            await bot_task.update_status(BotTaskStatus.DONE)
-                            await message.reply_text("Successfully Deleted The Playlist")
-                        else:
-                            await message.reply_text("Could not delete the playlist")
-                else:
-                    # message sent does not equal to the result, send an error
-                    await message.reply_text("Confirmation code is wrong")
-                    await bot_task.update_retry_count()
-
         else:
-            # check for other types of bot tasks
-            pass
+            await message.reply_text(error_message)
 
-        return True
+            if bot_task.retry_count + 1 >= bot_task.max_retry_count:
+                await message.reply_text("Failed to create the Playlist")
+
+            await bot_task.update_retry_count()
 
     @classmethod
     def validate_playlist_description(
@@ -213,8 +255,8 @@ class BotTaskChecker(BaseModel):
     ):
         error_message = None
         if description is not None:
-            if len(description) > 100:
-                error_message = "Description length is more than 100, Please try again"
+            if len(description) > 200:
+                error_message = "Description length is more than 200, Please try again"
             elif len(description) < 3:
                 error_message = "Description length is less than 3, Please try again"
         return error_message
@@ -228,8 +270,8 @@ class BotTaskChecker(BaseModel):
         if title is not None:
             if len(title) < 3:
                 error_message = "Title length is less than 3, Please try again"
-            elif len(title) > 20:
-                error_message = "Title length is more than 20, Please try again"
+            elif len(title) > 40:
+                error_message = "Title length is more than 40, Please try again"
             elif title.lower() == "Favorite":
                 error_message = "Title cannot be `Favorite`"
             elif title.lower() == "Favourite":
