@@ -1,3 +1,4 @@
+import textwrap
 from typing import Optional
 
 import pyrogram.types
@@ -33,6 +34,24 @@ class PlaylistItem(BaseInlineItem):
             return cls.__public_url__
         else:
             return cls.__private_url__
+
+    @classmethod
+    def _get_description(
+        cls,
+        playlist: elasticsearch_models.Playlist,
+        user: graph_models.vertices.User,
+    ) -> str:
+
+        description = (
+            f"‎{textwrap.shorten(playlist.description if playlist.description is not None else ' ', 25, placeholder='...')}‎"
+            "\n"
+            f"{emoji._bell} {playlist.subscribers:<9}\t"
+            f"{emoji._inbox_tray} {playlist.playlist_downloads:<9}\t"
+            f"{emoji._headphone} {playlist.audio_downloads:<9}\t"
+            f"{emoji._link} {playlist.shares:<9}"
+        )
+
+        return description
 
     @classmethod
     def get_item(
@@ -121,7 +140,7 @@ class PlaylistItem(BaseInlineItem):
 
             return InlineQueryResultArticle(
                 title=playlist.title,
-                description=f"{playlist.description if playlist.description is not None else ' '}",
+                description=cls._get_description(playlist, user),
                 id=PlaylistItemInfo.parse_id(
                     telegram_inline_query,
                     playlist.id,
@@ -142,7 +161,7 @@ class PlaylistItem(BaseInlineItem):
         else:
             return InlineQueryResultArticle(
                 title=playlist.title,
-                description=f"{playlist.description if playlist.description is not None else ' '}",
+                description=cls._get_description(playlist, user),
                 id=PlaylistItemInfo.parse_id(
                     telegram_inline_query,
                     playlist.id,

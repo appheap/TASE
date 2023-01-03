@@ -73,6 +73,8 @@ class Emoji(BaseModel):
     _traffic_light = emoji.emojize(":traffic_light:", language="alias")
     _checkmark_emoji = emoji.emojize(":white_check_mark:", language="alias")
     _floppy_emoji = emoji.emojize(":floppy_disk:", language="alias")
+    _inbox_tray = emoji.emojize(":inbox_tray:", language="alias")
+    _outbox_tray = emoji.emojize(":outbox_tray:", language="alias")
     _url = emoji.emojize(":link:", language="alias")
     _clock_emoji = emoji.emojize(":hourglass_flowing_sand:", language="alias")
     _information = emoji.emojize(":information:", language="alias")
