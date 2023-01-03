@@ -32,6 +32,11 @@ class DownloadHistoryInlineButton(InlineButton):
     __type__ = InlineButtonType.DOWNLOAD_HISTORY
     action = ButtonActionType.CURRENT_CHAT_INLINE
     __switch_inline_query__ = "downloads"
+    __switch_inline_query_aliases__ = [
+        "dl",
+        "dls",
+        "download",
+    ]
 
     __valid_inline_items__ = [InlineItemType.AUDIO]
 
