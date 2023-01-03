@@ -31,6 +31,7 @@ class BackToPlaylistsInlineButton(MyPlaylistsInlineButton):
     __type__ = InlineButtonType.BACK_TO_PLAYLISTS
     action = ButtonActionType.CURRENT_CHAT_INLINE
     __switch_inline_query__ = "back_to_pl"
+    __switch_inline_query_aliases__ = []
 
     __valid_inline_items__ = [
         InlineItemType.PLAYLIST,

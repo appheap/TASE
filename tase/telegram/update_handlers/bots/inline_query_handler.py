@@ -10,6 +10,7 @@ from tase.common.utils import get_now_timestamp, async_timed, async_exception_ha
 from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult, InlineSearch
 from tase.telegram.bots.ui.base import InlineButton, InlineButtonData
+from tase.telegram.bots.ui.inline_items import NoResultItem
 from tase.telegram.update_handlers.base import BaseHandler, HandlerMetadata
 
 
@@ -19,7 +20,7 @@ class InlineQueryHandler(BaseHandler):
             HandlerMetadata(
                 cls=handlers.InlineQueryHandler,
                 callback=self.custom_commands_handler,
-                filters=filters.regex(r"^$(?P<command>[a-zA-Z0-9_]+)"),
+                filters=filters.regex(r"^\$(?P<command>[a-zA-Z0-9_]+)"),
                 group=0,
             ),
             HandlerMetadata(
@@ -56,22 +57,34 @@ class InlineQueryHandler(BaseHandler):
         client: pyrogram.Client,
         inline_query: pyrogram.types.InlineQuery,
     ):
+        result = CustomInlineQueryResult(inline_query)
+
+        async def show_no_result():
+            if len(result) or not result.is_first_page():
+                return
+
+            from_user = await self.db.graph.get_interacted_user(inline_query.from_user)
+            result.set_results([NoResultItem.get_item(from_user)])
+            await result.answer_query()
+
         user = await self.db.graph.get_interacted_user(inline_query.from_user)
         query_date = get_now_timestamp()
 
         data = InlineButtonData.parse_from_string(inline_query.query)
         if not data:
             logger.error(f"invalid custom inline query: {inline_query}")
+            await show_no_result()
             return
 
         button = InlineButton.find_button_by_type_value(data.get_type_value())
         if not button:
             logger.error(f"invalid custom inline query: {inline_query}")
+            await show_no_result()
             return
 
         await button.on_inline_query(
             self,
-            CustomInlineQueryResult(inline_query),
+            result,
             user,
             client,
             inline_query,

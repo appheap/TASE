@@ -30,6 +30,10 @@ class MyPlaylistsInlineButton(InlineButton):
     __type__ = InlineButtonType.MY_PLAYLISTS
     action = ButtonActionType.CURRENT_CHAT_INLINE
     __switch_inline_query__ = "my_pl"
+    __switch_inline_query_aliases__ = [
+        "pl",
+        "my_playlists",
+    ]
 
     __valid_inline_items__ = [
         InlineItemType.PLAYLIST,

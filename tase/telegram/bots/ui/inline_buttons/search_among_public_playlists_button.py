@@ -33,6 +33,9 @@ class SearchAmongPublicPlaylistsInlineButton(InlineButton):
     __type__ = InlineButtonType.SEARCH_AMONG_PUBLIC_PLAYLISTS
     action = ButtonActionType.CURRENT_CHAT_INLINE
     __switch_inline_query__ = "search_sub"
+    __switch_inline_query_aliases__ = [
+        "sub",
+    ]
 
     __valid_inline_items__ = [InlineItemType.PLAYLIST]
 

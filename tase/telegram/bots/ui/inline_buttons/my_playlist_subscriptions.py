@@ -29,7 +29,8 @@ class MyPlaylistSubscriptionsButtonData(InlineButtonData):
 class MyPlaylistSubscriptionsInlineButton(InlineButton):
     __type__ = InlineButtonType.MY_PLAYLIST_SUBSCRIPTIONS
     action = ButtonActionType.CURRENT_CHAT_INLINE
-    __switch_inline_query__ = "sub"
+    __switch_inline_query__ = "my_sub"
+    __switch_inline_query_aliases__ = []
 
     __valid_inline_items__ = [
         InlineItemType.PLAYLIST,

@@ -32,7 +32,9 @@ class InlineButton(
     action: ButtonActionType = Field(default=ButtonActionType.CALLBACK)
     text: Optional[str]
     url: Optional[str]
+
     __switch_inline_query__: Optional[str] = Field(default=None)
+    __switch_inline_query_aliases__: List[str] = []
 
     __valid_inline_items__: List[InlineItemType] = Field(default_factory=list)
 
@@ -46,6 +48,12 @@ class InlineButton(
 
         if cls.switch_inline_query():
             InlineButton.__inline_registry__[temp.switch_inline_query()] = temp
+
+            for alias in cls.__switch_inline_query_aliases__:
+                if alias in InlineButton.__inline_registry__:
+                    raise KeyError(f"Alias `{alias}` is already been taken by `{InlineButton.__inline_registry__[alias].__class__.__name__}` class.")
+
+                InlineButton.__inline_registry__[alias] = temp
 
     @classmethod
     def get_type_value(cls) -> int:
