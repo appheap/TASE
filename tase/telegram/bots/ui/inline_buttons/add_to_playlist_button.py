@@ -25,7 +25,7 @@ class AddToPlaylistButtonData(InlineButtonData):
 
     @classmethod
     def generate_data(cls, hit_download_url: str) -> Optional[str]:
-        return f"#{cls.get_type_value()}|{hit_download_url}"
+        return f"${cls.get_type_value()}|{hit_download_url}"
 
     @classmethod
     def __parse__(
