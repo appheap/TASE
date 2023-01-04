@@ -46,7 +46,7 @@ class PlaylistItem(BaseInlineItem):
             f"‎{textwrap.shorten(playlist.description if playlist.description is not None else ' ', 25, placeholder='...')}‎"
             "\n"
             f"{emoji._bell} {playlist.subscribers:<9}\t"
-            f"{emoji._inbox_tray} {playlist.playlist_downloads:<9}\t"
+            f"{emoji._inbox_tray} {playlist.downloads:<9}\t"
             f"{emoji._headphone} {playlist.audio_downloads:<9}\t"
             f"{emoji._link} {playlist.shares:<9}"
         )
@@ -122,7 +122,7 @@ class PlaylistItem(BaseInlineItem):
         playlist: elasticsearch_models.Playlist,
         user: graph_models.vertices.User,
         telegram_inline_query: pyrogram.types.InlineQuery,
-        hit_download_url: str,
+        hit_download_url: Optional[str] = None,
         view_playlist: Optional[bool] = True,
     ) -> Optional[pyrogram.types.InlineQueryResult]:
         if playlist is None or user is None:

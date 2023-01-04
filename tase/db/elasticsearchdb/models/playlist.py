@@ -14,7 +14,8 @@ from tase.errors import PlaylistDoesNotExists
 from tase.my_logger import logger
 from .base_document import BaseDocument
 from ...arangodb.base import BaseSoftDeletableDocument
-from ...arangodb.helpers import ElasticQueryMetadata
+from ...arangodb.enums import InteractionType
+from ...arangodb.helpers import ElasticQueryMetadata, InteractionCount
 
 
 class Playlist(BaseDocument, BaseSoftDeletableDocument):
@@ -58,8 +59,13 @@ class Playlist(BaseDocument, BaseSoftDeletableDocument):
 
     subscribers: int = Field(default=1)
     shares: int = Field(default=0)
-    playlist_downloads: int = Field(default=0)
+    downloads: int = Field(default=0)
     audio_downloads: int = Field(default=0)
+    audio_redownloads: int = Field(default=0)
+    audio_likes: int = Field(default=0)
+    audio_dislikes: int = Field(default=0)
+    audio_shares: int = Field(default=0)
+    audio_link_shares: int = Field(default=0)
 
     async def update_title(
         self,
@@ -135,6 +141,62 @@ class Playlist(BaseDocument, BaseSoftDeletableDocument):
         return await self.update(
             self.copy(deep=True),
             reserve_non_updatable_fields=True,
+        )
+
+    async def update_by_interaction_count(
+        self,
+        interaction_count: InteractionCount,
+    ) -> bool:
+        """
+        Update the attributes of the `Playlist` index with the given `InteractionCount` object
+
+        Parameters
+        ----------
+        interaction_count : InteractionCount
+            `InteractionCount` object to update the index document with.
+
+        Returns
+        -------
+        bool
+            Whether the update was successful or not.
+
+        """
+        if interaction_count is None:
+            return False
+
+        self_copy: Playlist = self.copy(deep=True)
+        if interaction_count.interaction_type == InteractionType.DOWNLOAD_PUBLIC_PLAYLIST:
+            self_copy.downloads += interaction_count.count
+        elif interaction_count.interaction_type == InteractionType.SHARE_PUBLIC_PLAYLIST:
+            self_copy.shares += interaction_count.count
+        elif interaction_count.interaction_type == InteractionType.DOWNLOAD_AUDIO:
+            self_copy.audio_downloads += interaction_count.count
+        elif interaction_count.interaction_type == InteractionType.REDOWNLOAD_AUDIO:
+            self_copy.audio_redownloads += interaction_count.count
+        elif interaction_count.interaction_type == InteractionType.SHARE_AUDIO:
+            self_copy.audio_shares += interaction_count.count
+        elif interaction_count.interaction_type == InteractionType.SHARE_AUDIO_LINK:
+            self_copy.audio_link_shares += interaction_count.count
+        elif interaction_count.interaction_type == InteractionType.LIKE_AUDIO:
+            if interaction_count.is_active:
+                self_copy.audio_likes += interaction_count.count
+            else:
+                if self_copy.audio_likes > 0:
+                    self_copy.audio_likes -= interaction_count.count
+        elif interaction_count.interaction_type == InteractionType.DISLIKE_AUDIO:
+            if interaction_count.is_active:
+                self_copy.audio_dislikes += interaction_count.count
+            else:
+                if self_copy.audio_dislikes > 0:
+                    self_copy.audio_dislikes -= interaction_count.count
+        else:
+            return False
+
+        return await self.update(
+            self_copy,
+            reserve_non_updatable_fields=False,
+            retry_on_failure=True,
+            retry_on_conflict=True,
         )
 
     @classmethod

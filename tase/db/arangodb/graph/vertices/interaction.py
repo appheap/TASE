@@ -107,14 +107,25 @@ class InteractionMethods:
         "       return v_int"
     )
 
-    _count_interactions_query = (
+    _count_audio_interactions_query = (
         "for interaction in @@interactions"
         "   filter interaction.modified_at >= @last_run_at and interaction.modified_at < @now"
-        "   for v,e in 1..1 outbound interaction graph @graph_name options {order: 'dfs', edgeCollections:[@has], vertexCollections:[@audios]}"
-        "       collect audio_key = v._key, interaction_type = interaction.type, is_active= interaction.is_active"
+        "   for v,e in 1..1 outbound interaction graph @graph_name options {order: 'dfs', edgeCollections:[@has], vertexCollections:[@vertices]}"
+        "       collect vertex_key = v._key, interaction_type = interaction.type, is_active= interaction.is_active"
         "       aggregate count_ = length(0)"
         "       sort count_ desc, interaction_type asc"
-        "   return {audio_key, interaction_type, count_, is_active}"
+        "   return {vertex_key, interaction_type, count_, is_active}"
+    )
+
+    _count_playlist_interactions_query = (
+        "for interaction in @@interactions"
+        "   filter interaction.modified_at >= @last_run_at and interaction.modified_at < @now"
+        "   for v,e in 1..1 outbound interaction graph @graph_name options {order: 'dfs', edgeCollections:[@has], vertexCollections:[@vertices]}"
+        "       filter v.is_public"
+        "       collect vertex_key = v._key, interaction_type = interaction.type, is_active= interaction.is_active"
+        "       aggregate count_ = length(0)"
+        "       sort count_ desc, interaction_type asc"
+        "   return {vertex_key, interaction_type, count_, is_active}"
     )
 
     async def create_interaction(
@@ -468,6 +479,7 @@ class InteractionMethods:
         hit_download_url: str,
         chat_type: ChatType,
         interaction_type: InteractionType,
+        playlist_key: Optional[str] = None,
     ) -> Tuple[bool, bool]:
         """
         Toggle an interaction with an `Audio` by a user
@@ -484,6 +496,8 @@ class InteractionMethods:
             Type of the chat this interaction happened in.
         interaction_type : InteractionType
             Type of the interaction to toggle.
+        playlist_key : str, optional
+            Key of the playlist this interaction originated form.
 
         Returns
         -------
@@ -507,6 +521,7 @@ class InteractionMethods:
             chat_type=chat_type,
             interaction_type=interaction_type,
             audio_hit_download_url=hit_download_url,
+            playlist_key=playlist_key,
         )
 
     async def toggle_playlist_interaction(
@@ -567,6 +582,7 @@ class InteractionMethods:
         interaction_type: InteractionType,
         audio_hit_download_url: Optional[str] = None,
         playlist_hit_download_url: Optional[str] = None,
+        playlist_key: Optional[str] = None,
     ) -> Tuple[bool, bool]:
         """
         Toggle an interaction with an `Audio` by a user
@@ -584,7 +600,10 @@ class InteractionMethods:
         chat_type : ChatType
             Type of the chat this interaction happened in
         interaction_type : InteractionType
-            Type of the interaction to toggle
+            Type of the interaction to toggle.
+        playlist_key : str, optional
+            Key of the playlist this interaction originated form.
+
 
         Returns
         -------
@@ -651,19 +670,20 @@ class InteractionMethods:
                 chat_type,
                 audio_hit_download_url=audio_hit_download_url,
                 playlist_hit_download_url=playlist_hit_download_url,
+                playlist_key=playlist_key,
             )
             if interaction is not None:
                 return True, has_interacted
             else:
                 return False, has_interacted
 
-    async def count_interactions(
+    async def count_public_playlist_interactions(
         self,
         last_run_at: int,
         now: int,
     ) -> List[InteractionCount]:
         """
-        Count the interactions that have been created in the ArangoDB between `now` and `last_run_at` parameters.
+        Count the interactions with playlist vertices that have been created in the ArangoDB between `now` and `last_run_at` parameters.
 
         Parameters
         ----------
@@ -678,22 +698,80 @@ class InteractionMethods:
             List of InteractionCount objects
 
         """
-        if last_run_at is None:
+        return await self._count_interactions(
+            count_audio_interactions=False,
+            count_playlist_interactions=True,
+            last_run_at=last_run_at,
+            now=now,
+        )
+
+    async def count_audio_interactions(
+        self,
+        last_run_at: int,
+        now: int,
+    ) -> List[InteractionCount]:
+        """
+        Count the interactions with audio files that have been created in the ArangoDB between `now` and `last_run_at` parameters.
+
+        Parameters
+        ----------
+        last_run_at : int
+            Timestamp of last run
+        now : int
+            Timestamp of now
+
+        Returns
+        -------
+        list of InteractionCount
+            List of InteractionCount objects
+
+        """
+        return await self._count_interactions(
+            count_audio_interactions=True,
+            count_playlist_interactions=False,
+            last_run_at=last_run_at,
+            now=now,
+        )
+
+    async def _count_interactions(
+        self,
+        count_audio_interactions: bool,
+        count_playlist_interactions: bool,
+        last_run_at: int,
+        now: int,
+    ) -> List[InteractionCount]:
+        """
+        Count the interactions with audio or playlist vertices that have been created in the ArangoDB between `now` and `last_run_at` parameters.
+
+        Parameters
+        ----------
+        last_run_at : int
+            Timestamp of last run
+        now : int
+            Timestamp of now
+
+        Returns
+        -------
+        list of InteractionCount
+            List of InteractionCount objects
+
+        """
+        if last_run_at is None or (count_audio_interactions and count_playlist_interactions):
             return []
 
         from tase.db.arangodb.graph.edges import Has
-        from tase.db.arangodb.graph.vertices import Audio
+        from tase.db.arangodb.graph.vertices import Audio, Playlist
 
         res = collections.deque()
 
         async with await Interaction.execute_query(
-            self._count_interactions_query,
+            self._count_audio_interactions_query if count_audio_interactions else self._count_playlist_interactions_query,
             bind_vars={
                 "@interactions": Interaction.__collection_name__,
                 "last_run_at": last_run_at,
                 "now": now,
                 "has": Has.__collection_name__,
-                "audios": Audio.__collection_name__,
+                "vertices": Audio.__collection_name__ if count_audio_interactions else Playlist.__collection_name__,
             },
         ) as cursor:
             async for doc in cursor:

@@ -1,7 +1,7 @@
 import asyncio
 import collections
 from collections import defaultdict
-from typing import Dict, List, Union, Deque, Tuple
+from typing import Dict, List, Union, Deque, Tuple, Optional
 
 import pyrogram
 from pydantic import BaseModel
@@ -348,6 +348,7 @@ class BaseHandler(BaseModel):
         telegram_chosen_inline_result: pyrogram.types.ChosenInlineResult,
         hit_download_url: str,
         chat_type: ChatType,
+        playlist_key: Optional[str] = None,
     ):
         retry_left = 5
         audio_vertex = None
@@ -387,6 +388,7 @@ class BaseHandler(BaseModel):
                 hit_download_url,
                 audio_vertex.valid_for_inline_search,
                 status,
+                playlist_key=playlist_key,
             ),
         )
 

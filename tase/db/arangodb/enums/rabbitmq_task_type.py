@@ -18,5 +18,6 @@ class RabbitMQTaskType(Enum):
     FORWARD_AUDIOS_JOB = "forward_audios_job"
     EXTRACT_USERNAMES_JOB = "extract_usernames_job"
     INDEX_AUDIOS_JOB = "index_audios_job"
-    COUNT_INTERACTIONS_JOB = "count_interactions_job"
+    COUNT_AUDIO_INTERACTIONS_JOB = "count_audio_interactions_job"
+    COUNT_PUBLIC_PLAYLIST_INTERACTIONS_JOB = "count_playlist_interactions_job"
     COUNT_HITS_JOB = "count_hits_job"
