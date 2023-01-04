@@ -32,8 +32,13 @@ class Playlist(BaseDocument, BaseSoftDeletableDocument):
             "description": {"type": "text"},
             "subscribers": {"type": "long"},
             "shares": {"type": "long"},
-            "playlist_downloads": {"type": "long"},
+            "downloads": {"type": "long"},
             "audio_downloads": {"type": "long"},
+            "audio_redownloads": {"type": "long"},
+            "audio_likes": {"type": "long"},
+            "audio_dislikes": {"type": "long"},
+            "audio_shares": {"type": "long"},
+            "audio_link_shares": {"type": "long"},
             ####################################
             "is_soft_deleted": {"type": "boolean"},
             "soft_deleted_at": {"type": "long"},
@@ -44,8 +49,13 @@ class Playlist(BaseDocument, BaseSoftDeletableDocument):
     __non_updatable_fields__ = (
         "subscribers",
         "shares",
-        "playlist_downloads",
+        "downloads",
         "audio_downloads",
+        "audio_redownloads",
+        "audio_likes",
+        "audio_dislikes",
+        "audio_shares",
+        "audio_link_shares",
     )
     __search_fields__ = [
         "title",
@@ -60,6 +70,7 @@ class Playlist(BaseDocument, BaseSoftDeletableDocument):
     subscribers: int = Field(default=1)
     shares: int = Field(default=0)
     downloads: int = Field(default=0)
+
     audio_downloads: int = Field(default=0)
     audio_redownloads: int = Field(default=0)
     audio_likes: int = Field(default=0)
@@ -254,6 +265,8 @@ class Playlist(BaseDocument, BaseSoftDeletableDocument):
         return {
             "_score": {"order": "desc"},
             "subscribers": {"order": "desc"},
+            "audio_downloads": {"order": "desc"},
+            "audio_likes": {"order": "desc"},
             "shares": {"order": "desc"},
         }
 

@@ -502,7 +502,7 @@ class InteractionMethods:
         Returns
         -------
         tuple
-            Whether the operation was successful and the user had interacted with the audio in the first place
+            Whether the operation was successful and the user had interacted with the audio in the first place.
 
         Raises
         ------
@@ -590,15 +590,15 @@ class InteractionMethods:
         Parameters
         ----------
         user : User
-            User to run the query on
+            User to run the query on.
         bot_id : int
-            ID of the BOT this query was ran on
+            ID of the BOT this query was ran on.
         audio_hit_download_url : str
             Hit download_url to get the audio from.
         playlist_hit_download_url : str
             Hit download_url to get the playlist from.
         chat_type : ChatType
-            Type of the chat this interaction happened in
+            Type of the chat this interaction happened in.
         interaction_type : InteractionType
             Type of the interaction to toggle.
         playlist_key : str, optional
@@ -608,7 +608,7 @@ class InteractionMethods:
         Returns
         -------
         tuple
-            Whether the operation was successful and the user had interacted with the audio in the first place
+            Whether the operation was successful and the user had interacted with the audio in the first place.
 
         Raises
         ------
@@ -659,6 +659,18 @@ class InteractionMethods:
             from tase.db.arangodb.graph.edges import Has
 
             successful = await interaction_vertex.toggle()
+
+            # only check for missing edge between interaction and playlist vertices if the interaction is `active`. By doing this, when counting interaction
+            # with playlists, it is made sure that negative counts does not affect the playlist related attributes. The reason behind this is that if an
+            # audio is downloaded from a playlist and the audio has already been `liked` or `disliked`, if the mentioned audio `like` or `dislike` is undone,
+            # then it counts as a negative number which is not counted for that playlist before.
+            if playlist_key and successful and interaction_vertex.is_active:
+                playlist_vertex = await self.get_playlist_by_key(playlist_key)
+                if playlist_vertex:
+                    if not await Has.get_or_create_edge(interaction_vertex, playlist_vertex):
+                        logger.error(f"Error in creating `Has` edge from `{interaction_vertex.id}` to `{playlist_vertex.id}`")
+                else:
+                    logger.error(f"Playlist vertex does not exist with key : `{playlist_key}`")
 
             return successful, has_interacted
         else:
