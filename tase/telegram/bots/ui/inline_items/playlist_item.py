@@ -66,6 +66,7 @@ class PlaylistItem(BaseInlineItem):
             return None
 
         from tase.telegram.bots.ui.inline_items.item_info import PlaylistItemInfo
+        from tase.telegram.bots.ui.inline_buttons.common import get_playlist_loading_keyboard
 
         chat_type = ChatType.parse_from_pyrogram(telegram_inline_query.chat_type)
 
@@ -76,14 +77,13 @@ class PlaylistItem(BaseInlineItem):
                 lang_code=user.chosen_language_code,
             )
 
-            from tase.telegram.bots.ui.inline_buttons.common import get_playlist_markup_keyboard
-
             return InlineQueryResultArticle(
                 title=playlist.title,
                 description=f"{playlist.description if playlist.description is not None else ' '}",
                 id=PlaylistItemInfo.parse_id(
                     telegram_inline_query,
                     playlist.key,
+                    playlist.is_public,
                     chat_type,
                     hit_download_url,
                 ),
@@ -92,10 +92,10 @@ class PlaylistItem(BaseInlineItem):
                     message_text=BaseTemplate.registry.playlist_template.render(data),
                     parse_mode=ParseMode.HTML,
                 ),
-                reply_markup=get_playlist_markup_keyboard(
-                    playlist,
-                    user,
-                    chat_type,
+                reply_markup=get_playlist_loading_keyboard(
+                    playlist.key,
+                    playlist.is_public,
+                    user.chosen_language_code,
                 ),
             )
         else:
@@ -105,6 +105,7 @@ class PlaylistItem(BaseInlineItem):
                 id=PlaylistItemInfo.parse_id(
                     telegram_inline_query,
                     playlist.key,
+                    playlist.is_public,
                     chat_type,
                     hit_download_url,
                 ),
@@ -136,7 +137,7 @@ class PlaylistItem(BaseInlineItem):
                 lang_code=user.chosen_language_code,
             )
 
-            from tase.telegram.bots.ui.inline_buttons.common import get_playlist_markup_keyboard
+            from tase.telegram.bots.ui.inline_buttons.common import get_playlist_loading_keyboard
 
             return InlineQueryResultArticle(
                 title=playlist.title,
@@ -144,6 +145,7 @@ class PlaylistItem(BaseInlineItem):
                 id=PlaylistItemInfo.parse_id(
                     telegram_inline_query,
                     playlist.id,
+                    True,
                     chat_type,
                     hit_download_url=hit_download_url,
                 ),
@@ -152,10 +154,10 @@ class PlaylistItem(BaseInlineItem):
                     message_text=BaseTemplate.registry.playlist_template.render(data),
                     parse_mode=ParseMode.HTML,
                 ),
-                reply_markup=get_playlist_markup_keyboard(
-                    playlist,
-                    user,
-                    chat_type,
+                reply_markup=get_playlist_loading_keyboard(
+                    playlist.id,
+                    True,
+                    lang_code=user.chosen_language_code,
                 ),
             )
         else:
@@ -165,6 +167,7 @@ class PlaylistItem(BaseInlineItem):
                 id=PlaylistItemInfo.parse_id(
                     telegram_inline_query,
                     playlist.id,
+                    True,
                     chat_type,
                     hit_download_url=hit_download_url,
                 ),

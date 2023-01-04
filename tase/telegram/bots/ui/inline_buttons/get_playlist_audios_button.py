@@ -158,48 +158,56 @@ class GetPlaylistAudioInlineButton(InlineButton):
         inline_button_data: GetPlaylistAudiosButtonData,
         inline_item_info: Union[AudioItemInfo, PlaylistItemInfo],
     ):
-        # only if the user has clicked on an audio item, the rest of the code should be executed.
-        if inline_item_info.type != InlineItemType.AUDIO:
-            return
+        if inline_item_info.type == InlineItemType.AUDIO:
+            # update the keyboard markup of the downloaded audio
+            update_keyboard_task = asyncio.create_task(
+                handler.update_audio_keyboard_markup(
+                    client,
+                    from_user,
+                    telegram_chosen_inline_result,
+                    inline_item_info.hit_download_url,
+                    inline_item_info.chat_type,
+                )
+            )
 
-        # update the keyboard markup of the downloaded audio
-        update_keyboard_task = asyncio.create_task(
-            handler.update_audio_keyboard_markup(
+            playlist = await handler.db.graph.get_playlist_by_key(inline_item_info.playlist_key)
+            if not playlist:
+                return
+
+            if inline_item_info.inline_query_type == InlineQueryType.PRIVATE_PLAYLIST_COMMAND:
+                type_ = InteractionType.REDOWNLOAD_AUDIO
+            elif inline_item_info.inline_query_type == InlineQueryType.PUBLIC_PLAYLIST_COMMAND:
+                if inline_item_info.chat_type == ChatType.BOT:
+                    type_ = InteractionType.REDOWNLOAD_AUDIO
+                else:
+                    if from_user.user_id == playlist.owner_user_id:
+                        type_ = InteractionType.SHARE_AUDIO
+                    else:
+                        type_ = InteractionType.DOWNLOAD_AUDIO
+            else:
+                return
+
+            if not await handler.db.graph.create_interaction(
+                from_user,
+                handler.telegram_client.telegram_id,
+                type_,
+                inline_item_info.chat_type,
+                audio_hit_download_url=inline_item_info.hit_download_url,
+                playlist_key=inline_item_info.playlist_key,
+            ):
+                # could not create the interaction_vertex
+                logger.error("Could not create the `interaction_vertex` vertex:")
+                logger.error(telegram_chosen_inline_result)
+
+            await update_keyboard_task
+
+        elif inline_item_info.type == InlineItemType.PLAYLIST:
+            from tase.telegram.bots.ui.inline_buttons.common import update_playlist_keyboard_markup
+
+            await update_playlist_keyboard_markup(
+                handler.db,
                 client,
                 from_user,
                 telegram_chosen_inline_result,
-                inline_item_info.hit_download_url,
-                inline_item_info.chat_type,
+                inline_item_info,
             )
-        )
-
-        playlist = await handler.db.graph.get_playlist_by_key(inline_item_info.playlist_key)
-        if not playlist:
-            return
-
-        if inline_item_info.inline_query_type == InlineQueryType.PRIVATE_PLAYLIST_COMMAND:
-            type_ = InteractionType.REDOWNLOAD_AUDIO
-        elif inline_item_info.inline_query_type == InlineQueryType.PUBLIC_PLAYLIST_COMMAND:
-            if inline_item_info.chat_type == ChatType.BOT:
-                type_ = InteractionType.REDOWNLOAD_AUDIO
-            else:
-                if from_user.user_id == playlist.owner_user_id:
-                    type_ = InteractionType.SHARE_AUDIO
-                else:
-                    type_ = InteractionType.DOWNLOAD_AUDIO
-        else:
-            return
-
-        if not await handler.db.graph.create_interaction(
-            from_user,
-            handler.telegram_client.telegram_id,
-            type_,
-            inline_item_info.chat_type,
-            audio_hit_download_url=inline_item_info.hit_download_url,
-            playlist_key=inline_item_info.playlist_key,
-        ):
-            # could not create the interaction_vertex
-            logger.error("Could not create the `interaction_vertex` vertex:")
-            logger.error(telegram_chosen_inline_result)
-
-        await update_keyboard_task

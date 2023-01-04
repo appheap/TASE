@@ -7,6 +7,7 @@ import pyrogram
 from pyrogram.types import InlineKeyboardMarkup
 
 from tase.common.utils import async_timed
+from tase.db import DatabaseClient
 from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.enums import ChatType, InlineQueryType
 from tase.db.arangodb.helpers import AudioKeyboardStatus
@@ -348,6 +349,68 @@ def get_more_results_markup_keyboad(
         ],
     ]
     return InlineKeyboardMarkup(markup)
+
+
+async def update_playlist_keyboard_markup(
+    db: DatabaseClient,
+    client: pyrogram.Client,
+    from_user: graph_models.vertices.User,
+    telegram_chosen_inline_result: pyrogram.types.ChosenInlineResult,
+    playlist_item: "PlaylistItemInfo",
+):
+    if playlist_item.is_public:
+        playlist = await db.index.get_playlist_by_id(playlist_item.playlist_key)
+    else:
+        playlist = await db.graph.get_playlist_by_key(playlist_item.playlist_key)
+
+    from tase.telegram.bots.ui.inline_buttons.common import get_playlist_markup_keyboard
+
+    await client.edit_inline_reply_markup(
+        telegram_chosen_inline_result.inline_message_id,
+        reply_markup=get_playlist_markup_keyboard(
+            playlist,
+            from_user,
+            playlist_item.chat_type,
+        ),
+    )
+
+
+def get_playlist_loading_keyboard(
+    playlist_key: str,
+    is_public: bool,
+    lang_code: Optional[str] = "en",
+) -> InlineKeyboardMarkup:
+    from tase.telegram.bots.ui.inline_buttons import PlaylistLoadingKeyboardInlineButton
+
+    return InlineKeyboardMarkup(
+        [
+            [
+                PlaylistLoadingKeyboardInlineButton.get_keyboard(
+                    playlist_key=playlist_key,
+                    is_public=is_public,
+                    lang_code=lang_code,
+                ),
+            ]
+        ]
+    )
+
+
+def get_audio_loading_keyboard(
+    hit_download_url: str,
+    lang_code: Optional[str] = "en",
+) -> InlineKeyboardMarkup:
+    from tase.telegram.bots.ui.inline_buttons import AudioLoadingKeyboardInlineButton
+
+    return InlineKeyboardMarkup(
+        [
+            [
+                AudioLoadingKeyboardInlineButton.get_keyboard(
+                    hit_download_url=hit_download_url,
+                    lang_code=lang_code,
+                ),
+            ]
+        ]
+    )
 
 
 def get_playlist_markup_keyboard(
