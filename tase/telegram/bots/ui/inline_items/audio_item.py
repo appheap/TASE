@@ -48,7 +48,7 @@ class AudioItem(BaseInlineItem):
             playlist_key,
         )
 
-        from tase.telegram.bots.ui.inline_buttons import LoadingKeyboardInlineButton
+        from tase.telegram.bots.ui.inline_buttons.common import get_audio_loading_keyboard
 
         return InlineQueryResultCachedAudio(
             audio_file_id=telegram_file_id,
@@ -62,12 +62,9 @@ class AudioItem(BaseInlineItem):
                     include_source=True,
                 )
             ),
-            reply_markup=InlineKeyboardMarkup(
-                [
-                    [
-                        LoadingKeyboardInlineButton.get_keyboard(lang_code=from_user.chosen_language_code),
-                    ]
-                ]
+            reply_markup=get_audio_loading_keyboard(
+                hit_download_url=hit_download_url,
+                lang_code=from_user.chosen_language_code,
             ),
         )
 
