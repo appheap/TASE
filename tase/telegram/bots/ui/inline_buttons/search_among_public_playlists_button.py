@@ -1,3 +1,4 @@
+import asyncio
 from typing import Optional, List
 
 import pyrogram
@@ -154,6 +155,18 @@ class SearchAmongPublicPlaylistsInlineButton(InlineButton):
         inline_button_data: SearchAmongPlaylistSubscriptionsButtonData,
         inline_item_info: PlaylistItemInfo,
     ):
+        from tase.telegram.bots.ui.inline_buttons.common import update_playlist_keyboard_markup
+
+        update_keyboard_task = asyncio.create_task(
+            update_playlist_keyboard_markup(
+                handler.db,
+                client,
+                from_user,
+                telegram_chosen_inline_result,
+                inline_item_info,
+            )
+        )
+
         if not await handler.db.graph.create_interaction(
             from_user,
             handler.telegram_client.telegram_id,
@@ -163,3 +176,5 @@ class SearchAmongPublicPlaylistsInlineButton(InlineButton):
             playlist_key=inline_item_info.playlist_key,
         ):
             logger.error(f"Error in creating interaction for playlist `{inline_item_info.playlist_key}`")
+
+        await update_keyboard_task

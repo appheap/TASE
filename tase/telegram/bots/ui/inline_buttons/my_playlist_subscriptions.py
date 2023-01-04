@@ -118,4 +118,12 @@ class MyPlaylistSubscriptionsInlineButton(InlineButton):
             )
         else:
             # The chosen inline item is a public playlist.
-            pass
+            from tase.telegram.bots.ui.inline_buttons.common import update_playlist_keyboard_markup
+
+            await update_playlist_keyboard_markup(
+                handler.db,
+                client,
+                from_user,
+                telegram_chosen_inline_result,
+                inline_item_info,
+            )

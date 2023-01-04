@@ -1,5 +1,6 @@
 from .add_to_playlist_button import AddToPlaylistInlineButton, AddToPlaylistButtonData
 from .advertisement_button import AdvertisementInlineButton, AdvertisementButtonData
+from .audio_loading_keyboard_button import AudioLoadingKeyboardInlineButton, AudioLoadingButtonData
 from .back_button import BackInlineButton, BackButtonData
 from .back_to_playlists_button import BackToPlaylistsInlineButton, BackToPlaylistsButtonData
 from .choose_language_button import ChooseLanguageInlineButton, ChooseLanguageButtonData
@@ -11,9 +12,9 @@ from .edit_playlist_title_button import EditPlaylistTitleInlineButton, EditPlayl
 from .get_playlist_audios_button import GetPlaylistAudioInlineButton, GetPlaylistAudiosButtonData
 from .help_catalog import HelpCatalogInlineButton, HelpCatalogButtonData
 from .home_button import HomeInlineButton, HomeButtonData
-from .loading_keyboard_button import LoadingKeyboardInlineButton, LoadingButtonData
 from .my_playlist_subscriptions import MyPlaylistSubscriptionsInlineButton, MyPlaylistSubscriptionsButtonData
 from .my_playlists_button import MyPlaylistsInlineButton, MyPlaylistsButtonData
+from .playlist_loading_keyboard_button import PlaylistLoadingKeyboardInlineButton, PlaylistLoadingButtonData
 from .remove_from_playlist_button import RemoveFromPlaylistInlineButton, RemoveFromPlaylistButtonData
 from .search_among_public_playlists_button import SearchAmongPublicPlaylistsInlineButton, SearchAmongPlaylistSubscriptionsButtonData
 from .share_playlist_button import SharePlaylistInlineButton, SharePlaylistButtonData
@@ -30,6 +31,8 @@ __all__ = [
     "AddToPlaylistButtonData",
     "AdvertisementInlineButton",
     "AdvertisementButtonData",
+    "AudioLoadingKeyboardInlineButton",
+    "AudioLoadingButtonData",
     "BackToPlaylistsInlineButton",
     "BackButtonData",
     "BackInlineButton",
@@ -52,12 +55,12 @@ __all__ = [
     "HelpCatalogButtonData",
     "HomeInlineButton",
     "HomeButtonData",
-    "LoadingKeyboardInlineButton",
-    "LoadingButtonData",
     "MyPlaylistSubscriptionsInlineButton",
     "MyPlaylistSubscriptionsButtonData",
     "MyPlaylistsInlineButton",
     "MyPlaylistsButtonData",
+    "PlaylistLoadingKeyboardInlineButton",
+    "PlaylistLoadingButtonData",
     "RemoveFromPlaylistInlineButton",
     "RemoveFromPlaylistButtonData",
     "SearchAmongPublicPlaylistsInlineButton",
