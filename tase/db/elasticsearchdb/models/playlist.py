@@ -14,8 +14,8 @@ from tase.errors import PlaylistDoesNotExists
 from tase.my_logger import logger
 from .base_document import BaseDocument
 from ...arangodb.base import BaseSoftDeletableDocument
-from ...arangodb.enums import InteractionType
-from ...arangodb.helpers import ElasticQueryMetadata, InteractionCount, PublicPlaylistSubscriptionCount
+from ...arangodb.enums import AudioInteractionType
+from ...arangodb.helpers import ElasticQueryMetadata, AudioInteractionCount, PublicPlaylistSubscriptionCount
 
 
 class Playlist(BaseDocument, BaseSoftDeletableDocument):
@@ -157,14 +157,14 @@ class Playlist(BaseDocument, BaseSoftDeletableDocument):
 
     async def update_by_interaction_count(
         self,
-        interaction_count: InteractionCount,
+        interaction_count: AudioInteractionCount,
     ) -> bool:
         """
         Update the attributes of the `Playlist` index with the given `InteractionCount` object
 
         Parameters
         ----------
-        interaction_count : InteractionCount
+        interaction_count : AudioInteractionCount
             `InteractionCount` object to update the index document with.
 
         Returns
@@ -177,27 +177,27 @@ class Playlist(BaseDocument, BaseSoftDeletableDocument):
             return False
 
         self_copy: Playlist = self.copy(deep=True)
-        if interaction_count.interaction_type == InteractionType.DOWNLOAD_PUBLIC_PLAYLIST:
+        if interaction_count.interaction_type == AudioInteractionType.DOWNLOAD_PUBLIC_PLAYLIST:
             self_copy.downloads += interaction_count.count
-        elif interaction_count.interaction_type == InteractionType.REDOWNLOAD_PUBLIC_PLAYLIST:
+        elif interaction_count.interaction_type == AudioInteractionType.REDOWNLOAD_PUBLIC_PLAYLIST:
             self_copy.redownloads += interaction_count.count
-        elif interaction_count.interaction_type == InteractionType.SHARE_PUBLIC_PLAYLIST:
+        elif interaction_count.interaction_type == AudioInteractionType.SHARE_PUBLIC_PLAYLIST:
             self_copy.shares += interaction_count.count
-        elif interaction_count.interaction_type == InteractionType.DOWNLOAD_AUDIO:
+        elif interaction_count.interaction_type == AudioInteractionType.DOWNLOAD_AUDIO:
             self_copy.audio_downloads += interaction_count.count
-        elif interaction_count.interaction_type == InteractionType.REDOWNLOAD_AUDIO:
+        elif interaction_count.interaction_type == AudioInteractionType.REDOWNLOAD_AUDIO:
             self_copy.audio_redownloads += interaction_count.count
-        elif interaction_count.interaction_type == InteractionType.SHARE_AUDIO:
+        elif interaction_count.interaction_type == AudioInteractionType.SHARE_AUDIO:
             self_copy.audio_shares += interaction_count.count
-        elif interaction_count.interaction_type == InteractionType.SHARE_AUDIO_LINK:
+        elif interaction_count.interaction_type == AudioInteractionType.SHARE_AUDIO_LINK:
             self_copy.audio_link_shares += interaction_count.count
-        elif interaction_count.interaction_type == InteractionType.LIKE_AUDIO:
+        elif interaction_count.interaction_type == AudioInteractionType.LIKE_AUDIO:
             if interaction_count.is_active:
                 self_copy.audio_likes += interaction_count.count
             else:
                 if self_copy.audio_likes > 0:
                     self_copy.audio_likes -= interaction_count.count
-        elif interaction_count.interaction_type == InteractionType.DISLIKE_AUDIO:
+        elif interaction_count.interaction_type == AudioInteractionType.DISLIKE_AUDIO:
             if interaction_count.is_active:
                 self_copy.audio_dislikes += interaction_count.count
             else:

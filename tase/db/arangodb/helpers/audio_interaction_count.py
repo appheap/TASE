@@ -4,12 +4,12 @@ from typing import Optional
 
 from pydantic import BaseModel
 
-from tase.db.arangodb.enums import InteractionType
+from tase.db.arangodb.enums import AudioInteractionType
 
 
-class InteractionCount(BaseModel):
+class AudioInteractionCount(BaseModel):
     vertex_key: str
-    interaction_type: InteractionType
+    interaction_type: AudioInteractionType
     count: int
     is_active: bool
 
@@ -17,7 +17,7 @@ class InteractionCount(BaseModel):
     def parse(
         cls,
         db_object: dict,
-    ) -> Optional[InteractionCount]:
+    ) -> Optional[AudioInteractionCount]:
         if db_object is None or not len(db_object):
             return None
 
@@ -27,7 +27,7 @@ class InteractionCount(BaseModel):
         is_active = db_object.get("is_active", None)
 
         if vertex_key is not None and interaction_type is not None and count is not None and is_active is not None:
-            return InteractionCount(
+            return AudioInteractionCount(
                 vertex_key=vertex_key,
                 interaction_type=interaction_type,
                 count=count,

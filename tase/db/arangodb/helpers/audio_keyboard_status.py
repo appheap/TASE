@@ -26,7 +26,7 @@ class AudioKeyboardStatus(BaseModel):
         if db is None or ((hit_download_url is None or not len(hit_download_url)) and audio_vertex_key is None):
             return None
 
-        from tase.db.arangodb.enums import InteractionType
+        from tase.db.arangodb.enums import AudioInteractionType
 
         valid_for_inline = await db.graph.is_audio_valid_for_inline_mode(
             hit_download_url=hit_download_url,
@@ -36,13 +36,13 @@ class AudioKeyboardStatus(BaseModel):
         return AudioKeyboardStatus(
             is_liked=await db.graph.audio_is_interacted_by_user(
                 from_user,
-                InteractionType.LIKE_AUDIO,
+                AudioInteractionType.LIKE_AUDIO,
                 hit_download_url=hit_download_url,
                 audio_vertex_key=audio_vertex_key,
             ),
             is_disliked=await db.graph.audio_is_interacted_by_user(
                 from_user,
-                InteractionType.DISLIKE_AUDIO,
+                AudioInteractionType.DISLIKE_AUDIO,
                 hit_download_url=hit_download_url,
                 audio_vertex_key=audio_vertex_key,
             ),

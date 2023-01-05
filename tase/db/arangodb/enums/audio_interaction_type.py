@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class InteractionType(Enum):
+class AudioInteractionType(Enum):
     UNKNOWN = 0
 
     ###################################

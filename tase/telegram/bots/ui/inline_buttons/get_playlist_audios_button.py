@@ -5,7 +5,7 @@ import pyrogram
 
 from tase.common.utils import _trans, emoji
 from tase.db.arangodb import graph as graph_models
-from tase.db.arangodb.enums import InlineQueryType, ChatType, InteractionType
+from tase.db.arangodb.enums import InlineQueryType, ChatType, AudioInteractionType
 from tase.errors import PlaylistDoesNotExists
 from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
@@ -176,22 +176,22 @@ class GetPlaylistAudioInlineButton(InlineButton):
                 return
 
             if inline_item_info.inline_query_type == InlineQueryType.PRIVATE_PLAYLIST_COMMAND:
-                type_ = InteractionType.REDOWNLOAD_AUDIO
+                type_ = AudioInteractionType.REDOWNLOAD_AUDIO
             elif inline_item_info.inline_query_type == InlineQueryType.PUBLIC_PLAYLIST_COMMAND:
                 if await handler.db.graph.get_audio_interaction_by_user(
                     from_user,
                     inline_item_info.hit_download_url,
-                    InteractionType.DOWNLOAD_AUDIO,
+                    AudioInteractionType.DOWNLOAD_AUDIO,
                 ):
                     if inline_item_info.chat_type == ChatType.BOT:
-                        type_ = InteractionType.REDOWNLOAD_AUDIO
+                        type_ = AudioInteractionType.REDOWNLOAD_AUDIO
                     else:
                         if from_user.user_id == playlist.owner_user_id:
-                            type_ = InteractionType.SHARE_AUDIO
+                            type_ = AudioInteractionType.SHARE_AUDIO
                         else:
-                            type_ = InteractionType.REDOWNLOAD_AUDIO
+                            type_ = AudioInteractionType.REDOWNLOAD_AUDIO
                 else:
-                    type_ = InteractionType.DOWNLOAD_AUDIO
+                    type_ = AudioInteractionType.DOWNLOAD_AUDIO
             else:
                 return
 

@@ -6,7 +6,7 @@ import pyrogram
 
 from tase.common.utils import emoji
 from tase.db.arangodb import graph as graph_models
-from tase.db.arangodb.enums import ChatType, InteractionType
+from tase.db.arangodb.enums import ChatType, AudioInteractionType
 from tase.db.arangodb.helpers import AudioKeyboardStatus
 from tase.errors import (
     PlaylistDoesNotExists,
@@ -94,7 +94,7 @@ class ToggleDisLikeAudioInlineButton(InlineButton):
                 handler.telegram_client.telegram_id,
                 hit_download_url,
                 chat_type,
-                InteractionType.DISLIKE_AUDIO,
+                AudioInteractionType.DISLIKE_AUDIO,
                 playlist_key=inline_button_data.playlist_key,
             )
         except PlaylistDoesNotExists as e:
@@ -111,7 +111,7 @@ class ToggleDisLikeAudioInlineButton(InlineButton):
             if successful:
                 is_liked = await handler.db.graph.audio_is_interacted_by_user(
                     from_user,
-                    InteractionType.LIKE_AUDIO,
+                    AudioInteractionType.LIKE_AUDIO,
                     hit_download_url=hit_download_url,
                 )
                 update_like_button = False
@@ -121,7 +121,7 @@ class ToggleDisLikeAudioInlineButton(InlineButton):
                         handler.telegram_client.telegram_id,
                         hit_download_url,
                         chat_type,
-                        InteractionType.LIKE_AUDIO,
+                        AudioInteractionType.LIKE_AUDIO,
                         playlist_key=inline_button_data.playlist_key,
                     )
                     update_like_button = True

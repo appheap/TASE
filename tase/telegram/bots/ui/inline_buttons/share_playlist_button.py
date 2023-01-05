@@ -5,7 +5,7 @@ import pyrogram
 
 from tase.common.utils import _trans, emoji
 from tase.db.arangodb import graph as graph_models
-from tase.db.arangodb.enums import InteractionType
+from tase.db.arangodb.enums import AudioInteractionType
 from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
@@ -106,7 +106,7 @@ class SharePlaylistInlineButton(InlineButton):
         if not await handler.db.graph.create_interaction(
             from_user,
             handler.telegram_client.telegram_id,
-            InteractionType.SHARE_PUBLIC_PLAYLIST,
+            AudioInteractionType.SHARE_PUBLIC_PLAYLIST,
             inline_item_info.chat_type,
             playlist_key=inline_item_info.playlist_key,
         ):

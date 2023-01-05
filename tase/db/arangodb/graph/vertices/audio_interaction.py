@@ -19,8 +19,8 @@ from tase.errors import (
 from tase.my_logger import logger
 from .base_vertex import BaseVertex
 from .user import User
-from ...enums import ChatType, InteractionType
-from ...helpers import InteractionCount
+from ...enums import ChatType, AudioInteractionType
+from ...helpers import AudioInteractionCount
 
 if TYPE_CHECKING:
     from .. import ArangoGraphMethods
@@ -55,7 +55,7 @@ class AudioInteraction(BaseVertex):
 
     __non_updatable_fields__ = ("is_active",)
 
-    type: InteractionType
+    type: AudioInteractionType
     chat_type: ChatType
 
     is_active: bool = Field(default=True)
@@ -64,7 +64,7 @@ class AudioInteraction(BaseVertex):
     def parse(
         cls,
         key: str,
-        type_: InteractionType,
+        type_: AudioInteractionType,
         chat_type: ChatType,
     ) -> Optional[AudioInteraction]:
         if not key or not type_ or not chat_type:
@@ -132,7 +132,7 @@ class AudioInteractionMethods:
         self: ArangoGraphMethods,
         user: User,
         bot_id: int,
-        type_: InteractionType,
+        type_: AudioInteractionType,
         chat_type: ChatType,
         audio_hit_download_url: Optional[str] = None,
         playlist_hit_download_url: Optional[str] = None,
@@ -147,7 +147,7 @@ class AudioInteractionMethods:
             User to create the `Download` vertex for
         bot_id : int
             Telegram ID of the Bot which the query has been made to
-        type_ : InteractionType
+        type_ : AudioInteractionType
             Type of interaction to create
         chat_type : ChatType
             Type of the chat this interaction happened in
@@ -279,7 +279,7 @@ class AudioInteractionMethods:
         self: ArangoGraphMethods,
         user: User,
         hit_download_url: str,
-        interaction_type: InteractionType,
+        interaction_type: AudioInteractionType,
     ) -> Optional[AudioInteraction]:
         """
         Get `Interaction` vertex with an `Audio` by a user.
@@ -290,7 +290,7 @@ class AudioInteractionMethods:
             User to run the query on.
         hit_download_url : str
             Hit download_url to get the audio from.
-        interaction_type : InteractionType
+        interaction_type : AudioInteractionType
             Type of the interaction to check.
 
         Returns
@@ -341,7 +341,7 @@ class AudioInteractionMethods:
     async def get_playlist_interaction_by_user(
         self: ArangoGraphMethods,
         user: User,
-        interaction_type: InteractionType,
+        interaction_type: AudioInteractionType,
         *,
         hit_download_url: Optional[str] = None,
         playlist_key: Optional[str] = None,
@@ -353,7 +353,7 @@ class AudioInteractionMethods:
         ----------
         user : User
             User to run the query on.
-        interaction_type : InteractionType
+        interaction_type : AudioInteractionType
             Type of the interaction to check.
         hit_download_url : str, optional
             Hit download_url to get the playlist from.
@@ -417,7 +417,7 @@ class AudioInteractionMethods:
     async def audio_is_interacted_by_user(
         self: ArangoGraphMethods,
         user: User,
-        interaction_type: InteractionType,
+        interaction_type: AudioInteractionType,
         *,
         hit_download_url: str = None,
         audio_vertex_key: str = None,
@@ -429,7 +429,7 @@ class AudioInteractionMethods:
         ----------
         user : User
             User to run the query on
-        interaction_type : InteractionType
+        interaction_type : AudioInteractionType
             Type of the interaction to check
         hit_download_url : str, default : None
             Hit download_url to get the audio from
@@ -491,7 +491,7 @@ class AudioInteractionMethods:
         bot_id: int,
         hit_download_url: str,
         chat_type: ChatType,
-        interaction_type: InteractionType,
+        interaction_type: AudioInteractionType,
         playlist_key: Optional[str] = None,
     ) -> Tuple[bool, bool]:
         """
@@ -507,7 +507,7 @@ class AudioInteractionMethods:
             Hit download_url to get the audio from.
         chat_type : ChatType
             Type of the chat this interaction happened in.
-        interaction_type : InteractionType
+        interaction_type : AudioInteractionType
             Type of the interaction to toggle.
         playlist_key : str, optional
             Key of the playlist this interaction originated form.
@@ -543,7 +543,7 @@ class AudioInteractionMethods:
         bot_id: int,
         hit_download_url: str,
         chat_type: ChatType,
-        interaction_type: InteractionType,
+        interaction_type: AudioInteractionType,
     ) -> Tuple[bool, bool]:
         """
         Toggle an interaction with an `Playlist` by a user
@@ -558,7 +558,7 @@ class AudioInteractionMethods:
             Hit download_url to get the audio from.
         chat_type : ChatType
             Type of the chat this interaction happened in
-        interaction_type : InteractionType
+        interaction_type : AudioInteractionType
             Type of the interaction to toggle
 
         Returns
@@ -592,7 +592,7 @@ class AudioInteractionMethods:
         user: User,
         bot_id: int,
         chat_type: ChatType,
-        interaction_type: InteractionType,
+        interaction_type: AudioInteractionType,
         audio_hit_download_url: Optional[str] = None,
         playlist_hit_download_url: Optional[str] = None,
         playlist_key: Optional[str] = None,
@@ -612,7 +612,7 @@ class AudioInteractionMethods:
             Hit download_url to get the playlist from.
         chat_type : ChatType
             Type of the chat this interaction happened in.
-        interaction_type : InteractionType
+        interaction_type : AudioInteractionType
             Type of the interaction to toggle.
         playlist_key : str, optional
             Key of the playlist this interaction originated form.
@@ -706,7 +706,7 @@ class AudioInteractionMethods:
         self,
         last_run_at: int,
         now: int,
-    ) -> List[InteractionCount]:
+    ) -> List[AudioInteractionCount]:
         """
         Count the interactions with playlist vertices that have been created in the ArangoDB between `now` and `last_run_at` parameters.
 
@@ -734,7 +734,7 @@ class AudioInteractionMethods:
         self,
         last_run_at: int,
         now: int,
-    ) -> List[InteractionCount]:
+    ) -> List[AudioInteractionCount]:
         """
         Count the interactions with audio files that have been created in the ArangoDB between `now` and `last_run_at` parameters.
 
@@ -764,7 +764,7 @@ class AudioInteractionMethods:
         count_playlist_interactions: bool,
         last_run_at: int,
         now: int,
-    ) -> List[InteractionCount]:
+    ) -> List[AudioInteractionCount]:
         """
         Count the interactions with audio or playlist vertices that have been created in the ArangoDB between `now` and `last_run_at` parameters.
 
@@ -800,7 +800,7 @@ class AudioInteractionMethods:
             },
         ) as cursor:
             async for doc in cursor:
-                obj = InteractionCount.parse(doc)
+                obj = AudioInteractionCount.parse(doc)
                 if obj is not None:
                     res.append(obj)
 
