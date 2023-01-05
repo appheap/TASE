@@ -487,14 +487,14 @@ class UserMethods:
             return None
 
         from tase.db.arangodb.graph.edges import FromHit, Has
-        from tase.db.arangodb.graph.vertices import Hit, Interaction
+        from tase.db.arangodb.graph.vertices import Hit, AudioInteraction
 
         async with await User.execute_query(
             self._get_user_from_hit_download_url_query,
             bind_vars={
                 "@hits": Hit.__collection_name__,
                 "hit_download_url": hit_download_url,
-                "interactions": Interaction.__collection_name__,
+                "interactions": AudioInteraction.__collection_name__,
                 "interaction_type": InteractionType.SHARE_AUDIO_LINK.value,
                 "from_hit": FromHit.__collection_name__,
                 "users": User.__collection_name__,

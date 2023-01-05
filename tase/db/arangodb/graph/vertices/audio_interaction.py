@@ -26,8 +26,8 @@ if TYPE_CHECKING:
     from .. import ArangoGraphMethods
 
 
-class Interaction(BaseVertex):
-    __collection_name__ = "interactions"
+class AudioInteraction(BaseVertex):
+    __collection_name__ = "audio_interactions"
     schema_version = 1
     __indexes__ = [
         PersistentIndex(
@@ -66,23 +66,23 @@ class Interaction(BaseVertex):
         key: str,
         type_: InteractionType,
         chat_type: ChatType,
-    ) -> Optional[Interaction]:
+    ) -> Optional[AudioInteraction]:
         if not key or not type_ or not chat_type:
             return None
 
-        return Interaction(
+        return AudioInteraction(
             key=key,
             type=type_,
             chat_type=chat_type,
         )
 
     async def toggle(self) -> bool:
-        self_copy: Interaction = self.copy(deep=True)
+        self_copy: AudioInteraction = self.copy(deep=True)
         self_copy.is_active = not self.is_active
         return await self.update(self_copy, reserve_non_updatable_fields=False)
 
 
-class InteractionMethods:
+class AudioInteractionMethods:
     _is_audio_interacted_by_user_query = (
         "for v_int in 1..1 outbound @user_id graph @graph_name options {order : 'dfs', edgeCollections : [@has], vertexCollections : [@interactions]}"
         "   filter v_int.type == @interaction_type and v_int.is_active == true"
@@ -137,7 +137,7 @@ class InteractionMethods:
         audio_hit_download_url: Optional[str] = None,
         playlist_hit_download_url: Optional[str] = None,
         playlist_key: Optional[str] = None,
-    ) -> Optional[Interaction]:
+    ) -> Optional[AudioInteraction]:
         """
         Create an interaction vertex for and audio vertex from the given `hit_download_url` parameter.
 
@@ -216,10 +216,10 @@ class InteractionMethods:
 
         while True:
             key = str(uuid.uuid4())
-            if await Interaction.get(key) is None:
+            if await AudioInteraction.get(key) is None:
                 break
 
-        interaction = Interaction.parse(
+        interaction = AudioInteraction.parse(
             key,
             type_,
             chat_type,
@@ -228,7 +228,7 @@ class InteractionMethods:
             logger.error(f"could not parse interaction : {key} : {type_} : {chat_type}")
             return None
 
-        interaction, created = await Interaction.insert(interaction)
+        interaction, created = await AudioInteraction.insert(interaction)
         if not interaction or not created:
             logger.error(f"could not create interaction : {key} : {type_} : {chat_type}")
             return None
@@ -280,7 +280,7 @@ class InteractionMethods:
         user: User,
         hit_download_url: str,
         interaction_type: InteractionType,
-    ) -> Optional[Interaction]:
+    ) -> Optional[AudioInteraction]:
         """
         Get `Interaction` vertex with an `Audio` by a user.
 
@@ -322,19 +322,19 @@ class InteractionMethods:
 
         from tase.db.arangodb.graph.vertices import Audio
 
-        async with await Interaction.execute_query(
+        async with await AudioInteraction.execute_query(
             self._get_audio_interaction_by_user_query,
             bind_vars={
                 "user_id": user.id,
                 "audio_key": audio.key,
                 "interaction_type": interaction_type.value,
                 "has": Has.__collection_name__,
-                "interactions": Interaction.__collection_name__,
+                "interactions": AudioInteraction.__collection_name__,
                 "audios": Audio.__collection_name__,
             },
         ) as cursor:
             async for doc in cursor:
-                return Interaction.from_collection(doc)
+                return AudioInteraction.from_collection(doc)
 
         return None
 
@@ -345,7 +345,7 @@ class InteractionMethods:
         *,
         hit_download_url: Optional[str] = None,
         playlist_key: Optional[str] = None,
-    ) -> Optional[Interaction]:
+    ) -> Optional[AudioInteraction]:
         """
         Get `Interaction` vertex with an `Playlist` by a user.
 
@@ -398,19 +398,19 @@ class InteractionMethods:
 
         from tase.db.arangodb.graph.vertices import Playlist
 
-        async with await Interaction.execute_query(
+        async with await AudioInteraction.execute_query(
             self._get_playlist_interaction_by_user_query,
             bind_vars={
                 "user_id": user.id,
                 "playlist_key": playlist.key,
                 "interaction_type": interaction_type.value,
                 "has": Has.__collection_name__,
-                "interactions": Interaction.__collection_name__,
+                "interactions": AudioInteraction.__collection_name__,
                 "playlists": Playlist.__collection_name__,
             },
         ) as cursor:
             async for doc in cursor:
-                return Interaction.from_collection(doc)
+                return AudioInteraction.from_collection(doc)
 
         return None
 
@@ -472,14 +472,14 @@ class InteractionMethods:
 
         from tase.db.arangodb.graph.vertices import Audio
 
-        async with await Interaction.execute_query(
+        async with await AudioInteraction.execute_query(
             self._is_audio_interacted_by_user_query,
             bind_vars={
                 "user_id": user.id,
                 "audio_key": audio.key,
                 "interaction_type": interaction_type.value,
                 "has": Has.__collection_name__,
-                "interactions": Interaction.__collection_name__,
+                "interactions": AudioInteraction.__collection_name__,
                 "audios": Audio.__collection_name__,
             },
         ) as cursor:
@@ -789,10 +789,10 @@ class InteractionMethods:
 
         res = collections.deque()
 
-        async with await Interaction.execute_query(
+        async with await AudioInteraction.execute_query(
             self._count_audio_interactions_query if count_audio_interactions else self._count_playlist_interactions_query,
             bind_vars={
-                "@interactions": Interaction.__collection_name__,
+                "@interactions": AudioInteraction.__collection_name__,
                 "last_run_at": last_run_at,
                 "now": now,
                 "has": Has.__collection_name__,

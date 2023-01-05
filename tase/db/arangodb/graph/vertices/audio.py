@@ -28,9 +28,9 @@ from tase.errors import (
     EdgeCreationFailed,
 )
 from tase.my_logger import logger
+from .audio_interaction import AudioInteraction
 from .base_vertex import BaseVertex
 from .hit import Hit
-from .interaction import Interaction
 from .user import User
 from ...helpers import BitRateType
 
@@ -1152,7 +1152,7 @@ class AudioMethods:
                 "start_vertex": user.id,
                 "has": Has.__collection_name__,
                 "audios": Audio.__collection_name__,
-                "interactions": Interaction.__collection_name__,
+                "interactions": AudioInteraction.__collection_name__,
                 "interaction_type": InteractionType.DOWNLOAD_AUDIO.value,
                 "archived_lst": [AudioType.ARCHIVED.value, AudioType.UPLOADED.value, AudioType.SENT_BY_USERS.value],
                 "offset": offset,
@@ -1434,7 +1434,7 @@ class AudioMethods:
         async with await Audio.execute_query(
             self._get_not_archived_downloaded_audios,
             bind_vars={
-                "@interactions": Interaction.__collection_name__,
+                "@interactions": AudioInteraction.__collection_name__,
                 "audios": Audio.__collection_name__,
                 "has": Has.__collection_name__,
                 "now": get_now_timestamp(),
