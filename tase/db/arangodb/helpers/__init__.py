@@ -11,5 +11,6 @@ from .elastic_query_metadata import ElasticQueryMetadata
 from .hit_count import HitCount
 from .inline_query_metadata import InlineQueryMetadata
 from .interaction_count import InteractionCount
+from .public_playlist_subscription_count import PublicPlaylistSubscriptionCount
 from .restriction import Restriction
 from .username_extractor_metadata import UsernameExtractorMetadata

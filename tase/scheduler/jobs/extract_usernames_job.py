@@ -1,4 +1,4 @@
-from itertools import chain
+from typing import AsyncGenerator
 
 import apscheduler.triggers.interval
 import arrow
@@ -9,6 +9,7 @@ from tase.my_logger import logger
 from tase.telegram.tasks import ExtractUsernamesTask
 from .base_job import BaseJob
 from ...db.arangodb.enums import RabbitMQTaskType
+from ...db.arangodb.graph.vertices import Chat
 from ...errors import NotEnoughRamError
 from ...telegram.client import TelegramClient
 
@@ -28,13 +29,31 @@ class ExtractUsernamesJob(BaseJob):
         db: tase.db.DatabaseClient,
         telegram_client: TelegramClient = None,
     ) -> None:
-        self.task_in_worker(db)
+        await self.task_in_worker(db)
+
         db_chats = db.graph.get_chats_sorted_by_username_extractor_score()
-        not_extracted_db_chats = db.graph.get_chats_sorted_by_username_extractor_score(filter_by_indexed_chats=False)
+        not_extracted_db_chats = db.graph.get_chats_sorted_by_username_extractor_score(only_include_indexed_chats=False)
+
+        if await self.extract(db, db_chats):
+            failed_ = await self.extract(db, not_extracted_db_chats)
+            if failed_:
+                await self.task_failed(db)
+            else:
+                await self.task_done(db)
+        else:
+            await self.task_failed(db)
+
+    @staticmethod
+    async def extract(
+        db: tase.db.DatabaseClient,
+        chats: AsyncGenerator[Chat, None],
+    ) -> bool:
+        if not chats:
+            return False
 
         failed = False
 
-        for chat in chain(db_chats, not_extracted_db_chats):
+        async for chat in chats:
             logger.debug(chat.username)
             # todo: blocking or non-blocking? which one is better suited for this case?
             try:
@@ -48,7 +67,4 @@ class ExtractUsernamesJob(BaseJob):
                 failed = True
                 break
 
-        if failed:
-            self.task_failed(db)
-        else:
-            self.task_done(db)
+        return failed

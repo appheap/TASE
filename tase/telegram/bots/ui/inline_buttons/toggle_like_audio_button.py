@@ -23,22 +23,33 @@ class ToggleLikeAudioButtonData(InlineButtonData):
 
     chat_type: ChatType
     hit_download_url: str
+    playlist_key: Optional[str]
 
     @classmethod
-    def generate_data(cls, chat_type: ChatType, hit_download_url: str) -> Optional[str]:
-        return f"{cls.get_type_value()}|{chat_type.value}|{hit_download_url}"
+    def generate_data(
+        cls,
+        chat_type: ChatType,
+        hit_download_url: str,
+        playlist_key: Optional[str] = None,
+    ) -> Optional[str]:
+        s_ = f"{cls.get_type_value()}|{chat_type.value}|{hit_download_url}"
+        if playlist_key:
+            return s_ + f"|{playlist_key}"
+
+        return s_
 
     @classmethod
     def __parse__(
         cls,
         data_split_lst: List[str],
     ) -> Optional[InlineButtonData]:
-        if len(data_split_lst) != 3:
+        if len(data_split_lst) < 3:
             return None
 
         return ToggleLikeAudioButtonData(
             chat_type=ChatType(int(data_split_lst[1])),
             hit_download_url=data_split_lst[2],
+            playlist_key=data_split_lst[3] if len(data_split_lst) > 3 else None,
         )
 
 
@@ -55,9 +66,14 @@ class ToggleLikeAudioInlineButton(InlineButton):
         chat_type: ChatType,
         hit_download_url: str,
         lang_code: Optional[str] = "en",
+        playlist_key: Optional[str] = None,
     ) -> pyrogram.types.InlineKeyboardButton:
         return cls.get_button(cls.__type__).__parse_keyboard_button__(
-            callback_data=ToggleLikeAudioButtonData.generate_data(chat_type, hit_download_url),
+            callback_data=ToggleLikeAudioButtonData.generate_data(
+                chat_type,
+                hit_download_url,
+                playlist_key=playlist_key,
+            ),
             lang_code=lang_code,
         )
 
@@ -79,6 +95,7 @@ class ToggleLikeAudioInlineButton(InlineButton):
                 hit_download_url,
                 chat_type,
                 InteractionType.LIKE_AUDIO,
+                playlist_key=inline_button_data.playlist_key,
             )
         except PlaylistDoesNotExists as e:
             await telegram_callback_query.answer("You do not have the playlist you have chosen")
@@ -105,6 +122,7 @@ class ToggleLikeAudioInlineButton(InlineButton):
                         hit_download_url,
                         chat_type,
                         InteractionType.DISLIKE_AUDIO,
+                        playlist_key=inline_button_data.playlist_key,
                     )
                     update_dislike_button = True
 
@@ -140,6 +158,7 @@ class ToggleLikeAudioInlineButton(InlineButton):
                         hit_download_url,
                         True,
                         status,
+                        playlist_key=inline_button_data.playlist_key,
                     )
                     if reply_markup:
                         like_dislike_index = 1 if len(reply_markup.inline_keyboard) == 3 else 0

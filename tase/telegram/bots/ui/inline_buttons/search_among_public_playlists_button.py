@@ -83,17 +83,15 @@ class SearchAmongPublicPlaylistsInlineButton(InlineButton):
                     )
 
                     if es_playlist_docs and query_metadata:
-                        hit_download_urls = await handler.db.graph.generate_hit_download_urls(size=len(es_playlist_docs))
                         result.extend_results(
                             [
                                 PlaylistItem.get_item_from_es_doc(
                                     es_playlist_doc,
                                     from_user,
                                     telegram_inline_query,
-                                    hit_download_url=hit_download_url,
                                     view_playlist=True,
                                 )
-                                for es_playlist_doc, hit_download_url in zip(es_playlist_docs, hit_download_urls)
+                                for es_playlist_doc in es_playlist_docs
                             ]
                         )
 

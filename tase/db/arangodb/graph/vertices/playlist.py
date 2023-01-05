@@ -20,6 +20,7 @@ from tase.errors import (
 from tase.my_logger import logger
 from .base_vertex import BaseVertex
 from .user import User
+from ...helpers import PublicPlaylistSubscriptionCount
 
 if TYPE_CHECKING:
     from .. import ArangoGraphMethods
@@ -256,6 +257,63 @@ class PlaylistMethods:
     _get_playlist_from_hit_query = (
         "for v,e in 1..1 outbound @start_vertex graph @graph_name options {order:'dfs', edgeCollections:[@has], vertexCollections:[@playlists]}" "   return v"
     )
+
+    _count_public_playlist_subscriptions_query = (
+        "for playlist in @@playlists"
+        "   filter playlist.is_public"
+        "   for v,e in 1..1 inbound playlist graph @graph_name options {order: 'dfs', edgeCollections:[@subscribe_to], vertexCollections:[@users]}"
+        "       filter e.modified_at >= @last_run_at and e.modified_at < @now"
+        "       collect playlist_key = playlist._key, is_active= e.is_active"
+        "       aggregate count_ = length(0)"
+        "       sort count_ desc"
+        "   return {playlist_key, count_, is_active}"
+    )
+
+    async def count_public_playlist_subscriptions(
+        self,
+        last_run_at: int,
+        now: int,
+    ) -> List[PublicPlaylistSubscriptionCount]:
+        """
+        Count the public playlist subscriptions that have been created in the ArangoDB between `now` and `last_run_at` parameters.
+
+        Parameters
+        ----------
+        last_run_at : int
+            Timestamp of last run.
+        now : int
+            Timestamp of now.
+
+        Returns
+        -------
+        List
+            List of `PublicPlaylistSubscriptionCount` objects
+
+        """
+        if last_run_at is None:
+            return []
+
+        from tase.db.arangodb.graph.edges import SubscribeTo
+        from tase.db.arangodb.graph.vertices import Playlist, User
+
+        res = collections.deque()
+
+        async with await Playlist.execute_query(
+            self._count_public_playlist_subscriptions_query,
+            bind_vars={
+                "@playlists": Playlist.__collection_name__,
+                "last_run_at": last_run_at,
+                "now": now,
+                "subscribe_to": SubscribeTo.__collection_name__,
+                "users": User.__collection_name__,
+            },
+        ) as cursor:
+            async for doc in cursor:
+                obj = PublicPlaylistSubscriptionCount.parse(doc)
+                if obj is not None:
+                    res.append(obj)
+
+        return list(res)
 
     async def get_playlists_from_keys(
         self,

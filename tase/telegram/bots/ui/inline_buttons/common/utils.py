@@ -176,6 +176,7 @@ def get_audio_markup_keyboard(
     hit_download_url: str,
     valid_for_inline_search: bool,
     status: AudioKeyboardStatus,
+    playlist_key: Optional[str] = None,
 ) -> InlineKeyboardMarkup:
     """
     Get markup keyboard for an audio message
@@ -194,6 +195,8 @@ def get_audio_markup_keyboard(
         Whether this audio is valid for inline mode or not
     status : AudioKeyboardStatus
         Keyboard status of this audio file
+    playlist_key : str, optional
+        Key of the playlist vertex this audio downloaded from.
 
     Returns
     -------
@@ -228,6 +231,7 @@ def get_audio_markup_keyboard(
                         chat_type=chat_type,
                         hit_download_url=hit_download_url,
                         lang_code=chosen_language_code,
+                        playlist_key=playlist_key,
                     ),
                     InlineButton.get_button(InlineButtonType.LIKE_AUDIO)
                     .change_text(status.is_liked)
@@ -235,6 +239,7 @@ def get_audio_markup_keyboard(
                         chat_type=chat_type,
                         hit_download_url=hit_download_url,
                         lang_code=chosen_language_code,
+                        playlist_key=playlist_key,
                     ),
                 ],
                 [
@@ -250,6 +255,7 @@ def get_audio_markup_keyboard(
                         chat_type=chat_type,
                         hit_download_url=hit_download_url,
                         lang_code=chosen_language_code,
+                        playlist_key=playlist_key,
                     ),
                     InlineButton.get_button(InlineButtonType.LIKE_AUDIO)
                     .change_text(status.is_liked)
@@ -257,6 +263,7 @@ def get_audio_markup_keyboard(
                         chat_type=chat_type,
                         hit_download_url=hit_download_url,
                         lang_code=chosen_language_code,
+                        playlist_key=playlist_key,
                     ),
                 ],
                 [

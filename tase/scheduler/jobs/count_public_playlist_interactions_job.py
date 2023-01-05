@@ -9,12 +9,12 @@ from ...db.arangodb.enums import RabbitMQTaskType
 from ...telegram.client.client_worker import RabbitMQConsumer
 
 
-class CountInteractionsJob(BaseJob):
-    type = RabbitMQTaskType.COUNT_INTERACTIONS_JOB
+class CountPublicPlaylistInteractionsJob(BaseJob):
+    type = RabbitMQTaskType.COUNT_PUBLIC_PLAYLIST_INTERACTIONS_JOB
     priority = 2
 
     trigger = IntervalTrigger(
-        hours=1,
+        minutes=1,
         start_date=arrow.now().datetime,
     )
 
@@ -26,28 +26,28 @@ class CountInteractionsJob(BaseJob):
     ):
         await self.task_in_worker(db)
 
-        job = await db.document.get_count_interactions_job()
+        job = await db.document.get_count_public_playlist_interactions_job()
         if job is None:
             await self.task_failed(db)
         else:
             if job.is_active:
                 now = get_now_timestamp()
 
-                interactions_count = await db.graph.count_interactions(
+                interactions_count = await db.graph.count_public_playlist_interactions(
                     job.last_run_at,
                     now,
                 )
 
                 for interaction_count in interactions_count:
-                    es_audio_doc = await db.index.get_audio_by_id(interaction_count.audio_key)
-                    if not es_audio_doc:
+                    es_playlist = await db.index.get_playlist_by_id(interaction_count.vertex_key)
+                    if not es_playlist:
                         continue
 
-                    updated = await es_audio_doc.update_by_interaction_count(interaction_count)
+                    updated = await es_playlist.update_by_interaction_count(interaction_count)
                     if not updated:
-                        logger.error(f"Could not update interaction count for audio with key : `{interaction_count.audio_key}`")
+                        logger.error(f"Could not update interaction count for playlist with key : `{interaction_count.vertex_key}`")
 
-                updated = job.update_last_run(now)
+                updated = await job.update_last_run(now)
                 if not updated:
                     logger.error(f"Could not count interaction job document")
                 await self.task_done(db)

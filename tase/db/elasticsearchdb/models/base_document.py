@@ -486,13 +486,13 @@ class BaseDocument(BaseModel):
         Parameters
         ----------
         document : TBaseDocument
-            Document used for updating the old document in the database
+            Document used for updating the old document in the database.
         reserve_non_updatable_fields : bool, default: True
-            Whether to keep the non-updatable fields from the old document or not
+            Whether to keep the non-updatable fields from the old document or not.
         retry_on_failure : bool, default : True
-            Whether to retry the operation if it fails due to `revision` mismatch
+            Whether to retry the operation if it fails due to `revision` mismatch.
         retry_on_conflict : bool, optional
-            Whether to retry the api call if it fails due to `revision` mismatch
+            Whether to retry the api call if it fails due to `revision` mismatch.
         run_depth : int
             Depth of running the function. stop and return False after 10 runs.
 

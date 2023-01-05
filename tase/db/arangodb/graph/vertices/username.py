@@ -371,6 +371,7 @@ class UsernameMethods:
 
         async with await Username.execute_query(
             self._get_checked_usernames_with_unchecked_mentions,
+            stream=True,
             bind_vars={
                 "@usernames": Username.__collection_name__,
                 "mentions": Mentions.__collection_name__,

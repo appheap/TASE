@@ -167,6 +167,7 @@ class GetPlaylistAudioInlineButton(InlineButton):
                     telegram_chosen_inline_result,
                     inline_item_info.hit_download_url,
                     inline_item_info.chat_type,
+                    playlist_key=inline_item_info.playlist_key,
                 )
             )
 
