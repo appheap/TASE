@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import collections
-from typing import Optional, List, Tuple, Generator, TYPE_CHECKING, Deque, Iterable
+from typing import Optional, List, Tuple, TYPE_CHECKING, Deque, Iterable, AsyncGenerator
 
 import pyrogram
 
@@ -917,15 +917,15 @@ class ChatMethods:
 
     async def get_chats_sorted_by_username_extractor_score(
         self,
-        filter_by_indexed_chats: bool = True,
-    ) -> Generator[Chat, None, None]:
+        only_include_indexed_chats: bool = True,
+    ) -> AsyncGenerator[Chat, None]:
         """
-        Gets list of chats sorted by their username extractor importance score in a descending order
+        Gets list of chats sorted by their username extractor importance score in a descending order.
 
         Parameters
         ----------
-        filter_by_indexed_chats : bool, default: True
-            Whether to filter chats by whether they have been indexed before or not
+        only_include_indexed_chats : bool, default: True
+            Whether to filter chats by whether they have been indexed before or not.
 
         Yields
         ------
@@ -937,8 +937,9 @@ class ChatMethods:
 
         async with await Chat.execute_query(
             self._get_chats_sorted_by_username_extractor_score_query
-            if filter_by_indexed_chats
+            if only_include_indexed_chats
             else self._get_not_extracted_chats_sorted_by_members_count_query,
+            stream=True,
             bind_vars={
                 "@chats": Chat.__collection_name__,
                 "chat_type": chat_type,
@@ -949,15 +950,15 @@ class ChatMethods:
 
     async def get_chats_sorted_by_audio_indexer_score(
         self,
-        filter_by_indexed_chats: bool = True,
-    ) -> Generator[Chat, None, None]:
+        only_include_indexed_chats: bool = True,
+    ) -> AsyncGenerator[Chat, None]:
         """
-        Get list of chats sorted by their audio importance score in a descending order
+        Get list of chats sorted by their audio importance score in a descending order.
 
         Parameters
         ----------
-        filter_by_indexed_chats : bool, default: True
-            Whether to filter chats by whether they have been indexed before or not
+        only_include_indexed_chats : bool, default: True
+            Whether to filter chats by whether they have been indexed before or not.
 
         Yields
         ------
@@ -968,7 +969,8 @@ class ChatMethods:
         chat_type = ChatType.CHANNEL.value
 
         async with await Chat.execute_query(
-            self._get_chats_sorted_by_audio_indexer_score_query if filter_by_indexed_chats else self._get_not_indexed_chats_sorted_by_members_count_query,
+            self._get_chats_sorted_by_audio_indexer_score_query if only_include_indexed_chats else self._get_not_indexed_chats_sorted_by_members_count_query,
+            stream=True,
             bind_vars={
                 "@chats": Chat.__collection_name__,
                 "chat_type": chat_type,
@@ -977,9 +979,7 @@ class ChatMethods:
             async for doc in cursor:
                 yield Chat.from_collection(doc)
 
-    async def get_chats_sorted_by_audio_doc_indexer_score(
-        self,
-    ) -> Generator[Chat, None, None]:
+    async def get_chats_sorted_by_audio_doc_indexer_score(self) -> AsyncGenerator[Chat, None]:
         """
         Gets list of chats sorted by their audio doc importance score in a descending order
 
@@ -993,6 +993,7 @@ class ChatMethods:
 
         async with await Chat.execute_query(
             self._get_chats_sorted_by_audio_doc_indexer_score,
+            stream=True,
             bind_vars={
                 "@chats": Chat.__collection_name__,
                 "chat_type": chat_type,

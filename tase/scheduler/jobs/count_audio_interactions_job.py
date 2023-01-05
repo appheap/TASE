@@ -47,7 +47,7 @@ class CountAudioInteractionsJob(BaseJob):
                     if not updated:
                         logger.error(f"Could not update interaction count for audio with key : `{interaction_count.vertex_key}`")
 
-                updated = job.update_last_run(now)
+                updated = await job.update_last_run(now)
                 if not updated:
                     logger.error(f"Could not count interaction job document")
                 await self.task_done(db)

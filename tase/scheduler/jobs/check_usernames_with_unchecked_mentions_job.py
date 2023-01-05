@@ -25,17 +25,19 @@ class CheckUsernamesWithUncheckedMentionsJob(BaseJob):
         db: tase.db.DatabaseClient,
         telegram_client: TelegramClient = None,
     ) -> None:
-        self.task_in_worker(db)
-        for idx, (username, mentioned_chat) in enumerate(db.graph.get_checked_usernames_with_unchecked_mentions()):
+        await self.task_in_worker(db)
+        idx = 0
+        async for username, mentioned_chat in db.graph.get_checked_usernames_with_unchecked_mentions():
+            idx += 1
             if username.is_checked:
                 logger.info(f"Rechecking: {username.username}")
                 if username.is_valid:
-                    db.graph.create_and_check_mentions_edges_after_username_check(
+                    await db.graph.create_and_check_mentions_edges_after_username_check(
                         mentioned_chat,
                         username,
                     )
                 else:
                     # `mentioned_chat` is None
-                    db.graph.update_mentions_edges_from_chat_to_username(username)
+                    await db.graph.update_mentions_edges_from_chat_to_username(username)
 
-        self.task_done(db)
+        await self.task_done(db)

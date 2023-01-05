@@ -47,7 +47,7 @@ class CountHitsJob(BaseJob):
                     if not updated:
                         logger.error(f"Could not update hit count count for audio with key : `{hit_count.audio_key}`")
 
-                updated = job.update_last_run(now)
+                updated = await job.update_last_run(now)
                 if not updated:
                     logger.error(f"Could not count hits job document")
                 await self.task_done(db)
