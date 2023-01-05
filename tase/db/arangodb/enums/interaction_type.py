@@ -19,3 +19,4 @@ class InteractionType(Enum):
     ###################################
     DOWNLOAD_PUBLIC_PLAYLIST = 7
     SHARE_PUBLIC_PLAYLIST = 8
+    REDOWNLOAD_PUBLIC_PLAYLIST = 9

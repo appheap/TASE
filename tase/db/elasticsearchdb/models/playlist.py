@@ -70,6 +70,7 @@ class Playlist(BaseDocument, BaseSoftDeletableDocument):
     subscribers: int = Field(default=0)
     shares: int = Field(default=0)
     downloads: int = Field(default=0)
+    redownloads: int = Field(default=0)
 
     audio_downloads: int = Field(default=0)
     audio_redownloads: int = Field(default=0)
@@ -178,6 +179,8 @@ class Playlist(BaseDocument, BaseSoftDeletableDocument):
         self_copy: Playlist = self.copy(deep=True)
         if interaction_count.interaction_type == InteractionType.DOWNLOAD_PUBLIC_PLAYLIST:
             self_copy.downloads += interaction_count.count
+        elif interaction_count.interaction_type == InteractionType.REDOWNLOAD_PUBLIC_PLAYLIST:
+            self_copy.redownloads += interaction_count.count
         elif interaction_count.interaction_type == InteractionType.SHARE_PUBLIC_PLAYLIST:
             self_copy.shares += interaction_count.count
         elif interaction_count.interaction_type == InteractionType.DOWNLOAD_AUDIO:

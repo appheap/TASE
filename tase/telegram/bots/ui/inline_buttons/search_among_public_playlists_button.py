@@ -165,10 +165,19 @@ class SearchAmongPublicPlaylistsInlineButton(InlineButton):
             )
         )
 
+        if await handler.db.graph.get_playlist_interaction_by_user(
+            from_user,
+            InteractionType.DOWNLOAD_PUBLIC_PLAYLIST,
+            playlist_key=inline_item_info.playlist_key,
+        ):
+            type_ = InteractionType.REDOWNLOAD_PUBLIC_PLAYLIST
+        else:
+            type_ = InteractionType.DOWNLOAD_PUBLIC_PLAYLIST
+
         if not await handler.db.graph.create_interaction(
             from_user,
             handler.telegram_client.telegram_id,
-            InteractionType.DOWNLOAD_PUBLIC_PLAYLIST,
+            type_,
             inline_item_info.chat_type,
             playlist_hit_download_url=inline_item_info.hit_download_url,
             playlist_key=inline_item_info.playlist_key,

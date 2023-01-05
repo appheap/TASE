@@ -341,8 +341,10 @@ class InteractionMethods:
     async def get_playlist_interaction_by_user(
         self: ArangoGraphMethods,
         user: User,
-        hit_download_url: str,
         interaction_type: InteractionType,
+        *,
+        hit_download_url: Optional[str] = None,
+        playlist_key: Optional[str] = None,
     ) -> Optional[Interaction]:
         """
         Get `Interaction` vertex with an `Playlist` by a user.
@@ -350,11 +352,13 @@ class InteractionMethods:
         Parameters
         ----------
         user : User
-            User to run the query on
-        hit_download_url : str
-            Hit download_url to get the playlist from
+            User to run the query on.
         interaction_type : InteractionType
-            Type of the interaction to check
+            Type of the interaction to check.
+        hit_download_url : str, optional
+            Hit download_url to get the playlist from.
+        playlist_key : str, optional
+            Key of the playlist to check the interaction for.
 
         Returns
         -------
@@ -368,18 +372,27 @@ class InteractionMethods:
         HitNoLinkedPlaylist
             If `Hit` vertex does not have any linked `Playlist` vertex with it.
         ValueError
-            If the given `Hit` vertex has more than one linked `Playlist` vertices.
+            If the given `Hit` vertex has more than one linked `Playlist` vertices or both `hit_download_url` and `playlist_key` are **None** at the same
+            time, or a `Playlist` with the given `playlist_key` does not exist.
         """
-        if user is None or hit_download_url is None:
+        if user is None:
             return None
 
-        hit = await self.find_hit_by_download_url(hit_download_url)
-        if hit is None:
-            raise HitDoesNotExists(hit_download_url)
+        if not hit_download_url and not playlist_key:
+            raise ValueError("Both `hit_download_url` and `playlist_key` cannot be none at the same time.")
 
-        playlist = await self.get_playlist_from_hit(hit)
-        if playlist is None:
-            raise HitNoLinkedPlaylist(hit_download_url)
+        if hit_download_url:
+            hit = await self.find_hit_by_download_url(hit_download_url)
+            if hit is None:
+                raise HitDoesNotExists(hit_download_url)
+
+            playlist = await self.get_playlist_from_hit(hit)
+            if playlist is None:
+                raise HitNoLinkedPlaylist(hit_download_url)
+        else:
+            playlist = await self.get_playlist_by_key(playlist_key)
+            if not playlist:
+                ValueError(f"Playlist with `{playlist_key}` does not exists.")
 
         from tase.db.arangodb.graph.edges import Has
 
@@ -649,8 +662,8 @@ class InteractionMethods:
 
             interaction_vertex = await self.get_playlist_interaction_by_user(
                 user,
-                playlist_hit_download_url,
                 interaction_type,
+                hit_download_url=playlist_hit_download_url,
             )
         has_interacted = interaction_vertex is not None and interaction_vertex.is_active
 
