@@ -130,5 +130,8 @@ class JobMethods:
     async def get_count_public_playlist_interactions_job(self) -> Optional[Job]:
         return await self.get_or_create_job(JobType.COUNT_PUBLIC_PLAYLIST_INTERACTION_TYPE)
 
+    async def get_count_public_playlist_subscriptions_job(self) -> Optional[Job]:
+        return await self.get_or_create_job(JobType.COUNT_PUBLIC_PLAYLIST_SUBSCRIPTIONS_TYPE)
+
     async def get_count_hits_job(self) -> Optional[Job]:
         return await self.get_or_create_job(JobType.COUNT_HITS)
