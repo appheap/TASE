@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class InteractionType(Enum):
+class PlaylistInteractionType(Enum):
     UNKNOWN = 0
 
     ###################################

@@ -14,11 +14,11 @@ from tase.db.arangodb import graph as graph_models
 from tase.errors import TelegramMessageWithNoAudio
 from tase.my_logger import logger
 from .base_document import BaseDocument
-from ...arangodb.enums import TelegramAudioType, InteractionType, HitType, AudioType
+from ...arangodb.enums import TelegramAudioType, AudioInteractionType, HitType, AudioType
 from ...arangodb.helpers import (
     ElasticQueryMetadata,
     BitRateType,
-    InteractionCount,
+    AudioInteractionCount,
     HitCount,
 )
 from ...db_utils import (
@@ -562,14 +562,14 @@ class Audio(BaseDocument):
 
     async def update_by_interaction_count(
         self,
-        interaction_count: InteractionCount,
+        interaction_count: AudioInteractionCount,
     ) -> bool:
         """
         Update the attributes of the `Audio` index with the given `InteractionCount` object
 
         Parameters
         ----------
-        interaction_count : InteractionCount
+        interaction_count : AudioInteractionCount
             `InteractionCount` object to update the index document with
 
         Returns
@@ -582,21 +582,21 @@ class Audio(BaseDocument):
             return False
 
         self_copy: Audio = self.copy(deep=True)
-        if interaction_count.interaction_type == InteractionType.DOWNLOAD_AUDIO:
+        if interaction_count.interaction_type == AudioInteractionType.DOWNLOAD_AUDIO:
             self_copy.downloads += interaction_count.count
-        elif interaction_count.interaction_type == InteractionType.REDOWNLOAD_AUDIO:
+        elif interaction_count.interaction_type == AudioInteractionType.REDOWNLOAD_AUDIO:
             self_copy.redownloads += interaction_count.count
-        elif interaction_count.interaction_type == InteractionType.SHARE_AUDIO:
+        elif interaction_count.interaction_type == AudioInteractionType.SHARE_AUDIO:
             self_copy.shares += interaction_count.count
-        elif interaction_count.interaction_type == InteractionType.SHARE_AUDIO_LINK:
+        elif interaction_count.interaction_type == AudioInteractionType.SHARE_AUDIO_LINK:
             self_copy.link_shares += interaction_count.count
-        elif interaction_count.interaction_type == InteractionType.LIKE_AUDIO:
+        elif interaction_count.interaction_type == AudioInteractionType.LIKE_AUDIO:
             if interaction_count.is_active:
                 self_copy.likes += interaction_count.count
             else:
                 if self_copy.likes > 0:
                     self_copy.likes -= interaction_count.count
-        elif interaction_count.interaction_type == InteractionType.DISLIKE_AUDIO:
+        elif interaction_count.interaction_type == AudioInteractionType.DISLIKE_AUDIO:
             if interaction_count.is_active:
                 self_copy.dislikes += interaction_count.count
             else:

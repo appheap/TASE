@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Optional
 
 from .base_edge import BaseEdge, EdgeEndsValidator
-from ..vertices import Interaction, User
+from ..vertices import AudioInteraction, User
 
 
 class FromBot(BaseEdge):
@@ -14,14 +14,14 @@ class FromBot(BaseEdge):
     __collection_name__ = "from_bot"
     schema_version = 1
 
-    __from_vertex_collections__ = (Interaction,)
+    __from_vertex_collections__ = (AudioInteraction,)
     __to_vertex_collections__ = (User,)
 
     @classmethod
     @EdgeEndsValidator
     def parse(
         cls,
-        from_vertex: Interaction,
+        from_vertex: AudioInteraction,
         to_vertex: User,
         *args,
         **kwargs,

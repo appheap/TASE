@@ -5,7 +5,7 @@ import pyrogram
 
 from tase.common.utils import _trans, emoji
 from tase.db.arangodb import graph as graph_models
-from tase.db.arangodb.enums import InlineQueryType, ChatType, InteractionType
+from tase.db.arangodb.enums import InlineQueryType, ChatType, AudioInteractionType
 from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
@@ -124,18 +124,18 @@ class DownloadHistoryInlineButton(InlineButton):
 
         if inline_item_info.inline_query_type == InlineQueryType.AUDIO_COMMAND:
             if inline_item_info.chat_type == ChatType.BOT:
-                type_ = InteractionType.REDOWNLOAD_AUDIO
+                type_ = AudioInteractionType.REDOWNLOAD_AUDIO
             else:
-                type_ = InteractionType.SHARE_AUDIO
+                type_ = AudioInteractionType.SHARE_AUDIO
         else:
             return
 
-        if not await handler.db.graph.create_interaction(
+        if not await handler.db.graph.create_audio_interaction(
             from_user,
             handler.telegram_client.telegram_id,
             type_,
             inline_item_info.chat_type,
-            audio_hit_download_url=inline_item_info.hit_download_url,
+            inline_item_info.hit_download_url,
         ):
             # could not create the download
             logger.error("Could not create the `interaction_vertex` vertex:")

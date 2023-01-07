@@ -5,7 +5,7 @@ import pyrogram
 
 from tase.common.utils import _trans, emoji
 from tase.db.arangodb import graph as graph_models
-from tase.db.arangodb.enums import InteractionType, InlineQueryType
+from tase.db.arangodb.enums import InlineQueryType, PlaylistInteractionType
 from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
@@ -167,20 +167,19 @@ class SearchAmongPublicPlaylistsInlineButton(InlineButton):
 
         if await handler.db.graph.get_playlist_interaction_by_user(
             from_user,
-            InteractionType.DOWNLOAD_PUBLIC_PLAYLIST,
-            playlist_key=inline_item_info.playlist_key,
+            PlaylistInteractionType.DOWNLOAD_PUBLIC_PLAYLIST,
+            inline_item_info.playlist_key,
         ):
-            type_ = InteractionType.REDOWNLOAD_PUBLIC_PLAYLIST
+            type_ = PlaylistInteractionType.REDOWNLOAD_PUBLIC_PLAYLIST
         else:
-            type_ = InteractionType.DOWNLOAD_PUBLIC_PLAYLIST
+            type_ = PlaylistInteractionType.DOWNLOAD_PUBLIC_PLAYLIST
 
-        if not await handler.db.graph.create_interaction(
+        if not await handler.db.graph.create_playlist_interaction(
             from_user,
             handler.telegram_client.telegram_id,
             type_,
             inline_item_info.chat_type,
-            playlist_hit_download_url=inline_item_info.hit_download_url,
-            playlist_key=inline_item_info.playlist_key,
+            inline_item_info.playlist_key,
         ):
             logger.error(f"Error in creating interaction for playlist `{inline_item_info.playlist_key}`")
 

@@ -5,7 +5,7 @@ import pyrogram
 from tase.common.utils import _trans, emoji, get_now_timestamp
 from tase.db.arangodb import graph as graph_models
 from tase.errors import (
-    PlaylistDoesNotExists,
+    UserDoesNotHasPlaylist,
     HitDoesNotExists,
     HitNoLinkedAudio,
     InvalidAudioForInlineMode,
@@ -134,7 +134,7 @@ class RemoveFromPlaylistInlineButton(InlineButton):
                 hit_download_url,
                 get_now_timestamp(),
             )
-        except PlaylistDoesNotExists as e:
+        except UserDoesNotHasPlaylist as e:
             await client.send_message(
                 from_user.user_id,
                 "You do not have the playlist you have chosen",

@@ -12,7 +12,7 @@ from aioarango.models import PersistentIndex
 from tase.common.utils import prettify, get_now_timestamp
 from tase.my_logger import logger
 from .base_vertex import BaseVertex
-from ...enums import InteractionType
+from ...enums import AudioInteractionType
 
 if TYPE_CHECKING:
     from .. import ArangoGraphMethods
@@ -487,15 +487,15 @@ class UserMethods:
             return None
 
         from tase.db.arangodb.graph.edges import FromHit, Has
-        from tase.db.arangodb.graph.vertices import Hit, Interaction
+        from tase.db.arangodb.graph.vertices import Hit, AudioInteraction
 
         async with await User.execute_query(
             self._get_user_from_hit_download_url_query,
             bind_vars={
                 "@hits": Hit.__collection_name__,
                 "hit_download_url": hit_download_url,
-                "interactions": Interaction.__collection_name__,
-                "interaction_type": InteractionType.SHARE_AUDIO_LINK.value,
+                "interactions": AudioInteraction.__collection_name__,
+                "interaction_type": AudioInteractionType.SHARE_AUDIO_LINK.value,
                 "from_hit": FromHit.__collection_name__,
                 "users": User.__collection_name__,
                 "has": Has.__collection_name__,

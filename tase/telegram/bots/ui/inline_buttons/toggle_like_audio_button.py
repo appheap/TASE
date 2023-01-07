@@ -6,10 +6,10 @@ import pyrogram
 
 from tase.common.utils import emoji
 from tase.db.arangodb import graph as graph_models
-from tase.db.arangodb.enums import ChatType, InteractionType
+from tase.db.arangodb.enums import ChatType, AudioInteractionType, PlaylistInteractionType
 from tase.db.arangodb.helpers import AudioKeyboardStatus
 from tase.errors import (
-    PlaylistDoesNotExists,
+    UserDoesNotHasPlaylist,
     HitDoesNotExists,
     HitNoLinkedAudio,
 )
@@ -94,10 +94,31 @@ class ToggleLikeAudioInlineButton(InlineButton):
                 handler.telegram_client.telegram_id,
                 hit_download_url,
                 chat_type,
-                InteractionType.LIKE_AUDIO,
-                playlist_key=inline_button_data.playlist_key,
+                AudioInteractionType.LIKE_AUDIO,
             )
-        except PlaylistDoesNotExists as e:
+
+            if inline_button_data.playlist_key:
+                if not successful:
+                    is_liked = await handler.db.graph.audio_is_interacted_by_user(
+                        from_user,
+                        AudioInteractionType.LIKE_AUDIO,
+                        hit_download_url=hit_download_url,
+                    )
+                else:
+                    is_liked = None
+
+                await handler.db.graph.toggle_playlist_interaction(
+                    from_user,
+                    handler.telegram_client.telegram_id,
+                    chat_type,
+                    PlaylistInteractionType.LIKE_AUDIO,
+                    inline_button_data.playlist_key,
+                    is_active=not has_liked if successful else is_liked,
+                    audio_hit_download_url=inline_button_data.hit_download_url,
+                    create_if_not_exists=False,
+                )
+
+        except UserDoesNotHasPlaylist as e:
             await telegram_callback_query.answer("You do not have the playlist you have chosen")
         except HitDoesNotExists as e:
             await telegram_callback_query.answer("Given download url is not valid anymore")
@@ -111,19 +132,31 @@ class ToggleLikeAudioInlineButton(InlineButton):
             if successful:
                 is_disliked = await handler.db.graph.audio_is_interacted_by_user(
                     from_user,
-                    InteractionType.DISLIKE_AUDIO,
+                    AudioInteractionType.DISLIKE_AUDIO,
                     hit_download_url=hit_download_url,
                 )
                 update_dislike_button = False
                 if not has_liked and is_disliked:
-                    await handler.db.graph.toggle_audio_interaction(
+                    successful, has_disliked = await handler.db.graph.toggle_audio_interaction(
                         from_user,
                         handler.telegram_client.telegram_id,
                         hit_download_url,
                         chat_type,
-                        InteractionType.DISLIKE_AUDIO,
-                        playlist_key=inline_button_data.playlist_key,
+                        AudioInteractionType.DISLIKE_AUDIO,
                     )
+
+                    if inline_button_data.playlist_key:
+                        await handler.db.graph.toggle_playlist_interaction(
+                            from_user,
+                            handler.telegram_client.telegram_id,
+                            chat_type,
+                            PlaylistInteractionType.DISLIKE_AUDIO,
+                            inline_button_data.playlist_key,
+                            is_active=not has_disliked if successful else is_disliked,
+                            audio_hit_download_url=inline_button_data.hit_download_url,
+                            create_if_not_exists=False,
+                        )
+
                     update_dislike_button = True
 
                 await telegram_callback_query.answer(f"You {'Unliked' if has_liked else 'Liked'} this song")

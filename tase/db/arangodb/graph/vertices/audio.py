@@ -28,15 +28,15 @@ from tase.errors import (
     EdgeCreationFailed,
 )
 from tase.my_logger import logger
+from .audio_interaction import AudioInteraction
 from .base_vertex import BaseVertex
 from .hit import Hit
-from .interaction import Interaction
 from .user import User
 from ...helpers import BitRateType
 
 if TYPE_CHECKING:
     from .. import ArangoGraphMethods
-from ...enums import TelegramAudioType, MentionSource, InteractionType, AudioType
+from ...enums import TelegramAudioType, MentionSource, AudioInteractionType, AudioType
 
 
 class Audio(BaseVertex):
@@ -534,7 +534,7 @@ class Audio(BaseVertex):
 
         Returns
         -------
-        list
+        List
             A list containing a tuple of the `hashtag` string, its starting index, and its mention source.
 
         Raises
@@ -1152,8 +1152,8 @@ class AudioMethods:
                 "start_vertex": user.id,
                 "has": Has.__collection_name__,
                 "audios": Audio.__collection_name__,
-                "interactions": Interaction.__collection_name__,
-                "interaction_type": InteractionType.DOWNLOAD_AUDIO.value,
+                "interactions": AudioInteraction.__collection_name__,
+                "interaction_type": AudioInteractionType.DOWNLOAD_AUDIO.value,
                 "archived_lst": [AudioType.ARCHIVED.value, AudioType.UPLOADED.value, AudioType.SENT_BY_USERS.value],
                 "offset": offset,
                 "limit": limit,
@@ -1434,11 +1434,11 @@ class AudioMethods:
         async with await Audio.execute_query(
             self._get_not_archived_downloaded_audios,
             bind_vars={
-                "@interactions": Interaction.__collection_name__,
+                "@interactions": AudioInteraction.__collection_name__,
                 "audios": Audio.__collection_name__,
                 "has": Has.__collection_name__,
                 "now": get_now_timestamp(),
-                "interaction_type": InteractionType.DOWNLOAD_AUDIO.value,
+                "interaction_type": AudioInteractionType.DOWNLOAD_AUDIO.value,
                 "not_archived_type": AudioType.NOT_ARCHIVED.value,
             },
         ) as cursor:

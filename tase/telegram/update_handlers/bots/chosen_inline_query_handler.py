@@ -4,7 +4,7 @@ import pyrogram
 from pyrogram import handlers
 
 from tase.common.utils import async_exception_handler
-from tase.db.arangodb.enums import InteractionType, ChatType, InlineQueryType
+from tase.db.arangodb.enums import AudioInteractionType, ChatType, InlineQueryType
 from tase.my_logger import logger
 from tase.telegram.bots.ui.base import InlineButton, InlineButtonData, InlineItemInfo, InlineItemType
 from tase.telegram.bots.ui.inline_items.item_info import AudioItemInfo
@@ -69,18 +69,18 @@ class ChosenInlineQueryHandler(BaseHandler):
 
             if inline_item_info.inline_query_type == InlineQueryType.AUDIO_COMMAND:
                 if inline_item_info.chat_type == ChatType.BOT:
-                    type_ = InteractionType.DOWNLOAD_AUDIO
+                    type_ = AudioInteractionType.DOWNLOAD_AUDIO
                 else:
-                    type_ = InteractionType.SHARE_AUDIO_LINK
+                    type_ = AudioInteractionType.SHARE_AUDIO_LINK
             else:
                 return
 
-            if not await self.db.graph.create_interaction(
+            if not await self.db.graph.create_audio_interaction(
                 from_user,
                 self.telegram_client.telegram_id,
                 type_,
                 inline_item_info.chat_type,
-                audio_hit_download_url=inline_item_info.hit_download_url,
+                inline_item_info.hit_download_url,
             ):
                 # could not create the interaction_vertex
                 logger.error("Could not create the `interaction_vertex` vertex:")

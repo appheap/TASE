@@ -8,7 +8,7 @@ from pydantic import Field
 from aioarango.models import PersistentIndex
 from tase.common.utils import generate_token_urlsafe, prettify, get_now_timestamp, async_timed, find_hashtags_in_text
 from tase.errors import (
-    PlaylistDoesNotExists,
+    UserDoesNotHasPlaylist,
     HitDoesNotExists,
     HitNoLinkedAudio,
     InvalidAudioForInlineMode,
@@ -16,6 +16,7 @@ from tase.errors import (
     InvalidToVertex,
     EdgeDeletionFailed,
     AudioVertexDoesNotExist,
+    PlaylistNotFound,
 )
 from tase.my_logger import logger
 from .base_vertex import BaseVertex
@@ -134,7 +135,7 @@ class Playlist(BaseVertex, BaseSoftDeletableDocument):
 
         Returns
         -------
-        list
+        List
             A list containing a tuple of the `hashtag` string, its starting index, and its mention source.
 
         Raises
@@ -268,6 +269,60 @@ class PlaylistMethods:
         "       sort count_ desc"
         "   return {playlist_key, count_, is_active}"
     )
+
+    _check_audio_is_in_playlist_query = (
+        "for audio in 1..1 outbound @playlist_id graph @graph_name options {order : 'dfs', edgeCollections : [@has], vertexCollections : [@audios]}"
+        "   filter audio._key == @audio_key"
+        "   return true"
+    )
+
+    async def is_audio_in_playlist(
+        self,
+        audio_key: str,
+        playlist_key: str,
+    ) -> bool:
+        """
+        Check whether an `Audio` exists in `Playlist`.
+
+        Parameters
+        ----------
+        playlist_key : str
+            Key of the playlist to check.
+        audio_key : str
+            Key of the audio to check.
+
+        Returns
+        -------
+        bool
+            Whether the audio with the given `audio_key` exists in the playlist with given `playlist_key` or not.
+
+        Raises
+        ------
+        ValueError
+            If all needed parameters are **None**.
+        PlaylistNotFound
+            If there is no playlist with given `playlist_key` parameter.
+        """
+        if not playlist_key or not audio_key:
+            raise ValueError("`playlist_key` and `audio_key` must be not None.")
+
+        playlist = await self.get_playlist_by_key(playlist_key)
+        if not playlist:
+            raise PlaylistNotFound(playlist_key)
+
+        from tase.db.arangodb.graph.edges import Has
+        from tase.db.arangodb.graph.vertices import Audio
+
+        async with await Playlist.execute_query(
+            self._check_audio_is_in_playlist_query,
+            bind_vars={
+                "playlist_id": playlist.id,
+                "audio_key": audio_key,
+                "audios": Audio.__collection_name__,
+                "has": Has.__collection_name__,
+            },
+        ) as cursor:
+            return not cursor.empty()
 
     async def count_public_playlist_subscriptions(
         self,
@@ -736,7 +791,7 @@ class PlaylistMethods:
 
         Raises
         ------
-        PlaylistDoesNotExists
+        UserDoesNotHasPlaylist
             If the user does not have a playlist with the given `playlist_key` parameter
 
         Returns
@@ -750,7 +805,7 @@ class PlaylistMethods:
 
         playlist = await Playlist.get(playlist_key)
         if not playlist:
-            raise PlaylistDoesNotExists(user.key, playlist_key)
+            raise UserDoesNotHasPlaylist(user.key, playlist_key)
 
         # check if the user owns the given playlist
         from tase.db.arangodb.graph.edges import Has
@@ -996,7 +1051,7 @@ class PlaylistMethods:
         """
         playlist = await self.get_user_playlist_by_key(user, playlist_key, filter_out_soft_deleted=True)
         if playlist is None:
-            raise PlaylistDoesNotExists(user.key, playlist_key)
+            raise UserDoesNotHasPlaylist(user.key, playlist_key)
 
         hit = await self.find_hit_by_download_url(hit_download_url)
         if hit is None:

@@ -8,11 +8,12 @@ from ..vertices import (
     Playlist,
     Query,
     Hit,
-    Interaction,
+    AudioInteraction,
     Audio,
     Keyword,
     Username,
     Chat,
+    PlaylistInteraction,
 )
 
 
@@ -25,16 +26,18 @@ class Has(BaseEdge):
         Playlist,
         Query,
         Hit,
-        Interaction,
+        AudioInteraction,
+        PlaylistInteraction,
         Audio,
         Chat,
     )
     __to_vertex_collections__ = (
         Playlist,
         Audio,
+        PlaylistInteraction,
         Hit,
         Keyword,
-        Interaction,
+        AudioInteraction,
         Username,
     )
 
@@ -42,8 +45,8 @@ class Has(BaseEdge):
     @EdgeEndsValidator
     def parse(
         cls,
-        from_vertex: Union[User, Playlist, Query, Hit, Interaction, Audio, Username],
-        to_vertex: Union[Playlist, Audio, Hit, Keyword, Interaction, Chat],
+        from_vertex: Union[User, Playlist, Query, Hit, AudioInteraction, Audio, Username],
+        to_vertex: Union[Playlist, Audio, Hit, Keyword, AudioInteraction, Chat],
         *args,
         **kwargs,
     ) -> Optional[Has]:

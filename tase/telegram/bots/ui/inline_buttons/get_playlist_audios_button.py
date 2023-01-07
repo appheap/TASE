@@ -5,8 +5,8 @@ import pyrogram
 
 from tase.common.utils import _trans, emoji
 from tase.db.arangodb import graph as graph_models
-from tase.db.arangodb.enums import InlineQueryType, ChatType, InteractionType
-from tase.errors import PlaylistDoesNotExists
+from tase.db.arangodb.enums import InlineQueryType, ChatType, AudioInteractionType, PlaylistInteractionType
+from tase.errors import UserDoesNotHasPlaylist
 from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
@@ -113,7 +113,7 @@ class GetPlaylistAudioInlineButton(InlineButton):
                     inline_button_data.playlist_key,
                     offset=result.from_,
                 )
-            except PlaylistDoesNotExists:
+            except UserDoesNotHasPlaylist:
                 # since it is already been checked that the playlist belongs to the user, this exception will not occur
                 pass
             else:
@@ -176,32 +176,60 @@ class GetPlaylistAudioInlineButton(InlineButton):
                 return
 
             if inline_item_info.inline_query_type == InlineQueryType.PRIVATE_PLAYLIST_COMMAND:
-                type_ = InteractionType.REDOWNLOAD_AUDIO
+                audio_int_type = AudioInteractionType.REDOWNLOAD_AUDIO
+                playlist_int_type = PlaylistInteractionType.REDOWNLOAD_AUDIO
             elif inline_item_info.inline_query_type == InlineQueryType.PUBLIC_PLAYLIST_COMMAND:
                 if await handler.db.graph.get_audio_interaction_by_user(
                     from_user,
                     inline_item_info.hit_download_url,
-                    InteractionType.DOWNLOAD_AUDIO,
+                    AudioInteractionType.DOWNLOAD_AUDIO,
                 ):
                     if inline_item_info.chat_type == ChatType.BOT:
-                        type_ = InteractionType.REDOWNLOAD_AUDIO
+                        audio_int_type = AudioInteractionType.REDOWNLOAD_AUDIO
                     else:
                         if from_user.user_id == playlist.owner_user_id:
-                            type_ = InteractionType.SHARE_AUDIO
+                            audio_int_type = AudioInteractionType.SHARE_AUDIO
                         else:
-                            type_ = InteractionType.REDOWNLOAD_AUDIO
+                            audio_int_type = AudioInteractionType.REDOWNLOAD_AUDIO
                 else:
-                    type_ = InteractionType.DOWNLOAD_AUDIO
+                    audio_int_type = AudioInteractionType.DOWNLOAD_AUDIO
+
+                if await handler.db.graph.get_playlist_audio_interaction_by_user(
+                    from_user,
+                    inline_item_info.hit_download_url,
+                    playlist.key,
+                    PlaylistInteractionType.DOWNLOAD_AUDIO,
+                ):
+                    if inline_item_info.chat_type == ChatType.BOT:
+                        playlist_int_type = PlaylistInteractionType.REDOWNLOAD_AUDIO
+                    else:
+                        if from_user.user_id == playlist.owner_user_id:
+                            playlist_int_type = PlaylistInteractionType.SHARE_AUDIO
+                        else:
+                            playlist_int_type = PlaylistInteractionType.REDOWNLOAD_AUDIO
+                else:
+                    playlist_int_type = PlaylistInteractionType.DOWNLOAD_AUDIO
             else:
                 return
 
-            if not await handler.db.graph.create_interaction(
+            if not await handler.db.graph.create_audio_interaction(
                 from_user,
                 handler.telegram_client.telegram_id,
-                type_,
+                audio_int_type,
                 inline_item_info.chat_type,
+                inline_item_info.hit_download_url,
+            ):
+                # could not create the interaction_vertex
+                logger.error("Could not create the `interaction_vertex` vertex:")
+                logger.error(telegram_chosen_inline_result)
+
+            if not await handler.db.graph.create_playlist_interaction(
+                from_user,
+                handler.telegram_client.telegram_id,
+                playlist_int_type,
+                inline_item_info.chat_type,
+                inline_item_info.playlist_key,
                 audio_hit_download_url=inline_item_info.hit_download_url,
-                playlist_key=inline_item_info.playlist_key,
             ):
                 # could not create the interaction_vertex
                 logger.error("Could not create the `interaction_vertex` vertex:")

@@ -10,7 +10,7 @@ from pyrogram.errors import ChannelInvalid
 
 from tase.common.utils import _trans, async_timed
 from tase.db.arangodb import graph as graph_models, document as document_models
-from tase.db.arangodb.enums import TelegramAudioType, ChatType, AudioType, InteractionType
+from tase.db.arangodb.enums import TelegramAudioType, ChatType, AudioType, AudioInteractionType
 from tase.db.arangodb.helpers import AudioKeyboardStatus
 from tase.db.database_client import DatabaseClient
 from tase.db.db_utils import get_telegram_message_media_type
@@ -182,12 +182,12 @@ class BaseHandler(BaseModel):
                     # has been shared with him/her by another user.
 
                     # todo: do not create share interaction if one has already been created recently.
-                    await self.db.graph.create_interaction(
+                    await self.db.graph.create_audio_interaction(
                         sender_user_vertex,
                         self.telegram_client.telegram_id,
-                        InteractionType.SHARE_AUDIO,
+                        AudioInteractionType.SHARE_AUDIO,
                         ChatType.BOT,
-                        audio_hit_download_url=hit_download_url,
+                        hit_download_url,
                     )
             else:
                 # todo: check for SPAM
@@ -319,12 +319,12 @@ class BaseHandler(BaseModel):
 
         valid = True
 
-        create_download_interaction = self.db.graph.create_interaction(
+        create_download_interaction = self.db.graph.create_audio_interaction(
             from_user,
             self.telegram_client.telegram_id,
-            InteractionType.DOWNLOAD_AUDIO,
+            AudioInteractionType.DOWNLOAD_AUDIO,
             ChatType.BOT,
-            audio_hit_download_url=hit_download_url,
+            hit_download_url,
         )
         if update_audio_task:
             await asyncio.gather(*(create_download_interaction, update_audio_task))
