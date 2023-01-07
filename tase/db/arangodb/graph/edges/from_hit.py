@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Optional
+from typing import Optional, Union
 
 from .base_edge import BaseEdge, EdgeEndsValidator
 from ..vertices import AudioInteraction, Hit, PlaylistInteraction
@@ -24,7 +24,7 @@ class FromHit(BaseEdge):
     @EdgeEndsValidator
     def parse(
         cls,
-        from_vertex: AudioInteraction,
+        from_vertex: Union[AudioInteraction, PlaylistInteraction],
         to_vertex: Hit,
         *args,
         **kwargs,

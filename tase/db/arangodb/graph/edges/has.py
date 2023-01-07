@@ -45,8 +45,8 @@ class Has(BaseEdge):
     @EdgeEndsValidator
     def parse(
         cls,
-        from_vertex: Union[User, Playlist, Query, Hit, AudioInteraction, Audio, Username],
-        to_vertex: Union[Playlist, Audio, Hit, Keyword, AudioInteraction, Chat],
+        from_vertex: Union[User, Playlist, Query, Hit, AudioInteraction, PlaylistInteraction, Audio, Username],
+        to_vertex: Union[Playlist, Audio, Hit, Keyword, AudioInteraction, PlaylistInteraction, Chat],
         *args,
         **kwargs,
     ) -> Optional[Has]:
