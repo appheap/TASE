@@ -13,6 +13,7 @@ from ..vertices import (
     Keyword,
     Username,
     Chat,
+    PlaylistInteraction,
 )
 
 
@@ -26,12 +27,14 @@ class Has(BaseEdge):
         Query,
         Hit,
         AudioInteraction,
+        PlaylistInteraction,
         Audio,
         Chat,
     )
     __to_vertex_collections__ = (
         Playlist,
         Audio,
+        PlaylistInteraction,
         Hit,
         Keyword,
         AudioInteraction,

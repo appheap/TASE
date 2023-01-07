@@ -8,7 +8,7 @@ from tase.db import DatabaseClient
 from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.document import BotTask
 from tase.db.arangodb.enums import BotTaskType, BotTaskStatus
-from tase.errors import PlaylistDoesNotExists
+from tase.errors import UserDoesNotHasPlaylist
 
 
 class BotTaskChecker(BaseModel):
@@ -85,7 +85,7 @@ class BotTaskChecker(BaseModel):
                         playlist_key,
                         deleted_at,
                     )
-                except PlaylistDoesNotExists:
+                except UserDoesNotHasPlaylist:
                     await bot_task.update_status(BotTaskStatus.FAILED)
                     await message.reply_text("The target playlist does not exist!")
                 else:

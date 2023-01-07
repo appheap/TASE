@@ -130,12 +130,12 @@ class DownloadHistoryInlineButton(InlineButton):
         else:
             return
 
-        if not await handler.db.graph.create_interaction(
+        if not await handler.db.graph.create_audio_interaction(
             from_user,
             handler.telegram_client.telegram_id,
             type_,
             inline_item_info.chat_type,
-            audio_hit_download_url=inline_item_info.hit_download_url,
+            inline_item_info.hit_download_url,
         ):
             # could not create the download
             logger.error("Could not create the `interaction_vertex` vertex:")

@@ -75,12 +75,12 @@ class ChosenInlineQueryHandler(BaseHandler):
             else:
                 return
 
-            if not await self.db.graph.create_interaction(
+            if not await self.db.graph.create_audio_interaction(
                 from_user,
                 self.telegram_client.telegram_id,
                 type_,
                 inline_item_info.chat_type,
-                audio_hit_download_url=inline_item_info.hit_download_url,
+                inline_item_info.hit_download_url,
             ):
                 # could not create the interaction_vertex
                 logger.error("Could not create the `interaction_vertex` vertex:")

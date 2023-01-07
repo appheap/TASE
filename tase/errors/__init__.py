@@ -1,3 +1,4 @@
+from .audio_not_in_playlist import AudioNotInPlaylist
 from .audio_vertex_does_not_exists import AudioVertexDoesNotExist
 from .edge_creation_failed import EdgeCreationFailed
 from .edge_deletion_failed import EdgeDeletionFailed
@@ -13,12 +14,14 @@ from .not_soft_deletable_subclass import NotSoftDeletableSubclass
 from .null_chat_type import NullChatType
 from .null_telegram_inline_query import NullTelegramInlineQuery
 from .param_not_provided import ParamNotProvided
-from .playlist_does_not_exists import PlaylistDoesNotExists
+from .playlist_not_found import PlaylistNotFound
 from .tase_error import TASEError
 from .telegram_message_with_no_audio import TelegramMessageWithNoAudio
 from .update_retry_count_failed import UpdateRetryCountFailed
+from .user_does_not_has_playlist import UserDoesNotHasPlaylist
 
 __all__ = [
+    "AudioNotInPlaylist",
     "AudioVertexDoesNotExist",
     "EdgeCreationFailed",
     "EdgeDeletionFailed",
@@ -34,7 +37,8 @@ __all__ = [
     "NullChatType",
     "NullTelegramInlineQuery",
     "ParamNotProvided",
-    "PlaylistDoesNotExists",
+    "PlaylistNotFound",
+    "UserDoesNotHasPlaylist",
     "TASEError",
     "TelegramMessageWithNoAudio",
     "UpdateRetryCountFailed",

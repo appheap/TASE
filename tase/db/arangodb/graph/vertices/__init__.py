@@ -8,6 +8,7 @@ from .hashtag import Hashtag, HashTagMethods
 from .hit import Hit, HitMethods
 from .keyword import Keyword, KeywordMethods
 from .playlist import Playlist, PlaylistMethods
+from .playlist_interaction import PlaylistInteraction, PlaylistInteractionMethods
 from .query import Query, QueryMethods
 from .user import User, UserMethods
 from .username import Username, UsernameMethods
@@ -22,6 +23,7 @@ vertex_classes = [
     Hit,
     Keyword,
     Playlist,
+    PlaylistInteraction,
     Query,
     User,
     Username,
@@ -38,6 +40,7 @@ class ArangoVertexMethods(
     HitMethods,
     KeywordMethods,
     PlaylistMethods,
+    PlaylistInteractionMethods,
     QueryMethods,
     UserMethods,
     UsernameMethods,

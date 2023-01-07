@@ -10,12 +10,12 @@ from pydantic import Field
 from tase.common.preprocessing import remove_hashtags, is_non_digit, is_non_space
 from tase.common.utils import async_timed, find_unique_hashtag_strings
 from tase.db.arangodb import graph as graph_models
-from tase.errors import PlaylistDoesNotExists
+from tase.errors import UserDoesNotHasPlaylist
 from tase.my_logger import logger
 from .base_document import BaseDocument
 from ...arangodb.base import BaseSoftDeletableDocument
-from ...arangodb.enums import AudioInteractionType
-from ...arangodb.helpers import ElasticQueryMetadata, AudioInteractionCount, PublicPlaylistSubscriptionCount
+from ...arangodb.enums import PlaylistInteractionType
+from ...arangodb.helpers import ElasticQueryMetadata, PublicPlaylistSubscriptionCount, PlaylistInteractionCount
 
 
 class Playlist(BaseDocument, BaseSoftDeletableDocument):
@@ -157,14 +157,14 @@ class Playlist(BaseDocument, BaseSoftDeletableDocument):
 
     async def update_by_interaction_count(
         self,
-        interaction_count: AudioInteractionCount,
+        interaction_count: PlaylistInteractionCount,
     ) -> bool:
         """
         Update the attributes of the `Playlist` index with the given `InteractionCount` object
 
         Parameters
         ----------
-        interaction_count : AudioInteractionCount
+        interaction_count : PlaylistInteractionCount
             `InteractionCount` object to update the index document with.
 
         Returns
@@ -177,27 +177,27 @@ class Playlist(BaseDocument, BaseSoftDeletableDocument):
             return False
 
         self_copy: Playlist = self.copy(deep=True)
-        if interaction_count.interaction_type == AudioInteractionType.DOWNLOAD_PUBLIC_PLAYLIST:
+        if interaction_count.interaction_type == PlaylistInteractionType.DOWNLOAD_PUBLIC_PLAYLIST:
             self_copy.downloads += interaction_count.count
-        elif interaction_count.interaction_type == AudioInteractionType.REDOWNLOAD_PUBLIC_PLAYLIST:
+        elif interaction_count.interaction_type == PlaylistInteractionType.REDOWNLOAD_PUBLIC_PLAYLIST:
             self_copy.redownloads += interaction_count.count
-        elif interaction_count.interaction_type == AudioInteractionType.SHARE_PUBLIC_PLAYLIST:
+        elif interaction_count.interaction_type == PlaylistInteractionType.SHARE_PUBLIC_PLAYLIST:
             self_copy.shares += interaction_count.count
-        elif interaction_count.interaction_type == AudioInteractionType.DOWNLOAD_AUDIO:
+        elif interaction_count.interaction_type == PlaylistInteractionType.DOWNLOAD_AUDIO:
             self_copy.audio_downloads += interaction_count.count
-        elif interaction_count.interaction_type == AudioInteractionType.REDOWNLOAD_AUDIO:
+        elif interaction_count.interaction_type == PlaylistInteractionType.REDOWNLOAD_AUDIO:
             self_copy.audio_redownloads += interaction_count.count
-        elif interaction_count.interaction_type == AudioInteractionType.SHARE_AUDIO:
+        elif interaction_count.interaction_type == PlaylistInteractionType.SHARE_AUDIO:
             self_copy.audio_shares += interaction_count.count
-        elif interaction_count.interaction_type == AudioInteractionType.SHARE_AUDIO_LINK:
+        elif interaction_count.interaction_type == PlaylistInteractionType.SHARE_AUDIO_LINK:
             self_copy.audio_link_shares += interaction_count.count
-        elif interaction_count.interaction_type == AudioInteractionType.LIKE_AUDIO:
+        elif interaction_count.interaction_type == PlaylistInteractionType.LIKE_AUDIO:
             if interaction_count.is_active:
                 self_copy.audio_likes += interaction_count.count
             else:
                 if self_copy.audio_likes > 0:
                     self_copy.audio_likes -= interaction_count.count
-        elif interaction_count.interaction_type == AudioInteractionType.DISLIKE_AUDIO:
+        elif interaction_count.interaction_type == PlaylistInteractionType.DISLIKE_AUDIO:
             if interaction_count.is_active:
                 self_copy.audio_dislikes += interaction_count.count
             else:
@@ -414,7 +414,7 @@ class PlaylistMethods:
 
         Raises
         ------
-        PlaylistDoesNotExists
+        UserDoesNotHasPlaylist
             If the user does not have a playlist with the given `playlist_key` parameter
 
         Returns
@@ -428,7 +428,7 @@ class PlaylistMethods:
 
         playlist = await Playlist.get(playlist_key)
         if not playlist:
-            raise PlaylistDoesNotExists(user.key, playlist_key)
+            raise UserDoesNotHasPlaylist(user.key, playlist_key)
 
         return await playlist.delete(
             soft_delete=True,

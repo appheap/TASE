@@ -9,7 +9,7 @@ from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.enums import ChatType
 from tase.db.arangodb.helpers import AudioKeyboardStatus
 from tase.errors import (
-    PlaylistDoesNotExists,
+    UserDoesNotHasPlaylist,
     HitDoesNotExists,
     HitNoLinkedAudio,
     InvalidAudioForInlineMode,
@@ -79,7 +79,7 @@ class ToggleFavoritePlaylistInlineButton(InlineButton):
                 from_user,
                 hit_download_url,
             )
-        except PlaylistDoesNotExists as e:
+        except UserDoesNotHasPlaylist as e:
             await telegram_callback_query.answer("You do not have the playlist you have chosen")
         except HitDoesNotExists as e:
             await telegram_callback_query.answer("Given download url is not valid anymore")

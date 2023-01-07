@@ -7,6 +7,7 @@ from .hit_type import HitType
 from .inline_query_type import InlineQueryType
 from .job_type import JobType
 from .mention_source import MentionSource
+from .playlist_interaction_type import PlaylistInteractionType
 from .rabbitmq_task_status import RabbitMQTaskStatus
 from .rabbitmq_task_type import RabbitMQTaskType
 from .telegram_audio_type import TelegramAudioType

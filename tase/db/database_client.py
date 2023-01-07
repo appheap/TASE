@@ -11,7 +11,7 @@ from .elasticsearchdb import ElasticsearchDatabase
 from .elasticsearchdb.models import ElasticSearchMethods
 from .helpers import ChatScores
 from ..configs import ArangoDBConfig, ElasticConfig
-from ..errors import PlaylistDoesNotExists
+from ..errors import UserDoesNotHasPlaylist
 from ..my_logger import logger
 
 
@@ -212,7 +212,7 @@ class DatabaseClient:
 
         try:
             es_updated = await self.index.remove_playlist(user, playlist_key, deleted_at)
-        except PlaylistDoesNotExists:
+        except UserDoesNotHasPlaylist:
             es_updated = True
 
         return graph_updated & es_updated
