@@ -402,7 +402,7 @@ def find_hashtags_in_text(
 
     Returns
     -------
-    list
+    List
         A list containing a tuple of the `hashtag` string, its starting index, and its mention source.
 
     Raises
