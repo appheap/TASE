@@ -125,8 +125,16 @@ class PlaylistInteractionMethods:
         "for interaction in @@interactions"
         "   filter interaction.modified_at >= @last_run_at and interaction.modified_at < @now"
         "   filter interaction.created_at > @last_run_at and interaction.is_active == false"
-        "   for v,e in 1..1 any interaction graph @graph_name options {order:'dfs', vertexCollections: [@playlists, @hits, @users, @audios], edgeCollections:[@has]}"
+        "   for v,e in 1..1 any interaction graph @graph_name options {order:'dfs', vertexCollections: [@playlists, @users, @audios], edgeCollections:[@has]}"
         "       remove e in @@has"
+    )
+
+    _remove_invalid_playlist_interactions_from_hit_edges_query = (
+        "for interaction in @@interactions"
+        "   filter interaction.modified_at >= @last_run_at and interaction.modified_at < @now"
+        "   filter interaction.created_at > @last_run_at and interaction.is_active == false"
+        "   for v,e in 1..1 any interaction graph @graph_name options {order:'dfs', vertexCollections: [@hits], edgeCollections:[@from_hit]}"
+        "       remove e in @@from_hit"
     )
 
     _remove_invalid_playlist_interactions_query = (
@@ -335,8 +343,7 @@ class PlaylistInteractionMethods:
             return
 
         from tase.db.arangodb.graph.vertices import Hit, Audio, Playlist
-
-        from tase.db.arangodb.graph.edges import Has
+        from tase.db.arangodb.graph.edges import Has, FromHit
 
         async with await PlaylistInteraction.execute_query(
             self._remove_invalid_playlist_interactions_has_edges_query,
@@ -350,6 +357,19 @@ class PlaylistInteractionMethods:
                 "audios": Audio.__collection_name__,
                 "has": Has.__collection_name__,
                 "@has": Has.__collection_name__,
+            },
+        ) as c:
+            pass
+
+        async with await PlaylistInteraction.execute_query(
+            self._remove_invalid_playlist_interactions_from_hit_edges_query,
+            bind_vars={
+                "@interactions": PlaylistInteraction.__collection_name__,
+                "last_run_at": last_run_at,
+                "now": now,
+                "hits": Hit.__collection_name__,
+                "from_hit": FromHit.__collection_name__,
+                "@from_hit": FromHit.__collection_name__,
             },
         ) as c:
             pass
@@ -398,7 +418,7 @@ class PlaylistInteractionMethods:
         Returns
         -------
         Interaction, optional
-            Interaction vertex if the creation was successful, otherwise, return None
+            Interaction vertex if the creation was successful, otherwise, return **None**.
 
         """
         if not user or bot_id is None or not chat_type or not type_:
@@ -587,6 +607,7 @@ class PlaylistInteractionMethods:
             # then it counts as a negative number which is not counted for that playlist before.
             return successful, has_interacted
         else:
+            # An interaction is created only if the status of the interaction is `active` and the `create_if_not_exists` parameter has been set to `True`.
             if not create_if_not_exists and not is_active:
                 return False, False
 
