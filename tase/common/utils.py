@@ -343,7 +343,7 @@ def generate_token_urlsafe(
     while True:
         # todo: make sure the generated token is unique
         download_url = secrets.token_urlsafe(nbytes)
-        if download_url.find("-") == -1:
+        if "-" not in download_url:
             break
     return download_url
 

@@ -28,7 +28,6 @@ from tase.telegram.bots.ui.inline_buttons import (
     SharePlaylistInlineButton,
     ShowMoreResultsInlineButton,
     TogglePlaylistSettingsInlineButton,
-    TogglePlaylistSubscriptionInlineButton,
 )
 from tase.telegram.update_handlers.base import BaseHandler
 
@@ -378,6 +377,7 @@ async def update_playlist_keyboard_markup(
             playlist,
             from_user,
             playlist_item.chat_type,
+            has_subscribed=await db.graph.has_user_subscribed_to_playlist(from_user, playlist_item.playlist_key),
         ),
     )
 
@@ -425,6 +425,7 @@ def get_playlist_markup_keyboard(
     user: graph_models.vertices.User,
     chat_type: ChatType,
     is_settings_visible: Optional[bool] = False,
+    has_subscribed: Optional[bool] = None,
 ) -> InlineKeyboardMarkup:
     """
     Get markup keyboard for a playlist
@@ -439,6 +440,8 @@ def get_playlist_markup_keyboard(
         Type of the chat this request originated from.
     is_settings_visible : bool, default : False
         Whether to show settings for non-favorite playlists or not.
+    has_subscribed : bool, optional
+        Whether the user has subscribed to this playlist or not. (It is only meant for public playlists)
 
     Returns
     -------
@@ -511,7 +514,9 @@ def get_playlist_markup_keyboard(
                 ),
             ],
             [
-                TogglePlaylistSubscriptionInlineButton.get_keyboard(
+                InlineButton.get_button(InlineButtonType.TOGGLE_PLAYLIST_SUBSCRIPTION)
+                .change_text(has_subscribed=has_subscribed)
+                .get_keyboard(
                     playlist_key=playlist_key,
                     lang_code=user.chosen_language_code,
                 ),

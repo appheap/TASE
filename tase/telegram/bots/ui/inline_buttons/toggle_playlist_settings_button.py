@@ -87,6 +87,7 @@ class TogglePlaylistSettingsInlineButton(InlineButton):
             from_user,
             ChatType.BOT,
             is_settings_visible=not is_settings_visible,
+            has_subscribed=await handler.db.graph.has_user_subscribed_to_playlist(from_user, playlist_key),
         )
 
         if reply_markup:

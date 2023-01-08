@@ -1,9 +1,12 @@
+from __future__ import annotations
+
 from typing import Optional, List
 
 import pyrogram
 
 from tase.common.utils import _trans, emoji
 from tase.db.arangodb import graph as graph_models
+from tase.db.arangodb.enums import ChatType
 from tase.telegram.bots.ui.base import InlineButton, InlineButtonType, ButtonActionType, InlineButtonData
 from tase.telegram.update_handlers.base import BaseHandler
 
@@ -83,4 +86,22 @@ class TogglePlaylistSubscriptionInlineButton(InlineButton):
             await telegram_callback_query.answer("Internal error occurred!")
             return
 
-        await telegram_callback_query.answer(_trans("Subscribed!") if subscribed else _trans("Unsubscribed!"))
+        from tase.telegram.bots.ui.inline_buttons.common import get_playlist_markup_keyboard
+
+        await client.edit_inline_reply_markup(
+            telegram_callback_query.inline_message_id,
+            reply_markup=get_playlist_markup_keyboard(
+                playlist,
+                from_user,
+                ChatType.BOT,  # this button only used in the BOT chat.
+                has_subscribed=subscribed,
+            ),
+        )
+
+    def change_text(
+        self,
+        has_subscribed: bool,
+    ) -> TogglePlaylistSubscriptionInlineButton:
+        self.text = f"{_trans('Unsubscribe')} | {emoji._no_bell}" if has_subscribed else f"{_trans('Subscribe')} | {emoji._bell}"
+
+        return self

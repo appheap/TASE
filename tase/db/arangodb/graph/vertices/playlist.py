@@ -266,7 +266,7 @@ class PlaylistMethods:
         "       filter e.modified_at >= @last_run_at and e.modified_at < @now"
         "       collect playlist_key = playlist._key, is_active= e.is_active"
         "       aggregate count_ = length(0)"
-        "       sort count_ desc"
+        "       sort is_active asc"
         "   return {playlist_key, count_, is_active}"
     )
 
@@ -275,6 +275,53 @@ class PlaylistMethods:
         "   filter audio._key == @audio_key"
         "   return true"
     )
+
+    _is_user_subscribed_to_playlist_query = (
+        "for playlist in 1..1 outbound @user_id graph @graph_name options {order:'dfs', vertexCollections:[@playlists], edgeCollections:[@subscribe_to]}"
+        "   filter playlist._key == @playlist_key"
+        "   return true"
+    )
+
+    async def has_user_subscribed_to_playlist(
+        self,
+        user: User,
+        playlist_key: str,
+    ) -> bool:
+        """
+        Check whether a user has subscribed to a playlist or not.
+
+        Parameters
+        ----------
+        user : User
+            User to check this query for.
+        playlist_key : str
+            Key of the playlist to check.
+
+        Returns
+        -------
+        bool
+            Whether the user in query has subscribed to the given playlist with the given `playlist_key` or not.
+
+        Raises
+        ------
+        ValueError
+            If all needed parameters are **None**.
+        """
+        if not user or not playlist_key:
+            raise ValueError("`user` and `playlist_key` must be not None.")
+
+        from tase.db.arangodb.graph.edges import SubscribeTo
+
+        async with await Playlist.execute_query(
+            self._is_user_subscribed_to_playlist_query,
+            bind_vars={
+                "user_id": user.id,
+                "playlists": Playlist.__collection_name__,
+                "subscribe_to": SubscribeTo.__collection_name__,
+                "playlist_key": playlist_key,
+            },
+        ) as cursor:
+            return not cursor.empty()
 
     async def is_audio_in_playlist(
         self,

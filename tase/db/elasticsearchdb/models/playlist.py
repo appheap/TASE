@@ -238,7 +238,8 @@ class Playlist(BaseDocument, BaseSoftDeletableDocument):
         if subscription_count.is_active:
             self_copy.subscribers += subscription_count.count
         else:
-            self_copy.subscribers -= subscription_count.count
+            if self_copy.subscribers > 0:
+                self_copy.subscribers -= subscription_count.count
 
         return await self.update(
             self_copy,
