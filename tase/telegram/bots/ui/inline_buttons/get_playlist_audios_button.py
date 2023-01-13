@@ -10,7 +10,7 @@ from tase.errors import UserDoesNotHasPlaylist
 from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
-from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemType, InlineButtonData
+from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemType, InlineButtonData, AudioLinkData
 from ..inline_items.item_info import PlaylistItemInfo, AudioItemInfo
 
 
@@ -117,16 +117,44 @@ class GetPlaylistAudioInlineButton(InlineButton):
                 # since it is already been checked that the playlist belongs to the user, this exception will not occur
                 pass
             else:
-                from tase.telegram.bots.ui.inline_buttons.common import populate_audio_items
+                from tase.telegram.bots.ui.inline_items import AudioItem
 
-                hit_download_urls = await populate_audio_items(
-                    audio_vertices,
-                    from_user,
-                    handler,
-                    result,
-                    telegram_inline_query,
-                    InlineQueryType.PUBLIC_PLAYLIST_COMMAND if playlist.is_public else InlineQueryType.PRIVATE_PLAYLIST_COMMAND,
-                    playlist_key=playlist.key,
+                # todo: fix this
+                chats_dict, invalid_audio_keys = await handler.update_audio_cache(audio_vertices)
+
+                audio_docs = await asyncio.gather(
+                    *(
+                        handler.db.document.get_audio_by_key(
+                            audio_vertex.get_doc_cache_key(handler.telegram_client.telegram_id),
+                        )
+                        for audio_vertex in audio_vertices
+                    )
+                )
+                hit_download_urls = await handler.db.graph.generate_hit_download_urls(size=len(audio_vertices))
+
+                username = (await handler.telegram_client.get_me()).username
+
+                result.extend_results(
+                    (
+                        AudioItem.get_item(
+                            username,
+                            audio_doc.file_id,
+                            from_user,
+                            audio_vertex,
+                            telegram_inline_query,
+                            chats_dict,
+                            hit_download_url,
+                            InlineQueryType.PUBLIC_PLAYLIST_COMMAND if playlist.is_public else InlineQueryType.PRIVATE_PLAYLIST_COMMAND,
+                            AudioLinkData.generate_data(
+                                hit_download_url,
+                                playlist_key=playlist.key if playlist.is_public else None,
+                                inline_button_type=self.__type__,
+                            ),
+                            playlist_key=playlist.key,
+                        )
+                        for audio_doc, audio_vertex, hit_download_url, in zip(audio_docs, audio_vertices, hit_download_urls)
+                        if audio_doc and audio_vertex and audio_doc.key not in invalid_audio_keys
+                    )
                 )
 
         if not len(result) and not playlist_is_valid and result.is_first_page():
@@ -159,17 +187,31 @@ class GetPlaylistAudioInlineButton(InlineButton):
         inline_item_info: Union[AudioItemInfo, PlaylistItemInfo],
     ):
         if inline_item_info.type == InlineItemType.AUDIO:
-            # update the keyboard markup of the downloaded audio
-            update_keyboard_task = asyncio.create_task(
-                handler.update_audio_keyboard_markup(
+            if inline_item_info.valid_for_inline:
+                # update the keyboard markup of the downloaded audio
+                await handler.update_audio_keyboard_markup(
                     client,
                     from_user,
                     telegram_chosen_inline_result,
                     inline_item_info.hit_download_url,
                     inline_item_info.chat_type,
+                    inline_button_type=self.__type__,
                     playlist_key=inline_item_info.playlist_key,
                 )
-            )
+            else:
+                await handler.on_inline_audio_article_item_clicked(
+                    from_user,
+                    client,
+                    inline_item_info.chat_type,
+                    inline_item_info.hit_download_url,
+                    AudioLinkData.generate_data(
+                        inline_item_info.hit_download_url,
+                        inline_item_info.playlist_key,
+                        inline_button_type=self.__type__,
+                    ),
+                    playlist_key=inline_item_info.playlist_key,
+                    inline_button_type=self.__type__,
+                )
 
             playlist = await handler.db.graph.get_playlist_by_key(inline_item_info.playlist_key)
             if not playlist:
@@ -178,6 +220,7 @@ class GetPlaylistAudioInlineButton(InlineButton):
             if inline_item_info.inline_query_type == InlineQueryType.PRIVATE_PLAYLIST_COMMAND:
                 audio_int_type = AudioInteractionType.REDOWNLOAD_AUDIO
                 playlist_int_type = PlaylistInteractionType.REDOWNLOAD_AUDIO
+
             elif inline_item_info.inline_query_type == InlineQueryType.PUBLIC_PLAYLIST_COMMAND:
                 if await handler.db.graph.get_audio_interaction_by_user(
                     from_user,
@@ -188,11 +231,21 @@ class GetPlaylistAudioInlineButton(InlineButton):
                         audio_int_type = AudioInteractionType.REDOWNLOAD_AUDIO
                     else:
                         if from_user.user_id == playlist.owner_user_id:
-                            audio_int_type = AudioInteractionType.SHARE_AUDIO
+                            if inline_item_info.valid_for_inline:
+                                audio_int_type = AudioInteractionType.SHARE_AUDIO
+                            else:
+                                audio_int_type = AudioInteractionType.SHARE_AUDIO_LINK
+
                         else:
-                            audio_int_type = AudioInteractionType.REDOWNLOAD_AUDIO
+                            if inline_item_info.valid_for_inline:
+                                audio_int_type = AudioInteractionType.REDOWNLOAD_AUDIO
+                            else:
+                                audio_int_type = AudioInteractionType.SHARE_AUDIO_LINK
                 else:
-                    audio_int_type = AudioInteractionType.DOWNLOAD_AUDIO
+                    if inline_item_info.valid_for_inline:
+                        audio_int_type = AudioInteractionType.DOWNLOAD_AUDIO
+                    else:
+                        audio_int_type = AudioInteractionType.SHARE_AUDIO_LINK
 
                 if await handler.db.graph.get_playlist_audio_interaction_by_user(
                     from_user,
@@ -204,11 +257,20 @@ class GetPlaylistAudioInlineButton(InlineButton):
                         playlist_int_type = PlaylistInteractionType.REDOWNLOAD_AUDIO
                     else:
                         if from_user.user_id == playlist.owner_user_id:
-                            playlist_int_type = PlaylistInteractionType.SHARE_AUDIO
+                            if inline_item_info.valid_for_inline:
+                                playlist_int_type = PlaylistInteractionType.SHARE_AUDIO
+                            else:
+                                playlist_int_type = PlaylistInteractionType.SHARE_AUDIO_LINK
                         else:
-                            playlist_int_type = PlaylistInteractionType.REDOWNLOAD_AUDIO
+                            if inline_item_info.valid_for_inline:
+                                playlist_int_type = PlaylistInteractionType.REDOWNLOAD_AUDIO
+                            else:
+                                playlist_int_type = PlaylistInteractionType.SHARE_AUDIO_LINK
                 else:
-                    playlist_int_type = PlaylistInteractionType.DOWNLOAD_AUDIO
+                    if inline_item_info.valid_for_inline:
+                        playlist_int_type = PlaylistInteractionType.DOWNLOAD_AUDIO
+                    else:
+                        playlist_int_type = PlaylistInteractionType.SHARE_AUDIO_LINK
             else:
                 return
 
@@ -234,8 +296,6 @@ class GetPlaylistAudioInlineButton(InlineButton):
                 # could not create the interaction_vertex
                 logger.error("Could not create the `interaction_vertex` vertex:")
                 logger.error(telegram_chosen_inline_result)
-
-            await update_keyboard_task
 
         elif inline_item_info.type == InlineItemType.PLAYLIST:
             from tase.telegram.bots.ui.inline_buttons.common import update_playlist_keyboard_markup

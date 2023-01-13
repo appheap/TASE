@@ -168,14 +168,33 @@ async def populate_audio_items(
     return hit_download_urls
 
 
+def get_download_audio_keyboard(
+    from_user: graph_models.vertices.User,
+    bot_username: str,
+    link: str,
+) -> InlineKeyboardMarkup:
+    from tase.telegram.bots.ui.inline_buttons import DownloadAudioInlineButton
+
+    return InlineKeyboardMarkup(
+        [
+            [
+                DownloadAudioInlineButton.get_keyboard(
+                    url=f"https://t.me/{bot_username}?start={link}",
+                    lang_code=from_user.chosen_language_code,
+                ),
+            ]
+        ]
+    )
+
+
 def get_audio_markup_keyboard(
     bot_username: str,
     chat_type: ChatType,
     chosen_language_code: str,
     hit_download_url: str,
-    valid_for_inline_search: bool,
     status: AudioKeyboardStatus,
     playlist_key: Optional[str] = None,
+    inline_button_type: Optional[InlineButtonType] = InlineButtonType.NOT_A_BUTTON,
 ) -> InlineKeyboardMarkup:
     """
     Get markup keyboard for an audio message
@@ -190,12 +209,13 @@ def get_audio_markup_keyboard(
         Language code the user that ran this query
     hit_download_url : str
         Download URL of the hit
-    valid_for_inline_search : bool
-        Whether this audio is valid for inline mode or not
     status : AudioKeyboardStatus
         Keyboard status of this audio file
     playlist_key : str, optional
         Key of the playlist vertex this audio downloaded from.
+    inline_button_type : InlineButtonType, default : InlineButtonType.NOT_A_BUTTON
+        Type of the inline button which this query was made from. It is only meant for queries made outside BOT chat. Moreover, it needs to be a valid type
+        declared in one of the subclasses of `BaseAudioLinkData` class.
 
     Returns
     -------
@@ -204,78 +224,54 @@ def get_audio_markup_keyboard(
 
     """
     if chat_type == ChatType.BOT:
-        if valid_for_inline_search:
-            markup = [
-                [
-                    AddToPlaylistInlineButton.get_keyboard(
-                        hit_download_url=hit_download_url,
-                        lang_code=chosen_language_code,
-                    ),
-                    RemoveFromPlaylistInlineButton.get_keyboard(
-                        hit_download_url=hit_download_url,
-                        lang_code=chosen_language_code,
-                    ),
-                    InlineButton.get_button(InlineButtonType.ADD_TO_FAVORITE_PLAYLIST)
-                    .change_text(status.is_in_favorite_playlist)
-                    .get_keyboard(
-                        chat_type=chat_type,
-                        hit_download_url=hit_download_url,
-                        lang_code=chosen_language_code,
-                    ),
-                ],
-                [
-                    InlineButton.get_button(InlineButtonType.DISLIKE_AUDIO)
-                    .change_text(status.is_disliked)
-                    .get_keyboard(
-                        chat_type=chat_type,
-                        hit_download_url=hit_download_url,
-                        lang_code=chosen_language_code,
-                        playlist_key=playlist_key,
-                    ),
-                    InlineButton.get_button(InlineButtonType.LIKE_AUDIO)
-                    .change_text(status.is_liked)
-                    .get_keyboard(
-                        chat_type=chat_type,
-                        hit_download_url=hit_download_url,
-                        lang_code=chosen_language_code,
-                        playlist_key=playlist_key,
-                    ),
-                ],
-                [
-                    HomeInlineButton.get_keyboard(lang_code=chosen_language_code),
-                ],
-            ]
-        else:
-            markup = [
-                [
-                    InlineButton.get_button(InlineButtonType.DISLIKE_AUDIO)
-                    .change_text(status.is_disliked)
-                    .get_keyboard(
-                        chat_type=chat_type,
-                        hit_download_url=hit_download_url,
-                        lang_code=chosen_language_code,
-                        playlist_key=playlist_key,
-                    ),
-                    InlineButton.get_button(InlineButtonType.LIKE_AUDIO)
-                    .change_text(status.is_liked)
-                    .get_keyboard(
-                        chat_type=chat_type,
-                        hit_download_url=hit_download_url,
-                        lang_code=chosen_language_code,
-                        playlist_key=playlist_key,
-                    ),
-                ],
-                [
-                    HomeInlineButton.get_keyboard(lang_code=chosen_language_code),
-                ],
-            ]
-
+        markup = [
+            [
+                AddToPlaylistInlineButton.get_keyboard(
+                    hit_download_url=hit_download_url,
+                    lang_code=chosen_language_code,
+                ),
+                RemoveFromPlaylistInlineButton.get_keyboard(
+                    hit_download_url=hit_download_url,
+                    lang_code=chosen_language_code,
+                ),
+                InlineButton.get_button(InlineButtonType.ADD_TO_FAVORITE_PLAYLIST)
+                .change_text(status.is_in_favorite_playlist)
+                .get_keyboard(
+                    chat_type=chat_type,
+                    hit_download_url=hit_download_url,
+                    lang_code=chosen_language_code,
+                ),
+            ],
+            [
+                InlineButton.get_button(InlineButtonType.DISLIKE_AUDIO)
+                .change_text(status.is_disliked)
+                .get_keyboard(
+                    chat_type=chat_type,
+                    hit_download_url=hit_download_url,
+                    lang_code=chosen_language_code,
+                    playlist_key=playlist_key,
+                ),
+                InlineButton.get_button(InlineButtonType.LIKE_AUDIO)
+                .change_text(status.is_liked)
+                .get_keyboard(
+                    chat_type=chat_type,
+                    hit_download_url=hit_download_url,
+                    lang_code=chosen_language_code,
+                    playlist_key=playlist_key,
+                ),
+            ],
+            [
+                HomeInlineButton.get_keyboard(lang_code=chosen_language_code),
+            ],
+        ]
         markup = InlineKeyboardMarkup(markup)
     else:
+        from tase.telegram.bots.ui.base import AudioLinkData
+
         markup = [
             [
                 DownloadAudioInlineButton.get_keyboard(
-                    url=f"https://t.me/{bot_username}?start=dl_{hit_download_url}",
+                    url=f"https://t.me/{bot_username}?start={AudioLinkData.generate_data(hit_download_url, playlist_key, inline_button_type)}",
                     lang_code=chosen_language_code,
                 ),
             ]

@@ -6,6 +6,8 @@ class InlineButtonType(Enum):
     INVALID = 1
     BASE = 2
 
+    NOT_A_BUTTON = -1
+
     # commands intended for testing purposes
     # DUMMY = "dummy"
 

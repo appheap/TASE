@@ -1242,7 +1242,7 @@ class PlaylistMethods:
     async def get_playlist_audios(
         self: ArangoGraphMethods,
         playlist_key: str,
-        filter_by_valid_for_inline_search: bool = True,
+        only_include_valid_inline_audios: bool = False,
         offset: int = 0,
         limit: int = 15,
     ) -> Deque[Audio]:
@@ -1253,7 +1253,7 @@ class PlaylistMethods:
         ----------
         playlist_key : str
             Playlist key to get the audios from
-        filter_by_valid_for_inline_search : bool, default : True
+        only_include_valid_inline_audios : bool, default : False
             Whether to only get audio files that are valid to be shown in inline mode
         offset : int, default : 0
             Offset to get the audios query after
@@ -1262,7 +1262,7 @@ class PlaylistMethods:
 
         Returns
         -------
-        deque
+        Deque
             Audios that belong to the given playlist
 
         Raises
@@ -1279,7 +1279,7 @@ class PlaylistMethods:
         res = collections.deque()
 
         async with await Playlist.execute_query(
-            self._get_playlist_audios_for_inline_query if filter_by_valid_for_inline_search else self._get_playlist_audios_query,
+            self._get_playlist_audios_for_inline_query if only_include_valid_inline_audios else self._get_playlist_audios_query,
             bind_vars={
                 "start_vertex": f"{Playlist.__collection_name__}/{playlist_key}",
                 "has": Has.__collection_name__,
