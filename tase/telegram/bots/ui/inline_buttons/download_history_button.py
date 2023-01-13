@@ -68,7 +68,6 @@ class DownloadHistoryInlineButton(InlineButton):
         audio_vertices = await handler.db.graph.get_user_download_history(
             from_user,
             offset=result.from_,
-            only_include_valid_audios_for_inline_search=False,
         )
 
         hit_download_urls = None

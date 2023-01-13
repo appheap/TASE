@@ -18,7 +18,6 @@ from tase.telegram.bots.ui.inline_buttons import (
     AddToPlaylistInlineButton,
     BackToPlaylistsInlineButton,
     DeletePlaylistInlineButton,
-    DownloadAudioInlineButton,
     EditPlaylistDescriptionInlineButton,
     EditPlaylistTitleInlineButton,
     GetPlaylistAudioInlineButton,
@@ -169,10 +168,13 @@ async def populate_audio_items(
 
 
 def get_download_audio_keyboard(
-    from_user: graph_models.vertices.User,
     bot_username: str,
     link: str,
+    chosen_language_code: str = "en",
 ) -> InlineKeyboardMarkup:
+    if not chosen_language_code:
+        chosen_language_code = "en"
+
     from tase.telegram.bots.ui.inline_buttons import DownloadAudioInlineButton
 
     return InlineKeyboardMarkup(
@@ -180,7 +182,7 @@ def get_download_audio_keyboard(
             [
                 DownloadAudioInlineButton.get_keyboard(
                     url=f"https://t.me/{bot_username}?start={link}",
-                    lang_code=from_user.chosen_language_code,
+                    lang_code=chosen_language_code,
                 ),
             ]
         ]
@@ -268,15 +270,11 @@ def get_audio_markup_keyboard(
     else:
         from tase.telegram.bots.ui.base import AudioLinkData
 
-        markup = [
-            [
-                DownloadAudioInlineButton.get_keyboard(
-                    url=f"https://t.me/{bot_username}?start={AudioLinkData.generate_data(hit_download_url, playlist_key, inline_button_type)}",
-                    lang_code=chosen_language_code,
-                ),
-            ]
-        ]
-        markup = InlineKeyboardMarkup(markup)
+        markup = get_download_audio_keyboard(
+            bot_username,
+            AudioLinkData.generate_data(hit_download_url, playlist_key, inline_button_type),
+            chosen_language_code,
+        )
 
     return markup
 

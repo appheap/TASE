@@ -177,5 +177,9 @@ class AudioItem(BaseInlineItem):
                     parse_mode=ParseMode.HTML,
                     disable_web_page_preview=True,
                 ),
-                reply_markup=get_download_audio_keyboard(from_user, bot_username, audio_link_data_string),
+                reply_markup=get_download_audio_keyboard(
+                    bot_username,
+                    audio_link_data_string,
+                    from_user.chosen_language_code,
+                ),
             )

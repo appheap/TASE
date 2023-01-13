@@ -1116,7 +1116,7 @@ class AudioMethods:
     async def get_user_download_history(
         self,
         user: User,
-        only_include_valid_audios_for_inline_search: bool = True,
+        only_include_valid_audios_for_inline_search: bool = False,
         offset: int = 0,
         limit: int = 15,
     ) -> Deque[Audio]:
@@ -1127,7 +1127,7 @@ class AudioMethods:
         ----------
         user : User
             User to get the download history
-        only_include_valid_audios_for_inline_search : bool, default : True
+        only_include_valid_audios_for_inline_search : bool, default : False
             Whether to only get audio files that are valid to be shown in inline mode
         offset : int, default : 0
             Offset to get the download history query after
