@@ -276,6 +276,12 @@ class PlaylistMethods:
         "   return true"
     )
 
+    _audio_is_or_was_in_playlist_query = (
+        "for audio in 1..1 outbound @playlist_id graph @graph_name options {order : 'dfs', edgeCollections : [@has, @had], vertexCollections : [@audios]}"
+        "   filter audio._key == @audio_key"
+        "   return true"
+    )
+
     _is_user_subscribed_to_playlist_query = (
         "for playlist in 1..1 outbound @user_id graph @graph_name options {order:'dfs', vertexCollections:[@playlists], edgeCollections:[@subscribe_to]}"
         "   filter playlist._key == @playlist_key"
@@ -367,6 +373,55 @@ class PlaylistMethods:
                 "audio_key": audio_key,
                 "audios": Audio.__collection_name__,
                 "has": Has.__collection_name__,
+            },
+        ) as cursor:
+            return not cursor.empty()
+
+    async def audio_is_or_was_in_playlist(
+        self,
+        audio_key: str,
+        playlist_key: str,
+    ) -> bool:
+        """
+        Check whether an `Audio` exists or has existed in the `Playlist`.
+
+        Parameters
+        ----------
+        playlist_key : str
+            Key of the playlist to check.
+        audio_key : str
+            Key of the audio to check.
+
+        Returns
+        -------
+        bool
+            Whether the audio with the given `audio_key` exists or has existed in the playlist with given `playlist_key` or not.
+
+        Raises
+        ------
+        ValueError
+            If all needed parameters are **None**.
+        PlaylistNotFound
+            If there is no playlist with given `playlist_key` parameter.
+        """
+        if not playlist_key or not audio_key:
+            raise ValueError("`playlist_key` and `audio_key` must be not None.")
+
+        playlist = await self.get_playlist_by_key(playlist_key)
+        if not playlist:
+            raise PlaylistNotFound(playlist_key)
+
+        from tase.db.arangodb.graph.edges import Has, Had
+        from tase.db.arangodb.graph.vertices import Audio
+
+        async with await Playlist.execute_query(
+            self._audio_is_or_was_in_playlist_query,
+            bind_vars={
+                "playlist_id": playlist.id,
+                "audio_key": audio_key,
+                "audios": Audio.__collection_name__,
+                "has": Has.__collection_name__,
+                "had": Had.__collection_name__,
             },
         ) as cursor:
             return not cursor.empty()

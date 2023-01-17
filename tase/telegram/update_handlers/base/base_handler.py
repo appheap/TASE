@@ -383,7 +383,7 @@ class BaseHandler(BaseModel):
             audio_link_data: AudioLinkData = audio_link_data
 
             playlist = await self.db.graph.get_playlist_by_key(audio_link_data.playlist_key)
-            if playlist:
+            if playlist and await self.db.graph.audio_is_or_was_in_playlist(audio_vertex.key, playlist.key):
                 if await self.db.graph.get_playlist_audio_interaction_by_user(
                     from_user,
                     hit_download_url,
