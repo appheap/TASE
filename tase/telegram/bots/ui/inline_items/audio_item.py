@@ -149,7 +149,7 @@ class AudioItem(BaseInlineItem):
                 description=description,
                 thumb_url="https://telegra.ph/file/764498c89f7f1bea502d5.png",
                 input_message_content=InputTextMessageContent(  # todo: add a task to delete this message after the downloaded audio has been sent.
-                    f"dl_{hit_download_url}" if send_download_url else f"{emoji._clock_emoji}",
+                    f"/dl_{hit_download_url}" if send_download_url else f"{emoji._clock_emoji}",
                     disable_web_page_preview=True,
                     parse_mode=ParseMode.HTML,
                 ),
