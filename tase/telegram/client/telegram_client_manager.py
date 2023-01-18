@@ -77,6 +77,13 @@ class TelegramClientManager(mp.Process):
                 telegram_client.telegram_id = me.id
                 await self.db.graph.get_interacted_user(me, update=True)
 
+            # check if the client has cached the archive channel
+            if not await telegram_client.peer_exists(telegram_client.archive_channel_info.chat_id):
+                archived_chat = await telegram_client.get_chat(telegram_client.archive_channel_info.chat_id)
+                if archived_chat:
+                    # update or create the archived chat in the database
+                    await self.db.graph.update_or_create_chat(archived_chat)
+
             self.init_handlers(telegram_client)
             self.register_update_handlers(telegram_client)
 

@@ -219,8 +219,24 @@ class GetPlaylistAudioInlineButton(InlineButton):
                 return
 
             if inline_item_info.inline_query_type == InlineQueryType.PRIVATE_PLAYLIST_COMMAND:
-                audio_int_type = AudioInteractionType.REDOWNLOAD_AUDIO
-                playlist_int_type = PlaylistInteractionType.REDOWNLOAD_AUDIO
+                if await handler.db.graph.get_audio_interaction_by_user(
+                    from_user,
+                    inline_item_info.hit_download_url,
+                    AudioInteractionType.DOWNLOAD_AUDIO,
+                ):
+                    audio_int_type = AudioInteractionType.REDOWNLOAD_AUDIO
+                else:
+                    audio_int_type = AudioInteractionType.DOWNLOAD_AUDIO
+
+                if await handler.db.graph.get_playlist_audio_interaction_by_user(
+                    from_user,
+                    inline_item_info.hit_download_url,
+                    playlist.key,
+                    PlaylistInteractionType.DOWNLOAD_AUDIO,
+                ):
+                    playlist_int_type = PlaylistInteractionType.REDOWNLOAD_AUDIO
+                else:
+                    playlist_int_type = PlaylistInteractionType.DOWNLOAD_AUDIO
 
             elif inline_item_info.inline_query_type == InlineQueryType.PUBLIC_PLAYLIST_COMMAND:
                 if await handler.db.graph.get_audio_interaction_by_user(
@@ -243,10 +259,13 @@ class GetPlaylistAudioInlineButton(InlineButton):
                             else:
                                 audio_int_type = AudioInteractionType.SHARE_AUDIO_LINK
                 else:
-                    if inline_item_info.valid_for_inline:
+                    if inline_item_info.chat_type == ChatType.BOT:
                         audio_int_type = AudioInteractionType.DOWNLOAD_AUDIO
                     else:
-                        audio_int_type = AudioInteractionType.SHARE_AUDIO_LINK
+                        if inline_item_info.valid_for_inline:
+                            audio_int_type = AudioInteractionType.DOWNLOAD_AUDIO
+                        else:
+                            audio_int_type = AudioInteractionType.SHARE_AUDIO_LINK
 
                 if await handler.db.graph.get_playlist_audio_interaction_by_user(
                     from_user,
@@ -268,10 +287,13 @@ class GetPlaylistAudioInlineButton(InlineButton):
                             else:
                                 playlist_int_type = PlaylistInteractionType.SHARE_AUDIO_LINK
                 else:
-                    if inline_item_info.valid_for_inline:
+                    if inline_item_info.chat_type == ChatType.BOT:
                         playlist_int_type = PlaylistInteractionType.DOWNLOAD_AUDIO
                     else:
-                        playlist_int_type = PlaylistInteractionType.SHARE_AUDIO_LINK
+                        if inline_item_info.valid_for_inline:
+                            playlist_int_type = PlaylistInteractionType.DOWNLOAD_AUDIO
+                        else:
+                            playlist_int_type = PlaylistInteractionType.SHARE_AUDIO_LINK
             else:
                 return
 

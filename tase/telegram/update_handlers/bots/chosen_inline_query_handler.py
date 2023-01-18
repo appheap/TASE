@@ -69,7 +69,14 @@ class ChosenInlineQueryHandler(BaseHandler):
 
             if inline_item_info.inline_query_type == InlineQueryType.AUDIO_COMMAND:
                 if inline_item_info.chat_type == ChatType.BOT:
-                    type_ = AudioInteractionType.DOWNLOAD_AUDIO
+                    if await self.db.graph.get_audio_interaction_by_user(
+                        from_user,
+                        inline_item_info.hit_download_url,
+                        AudioInteractionType.DOWNLOAD_AUDIO,
+                    ):
+                        type_ = AudioInteractionType.REDOWNLOAD_AUDIO
+                    else:
+                        type_ = AudioInteractionType.DOWNLOAD_AUDIO
                 else:
                     type_ = AudioInteractionType.SHARE_AUDIO_LINK
             else:
