@@ -20,7 +20,7 @@ from .user import User
 if TYPE_CHECKING:
     from .. import ArangoGraphMethods
 from ...enums import InlineQueryType, HitType
-from ...helpers import ElasticQueryMetadata, InlineQueryMetadata
+from ...helpers import ElasticQueryMetadata, InlineQueryMetadata, HitMetadata
 
 
 class Query(BaseVertex):
@@ -151,6 +151,7 @@ class QueryMethods:
         query: str,
         query_date: int,
         audio_or_playlist_vertices: Union[Deque[Audio], Deque[Playlist]],
+        hit_metadata_list: Union[Deque[HitMetadata], List[HitMetadata]],
         query_metadata: Optional[ElasticQueryMetadata] = None,
         search_metadata_list: Optional[List[SearchMetaData]] = None,
         # following parameters are meant to be used with inline query
@@ -165,15 +166,17 @@ class QueryMethods:
         Parameters
         ----------
         bot_id : int
-            ID of the bot that has been queried
+            ID of the bot that has been queried.
         user : User
             User that has made this query
         query : str
-            Query string
+            Query string.
         query_date : int
-            Timestamp of making the query
+            Timestamp of making the query.
         audio_or_playlist_vertices : Deque[Audio] or Deque[Playlist]
-            List of audios or playlists this query matches to
+            List of audios or playlists this query matches to.
+        hit_metadata_list : Deque of HitMetadata or List of HitMetadata
+            List of `HitMetadata` objects to use for creating the hit vertices.
         query_metadata : ElasticQueryMetadata, default : None
             Metadata of this query that on ElasticSearch.
         search_metadata_list : List[SearchMetadata], default : None
@@ -274,8 +277,13 @@ class QueryMethods:
             if hit_download_urls is None or not len(hit_download_urls):
                 hit_download_urls = (None for _ in range(len(audio_or_playlist_vertices)))
 
-            for audio_or_playlist_vertex, search_metadata, hit_download_url in zip(audio_or_playlist_vertices, search_metadata_list, hit_download_urls):
-                if audio_or_playlist_vertex is None:
+            for audio_or_playlist_vertex, search_metadata, hit_download_url, hit_metadata in zip(
+                audio_or_playlist_vertices,
+                search_metadata_list,
+                hit_download_urls,
+                hit_metadata_list,
+            ):
+                if not audio_or_playlist_vertex or not hit_metadata:
                     # todo: what now?
                     continue
 
@@ -283,6 +291,7 @@ class QueryMethods:
                     db_query,
                     audio_or_playlist_vertex,
                     hit_type,
+                    hit_metadata,
                     hit_download_url,
                     search_metadata,
                 )
@@ -311,6 +320,7 @@ class QueryMethods:
         query: str,
         query_date: int,
         audio_or_playlist_vertices: Union[Deque[Audio], Deque[Playlist]],
+        hit_metadata_list: Union[Deque[HitMetadata], List[HitMetadata]],
         query_metadata: Optional[ElasticQueryMetadata] = None,
         search_metadata_list: Optional[List[SearchMetaData]] = None,
         # following parameters are meant to be used with inline query
@@ -326,27 +336,29 @@ class QueryMethods:
         Parameters
         ----------
         bot_id : int
-            ID of the bot that has been queried
+            ID of the bot that has been queried.
         user : User
-            User that has made this query
+            User that has made this query.
         query : str
-            Query string
+            Query string.
         query_date : int
-            Timestamp of making the query
+            Timestamp of making the query.
         audio_or_playlist_vertices : Deque[Audio] or Deque[Playlist]
-            List of audios this query matches to
+            List of audios this query matches to.
+        hit_metadata_list : Deque of HitMetadata or List of HitMetadata
+            List of `HitMetadata` objects to use for creating the hit vertices.
         query_metadata : ElasticQueryMetadata, default : None
             Metadata of this query that on ElasticSearch.
         search_metadata_list : List[SearchMetadata], default : None
-            List of metadata for each of the audios this query matches to
+            List of metadata for each of the audios this query matches to.
         telegram_inline_query : pyrogram.types.InlineQuery, default : None
-            Telegram InlineQuery object if the query is inline
+            Telegram InlineQuery object if the query is inline.
         inline_query_type : InlineQueryType, default : None
-            Type of the inline query if the query is inline
+            Type of the inline query if the query is inline.
         next_offset : str, default : None
-            Next offset of query if the query is inline and has more results that will be paginated
+            Next offset of query if the query is inline and has more results that will be paginated.
         hit_download_urls : deque of str, default : None
-            List of hit download URLs to initialize hits with
+            List of hit download URLs to initialize hits with.
 
         Returns
         -------
@@ -369,6 +381,7 @@ class QueryMethods:
                 query,
                 query_date,
                 audio_or_playlist_vertices,
+                hit_metadata_list,
                 query_metadata,
                 search_metadata_list,
                 telegram_inline_query,

@@ -113,7 +113,6 @@ class ToggleFavoritePlaylistInlineButton(InlineButton):
                             chat_type,
                             from_user.chosen_language_code,
                             hit_download_url,
-                            True,
                             status,
                         )
                         if reply_markup:

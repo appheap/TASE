@@ -1072,7 +1072,7 @@ class AudioMethods:
 
         else:
             audio: Audio = await Audio.get(audio_vertex_key)
-            return audio.valid_for_inline_search if audio is not None else False
+            return audio.valid_for_inline_search if audio else False
 
         return False
 
@@ -1116,7 +1116,7 @@ class AudioMethods:
     async def get_user_download_history(
         self,
         user: User,
-        filter_by_valid_for_inline_search: bool = True,
+        only_include_valid_audios_for_inline_search: bool = False,
         offset: int = 0,
         limit: int = 15,
     ) -> Deque[Audio]:
@@ -1127,7 +1127,7 @@ class AudioMethods:
         ----------
         user : User
             User to get the download history
-        filter_by_valid_for_inline_search : bool, default : True
+        only_include_valid_audios_for_inline_search : bool, default : False
             Whether to only get audio files that are valid to be shown in inline mode
         offset : int, default : 0
             Offset to get the download history query after
@@ -1147,7 +1147,7 @@ class AudioMethods:
 
         res = collections.deque()
         async with await Audio.execute_query(
-            self._get_user_download_history_inline_query if filter_by_valid_for_inline_search else self._get_user_download_history_query,
+            self._get_user_download_history_inline_query if only_include_valid_audios_for_inline_search else self._get_user_download_history_query,
             bind_vars={
                 "start_vertex": user.id,
                 "has": Has.__collection_name__,
@@ -1160,7 +1160,9 @@ class AudioMethods:
             },
         ) as cursor:
             async for doc in cursor:
-                res.append(Audio.from_collection(doc))
+                obj = Audio.from_collection(doc)
+                if obj:
+                    res.append(obj)
 
         return res
 
@@ -1195,7 +1197,9 @@ class AudioMethods:
         ) as cursor:
             async for audios_lst in cursor:
                 for doc in audios_lst:
-                    res.append(Audio.from_collection(doc))
+                    obj = Audio.from_collection(doc)
+                    if obj:
+                        res.append(obj)
 
         return res
 
@@ -1295,7 +1299,9 @@ class AudioMethods:
             },
         ) as cursor:
             async for doc in cursor:
-                res.append(Audio.from_collection(doc))
+                obj = Audio.from_collection(doc)
+                if obj:
+                    res.append(obj)
 
         return list(res)
 
@@ -1365,7 +1371,9 @@ class AudioMethods:
             },
         ) as cursor:
             async for doc in cursor:
-                yield Audio.from_collection(doc)
+                obj = Audio.from_collection(doc)
+                if obj:
+                    yield obj
 
     async def get_audio_by_key(
         self,

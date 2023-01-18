@@ -14,6 +14,7 @@ from tase.common.utils import (
     async_exception_handler,
     async_timed,
 )
+from tase.db.arangodb.helpers import AudioHitMetadata
 from tase.my_logger import logger
 from tase.telegram.bots.bot_commands import BaseCommand, BotCommandType
 from tase.telegram.bots.ui.templates import (
@@ -90,9 +91,9 @@ class BotMessageHandler(BaseHandler):
         Parameters
         ----------
         client : pyrogram.Client
-            Client receiving this update
+            Client receiving this update.
         message : pyrogram.types.Message
-            Message associated with update
+            Message associated with update.
         """
         logger.debug(f"base_downloads_handler: {message.text}")
 
@@ -100,7 +101,7 @@ class BotMessageHandler(BaseHandler):
         await self.download_audio(
             client,
             from_user,
-            message.text,
+            message.text[4:],
             message,
             False,
         )
@@ -188,10 +189,12 @@ class BotMessageHandler(BaseHandler):
         if found_any and es_audio_docs:
             audio_vertices = await self.db.graph.get_audios_from_keys([doc.id for doc in es_audio_docs])
             search_metadata_lst = [es_audio_doc.search_metadata for es_audio_doc in es_audio_docs]
+            hit_metadata_list = [AudioHitMetadata(audio_vertex_key=vertex.key) for vertex in audio_vertices]
         else:
             audio_vertices = None
             search_metadata_lst = None
             query_metadata = None
+            hit_metadata_list = None
 
         await self.db.graph.get_or_create_query(
             self.telegram_client.telegram_id,
@@ -199,6 +202,7 @@ class BotMessageHandler(BaseHandler):
             query,
             datetime_to_timestamp(message.date),
             audio_vertices,
+            hit_metadata_list,
             query_metadata,
             search_metadata_lst,
             hit_download_urls=hit_download_urls,

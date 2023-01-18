@@ -44,7 +44,7 @@ class StartCommand(BaseCommand):
                 await handler.download_audio(
                     client,
                     from_user,
-                    arg,
+                    arg[3:],
                     message,
                     True,
                 )

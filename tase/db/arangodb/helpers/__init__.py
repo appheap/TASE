@@ -10,6 +10,7 @@ from .base_indexer_metadata import BaseIndexerMetadata
 from .bit_rate_type import BitRateType
 from .elastic_query_metadata import ElasticQueryMetadata
 from .hit_count import HitCount
+from .hit_metadata import BaseHitMetadata, AudioHitMetadata, PlaylistAudioHitMetadata, PlaylistHitMetadata, HitMetadata
 from .inline_query_metadata import InlineQueryMetadata
 from .playlist_interaction_count import PlaylistInteractionCount
 from .public_playlist_subscription_count import PublicPlaylistSubscriptionCount

@@ -9,7 +9,7 @@ from tase.common.utils import generate_token_urlsafe, async_timed
 from tase.db.helpers import SearchMetaData
 from tase.errors import InvalidFromVertex, InvalidToVertex, EdgeCreationFailed
 from tase.my_logger import logger
-from ...helpers import HitCount
+from ...helpers import HitCount, HitMetadata
 
 if TYPE_CHECKING:
     from .. import ArangoGraphMethods
@@ -66,12 +66,19 @@ class Hit(BaseVertex):
     ]
 
     hit_type: HitType
+    metadata: Optional[HitMetadata]
 
     rank: int
     score: float
     query_date: int
 
     download_url: Optional[str]
+
+    def __getattr__(self, item):
+        if item == "metadata":
+            return None
+
+        raise AttributeError
 
     @classmethod
     def parse_key(
@@ -90,6 +97,7 @@ class Hit(BaseVertex):
         query: Query,
         audio: Audio,
         hit_type: HitType,
+        hit_metadata: HitMetadata,
         search_metadata: Optional[SearchMetaData] = None,
         hit_download_url: Optional[str] = None,
     ) -> Optional[Hit]:
@@ -100,6 +108,7 @@ class Hit(BaseVertex):
         return Hit(
             key=key,
             hit_type=hit_type,
+            metadata=hit_metadata,
             rank=search_metadata.rank if search_metadata else 0,
             score=search_metadata.score if search_metadata else 0,
             query_date=query.query_date,
@@ -159,6 +168,7 @@ class HitMethods:
         query: Query,
         audio_or_playlist: Union[Audio, Playlist],
         hit_type: HitType,
+        hit_metadata: HitMetadata,
         hit_download_url: str = None,
         search_metadata: Optional[SearchMetaData] = None,
     ) -> Optional[Hit]:
@@ -168,15 +178,17 @@ class HitMethods:
         Parameters
         ----------
         query : Query
-            Query this hit belongs to
+            Query this hit belongs to.
         audio_or_playlist : Audio or Playlist
-            Audio or Playlist this Hit has hit
+            Audio or Playlist this Hit has hit.
         hit_type: HitType
-            Type of `Hit` vertex
+            Type of `Hit` vertex.
+        hit_metadata : HitMetadata
+            Metadata of this hit object.
         hit_download_url : str, default : None
-            Hit download URL to initialize the object with
+            Hit download URL to initialize the object with.
         search_metadata : SearchMetaData, default : None
-            Search metadata related to the given Audio or Playlist returned from ElasticSearch
+            Search metadata related to the given Audio or Playlist returned from ElasticSearch.
 
         Returns
         -------
@@ -188,7 +200,7 @@ class HitMethods:
         EdgeCreationFailed
             If creation of the `has` edge from `Hit` vertex to `Audio` vertex
         """
-        if query is None or audio_or_playlist is None or hit_type is None:
+        if not query or not audio_or_playlist or not hit_type or not hit_metadata:
             return None
 
         if not hit_download_url:
@@ -198,7 +210,7 @@ class HitMethods:
                 if not await self.find_hit_by_download_url(hit_download_url):
                     break
 
-        hit = Hit.parse(query, audio_or_playlist, hit_type, search_metadata, hit_download_url)
+        hit = Hit.parse(query, audio_or_playlist, hit_type, hit_metadata, search_metadata, hit_download_url)
 
         hit, successful = await Hit.insert(hit)
         if hit and successful:
@@ -220,6 +232,7 @@ class HitMethods:
         query: Query,
         audio_or_playlist: Union[Audio, Playlist],
         hit_type: HitType,
+        hit_metadata: HitMetadata,
         hit_download_url: str = None,
         search_metadata: Optional[SearchMetaData] = None,
     ) -> Optional[Hit]:
@@ -229,15 +242,17 @@ class HitMethods:
         Parameters
         ----------
         query : Query
-            Query this hit belongs to
+            Query this hit belongs to.
         audio_or_playlist : Audio or Playlist
-            Audio or Playlist this Hit has hit
+            Audio or Playlist this Hit has hit.
         hit_type: HitType
-            Type of `Hit` vertex
+            Type of `Hit` vertex.
+        hit_metadata : HitMetadata
+            Metadata of this hit object.
         hit_download_url : str, default : None
-            Hit download URL to initialize the object with
+            Hit download URL to initialize the object with.
         search_metadata : SearchMetaData, default : None
-            Search metadata related to the given Audio or Playlist returned from ElasticSearch
+            Search metadata related to the given Audio or Playlist returned from ElasticSearch.
 
         Returns
         -------
@@ -249,12 +264,12 @@ class HitMethods:
         Exception
             If could not create the `has` edge from `Hit` vertex to `Audio` vertex
         """
-        if query is None or audio_or_playlist is None or hit_type is None:
+        if query is None or audio_or_playlist is None or hit_type is None or not hit_metadata:
             return None
 
         hit = await Hit.get(Hit.parse_key(query, audio_or_playlist))
         if hit is None:
-            hit = await self.create_hit(query, audio_or_playlist, hit_type, hit_download_url, search_metadata)
+            hit = await self.create_hit(query, audio_or_playlist, hit_type, hit_metadata, hit_download_url, search_metadata)
 
         return hit
 

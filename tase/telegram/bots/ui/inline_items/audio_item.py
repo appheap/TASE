@@ -4,13 +4,12 @@ from typing import Optional, Union
 
 import pyrogram.types
 from pyrogram.enums import ParseMode
-from pyrogram.types import InlineQueryResultCachedAudio, InlineKeyboardMarkup, InlineQueryResultArticle, InputTextMessageContent
+from pyrogram.types import InlineQueryResultCachedAudio, InlineQueryResultArticle, InputTextMessageContent
 
 from tase.common.preprocessing import clean_audio_item_text
 from tase.common.utils import emoji
 from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.enums import ChatType, InlineQueryType
-from tase.db.arangodb.helpers import AudioKeyboardStatus
 from tase.db.elasticsearchdb import models as elasticsearch_models
 from tase.telegram.bots.ui.templates import AudioCaptionData, BaseTemplate
 from .base_inline_item import BaseInlineItem
@@ -32,7 +31,6 @@ class AudioItem(BaseInlineItem):
         chats_dict: dict,
         hit_download_url: str,
         inline_query_type: InlineQueryType,
-        status: Optional[AudioKeyboardStatus] = None,
         playlist_key: Optional[str] = None,
     ) -> Optional[pyrogram.types.InlineQueryResult]:
         if telegram_file_id is None or from_user is None:
@@ -40,33 +38,47 @@ class AudioItem(BaseInlineItem):
 
         chat_type = ChatType.parse_from_pyrogram(telegram_inline_query.chat_type)
 
-        result_id = AudioItemInfo.parse_id(
-            telegram_inline_query,
-            hit_download_url,
-            inline_query_type,
-            chat_type,
-            playlist_key,
-        )
+        if audio.valid_for_inline_search:
+            result_id = AudioItemInfo.parse_id(
+                telegram_inline_query,
+                hit_download_url,
+                inline_query_type,
+                audio.valid_for_inline_search,
+                chat_type,
+                playlist_key,
+            )
 
-        from tase.telegram.bots.ui.inline_buttons.common import get_audio_loading_keyboard
+            from tase.telegram.bots.ui.inline_buttons.common import get_audio_loading_keyboard
 
-        return InlineQueryResultCachedAudio(
-            audio_file_id=telegram_file_id,
-            id=result_id,
-            caption=BaseTemplate.registry.audio_caption_template.render(
-                AudioCaptionData.parse_from_audio(
-                    audio,
-                    from_user,
-                    chats_dict[audio.chat_id],
-                    bot_url=f"https://t.me/{bot_username}?start=dl_{hit_download_url}",
-                    include_source=True,
-                )
-            ),
-            reply_markup=get_audio_loading_keyboard(
+            return InlineQueryResultCachedAudio(
+                audio_file_id=telegram_file_id,
+                id=result_id,
+                caption=BaseTemplate.registry.audio_caption_template.render(
+                    AudioCaptionData.parse_from_audio(
+                        audio,
+                        from_user,
+                        chats_dict[audio.chat_id],
+                        bot_url=f"https://t.me/{bot_username}?start=dl_{hit_download_url}",
+                        include_source=True,
+                    )
+                ),
+                reply_markup=get_audio_loading_keyboard(
+                    hit_download_url=hit_download_url,
+                    lang_code=from_user.chosen_language_code,
+                ),
+            )
+        else:
+            return cls.get_article_item(
+                bot_username=bot_username,
+                from_user=from_user,
+                audio=audio,
+                telegram_inline_query=telegram_inline_query,
+                chats_dict=chats_dict,
                 hit_download_url=hit_download_url,
-                lang_code=from_user.chosen_language_code,
-            ),
-        )
+                inline_query_type=inline_query_type,
+                playlist_key=playlist_key,
+                send_download_url=False,
+            )
 
     @classmethod
     def get_article_item(
@@ -78,6 +90,8 @@ class AudioItem(BaseInlineItem):
         chats_dict: dict,
         hit_download_url: str,
         inline_query_type: InlineQueryType,
+        playlist_key: Optional[str] = None,
+        send_download_url: bool = True,
     ) -> Optional[pyrogram.types.InlineQueryResult]:
         if from_user is None:
             return None
@@ -88,7 +102,9 @@ class AudioItem(BaseInlineItem):
             telegram_inline_query,
             hit_download_url,
             inline_query_type,
+            audio.valid_for_inline_search,
             chat_type,
+            playlist_key=playlist_key,
         )
 
         _performer = clean_audio_item_text(audio.raw_performer)
@@ -133,13 +149,13 @@ class AudioItem(BaseInlineItem):
                 description=description,
                 thumb_url="https://telegra.ph/file/764498c89f7f1bea502d5.png",
                 input_message_content=InputTextMessageContent(  # todo: add a task to delete this message after the downloaded audio has been sent.
-                    f"/dl_{hit_download_url}",
+                    f"dl_{hit_download_url}" if send_download_url else f"{emoji._clock_emoji}",
                     disable_web_page_preview=True,
                     parse_mode=ParseMode.HTML,
                 ),
             )
         else:
-            from tase.telegram.bots.ui.inline_buttons import DownloadAudioInlineButton
+            from tase.telegram.bots.ui.inline_buttons.common import get_download_audio_keyboard
 
             return InlineQueryResultArticle(
                 id=result_id,
@@ -160,14 +176,9 @@ class AudioItem(BaseInlineItem):
                     parse_mode=ParseMode.HTML,
                     disable_web_page_preview=True,
                 ),
-                reply_markup=InlineKeyboardMarkup(
-                    [
-                        [
-                            DownloadAudioInlineButton.get_keyboard(
-                                url=f"https://t.me/{bot_username}?start=dl_{hit_download_url}",
-                                lang_code=from_user.chosen_language_code,
-                            ),
-                        ]
-                    ]
+                reply_markup=get_download_audio_keyboard(
+                    bot_username,
+                    f"dl_{hit_download_url}",
+                    from_user.chosen_language_code,
                 ),
             )

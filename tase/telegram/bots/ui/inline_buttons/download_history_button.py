@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import asyncio
+import collections
 from typing import Optional, List
 
 import pyrogram
@@ -6,6 +9,7 @@ import pyrogram
 from tase.common.utils import _trans, emoji
 from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.enums import InlineQueryType, ChatType, AudioInteractionType
+from tase.db.arangodb.helpers import AudioHitMetadata
 from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
@@ -68,16 +72,45 @@ class DownloadHistoryInlineButton(InlineButton):
             offset=result.from_,
         )
 
-        from tase.telegram.bots.ui.inline_buttons.common import populate_audio_items
+        hit_download_urls = None
+        hit_metadata_list = None
+        if audio_vertices:
+            from tase.telegram.bots.ui.inline_items import AudioItem
 
-        hit_download_urls = await populate_audio_items(
-            audio_vertices,
-            from_user,
-            handler,
-            result,
-            telegram_inline_query,
-            InlineQueryType.AUDIO_COMMAND,
-        )
+            # todo: fix this
+            chats_dict, invalid_audio_keys = await handler.update_audio_cache(audio_vertices)
+
+            audio_docs = await asyncio.gather(
+                *(
+                    handler.db.document.get_audio_by_key(
+                        audio_vertex.get_doc_cache_key(handler.telegram_client.telegram_id),
+                    )
+                    for audio_vertex in audio_vertices
+                )
+            )
+            hit_download_urls = await handler.db.graph.generate_hit_download_urls(size=len(audio_vertices))
+
+            username = (await handler.telegram_client.get_me()).username
+
+            hit_metadata_list = collections.deque()
+            for audio_doc, audio_vertex, hit_download_url in zip(audio_docs, audio_vertices, hit_download_urls):
+                if not audio_doc or not audio_vertex or audio_doc.key in invalid_audio_keys:
+                    continue
+
+                hit_metadata_list.append(AudioHitMetadata(audio_vertex_key=audio_vertex.key))
+
+                result.add_item(
+                    AudioItem.get_item(
+                        username,
+                        audio_doc.file_id,
+                        from_user,
+                        audio_vertex,
+                        telegram_inline_query,
+                        chats_dict,
+                        hit_download_url,
+                        InlineQueryType.AUDIO_COMMAND,
+                    )
+                )
 
         if not len(result) and result.is_first_page():
             from tase.telegram.bots.ui.inline_items import NoDownloadItem
@@ -92,6 +125,7 @@ class DownloadHistoryInlineButton(InlineButton):
             telegram_inline_query.query,
             query_date,
             audio_vertices,
+            hit_metadata_list,
             telegram_inline_query=telegram_inline_query,
             inline_query_type=InlineQueryType.AUDIO_COMMAND,
             next_offset=result.get_next_offset(only_countable=True),
@@ -107,26 +141,22 @@ class DownloadHistoryInlineButton(InlineButton):
         inline_button_data: DownloadHistoryButtonData,
         inline_item_info: AudioItemInfo,
     ):
+
         if inline_item_info.type != InlineItemType.AUDIO:
             logger.error(f"ChosenInlineResult `{telegram_chosen_inline_result.result_id}` is not valid.")
             return
 
-        # update the keyboard markup of the downloaded audio
-        update_keyboard_task = asyncio.create_task(
-            handler.update_audio_keyboard_markup(
-                client,
-                from_user,
-                telegram_chosen_inline_result,
-                inline_item_info.hit_download_url,
-                inline_item_info.chat_type,
-            )
-        )
-
         if inline_item_info.inline_query_type == InlineQueryType.AUDIO_COMMAND:
-            if inline_item_info.chat_type == ChatType.BOT:
-                type_ = AudioInteractionType.REDOWNLOAD_AUDIO
+            if inline_item_info.valid_for_inline:
+                if inline_item_info.chat_type == ChatType.BOT:
+                    type_ = AudioInteractionType.REDOWNLOAD_AUDIO
+                else:
+                    type_ = AudioInteractionType.SHARE_AUDIO
             else:
-                type_ = AudioInteractionType.SHARE_AUDIO
+                if inline_item_info.chat_type == ChatType.BOT:
+                    type_ = AudioInteractionType.REDOWNLOAD_AUDIO
+                else:
+                    type_ = AudioInteractionType.SHARE_AUDIO_LINK
         else:
             return
 
@@ -141,4 +171,20 @@ class DownloadHistoryInlineButton(InlineButton):
             logger.error("Could not create the `interaction_vertex` vertex:")
             logger.error(telegram_chosen_inline_result)
 
-        await update_keyboard_task
+        if inline_item_info.valid_for_inline:
+            # update the keyboard markup of the downloaded audio
+            await handler.update_audio_keyboard_markup(
+                client,
+                from_user,
+                telegram_chosen_inline_result,
+                inline_item_info.hit_download_url,
+                inline_item_info.chat_type,
+            )
+
+        else:
+            await handler.on_inline_audio_article_item_clicked(
+                from_user,
+                client,
+                inline_item_info.chat_type,
+                inline_item_info.hit_download_url,
+            )

@@ -189,7 +189,6 @@ class ToggleLikeAudioInlineButton(InlineButton):
                         chat_type,
                         from_user.chosen_language_code,
                         hit_download_url,
-                        True,
                         status,
                         playlist_key=inline_button_data.playlist_key,
                     )

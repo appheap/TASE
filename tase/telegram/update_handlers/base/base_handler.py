@@ -10,7 +10,7 @@ from pyrogram.errors import ChannelInvalid
 
 from tase.common.utils import _trans, async_timed
 from tase.db.arangodb import graph as graph_models, document as document_models
-from tase.db.arangodb.enums import TelegramAudioType, ChatType, AudioType, AudioInteractionType
+from tase.db.arangodb.enums import TelegramAudioType, ChatType, AudioType, AudioInteractionType, PlaylistInteractionType, HitMetadataType
 from tase.db.arangodb.helpers import AudioKeyboardStatus
 from tase.db.database_client import DatabaseClient
 from tase.db.db_utils import get_telegram_message_media_type
@@ -120,12 +120,126 @@ class BaseHandler(BaseModel):
 
         return chats_dict, invalid_audio_keys
 
+    async def validate_audio_vertex(
+        self,
+        audio_vertex: graph_models.vertices.Audio,
+        client: pyrogram.Client,
+        from_user_id: int,
+        chat_type: ChatType,
+    ) -> bool:
+        if not audio_vertex:
+            # todo: translate this string
+            if chat_type == ChatType.BOT:
+                await client.send_message(
+                    from_user_id,
+                    "This `download_url` is no longer valid!",
+                    parse_mode=ParseMode.HTML,
+                    disable_web_page_preview=True,
+                )
+            return False
+
+        if not audio_vertex.is_usable():
+            # todo: translate this string
+            if chat_type == ChatType.BOT:
+                await client.send_message(
+                    from_user_id,
+                    "This `download_url` is no longer valid, probably the channel has deleted this audio!",
+                    parse_mode=ParseMode.HTML,
+                    disable_web_page_preview=True,
+                )
+            return False
+
+        return True
+
+    async def get_audio_file_id(
+        self,
+        from_user: graph_models.vertices.User,
+        audio_vertex: graph_models.vertices.Audio,
+        client: pyrogram.Client,
+        chat_type: ChatType,
+    ) -> Tuple[graph_models.vertices.Chat, Optional[str]]:
+        # todo: handle exceptions
+        audio_doc, chat = await asyncio.gather(
+            *(
+                self.db.document.get_audio_by_key(audio_vertex.get_doc_cache_key(self.telegram_client.telegram_id)),
+                self.db.graph.get_chat_by_telegram_chat_id(audio_vertex.chat_id),
+            )
+        )
+
+        chat: graph_models.vertices.Chat = chat
+
+        if isinstance(audio_doc, document_models.Audio):  # fixme: check for `BaseException` type
+            return chat, audio_doc.file_id
+        else:
+            # fixme: find a better way of getting messages that have not been cached yet
+            try:
+                if await self.telegram_client.peer_exists(audio_vertex.chat_id):
+                    messages = await self.telegram_client.get_messages(audio_vertex.chat_id, [audio_vertex.message_id])
+                else:
+                    messages = await self.telegram_client.get_messages(chat.username, [audio_vertex.message_id])
+            except KeyError:
+                # todo: this chat is no longer is public or available, update the databases accordingly
+                if chat_type == ChatType.BOT:
+                    await client.send_message(
+                        from_user.user_id,
+                        "The sender chat of the message containing this audio does not exist anymore, " "please try again!",
+                    )
+
+                logger.error("The sender chat of the message containing this audio does not exist anymore, please try again!")
+                return chat, None
+            except Exception as e:
+                logger.exception(e)
+                messages = None
+
+            if not messages:
+                # todo: could not get the audio from telegram servers, what to do now?
+                if chat_type == ChatType.BOT:
+                    await client.send_message(
+                        from_user.user_id,
+                        _trans(
+                            "An error occurred while processing the download URL for this audio",
+                            from_user.chosen_language_code,
+                        ),
+                    )
+
+                logger.error("could not get the audio from telegram servers, what to do now?")
+                return chat, None
+
+            # update the audio in all databases
+            await self.db.update_or_create_audio(
+                messages[0],
+                self.telegram_client.telegram_id,
+                audio_vertex.chat_id,
+                AudioType.NOT_ARCHIVED,
+                chat.get_chat_scores(),
+            )
+
+            audio, audio_type = get_telegram_message_media_type(messages[0])
+            if audio is None or audio_type == TelegramAudioType.NON_AUDIO:
+                # invalidate audio vertices and remove the not-archived ones from all playlists.
+                await self.db.invalidate_old_audios(
+                    chat_id=audio_vertex.chat_id,
+                    message_id=audio_vertex.message_id,
+                )
+
+                if chat_type == ChatType.BOT:
+                    # todo: translate this text string.
+                    await client.send_message(
+                        from_user.user_id,
+                        "This message containing this audio does not exist anymore, please try again!",
+                        parse_mode=ParseMode.HTML,
+                        disable_web_page_preview=True,
+                    )
+                return chat, None
+            else:
+                return chat, audio.file_id
+
     @async_timed()
     async def download_audio(
         self,
         client: pyrogram.Client,
         from_user: graph_models.vertices.User,
-        text: str,
+        hit_download_url: str,
         message: pyrogram.types.Message,
         from_deep_link: bool,
     ) -> None:
@@ -138,40 +252,31 @@ class BaseHandler(BaseModel):
             Client receiving this update.
         from_user : graph_models.vertices.User
             User to send the audio file to.
-        text : str
-            Text string containing the download URL string.
+        hit_download_url : str
+            Download URL of the hit vertex.
         message : pyrogram.types.Message
             Telegram message where the request initiated from.
         from_deep_link : bool
             Whether the download URL is a deep link or not.
 
         """
-        if client is None or from_user is None or text is None or not len(text) or message is None:
+        if not client or not from_user or not hit_download_url:
             return
 
-        valid = False
         # todo: handle errors for invalid messages
-        hit_download_url = text.split("dl_")[1]
+        hit = await self.db.graph.find_hit_by_download_url(hit_download_url)
+        if not hit:
+            await message.reply_text(
+                "This `download_url` is no valid!",
+                quote=True,
+                parse_mode=ParseMode.HTML,
+                disable_web_page_preview=True,
+            )
+            return
+
         audio_vertex = await self.db.graph.get_audio_from_hit_download_url(hit_download_url)
 
-        if not audio_vertex:
-            # todo: translate this string
-            await message.reply_text(
-                "This `download_url` is no longer valid!",
-                quote=True,
-                parse_mode=ParseMode.HTML,
-                disable_web_page_preview=True,
-            )
-            return
-
-        if not audio_vertex.is_usable():
-            # todo: translate this string
-            await message.reply_text(
-                "This `download_url` is no longer valid, probably the channel has deleted this audio!",
-                quote=True,
-                parse_mode=ParseMode.HTML,
-                disable_web_page_preview=True,
-            )
+        if not await self.validate_audio_vertex(audio_vertex, client, from_user.user_id, ChatType.BOT):
             return
 
         if from_deep_link:
@@ -203,75 +308,9 @@ class BaseHandler(BaseModel):
                 )
                 return
 
-        # todo: handle exceptions
-        audio_doc, chat = await asyncio.gather(
-            *(
-                self.db.document.get_audio_by_key(audio_vertex.get_doc_cache_key(self.telegram_client.telegram_id)),
-                self.db.graph.get_chat_by_telegram_chat_id(audio_vertex.chat_id),
-            )
-        )
-
-        chat: graph_models.vertices.Chat = chat
-
-        update_audio_task = None
-        if isinstance(audio_doc, document_models.Audio):  # fixme: check for `BaseException` type
-            file_id = audio_doc.file_id
-        else:
-            # fixme: find a better way of getting messages that have not been cached yet
-            try:
-                if await self.telegram_client.peer_exists(audio_vertex.chat_id):
-                    messages = await self.telegram_client.get_messages(audio_vertex.chat_id, [audio_vertex.message_id])
-                else:
-                    messages = await self.telegram_client.get_messages(chat.username, [audio_vertex.message_id])
-            except KeyError:
-                # todo: this chat is no longer is public or available, update the databases accordingly
-                await message.reply_text("The sender chat of the message containing this audio does not exist anymore, please try again!")
-                logger.error("The sender chat of the message containing this audio does not exist anymore, please try again!")
-                return
-            except Exception as e:
-                logger.exception(e)
-                messages = None
-            else:
-                if not messages:
-                    # todo: could not get the audio from telegram servers, what to do now?
-                    await message.reply_text(
-                        _trans(
-                            "An error occurred while processing the download URL for this audio",
-                            from_user.chosen_language_code,
-                        )
-                    )
-                    logger.error("could not get the audio from telegram servers, what to do now?")
-                    return
-
-            # update the audio in all databases
-            update_audio_task = asyncio.create_task(
-                self.db.update_or_create_audio(
-                    messages[0],
-                    self.telegram_client.telegram_id,
-                    audio_vertex.chat_id,
-                    AudioType.NOT_ARCHIVED,
-                    chat.get_chat_scores(),
-                )
-            )
-
-            audio, audio_type = get_telegram_message_media_type(messages[0])
-            if audio is None or audio_type == TelegramAudioType.NON_AUDIO:
-                # invalidate audio vertices and remove the not-archived ones from all playlists.
-                await self.db.invalidate_old_audios(
-                    chat_id=audio_vertex.chat_id,
-                    message_id=audio_vertex.message_id,
-                )
-
-                # todo: translate this text string.
-                await message.reply_text(
-                    "This message containing this audio does not exist anymore, please try again!",
-                    quote=True,
-                    parse_mode=ParseMode.HTML,
-                    disable_web_page_preview=True,
-                )
-                return
-            else:
-                file_id = audio.file_id
+        chat, file_id = await self.get_audio_file_id(from_user, audio_vertex, client, ChatType.BOT)
+        if not chat or not file_id:
+            return
 
         from tase.telegram.bots.ui.templates import BaseTemplate
         from tase.telegram.bots.ui.templates import AudioCaptionData
@@ -298,8 +337,8 @@ class BaseHandler(BaseModel):
             ChatType.BOT,
             from_user.chosen_language_code,
             hit_download_url,
-            audio_vertex.valid_for_inline_search,
             status,
+            hit.metadata.playlist_vertex_key if hit.metadata else None,
         )
 
         if audio_vertex.audio_type == TelegramAudioType.AUDIO_FILE:
@@ -317,29 +356,145 @@ class BaseHandler(BaseModel):
                 reply_markup=markup_keyboard,
             )
 
-        valid = True
+        if not hit.metadata:
+            # the hit doesn't have metadata, consider it as inline/non-inline search
+            if await self.db.graph.get_audio_interaction_by_user(
+                from_user,
+                hit_download_url,
+                AudioInteractionType.DOWNLOAD_AUDIO,
+            ):
+                audio_int_type = AudioInteractionType.REDOWNLOAD_AUDIO
+            else:
+                audio_int_type = AudioInteractionType.DOWNLOAD_AUDIO
 
-        create_download_interaction = self.db.graph.create_audio_interaction(
-            from_user,
-            self.telegram_client.telegram_id,
-            AudioInteractionType.DOWNLOAD_AUDIO,
-            ChatType.BOT,
-            hit_download_url,
-        )
-        if update_audio_task:
-            await asyncio.gather(*(create_download_interaction, update_audio_task))
+            await self.db.graph.create_audio_interaction(
+                from_user,
+                self.telegram_client.telegram_id,
+                audio_int_type,
+                ChatType.BOT,
+                hit_download_url,
+            )
+
+            return
+
+        audio_int_type = None
+        playlist_int_type = None
+
+        if hit.metadata.type_ == HitMetadataType.AUDIO:
+            # link came from an inline/non-inline search
+            if await self.db.graph.get_audio_interaction_by_user(
+                from_user,
+                hit_download_url,
+                AudioInteractionType.DOWNLOAD_AUDIO,
+            ):
+                audio_int_type = AudioInteractionType.REDOWNLOAD_AUDIO
+            else:
+                audio_int_type = AudioInteractionType.DOWNLOAD_AUDIO
+        elif hit.metadata.type_ == HitMetadataType.PLAYLIST_AUDIO:
+            playlist = await self.db.graph.get_playlist_by_key(hit.metadata.playlist_key)
+            if playlist and await self.db.graph.audio_is_or_was_in_playlist(audio_vertex.key, playlist.key):
+                if await self.db.graph.get_playlist_audio_interaction_by_user(
+                    from_user,
+                    hit_download_url,
+                    playlist.key,
+                    PlaylistInteractionType.DOWNLOAD_AUDIO,
+                ):
+                    playlist_int_type = PlaylistInteractionType.REDOWNLOAD_AUDIO
+                else:
+                    playlist_int_type = PlaylistInteractionType.DOWNLOAD_AUDIO
+
+                if await self.db.graph.get_audio_interaction_by_user(
+                    from_user,
+                    hit_download_url,
+                    AudioInteractionType.DOWNLOAD_AUDIO,
+                ):
+                    audio_int_type = AudioInteractionType.REDOWNLOAD_AUDIO
+                else:
+                    audio_int_type = AudioInteractionType.DOWNLOAD_AUDIO
         else:
-            await create_download_interaction
+            pass
 
-        if not valid:
-            # todo: An Error occurred while processing this audio download url, why?
-            logger.error(f"An error occurred while processing the download URL for this audio: {hit_download_url}")
-            await message.reply_text(
-                _trans(
-                    "An error occurred while processing the download URL for this audio",
-                    from_user.chosen_language_code,
+        if audio_int_type:
+            await self.db.graph.create_audio_interaction(
+                from_user,
+                self.telegram_client.telegram_id,
+                audio_int_type,
+                ChatType.BOT,
+                hit_download_url,
+            )
+
+        if playlist_int_type:
+            await self.db.graph.create_playlist_interaction(
+                from_user,
+                self.telegram_client.telegram_id,
+                playlist_int_type,
+                ChatType.BOT,
+                hit.metadata.playlist_key,
+                audio_hit_download_url=hit_download_url,
+            )
+
+    async def on_inline_audio_article_item_clicked(
+        self,
+        from_user: graph_models.vertices.User,
+        client: pyrogram.Client,
+        chat_type: ChatType,
+        hit_download_url: str,
+        playlist_key: Optional[str] = None,
+    ) -> None:
+        audio_vertex = await self.db.graph.get_audio_from_hit_download_url(hit_download_url)
+        if not await self.validate_audio_vertex(audio_vertex, client, from_user.user_id, chat_type):
+            return
+
+        chat, file_id = await self.get_audio_file_id(from_user, audio_vertex, client, chat_type)
+        if not chat or not file_id:
+            return
+
+        if chat_type == ChatType.BOT:
+            from tase.db.arangodb.helpers import AudioKeyboardStatus
+            from tase.telegram.bots.ui.inline_buttons.common import get_audio_markup_keyboard
+            from tase.telegram.bots.ui.templates import BaseTemplate, AudioCaptionData
+
+            text = BaseTemplate.registry.audio_caption_template.render(
+                AudioCaptionData.parse_from_audio(
+                    audio_vertex,
+                    from_user,
+                    chat,
+                    bot_url=f"https://t.me/{(await self.telegram_client.get_me()).username}?start=dl_{hit_download_url}",
+                    include_source=True,
                 )
             )
+
+            status = await AudioKeyboardStatus.get_status(
+                self.db,
+                from_user,
+                hit_download_url=hit_download_url,
+            )
+
+            markup_keyboard = get_audio_markup_keyboard(
+                (await self.telegram_client.get_me()).username,
+                chat_type,
+                from_user.chosen_language_code,
+                hit_download_url,
+                status,
+                playlist_key=playlist_key,
+            )
+
+            if audio_vertex.audio_type == TelegramAudioType.AUDIO_FILE:
+                await client.send_audio(
+                    chat_id=from_user.user_id,
+                    audio=file_id,
+                    caption=text,
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=markup_keyboard,
+                )
+            else:
+                await client.send_document(
+                    chat_id=from_user.user_id,
+                    document=file_id,
+                    caption=text,
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=markup_keyboard,
+                )
 
     async def update_audio_keyboard_markup(
         self,
@@ -386,7 +541,6 @@ class BaseHandler(BaseModel):
                 chat_type,
                 from_user.chosen_language_code,
                 hit_download_url,
-                audio_vertex.valid_for_inline_search,
                 status,
                 playlist_key=playlist_key,
             ),

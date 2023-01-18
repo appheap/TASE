@@ -115,7 +115,6 @@ _update = Union[
     raw.types.UpdateTheme,
     raw.types.UpdateUserName,
     raw.types.UpdateUserPhone,
-    raw.types.UpdateUserPhoto,
     raw.types.UpdateUserStatus,
     raw.types.UpdateUserTyping,
     raw.types.UpdateWebPage,
