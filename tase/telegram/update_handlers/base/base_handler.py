@@ -10,7 +10,7 @@ from pyrogram.errors import ChannelInvalid
 
 from tase.common.utils import _trans, async_timed
 from tase.db.arangodb import graph as graph_models, document as document_models
-from tase.db.arangodb.enums import TelegramAudioType, ChatType, AudioType, AudioInteractionType, PlaylistInteractionType
+from tase.db.arangodb.enums import TelegramAudioType, ChatType, AudioType, AudioInteractionType, PlaylistInteractionType, HitMetadataType
 from tase.db.arangodb.helpers import AudioKeyboardStatus
 from tase.db.database_client import DatabaseClient
 from tase.db.db_utils import get_telegram_message_media_type
@@ -239,7 +239,7 @@ class BaseHandler(BaseModel):
         self,
         client: pyrogram.Client,
         from_user: graph_models.vertices.User,
-        text: str,
+        hit_download_url: str,
         message: pyrogram.types.Message,
         from_deep_link: bool,
     ) -> None:
@@ -252,22 +252,20 @@ class BaseHandler(BaseModel):
             Client receiving this update.
         from_user : graph_models.vertices.User
             User to send the audio file to.
-        text : str
-            Text string containing the download URL string.
+        hit_download_url : str
+            Download URL of the hit vertex.
         message : pyrogram.types.Message
             Telegram message where the request initiated from.
         from_deep_link : bool
             Whether the download URL is a deep link or not.
 
         """
-        if client is None or from_user is None or text is None or not len(text) or message is None:
+        if not client or not from_user or not hit_download_url:
             return
 
-        from tase.telegram.bots.ui.base import BaseAudioLinkData
-
         # todo: handle errors for invalid messages
-        audio_link_data = BaseAudioLinkData.parse_from_string(text)
-        if not audio_link_data:
+        hit = await self.db.graph.find_hit_by_download_url(hit_download_url)
+        if not hit:
             await message.reply_text(
                 "This `download_url` is no valid!",
                 quote=True,
@@ -275,8 +273,6 @@ class BaseHandler(BaseModel):
                 disable_web_page_preview=True,
             )
             return
-
-        hit_download_url = audio_link_data.hit_download_url
 
         audio_vertex = await self.db.graph.get_audio_from_hit_download_url(hit_download_url)
 
@@ -325,7 +321,7 @@ class BaseHandler(BaseModel):
                 audio_vertex,
                 from_user,
                 chat,
-                bot_url=f"https://t.me/{(await self.telegram_client.get_me()).username}?start={text}",
+                bot_url=f"https://t.me/{(await self.telegram_client.get_me()).username}?start=dl_{hit_download_url}",
                 include_source=True,
             )
         )
@@ -342,8 +338,7 @@ class BaseHandler(BaseModel):
             from_user.chosen_language_code,
             hit_download_url,
             status,
-            audio_link_data.playlist_key,
-            audio_link_data.main_type,
+            hit.metadata.playlist_vertex_key if hit.metadata else None,
         )
 
         if audio_vertex.audio_type == TelegramAudioType.AUDIO_FILE:
@@ -361,16 +356,8 @@ class BaseHandler(BaseModel):
                 reply_markup=markup_keyboard,
             )
 
-        audio_int_type = None
-        playlist_int_type = None
-
-        from tase.telegram.bots.ui.base import InlineButtonType
-        from tase.telegram.bots.ui.base import AudioLinkData
-
-        if audio_link_data.main_type == InlineButtonType.NOT_A_BUTTON:
-            # link came from an inline search
-            audio_int_type = AudioInteractionType.DOWNLOAD_AUDIO
-        elif audio_link_data.get_main_type_value() == InlineButtonType.DOWNLOAD_HISTORY:
+        if not hit.metadata:
+            # the hit doesn't have metadata, consider it as inline/non-inline search
             if await self.db.graph.get_audio_interaction_by_user(
                 from_user,
                 hit_download_url,
@@ -379,10 +366,32 @@ class BaseHandler(BaseModel):
                 audio_int_type = AudioInteractionType.REDOWNLOAD_AUDIO
             else:
                 audio_int_type = AudioInteractionType.DOWNLOAD_AUDIO
-        elif audio_link_data.main_type == InlineButtonType.GET_PLAYLIST_AUDIOS:
-            audio_link_data: AudioLinkData = audio_link_data
 
-            playlist = await self.db.graph.get_playlist_by_key(audio_link_data.playlist_key)
+            await self.db.graph.create_audio_interaction(
+                from_user,
+                self.telegram_client.telegram_id,
+                audio_int_type,
+                ChatType.BOT,
+                hit_download_url,
+            )
+
+            return
+
+        audio_int_type = None
+        playlist_int_type = None
+
+        if hit.metadata.type_ == HitMetadataType.AUDIO:
+            # link came from an inline/non-inline search
+            if await self.db.graph.get_audio_interaction_by_user(
+                from_user,
+                hit_download_url,
+                AudioInteractionType.DOWNLOAD_AUDIO,
+            ):
+                audio_int_type = AudioInteractionType.REDOWNLOAD_AUDIO
+            else:
+                audio_int_type = AudioInteractionType.DOWNLOAD_AUDIO
+        elif hit.metadata.type_ == HitMetadataType.PLAYLIST_AUDIO:
+            playlist = await self.db.graph.get_playlist_by_key(hit.metadata.playlist_key)
             if playlist and await self.db.graph.audio_is_or_was_in_playlist(audio_vertex.key, playlist.key):
                 if await self.db.graph.get_playlist_audio_interaction_by_user(
                     from_user,
@@ -420,7 +429,7 @@ class BaseHandler(BaseModel):
                 self.telegram_client.telegram_id,
                 playlist_int_type,
                 ChatType.BOT,
-                audio_link_data.playlist_key,
+                hit.metadata.playlist_key,
                 audio_hit_download_url=hit_download_url,
             )
 
@@ -430,8 +439,6 @@ class BaseHandler(BaseModel):
         client: pyrogram.Client,
         chat_type: ChatType,
         hit_download_url: str,
-        audio_link_data_string: str,
-        inline_button_type: "InlineButtonType",
         playlist_key: Optional[str] = None,
     ) -> None:
         audio_vertex = await self.db.graph.get_audio_from_hit_download_url(hit_download_url)
@@ -452,7 +459,7 @@ class BaseHandler(BaseModel):
                     audio_vertex,
                     from_user,
                     chat,
-                    bot_url=f"https://t.me/{(await self.telegram_client.get_me()).username}?start={audio_link_data_string}",
+                    bot_url=f"https://t.me/{(await self.telegram_client.get_me()).username}?start=dl_{hit_download_url}",
                     include_source=True,
                 )
             )
@@ -470,7 +477,6 @@ class BaseHandler(BaseModel):
                 hit_download_url,
                 status,
                 playlist_key=playlist_key,
-                inline_button_type=inline_button_type,
             )
 
             if audio_vertex.audio_type == TelegramAudioType.AUDIO_FILE:
@@ -497,7 +503,6 @@ class BaseHandler(BaseModel):
         telegram_chosen_inline_result: pyrogram.types.ChosenInlineResult,
         hit_download_url: str,
         chat_type: ChatType,
-        inline_button_type: "InlineButtonType",
         playlist_key: Optional[str] = None,
     ):
         retry_left = 5
@@ -538,7 +543,6 @@ class BaseHandler(BaseModel):
                 hit_download_url,
                 status,
                 playlist_key=playlist_key,
-                inline_button_type=inline_button_type,
             ),
         )
 

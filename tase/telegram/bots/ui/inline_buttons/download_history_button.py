@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import collections
 from typing import Optional, List
 
 import pyrogram
@@ -8,6 +9,7 @@ import pyrogram
 from tase.common.utils import _trans, emoji
 from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.enums import InlineQueryType, ChatType, AudioInteractionType
+from tase.db.arangodb.helpers import AudioHitMetadata
 from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
@@ -71,9 +73,9 @@ class DownloadHistoryInlineButton(InlineButton):
         )
 
         hit_download_urls = None
+        hit_metadata_list = None
         if audio_vertices:
             from tase.telegram.bots.ui.inline_items import AudioItem
-            from tase.telegram.bots.ui.base import DownloadHistoryAudioLinkData
 
             # todo: fix this
             chats_dict, invalid_audio_keys = await handler.update_audio_cache(audio_vertices)
@@ -90,8 +92,14 @@ class DownloadHistoryInlineButton(InlineButton):
 
             username = (await handler.telegram_client.get_me()).username
 
-            result.extend_results(
-                (
+            hit_metadata_list = collections.deque()
+            for audio_doc, audio_vertex, hit_download_url in zip(audio_docs, audio_vertices, hit_download_urls):
+                if not audio_doc or not audio_vertex or audio_doc.key in invalid_audio_keys:
+                    continue
+
+                hit_metadata_list.append(AudioHitMetadata(audio_vertex_key=audio_vertex.key))
+
+                result.add_item(
                     AudioItem.get_item(
                         username,
                         audio_doc.file_id,
@@ -101,12 +109,8 @@ class DownloadHistoryInlineButton(InlineButton):
                         chats_dict,
                         hit_download_url,
                         InlineQueryType.AUDIO_COMMAND,
-                        DownloadHistoryAudioLinkData.generate_data(hit_download_url),
                     )
-                    for audio_doc, audio_vertex, hit_download_url, in zip(audio_docs, audio_vertices, hit_download_urls)
-                    if audio_doc and audio_vertex and audio_doc.key not in invalid_audio_keys
                 )
-            )
 
         if not len(result) and result.is_first_page():
             from tase.telegram.bots.ui.inline_items import NoDownloadItem
@@ -121,6 +125,7 @@ class DownloadHistoryInlineButton(InlineButton):
             telegram_inline_query.query,
             query_date,
             audio_vertices,
+            hit_metadata_list,
             telegram_inline_query=telegram_inline_query,
             inline_query_type=InlineQueryType.AUDIO_COMMAND,
             next_offset=result.get_next_offset(only_countable=True),
@@ -136,7 +141,6 @@ class DownloadHistoryInlineButton(InlineButton):
         inline_button_data: DownloadHistoryButtonData,
         inline_item_info: AudioItemInfo,
     ):
-        from tase.telegram.bots.ui.base import DownloadHistoryAudioLinkData
 
         if inline_item_info.type != InlineItemType.AUDIO:
             logger.error(f"ChosenInlineResult `{telegram_chosen_inline_result.result_id}` is not valid.")
@@ -175,7 +179,6 @@ class DownloadHistoryInlineButton(InlineButton):
                 telegram_chosen_inline_result,
                 inline_item_info.hit_download_url,
                 inline_item_info.chat_type,
-                self.__type__,
             )
 
         else:
@@ -184,6 +187,4 @@ class DownloadHistoryInlineButton(InlineButton):
                 client,
                 inline_item_info.chat_type,
                 inline_item_info.hit_download_url,
-                DownloadHistoryAudioLinkData.generate_data(inline_item_info.hit_download_url),
-                self.__type__,
             )

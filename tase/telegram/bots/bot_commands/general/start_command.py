@@ -40,11 +40,11 @@ class StartCommand(BaseCommand):
         elif len(message.command) == 2:
             arg = message.command[1]
             from_user = await handler.db.graph.get_interacted_user(message.from_user)
-            if arg.startswith("dl_") or arg.startswith("cmd=="):
+            if arg.startswith("dl_"):
                 await handler.download_audio(
                     client,
                     from_user,
-                    arg,
+                    arg[3:],
                     message,
                     True,
                 )

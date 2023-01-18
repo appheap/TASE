@@ -1,4 +1,5 @@
 import asyncio
+import collections
 from typing import Optional, Union, List
 
 import pyrogram
@@ -6,11 +7,12 @@ import pyrogram
 from tase.common.utils import _trans, emoji
 from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.enums import InlineQueryType, ChatType, AudioInteractionType, PlaylistInteractionType
+from tase.db.arangodb.helpers import PlaylistAudioHitMetadata
 from tase.errors import UserDoesNotHasPlaylist
 from tase.my_logger import logger
 from tase.telegram.bots.inline import CustomInlineQueryResult
 from tase.telegram.update_handlers.base import BaseHandler
-from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemType, InlineButtonData, AudioLinkData
+from ..base import InlineButton, InlineButtonType, ButtonActionType, InlineItemType, InlineButtonData
 from ..inline_items.item_info import PlaylistItemInfo, AudioItemInfo
 
 
@@ -72,6 +74,7 @@ class GetPlaylistAudioInlineButton(InlineButton):
         playlist_is_valid = False  # whether the requested playlist belongs to the user or not
         audio_vertices = None
         hit_download_urls = None
+        hit_metadata_list = None
 
         playlist = await handler.db.graph.get_playlist_by_key(inline_button_data.playlist_key)
 
@@ -134,8 +137,20 @@ class GetPlaylistAudioInlineButton(InlineButton):
 
                 username = (await handler.telegram_client.get_me()).username
 
-                result.extend_results(
-                    (
+                hit_metadata_list = collections.deque()
+                for audio_doc, audio_vertex, hit_download_url in zip(audio_docs, audio_vertices, hit_download_urls):
+                    if not audio_doc or not audio_vertex or audio_doc.key in invalid_audio_keys:
+                        continue
+
+                    hit_metadata_list.append(
+                        PlaylistAudioHitMetadata(
+                            audio_vertex_key=audio_vertex.key,
+                            playlist_vertex_key=playlist.key,
+                            is_public_playlist=playlist.is_public,
+                        )
+                    )
+
+                    result.add_item(
                         AudioItem.get_item(
                             username,
                             audio_doc.file_id,
@@ -145,17 +160,9 @@ class GetPlaylistAudioInlineButton(InlineButton):
                             chats_dict,
                             hit_download_url,
                             InlineQueryType.PUBLIC_PLAYLIST_COMMAND if playlist.is_public else InlineQueryType.PRIVATE_PLAYLIST_COMMAND,
-                            AudioLinkData.generate_data(
-                                hit_download_url,
-                                playlist_key=playlist.key if playlist.is_public else None,
-                                inline_button_type=self.__type__,
-                            ),
                             playlist_key=playlist.key,
                         )
-                        for audio_doc, audio_vertex, hit_download_url, in zip(audio_docs, audio_vertices, hit_download_urls)
-                        if audio_doc and audio_vertex and audio_doc.key not in invalid_audio_keys
                     )
-                )
 
         if not len(result) and not playlist_is_valid and result.is_first_page():
             from tase.telegram.bots.ui.inline_items import NoDownloadItem
@@ -171,6 +178,7 @@ class GetPlaylistAudioInlineButton(InlineButton):
                 telegram_inline_query.query,
                 query_date,
                 audio_vertices,
+                hit_metadata_list,
                 telegram_inline_query=telegram_inline_query,
                 inline_query_type=InlineQueryType.PUBLIC_PLAYLIST_COMMAND if playlist.is_public else InlineQueryType.PRIVATE_PLAYLIST_COMMAND,
                 next_offset=result.get_next_offset(only_countable=True),
@@ -195,8 +203,7 @@ class GetPlaylistAudioInlineButton(InlineButton):
                     telegram_chosen_inline_result,
                     inline_item_info.hit_download_url,
                     inline_item_info.chat_type,
-                    inline_button_type=self.__type__,
-                    playlist_key=inline_item_info.playlist_key,
+                    inline_item_info.playlist_key,
                 )
             else:
                 await handler.on_inline_audio_article_item_clicked(
@@ -204,13 +211,7 @@ class GetPlaylistAudioInlineButton(InlineButton):
                     client,
                     inline_item_info.chat_type,
                     inline_item_info.hit_download_url,
-                    AudioLinkData.generate_data(
-                        inline_item_info.hit_download_url,
-                        inline_item_info.playlist_key,
-                        inline_button_type=self.__type__,
-                    ),
-                    playlist_key=inline_item_info.playlist_key,
-                    inline_button_type=self.__type__,
+                    inline_item_info.playlist_key,
                 )
 
             playlist = await handler.db.graph.get_playlist_by_key(inline_item_info.playlist_key)

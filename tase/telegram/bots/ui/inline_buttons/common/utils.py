@@ -196,7 +196,6 @@ def get_audio_markup_keyboard(
     hit_download_url: str,
     status: AudioKeyboardStatus,
     playlist_key: Optional[str] = None,
-    inline_button_type: Optional[InlineButtonType] = InlineButtonType.NOT_A_BUTTON,
 ) -> InlineKeyboardMarkup:
     """
     Get markup keyboard for an audio message
@@ -215,9 +214,6 @@ def get_audio_markup_keyboard(
         Keyboard status of this audio file
     playlist_key : str, optional
         Key of the playlist vertex this audio downloaded from.
-    inline_button_type : InlineButtonType, default : InlineButtonType.NOT_A_BUTTON
-        Type of the inline button which this query was made from. It is only meant for queries made outside BOT chat. Moreover, it needs to be a valid type
-        declared in one of the subclasses of `BaseAudioLinkData` class.
 
     Returns
     -------
@@ -268,11 +264,10 @@ def get_audio_markup_keyboard(
         ]
         markup = InlineKeyboardMarkup(markup)
     else:
-        from tase.telegram.bots.ui.base import AudioLinkData
 
         markup = get_download_audio_keyboard(
             bot_username,
-            AudioLinkData.generate_data(hit_download_url, playlist_key, inline_button_type),
+            f"dl_{hit_download_url}",
             chosen_language_code,
         )
 

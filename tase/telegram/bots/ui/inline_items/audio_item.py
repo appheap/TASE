@@ -31,7 +31,6 @@ class AudioItem(BaseInlineItem):
         chats_dict: dict,
         hit_download_url: str,
         inline_query_type: InlineQueryType,
-        audio_link_data_string: str,
         playlist_key: Optional[str] = None,
     ) -> Optional[pyrogram.types.InlineQueryResult]:
         if telegram_file_id is None or from_user is None:
@@ -59,7 +58,7 @@ class AudioItem(BaseInlineItem):
                         audio,
                         from_user,
                         chats_dict[audio.chat_id],
-                        bot_url=f"https://t.me/{bot_username}?start={audio_link_data_string}",
+                        bot_url=f"https://t.me/{bot_username}?start=dl_{hit_download_url}",
                         include_source=True,
                     )
                 ),
@@ -77,8 +76,8 @@ class AudioItem(BaseInlineItem):
                 chats_dict=chats_dict,
                 hit_download_url=hit_download_url,
                 inline_query_type=inline_query_type,
-                audio_link_data_string=audio_link_data_string,
                 playlist_key=playlist_key,
+                send_download_url=False,
             )
 
     @classmethod
@@ -91,8 +90,8 @@ class AudioItem(BaseInlineItem):
         chats_dict: dict,
         hit_download_url: str,
         inline_query_type: InlineQueryType,
-        audio_link_data_string: str,
         playlist_key: Optional[str] = None,
+        send_download_url: bool = True,
     ) -> Optional[pyrogram.types.InlineQueryResult]:
         if from_user is None:
             return None
@@ -150,7 +149,7 @@ class AudioItem(BaseInlineItem):
                 description=description,
                 thumb_url="https://telegra.ph/file/764498c89f7f1bea502d5.png",
                 input_message_content=InputTextMessageContent(  # todo: add a task to delete this message after the downloaded audio has been sent.
-                    audio_link_data_string if audio_link_data_string.startswith("dl_") else f"{emoji._clock_emoji}",
+                    f"dl_{hit_download_url}" if send_download_url else f"{emoji._clock_emoji}",
                     disable_web_page_preview=True,
                     parse_mode=ParseMode.HTML,
                 ),
@@ -169,7 +168,7 @@ class AudioItem(BaseInlineItem):
                             audio,
                             from_user,
                             chats_dict[audio.chat_id],
-                            bot_url=f"https://t.me/{bot_username}?start={audio_link_data_string}",
+                            bot_url=f"https://t.me/{bot_username}?start=dl_{hit_download_url}",
                             include_source=False,
                             show_source=False,
                         ),
@@ -179,7 +178,7 @@ class AudioItem(BaseInlineItem):
                 ),
                 reply_markup=get_download_audio_keyboard(
                     bot_username,
-                    audio_link_data_string,
+                    f"dl_{hit_download_url}",
                     from_user.chosen_language_code,
                 ),
             )

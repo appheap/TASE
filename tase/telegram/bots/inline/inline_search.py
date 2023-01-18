@@ -4,7 +4,8 @@ import pyrogram
 
 from tase.db.arangodb.enums import InlineQueryType
 from tase.db.arangodb.graph.vertices import User
-from tase.telegram.bots.ui.base import InlineButtonData, AudioLinkData
+from tase.db.arangodb.helpers import AudioHitMetadata
+from tase.telegram.bots.ui.base import InlineButtonData
 from tase.telegram.update_handlers.base import BaseHandler
 from tase.telegram.update_interfaces import OnInlineQuery
 from . import CustomInlineQueryResult
@@ -69,7 +70,6 @@ class InlineSearch(OnInlineQuery):
                                 chats_dict,
                                 hit_download_url,
                                 InlineQueryType.AUDIO_SEARCH,
-                                AudioLinkData.generate_data(hit_download_url),
                             )
                             for es_audio_doc, hit_download_url in zip(es_audio_docs, hit_download_urls)
                             if es_audio_doc
@@ -88,9 +88,11 @@ class InlineSearch(OnInlineQuery):
         if found_any and es_audio_docs:
             search_metadata_lst = [es_audio_doc.search_metadata for es_audio_doc in es_audio_docs]
             audio_vertices = await handler.db.graph.get_audios_from_keys([es_audio_doc.id for es_audio_doc in es_audio_docs])
+            audio_hit_metadata_list = [AudioHitMetadata(audio_vertex_key=vertex.key) for vertex in audio_vertices]
         else:
             search_metadata_lst = None
             audio_vertices = None
+            audio_hit_metadata_list = None
 
         await handler.db.graph.get_or_create_query(
             handler.telegram_client.telegram_id,
@@ -98,6 +100,7 @@ class InlineSearch(OnInlineQuery):
             telegram_inline_query.query,
             query_date,
             audio_vertices,
+            audio_hit_metadata_list,
             query_metadata,
             search_metadata_lst,
             telegram_inline_query,
