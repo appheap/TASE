@@ -1072,7 +1072,7 @@ class AudioMethods:
 
         else:
             audio: Audio = await Audio.get(audio_vertex_key)
-            return audio.valid_for_inline_search if audio is not None else False
+            return audio.valid_for_inline_search if audio else False
 
         return False
 
@@ -1160,7 +1160,9 @@ class AudioMethods:
             },
         ) as cursor:
             async for doc in cursor:
-                res.append(Audio.from_collection(doc))
+                obj = Audio.from_collection(doc)
+                if obj:
+                    res.append(obj)
 
         return res
 
@@ -1195,7 +1197,9 @@ class AudioMethods:
         ) as cursor:
             async for audios_lst in cursor:
                 for doc in audios_lst:
-                    res.append(Audio.from_collection(doc))
+                    obj = Audio.from_collection(doc)
+                    if obj:
+                        res.append(obj)
 
         return res
 
@@ -1295,7 +1299,9 @@ class AudioMethods:
             },
         ) as cursor:
             async for doc in cursor:
-                res.append(Audio.from_collection(doc))
+                obj = Audio.from_collection(doc)
+                if obj:
+                    res.append(obj)
 
         return list(res)
 
@@ -1365,7 +1371,9 @@ class AudioMethods:
             },
         ) as cursor:
             async for doc in cursor:
-                yield Audio.from_collection(doc)
+                obj = Audio.from_collection(doc)
+                if obj:
+                    yield obj
 
     async def get_audio_by_key(
         self,
