@@ -63,6 +63,9 @@ class Audio(BaseDocument):
             "non_search_hits": {"type": "long"},
             "likes": {"type": "long"},
             "dislikes": {"type": "long"},
+            "favorite_playlists": {"type": "long"},
+            "private_playlists": {"type": "long"},
+            "public_playlists": {"type": "long"},
             "audio_type": {"type": "integer"},
             "valid_for_inline_search": {"type": "boolean"},
             "type": {"type": "integer"},
@@ -90,6 +93,9 @@ class Audio(BaseDocument):
         "deleted_at",
         "archive_chat_id",
         "archive_message_id",
+        "favorite_playlists",
+        "private_playlists",
+        "public_playlists",
     )
     __search_fields__ = [
         "performer",
@@ -127,6 +133,10 @@ class Audio(BaseDocument):
     non_search_hits: int = Field(default=0)
     likes: int = Field(default=0)
     dislikes: int = Field(default=0)
+    favorite_playlists: int = Field(default=0)
+    private_playlists: int = Field(default=0)
+    public_playlists: int = Field(default=0)
+
     audio_type: TelegramAudioType  # whether the audio file is shown in the `audios` or `files/documents` section of telegram app
     valid_for_inline_search: bool
     """
@@ -602,6 +612,24 @@ class Audio(BaseDocument):
             else:
                 if self_copy.dislikes > 0:
                     self_copy.dislikes -= interaction_count.count
+        elif interaction_count.interaction_type == AudioInteractionType.ADD_TO_FAVORITE_PLAYLIST:
+            if interaction_count.is_active:
+                self_copy.favorite_playlists += interaction_count.count
+            else:
+                if self_copy.favorite_playlists > 0:
+                    self_copy.favorite_playlists -= interaction_count.count
+        elif interaction_count.interaction_type == AudioInteractionType.ADD_TO_PRIVATE_PLAYLIST:
+            if interaction_count.is_active:
+                self_copy.private_playlists += interaction_count.count
+            else:
+                if self_copy.private_playlists > 0:
+                    self_copy.private_playlists -= interaction_count.count
+        elif interaction_count.interaction_type == AudioInteractionType.ADD_TO_PUBLIC_PLAYLIST:
+            if interaction_count.is_active:
+                self_copy.public_playlists += interaction_count.count
+            else:
+                if self_copy.public_playlists > 0:
+                    self_copy.public_playlists -= interaction_count.count
         else:
             return False
 

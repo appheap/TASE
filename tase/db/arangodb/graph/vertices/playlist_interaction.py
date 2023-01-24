@@ -76,9 +76,16 @@ class PlaylistInteraction(BaseVertex):
             chat_type=chat_type,
         )
 
-    async def toggle(self) -> bool:
+    async def toggle(self, is_active: Optional[bool] = None) -> bool:
         self_copy: PlaylistInteraction = self.copy(deep=True)
-        self_copy.is_active = not self.is_active
+        if is_active is None:
+            self_copy.is_active = not self.is_active
+        else:
+            if self_copy.is_active == is_active:
+                # the variable hasn't changed, there is no need to update the object in the database.
+                return True
+
+            self_copy.is_active = is_active
         return await self.update(self_copy, reserve_non_updatable_fields=False)
 
 
@@ -598,7 +605,7 @@ class PlaylistInteractionMethods:
             # user has already interacted with the audio, remove the interaction
             from tase.db.arangodb.graph.edges import Has
 
-            successful = await interaction_vertex.toggle()
+            successful = await interaction_vertex.toggle(is_active)
 
             # only check for missing edge between interaction and playlist vertices if the interaction is `active`. By doing this, when counting interaction
             # with playlists, it is made sure that negative counts does not affect the playlist related attributes. The reason behind this is that if an
@@ -606,21 +613,25 @@ class PlaylistInteractionMethods:
             # then it counts as a negative number which is not counted for that playlist before.
             return successful, has_interacted
         else:
-            # An interaction is created only if the status of the interaction is `active` and the `create_if_not_exists` parameter has been set to `True`.
-            if not create_if_not_exists and not is_active:
-                return False, False
+            # An interaction is created only if the status of the interaction is `is_active` and the `create_if_not_exists` parameter has been set to `True`.
+            if create_if_not_exists:
+                if not is_active:
+                    return False, False
 
-            # user has not interacted with the audio or playlist, create the interaction
-            interaction = await self.create_playlist_interaction(
-                user,
-                bot_id,
-                interaction_type,
-                chat_type,
-                playlist_key,
-                is_active=is_active,
-                audio_hit_download_url=audio_hit_download_url,
-            )
-            if interaction is not None:
-                return True, has_interacted
+                # user has not interacted with the audio or playlist, create the interaction
+                interaction = await self.create_playlist_interaction(
+                    user,
+                    bot_id,
+                    interaction_type,
+                    chat_type,
+                    playlist_key,
+                    is_active=is_active,
+                    audio_hit_download_url=audio_hit_download_url,
+                )
+                if interaction is not None:
+                    return True, has_interacted
+                else:
+                    return False, has_interacted
+
             else:
-                return False, has_interacted
+                return False, False

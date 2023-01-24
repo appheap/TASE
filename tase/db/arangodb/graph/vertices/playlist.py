@@ -1280,7 +1280,7 @@ class PlaylistMethods:
                 raise EdgeDeletionFailed(Has.__class__.__name__)
 
             try:
-                had_edge = await Had.get_or_create_edge(playlist, audio, has=has_edge, deleted_at=remove_timestamp)
+                had_edge = await Had.update_or_create_edge(playlist, audio, has=has_edge, deleted_at=remove_timestamp)
             except (InvalidFromVertex, InvalidToVertex):
                 logger.error("ValueError: Could not create the `had` from `Playlist` vertex to `Audio` vertex")
                 return False, False

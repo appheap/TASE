@@ -193,7 +193,7 @@ def get_audio_markup_keyboard(
     bot_username: str,
     chat_type: ChatType,
     chosen_language_code: str,
-    hit_download_url: str,
+    audio_hit_download_url: str,
     status: AudioKeyboardStatus,
     playlist_key: Optional[str] = None,
 ) -> InlineKeyboardMarkup:
@@ -208,7 +208,7 @@ def get_audio_markup_keyboard(
         Type of the chat this audio message is sent to
     chosen_language_code : str
         Language code the user that ran this query
-    hit_download_url : str
+    audio_hit_download_url : str
         Download URL of the hit
     status : AudioKeyboardStatus
         Keyboard status of this audio file
@@ -225,18 +225,21 @@ def get_audio_markup_keyboard(
         markup = [
             [
                 AddToPlaylistInlineButton.get_keyboard(
-                    hit_download_url=hit_download_url,
+                    audio_hit_download_url=audio_hit_download_url,
+                    playlist_key=playlist_key,
                     lang_code=chosen_language_code,
                 ),
                 RemoveFromPlaylistInlineButton.get_keyboard(
-                    hit_download_url=hit_download_url,
+                    audio_hit_download_url=audio_hit_download_url,
+                    playlist_key=playlist_key,
                     lang_code=chosen_language_code,
                 ),
                 InlineButton.get_button(InlineButtonType.ADD_TO_FAVORITE_PLAYLIST)
                 .change_text(status.is_in_favorite_playlist)
                 .get_keyboard(
                     chat_type=chat_type,
-                    hit_download_url=hit_download_url,
+                    audio_hit_download_url=audio_hit_download_url,
+                    playlist_key=playlist_key,
                     lang_code=chosen_language_code,
                 ),
             ],
@@ -245,7 +248,7 @@ def get_audio_markup_keyboard(
                 .change_text(status.is_disliked)
                 .get_keyboard(
                     chat_type=chat_type,
-                    hit_download_url=hit_download_url,
+                    hit_download_url=audio_hit_download_url,
                     lang_code=chosen_language_code,
                     playlist_key=playlist_key,
                 ),
@@ -253,7 +256,7 @@ def get_audio_markup_keyboard(
                 .change_text(status.is_liked)
                 .get_keyboard(
                     chat_type=chat_type,
-                    hit_download_url=hit_download_url,
+                    hit_download_url=audio_hit_download_url,
                     lang_code=chosen_language_code,
                     playlist_key=playlist_key,
                 ),
@@ -267,7 +270,7 @@ def get_audio_markup_keyboard(
 
         markup = get_download_audio_keyboard(
             bot_username,
-            f"dl_{hit_download_url}",
+            f"dl_{audio_hit_download_url}",
             chosen_language_code,
         )
 
