@@ -15,7 +15,7 @@ class PlaylistItemInfo(InlineItemInfo):
     playlist_key: str
     is_public: bool
     chat_type: ChatType
-    hit_download_url: Optional[str]
+    playlist_hit_download_url: Optional[str]
 
     @classmethod
     def parse_id(
@@ -24,14 +24,14 @@ class PlaylistItemInfo(InlineItemInfo):
         playlist_key: str,
         is_public: bool,
         chat_type: Optional[ChatType] = None,
-        hit_download_url: Optional[str] = None,
+        playlist_hit_download_url: Optional[str] = None,
     ) -> Optional[str]:
         if chat_type is None:
             chat_type = ChatType.parse_from_pyrogram(telegram_inline_query.chat_type)
 
         _s = f"{cls.get_type_value()}|{telegram_inline_query.id}|{playlist_key}|{int(is_public)}|{chat_type.value}"
-        if hit_download_url:
-            return _s + f"|{hit_download_url}"
+        if playlist_hit_download_url:
+            return _s + f"|{playlist_hit_download_url}"
         else:
             return _s
 
@@ -45,5 +45,5 @@ class PlaylistItemInfo(InlineItemInfo):
             playlist_key=id_split_lst[2],
             is_public=bool(int(id_split_lst[3])),
             chat_type=ChatType(int(id_split_lst[4])),
-            hit_download_url=id_split_lst[5] if len(id_split_lst) > 5 else None,
+            playlist_hit_download_url=id_split_lst[5] if len(id_split_lst) > 5 else None,
         )

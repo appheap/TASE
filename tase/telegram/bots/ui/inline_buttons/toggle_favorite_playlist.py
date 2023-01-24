@@ -6,7 +6,7 @@ import pyrogram
 
 from tase.common.utils import emoji
 from tase.db.arangodb import graph as graph_models
-from tase.db.arangodb.enums import ChatType
+from tase.db.arangodb.enums import ChatType, AudioInteractionType
 from tase.db.arangodb.helpers import AudioKeyboardStatus
 from tase.errors import (
     UserDoesNotHasPlaylist,
@@ -23,23 +23,35 @@ class ToggleFavoritePlaylistButtonData(InlineButtonData):
     __button_type__ = InlineButtonType.ADD_TO_FAVORITE_PLAYLIST
 
     chat_type: ChatType
-    hit_download_url: str
+    audio_hit_download_url: str
+    playlist_key: Optional[str]
 
     @classmethod
-    def generate_data(cls, chat_type: ChatType, hit_download_url: str) -> Optional[str]:
-        return f"{cls.get_type_value()}|{chat_type.value}|{hit_download_url}"
+    def generate_data(
+        cls,
+        chat_type: ChatType,
+        audio_hit_download_url: str,
+        playlist_key: Optional[str] = None,
+    ) -> Optional[str]:
+        temp = f"{cls.get_type_value()}|{chat_type.value}|{audio_hit_download_url}"
+
+        if playlist_key:
+            return temp + f"|{playlist_key}"
+
+        return temp
 
     @classmethod
     def __parse__(
         cls,
         data_split_lst: List[str],
     ) -> Optional[InlineButtonData]:
-        if len(data_split_lst) != 3:
+        if len(data_split_lst) < 3:
             return None
 
         return ToggleFavoritePlaylistButtonData(
             chat_type=ChatType(int(data_split_lst[1])),
-            hit_download_url=data_split_lst[2],
+            audio_hit_download_url=data_split_lst[2],
+            playlist_key=data_split_lst[3] if len(data_split_lst) > 3 else None,
         )
 
 
@@ -54,11 +66,16 @@ class ToggleFavoritePlaylistInlineButton(InlineButton):
         cls,
         *,
         chat_type: ChatType,
-        hit_download_url: str,
+        audio_hit_download_url: str,
+        playlist_key: Optional[str] = None,
         lang_code: Optional[str] = "en",
     ) -> pyrogram.types.InlineKeyboardButton:
         return cls.get_button(cls.__type__).__parse_keyboard_button__(
-            callback_data=ToggleFavoritePlaylistButtonData.generate_data(chat_type, hit_download_url),
+            callback_data=ToggleFavoritePlaylistButtonData.generate_data(
+                chat_type=chat_type,
+                audio_hit_download_url=audio_hit_download_url,
+                playlist_key=playlist_key,
+            ),
             lang_code=lang_code,
         )
 
@@ -70,7 +87,7 @@ class ToggleFavoritePlaylistInlineButton(InlineButton):
         telegram_callback_query: pyrogram.types.CallbackQuery,
         inline_button_data: ToggleFavoritePlaylistButtonData,
     ):
-        hit_download_url = inline_button_data.hit_download_url
+        hit_download_url = inline_button_data.audio_hit_download_url
         chat_type = inline_button_data.chat_type
 
         # add the audio to the playlist
@@ -124,6 +141,19 @@ class ToggleFavoritePlaylistInlineButton(InlineButton):
                                 )
                             except Exception as e:
                                 logger.exception(e)
+
+                    fav_playlist = await handler.db.graph.get_user_favorite_playlist(from_user)
+                    if fav_playlist:
+                        await handler.db.graph.toggle_audio_interaction(
+                            from_user,
+                            handler.telegram_client.telegram_id,
+                            inline_button_data.audio_hit_download_url,
+                            inline_button_data.chat_type,
+                            AudioInteractionType.ADD_TO_FAVORITE_PLAYLIST,
+                            playlist_key=fav_playlist.key,
+                            create_if_not_exists=True if not in_favorite_playlist else False,
+                            is_active=not in_favorite_playlist,
+                        )
                 else:
                     await telegram_callback_query.answer("It's already on the playlist")
             else:

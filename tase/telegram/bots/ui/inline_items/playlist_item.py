@@ -60,7 +60,7 @@ class PlaylistItem(BaseInlineItem):
         user: graph_models.vertices.User,
         telegram_inline_query: pyrogram.types.InlineQuery,
         view_playlist: Optional[bool] = True,
-        hit_download_url: Optional[str] = None,
+        playlist_hit_download_url: Optional[str] = None,
     ) -> Optional[pyrogram.types.InlineQueryResult]:
         if playlist is None or user is None:
             return None
@@ -85,7 +85,7 @@ class PlaylistItem(BaseInlineItem):
                     playlist.key,
                     playlist.is_public,
                     chat_type,
-                    hit_download_url,
+                    playlist_hit_download_url,
                 ),
                 thumb_url=cls.get_playlist_thumbnail_url(playlist),
                 input_message_content=InputTextMessageContent(
@@ -107,7 +107,7 @@ class PlaylistItem(BaseInlineItem):
                     playlist.key,
                     playlist.is_public,
                     chat_type,
-                    hit_download_url,
+                    playlist_hit_download_url,
                 ),
                 thumb_url=cls.get_playlist_thumbnail_url(playlist),
                 input_message_content=InputTextMessageContent(
@@ -122,7 +122,7 @@ class PlaylistItem(BaseInlineItem):
         playlist: elasticsearch_models.Playlist,
         user: graph_models.vertices.User,
         telegram_inline_query: pyrogram.types.InlineQuery,
-        hit_download_url: Optional[str] = None,
+        playlist_hit_download_url: Optional[str] = None,
         view_playlist: Optional[bool] = True,
     ) -> Optional[pyrogram.types.InlineQueryResult]:
         if playlist is None or user is None:
@@ -147,7 +147,7 @@ class PlaylistItem(BaseInlineItem):
                     playlist.id,
                     True,
                     chat_type,
-                    hit_download_url=hit_download_url,
+                    playlist_hit_download_url=playlist_hit_download_url,
                 ),
                 thumb_url=cls.__public_url__,
                 input_message_content=InputTextMessageContent(
@@ -169,7 +169,7 @@ class PlaylistItem(BaseInlineItem):
                     playlist.id,
                     True,
                     chat_type,
-                    hit_download_url=hit_download_url,
+                    playlist_hit_download_url=playlist_hit_download_url,
                 ),
                 thumb_url=cls.__public_url__,
                 input_message_content=InputTextMessageContent(

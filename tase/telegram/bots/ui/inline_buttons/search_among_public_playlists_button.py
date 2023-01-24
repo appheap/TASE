@@ -122,7 +122,7 @@ class SearchAmongPublicPlaylistsInlineButton(InlineButton):
                                 es_playlist_doc,
                                 from_user,
                                 telegram_inline_query,
-                                hit_download_url=hit_download_url,
+                                playlist_hit_download_url=hit_download_url,
                                 view_playlist=True,
                             )
                         )

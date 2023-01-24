@@ -4,6 +4,7 @@ import pyrogram
 
 from tase.common.utils import _trans, emoji, get_now_timestamp
 from tase.db.arangodb import graph as graph_models
+from tase.db.arangodb.enums import AudioInteractionType
 from tase.errors import (
     UserDoesNotHasPlaylist,
     HitDoesNotExists,
@@ -20,21 +21,34 @@ from ..inline_items.item_info import PlaylistItemInfo, NoPlaylistItemInfo
 class RemoveFromPlaylistButtonData(InlineButtonData):
     __button_type__ = InlineButtonType.REMOVE_FROM_PLAYLIST
 
-    hit_download_url: str
+    audio_hit_download_url: str
+    playlist_key: Optional[str]
 
     @classmethod
-    def generate_data(cls, hit_download_url: str) -> Optional[str]:
-        return f"${cls.get_type_value()}|{hit_download_url}"
+    def generate_data(
+        cls,
+        audio_hit_download_url: str,
+        playlist_key: Optional[str] = None,
+    ) -> Optional[str]:
+        temp = f"${cls.get_type_value()}|{audio_hit_download_url}"
+
+        if playlist_key:
+            return temp + f"|{playlist_key}"
+
+        return temp
 
     @classmethod
     def __parse__(
         cls,
         data_split_lst: List[str],
     ) -> Optional[InlineButtonData]:
-        if len(data_split_lst) != 2:
+        if len(data_split_lst) < 2:
             return None
 
-        return RemoveFromPlaylistButtonData(hit_download_url=data_split_lst[1])
+        return RemoveFromPlaylistButtonData(
+            audio_hit_download_url=data_split_lst[1],
+            playlist_key=data_split_lst[2] if len(data_split_lst) > 2 else None,
+        )
 
 
 class RemoveFromPlaylistInlineButton(InlineButton):
@@ -54,11 +68,15 @@ class RemoveFromPlaylistInlineButton(InlineButton):
     def get_keyboard(
         cls,
         *,
-        hit_download_url: str,
+        audio_hit_download_url: str,
+        playlist_key: Optional[str] = None,
         lang_code: Optional[str] = "en",
     ) -> pyrogram.types.InlineKeyboardButton:
         return cls.get_button(cls.__type__).__parse_keyboard_button__(
-            switch_inline_query_current_chat=RemoveFromPlaylistButtonData.generate_data(hit_download_url),
+            switch_inline_query_current_chat=RemoveFromPlaylistButtonData.generate_data(
+                audio_hit_download_url=audio_hit_download_url,
+                playlist_key=playlist_key,
+            ),
             lang_code=lang_code,
         )
 
@@ -72,13 +90,10 @@ class RemoveFromPlaylistInlineButton(InlineButton):
         query_date: int,
         inline_button_data: Optional[RemoveFromPlaylistButtonData] = None,
     ):
-        hit_download_url = inline_button_data.hit_download_url
-        valid = True if hit_download_url is not None else False
-
         try:
             db_playlists = await handler.db.graph.get_audio_playlists(
                 from_user,
-                hit_download_url,
+                inline_button_data.audio_hit_download_url,
                 offset=result.from_,
             )
         except HitNoLinkedAudio:
@@ -121,7 +136,6 @@ class RemoveFromPlaylistInlineButton(InlineButton):
         if inline_item_info.type != InlineItemType.PLAYLIST:
             return
 
-        hit_download_url = inline_button_data.hit_download_url
         # todo: check if the user has downloaded this audio earlier, otherwise, the request is not valid
 
         playlist_key = inline_item_info.playlist_key
@@ -131,7 +145,7 @@ class RemoveFromPlaylistInlineButton(InlineButton):
             successful, removed = await handler.db.graph.remove_audio_from_playlist(
                 from_user,
                 playlist_key,
-                hit_download_url,
+                inline_button_data.audio_hit_download_url,
                 get_now_timestamp(),
             )
         except UserDoesNotHasPlaylist as e:
@@ -168,6 +182,20 @@ class RemoveFromPlaylistInlineButton(InlineButton):
                         from_user.user_id,
                         "Removed from the playlist",
                     )
+
+                    chosen_playlist = await handler.db.graph.get_user_playlist_by_key(from_user, playlist_key)
+                    if chosen_playlist:
+                        await handler.db.graph.toggle_audio_interaction(
+                            from_user,
+                            handler.telegram_client.telegram_id,
+                            inline_button_data.audio_hit_download_url,
+                            inline_item_info.chat_type,
+                            AudioInteractionType.ADD_TO_PUBLIC_PLAYLIST if chosen_playlist.is_public else AudioInteractionType.ADD_TO_PRIVATE_PLAYLIST,
+                            playlist_key=playlist_key,
+                            create_if_not_exists=False,
+                            is_active=False,
+                        )
+
                 else:
                     await client.send_message(
                         from_user.user_id,

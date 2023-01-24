@@ -17,6 +17,6 @@ class PlaylistInteractionType(Enum):
     ###################################
     # Interaction with playlists
     ###################################
-    DOWNLOAD_PUBLIC_PLAYLIST = 7
-    SHARE_PUBLIC_PLAYLIST = 8
-    REDOWNLOAD_PUBLIC_PLAYLIST = 9
+    DOWNLOAD_PUBLIC_PLAYLIST = 51
+    SHARE_PUBLIC_PLAYLIST = 52
+    REDOWNLOAD_PUBLIC_PLAYLIST = 53

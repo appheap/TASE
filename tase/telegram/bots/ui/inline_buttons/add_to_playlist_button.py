@@ -4,7 +4,7 @@ import pyrogram
 
 from tase.common.utils import _trans, emoji
 from tase.db.arangodb import graph as graph_models
-from tase.db.arangodb.enums import BotTaskType
+from tase.db.arangodb.enums import BotTaskType, AudioInteractionType
 from tase.errors import (
     UserDoesNotHasPlaylist,
     HitDoesNotExists,
@@ -21,21 +21,34 @@ from ..inline_items.item_info import CreateNewPublicPlaylistItemInfo, CreateNewP
 class AddToPlaylistButtonData(InlineButtonData):
     __button_type__ = InlineButtonType.ADD_TO_PLAYLIST
 
-    hit_download_url: str
+    audio_hit_download_url: str
+    playlist_key: Optional[str]
 
     @classmethod
-    def generate_data(cls, hit_download_url: str) -> Optional[str]:
-        return f"${cls.get_type_value()}|{hit_download_url}"
+    def generate_data(
+        cls,
+        audio_hit_download_url: str,
+        playlist_key: Optional[str] = None,
+    ) -> Optional[str]:
+        temp = f"${cls.get_type_value()}|{audio_hit_download_url}"
+
+        if playlist_key:
+            return temp + f"|{playlist_key}"
+
+        return temp
 
     @classmethod
     def __parse__(
         cls,
         data_split_lst: List[str],
     ) -> Optional[InlineButtonData]:
-        if len(data_split_lst) != 2:
+        if len(data_split_lst) < 2:
             return None
 
-        return AddToPlaylistButtonData(hit_download_url=data_split_lst[1])
+        return AddToPlaylistButtonData(
+            audio_hit_download_url=data_split_lst[1],
+            playlist_key=data_split_lst[2] if len(data_split_lst) > 2 else None,
+        )
 
 
 class AddToPlaylistInlineButton(InlineButton):
@@ -56,12 +69,16 @@ class AddToPlaylistInlineButton(InlineButton):
     def get_keyboard(
         cls,
         *,
-        hit_download_url: str,
+        audio_hit_download_url: str,
+        playlist_key: Optional[str] = None,
         lang_code: Optional[str] = "en",
     ) -> pyrogram.types.InlineKeyboardButton:
         return InlineButton.get_button(cls.__type__).__parse_keyboard_button__(
             lang_code=lang_code,
-            switch_inline_query_current_chat=AddToPlaylistButtonData.generate_data(hit_download_url=hit_download_url),
+            switch_inline_query_current_chat=AddToPlaylistButtonData.generate_data(
+                audio_hit_download_url=audio_hit_download_url,
+                playlist_key=playlist_key,
+            ),
         )
 
     async def on_inline_query(
@@ -96,7 +113,6 @@ class AddToPlaylistInlineButton(InlineButton):
         inline_button_data: AddToPlaylistButtonData,
         inline_item_info: Union[CreateNewPublicPlaylistItemInfo, CreateNewPrivatePlaylistItemInfo, PlaylistItemInfo],
     ):
-        hit_download_url = inline_button_data.hit_download_url
         # todo: check if the user has downloaded this audio earlier, otherwise, the request is not valid
 
         playlist_key = inline_item_info.playlist_key if inline_item_info.type == InlineItemType.PLAYLIST else inline_item_info.item_key
@@ -108,7 +124,7 @@ class AddToPlaylistInlineButton(InlineButton):
                 handler.telegram_client.telegram_id,
                 BotTaskType.CREATE_NEW_PRIVATE_PLAYLIST if playlist_key == "add_a_new_private_playlist" else BotTaskType.CREATE_NEW_PUBLIC_PLAYLIST,
                 state_dict={
-                    "hit_download_url": hit_download_url,
+                    "hit_download_url": inline_button_data.audio_hit_download_url,
                 },
             )
 
@@ -122,7 +138,7 @@ class AddToPlaylistInlineButton(InlineButton):
                 successful, created = await handler.db.graph.add_audio_to_playlist(
                     from_user,
                     playlist_key,
-                    hit_download_url,
+                    inline_button_data.audio_hit_download_url,
                 )
             except UserDoesNotHasPlaylist as e:
                 await client.send_message(
@@ -158,9 +174,20 @@ class AddToPlaylistInlineButton(InlineButton):
                             from_user.user_id,
                             "Added to the playlist",
                         )
-                        playlist = await handler.db.graph.get_user_playlist_by_key(from_user, playlist_key)
-                        if playlist:
-                            logger.info(await playlist.update_last_modified_date())
+                        chosen_playlist = await handler.db.graph.get_user_playlist_by_key(from_user, playlist_key)
+                        if chosen_playlist:
+                            await chosen_playlist.update_last_modified_date()
+
+                            await handler.db.graph.toggle_audio_interaction(
+                                from_user,
+                                handler.telegram_client.telegram_id,
+                                inline_button_data.audio_hit_download_url,
+                                inline_item_info.chat_type,
+                                AudioInteractionType.ADD_TO_PUBLIC_PLAYLIST if chosen_playlist.is_public else AudioInteractionType.ADD_TO_PRIVATE_PLAYLIST,
+                                playlist_key=playlist_key,
+                                is_active=True,
+                            )
+
                     else:
                         await client.send_message(
                             from_user.user_id,
