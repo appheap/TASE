@@ -98,9 +98,30 @@ class AudioInteractionMethods:
     _is_audio_interacted_by_user_query = (
         "for v_int in 1..1 outbound @user_id graph @graph_name options {order : 'dfs', edgeCollections : [@has], vertexCollections : [@interactions]}"
         "   filter v_int.type == @interaction_type and v_int.is_active == true"
-        "   for v_aud in 1..1 outbound v_int._id graph @graph_name options {order : 'dfs', edgeCollections : [@has], vertexCollections : [@audios]}"
-        "       filter v_aud._key == @audio_key"
-        "       return true"
+        "   let has_audio = ("
+        "       for v_aud in 1..1 outbound v_int graph @graph_name options {order : 'dfs', edgeCollections : [@has], vertexCollections : [@audios]}"
+        "           filter v_aud._key == @audio_key"
+        "           return true"
+        "   )"
+        "   filter length(has_audio)"
+        "   return true"
+    )
+
+    _is_audio_interacted_by_user_query1 = (
+        "for v_int in 1..1 outbound @user_id graph @graph_name options {order : 'dfs', edgeCollections : [@has], vertexCollections : [@interactions]}"
+        "   filter v_int.type == @interaction_type and v_int.is_active == true"
+        "   let has_audio = ("
+        "       for v_aud in 1..1 outbound v_int graph @graph_name options {order : 'dfs', edgeCollections : [@has], vertexCollections : [@audios]}"
+        "           filter v_aud._key == @audio_key"
+        "           return true"
+        "   )"
+        "   let has_playlist = ("
+        "       for v_playlist in 1..1 outbound v_int graph @graph_name options {order : 'dfs', edgeCollections : [@has], vertexCollections : [@playlists]}"
+        "           filter v_playlist._key == @playlist_key"
+        "           return true"
+        "   )"
+        "   filter length(has_audio) and length(has_playlist)"
+        "   return true"
     )
 
     _get_audio_interaction_by_user_query = (
@@ -465,6 +486,7 @@ class AudioInteractionMethods:
         *,
         hit_download_url: str = None,
         audio_vertex_key: str = None,
+        playlist_key: str = None,
     ) -> Optional[bool]:
         """
         Check whether an `Audio` is interacted by a user or not.
@@ -479,6 +501,8 @@ class AudioInteractionMethods:
             Hit download_url to get the audio from.
         audio_vertex_key : str, default : None
             Key of the audio vertex in the ArangoDB.
+        playlist_key : str, optional
+            Key of the playlist connected to the interaction vertex if there is any.
 
         Returns
         -------
@@ -499,6 +523,14 @@ class AudioInteractionMethods:
         if user is None or (not hit_download_url and not audio_vertex_key):
             return None
 
+        if playlist_key:
+            playlist = await self.get_playlist_by_key(playlist_key)
+            if not playlist:
+                raise PlaylistNotFound(playlist_key)
+
+        if AudioInteractionType.interaction_has_playlist(interaction_type) and not playlist_key:
+            raise ValueError(f"`{interaction_type}` must be given with a `playlist_key`!")
+
         if hit_download_url:
             hit = await self.find_hit_by_download_url(hit_download_url)
             if hit is None:
@@ -513,19 +545,23 @@ class AudioInteractionMethods:
                 raise AudioVertexDoesNotExist(audio_vertex_key)
 
         from tase.db.arangodb.graph.edges import Has
+        from tase.db.arangodb.graph.vertices import Audio, Playlist
 
-        from tase.db.arangodb.graph.vertices import Audio
+        bind_vars = {
+            "user_id": user.id,
+            "audio_key": audio.key,
+            "interaction_type": interaction_type.value,
+            "has": Has.__collection_name__,
+            "interactions": AudioInteraction.__collection_name__,
+            "audios": Audio.__collection_name__,
+        }
+        if playlist_key:
+            bind_vars["playlists"] = Playlist.__collection_name__
+            bind_vars["playlist_key"] = playlist_key
 
         async with await AudioInteraction.execute_query(
-            self._is_audio_interacted_by_user_query,
-            bind_vars={
-                "user_id": user.id,
-                "audio_key": audio.key,
-                "interaction_type": interaction_type.value,
-                "has": Has.__collection_name__,
-                "interactions": AudioInteraction.__collection_name__,
-                "audios": Audio.__collection_name__,
-            },
+            self._is_audio_interacted_by_user_query1 if playlist_key else self._is_audio_interacted_by_user_query,
+            bind_vars=bind_vars,
         ) as cursor:
             return not cursor.empty()
 
