@@ -18,7 +18,7 @@ class ElasticsearchDatabase:
                 elasticsearch_config.basic_auth_username,
                 elasticsearch_config.basic_auth_password,
             ),
-            request_timeout=120,
+            request_timeout=3600,
             connections_per_node=30,
             # http_compress=True,
         )

@@ -10,6 +10,7 @@ from tase.configs import TASEConfig
 from tase.db import DatabaseClient
 from tase.errors import NotEnoughRamError
 from tase.scheduler import SchedulerWorkerProcess
+from tase.scheduler.jobs import ForwardAudiosJob, CountPublicPlaylistSubscriptionsJob, CountPublicPlaylistInteractionsJob
 from tase.telegram.client import TelegramClient
 from tase.telegram.client.telegram_client_manager import TelegramClientManager
 
@@ -58,16 +59,20 @@ class TASE:
                 await self.database_client.document.cancel_all_active_tasks()
 
                 try:
-                    await asyncio.sleep(30)
+                    await asyncio.sleep(10)
+                    pass
                     # todo: do initial job scheduling in a proper way
                     # await DummyJob(kwargs={"key": 1}).publish(self.database_client)
-                    await CountInteractionsJob().publish(self.database_client)
-                    await CountHitsJob().publish(self.database_client)
+                    # await ForwardAudiosJob().publish(self.database_client)
+                    await CountPublicPlaylistSubscriptionsJob().publish(self.database_client)
+                    await CountPublicPlaylistInteractionsJob().publish(self.database_client)
+                    # await CountInteractionsJob().publish(self.database_client)
+                    # await CountHitsJob().publish(self.database_client)
 
-                    await IndexAudiosJob().publish(self.database_client)
-                    await ExtractUsernamesJob().publish(self.database_client)
-                    await CheckUsernamesJob().publish(self.database_client)
-                    await CheckUsernamesWithUncheckedMentionsJob().publish(self.database_client)
+                    # await IndexAudiosJob().publish(self.database_client)
+                    # await ExtractUsernamesJob().publish(self.database_client)
+                    # await CheckUsernamesJob().publish(self.database_client)
+                    # await CheckUsernamesWithUncheckedMentionsJob().publish(self.database_client)
                 except NotEnoughRamError as e:
                     raise e
 
