@@ -54,6 +54,7 @@ class TelegramClient:
     _me: Optional[pyrogram.types.User] = None
 
     archive_channel_info: Optional[ArchiveChannelInfo]
+    thumbnail_archive_channel_info: Optional[ArchiveChannelInfo]
 
     def init_client(self):
         pass

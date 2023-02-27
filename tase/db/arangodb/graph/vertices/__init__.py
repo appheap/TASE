@@ -10,6 +10,7 @@ from .keyword import Keyword, KeywordMethods
 from .playlist import Playlist, PlaylistMethods
 from .playlist_interaction import PlaylistInteraction, PlaylistInteractionMethods
 from .query import Query, QueryMethods
+from .thumbnail import Thumbnail, ThumbnailMethods
 from .user import User, UserMethods
 from .username import Username, UsernameMethods
 
@@ -25,6 +26,7 @@ vertex_classes = [
     Playlist,
     PlaylistInteraction,
     Query,
+    Thumbnail,
     User,
     Username,
 ]
@@ -42,6 +44,7 @@ class ArangoVertexMethods(
     PlaylistMethods,
     PlaylistInteractionMethods,
     QueryMethods,
+    ThumbnailMethods,
     UserMethods,
     UsernameMethods,
 ):

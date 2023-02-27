@@ -127,9 +127,7 @@ class GetPlaylistAudioInlineButton(InlineButton):
 
                 audio_docs = await asyncio.gather(
                     *(
-                        handler.db.document.get_audio_by_key(
-                            audio_vertex.get_doc_cache_key(handler.telegram_client.telegram_id),
-                        )
+                        handler.db.document.get_audio_by_key(audio_vertex.get_doc_cache_key(handler.telegram_client.telegram_id))
                         for audio_vertex in audio_vertices
                     )
                 )

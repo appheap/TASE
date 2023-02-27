@@ -1345,6 +1345,9 @@ class PlaylistMethods:
             },
         ) as cursor:
             async for doc in cursor:
+                if not doc:
+                    continue
+
                 res.append(Audio.from_collection(doc))
 
         return res

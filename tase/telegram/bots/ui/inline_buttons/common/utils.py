@@ -546,7 +546,10 @@ def get_playlist_markup_keyboard(
                 )
                 markup.append(
                     [
-                        DeletePlaylistInlineButton.get_keyboard(playlist_key=playlist_key, lang_code=user.chosen_language_code),
+                        DeletePlaylistInlineButton.get_keyboard(
+                            playlist_key=playlist_key,
+                            lang_code=user.chosen_language_code,
+                        ),
                     ],
                 )
 

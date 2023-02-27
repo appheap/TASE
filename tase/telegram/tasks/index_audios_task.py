@@ -4,10 +4,10 @@ from typing import Optional
 
 from pyrogram.errors import FloodWait
 
-from tase.common.utils import datetime_to_timestamp, prettify, get_now_timestamp
+from tase.common.utils import prettify, get_now_timestamp, datetime_to_timestamp, get_audio_thumbnail_vertices
 from tase.db import DatabaseClient
 from tase.db.arangodb import graph as graph_models
-from tase.db.arangodb.enums import RabbitMQTaskType, TelegramAudioType, ChatType, AudioType
+from tase.db.arangodb.enums import RabbitMQTaskType, TelegramAudioType, AudioType, ChatType
 from tase.db.arangodb.graph.vertices import Chat
 from tase.db.arangodb.helpers import AudioIndexerMetadata, AudioDocIndexerMetadata
 from tase.db.db_utils import get_telegram_message_media_type
@@ -148,12 +148,20 @@ class IndexAudiosTask(BaseTask):
                     if audio is None or audio_type == TelegramAudioType.NON_AUDIO:
                         continue
 
+                thumbs, successful = await get_audio_thumbnail_vertices(db, telegram_client, message)
+                if not successful:
+                    await self.task_failed(db)
+                    logger.error("Could not upload audio thumbnails!")
+
+                    return False
+
                 successful = await db.update_or_create_audio(
                     message,
                     telegram_client.telegram_id,
                     chat.chat_id,
                     AudioType.NOT_ARCHIVED,
                     chat.get_chat_scores(),
+                    thumbs,
                 )
                 if successful:
                     metadata.message_count += 1
