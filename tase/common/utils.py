@@ -505,7 +505,7 @@ async def get_audio_thumbnail_vertices(
             uploaded_photo_message = await telegram_client._client.send_photo(
                 telegram_client.thumbnail_archive_channel_info.chat_id,
                 thumbnail_binary_file,
-                caption=f"audio_file_unique_id: {file_unique_id}\n" f"thumb_file_unique_id: {telegram_thumbnail.file_unique_id}\n",
+                caption=f"audio_file_unique_id: {file_unique_id}\n\n" f"thumb_file_unique_id: {telegram_thumbnail.file_unique_id}\n",
             )
             if uploaded_photo_message:
                 uploaded_photos.append(uploaded_photo_message)
