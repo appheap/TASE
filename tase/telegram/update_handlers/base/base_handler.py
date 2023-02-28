@@ -51,15 +51,12 @@ class BaseHandler(BaseModel):
 
         temp = collections.deque()
         temp_keys = collections.deque()
-        logger.error(len(db_audios))
         for db_audio in db_audios:
             if db_audio.key in temp_keys:
                 continue
 
             temp_keys.append(db_audio.key)
             temp.append(db_audio)
-
-        logger.error(len(temp))
 
         db_audios.clear()
         db_audios.extend(temp)
