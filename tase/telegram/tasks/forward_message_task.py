@@ -206,11 +206,18 @@ class ForwardMessageTask(BaseTask):
         forwarded_file_unique_ids = set()
 
         for message in forwarded_messages:
+            from tase.common.utils import get_audio_thumbnail_vertices
+
+            thumbs, successful = await get_audio_thumbnail_vertices(db, telegram_client, message)
+            if not successful:
+                continue
+
             archived_audio_vertex = await db.graph.update_or_create_audio(
                 message,
                 target_chat_id,
                 AudioType.ARCHIVED,
                 db_chat.get_chat_scores(),
+                thumbs,
             )
             archived_audio_doc = await db.document.update_or_create_audio(
                 message,
