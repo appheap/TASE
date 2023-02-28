@@ -6,6 +6,7 @@ import copy
 from typing import Optional, List, Generator, TYPE_CHECKING, Deque, Tuple
 
 import pyrogram
+from decouple import config
 
 from aioarango.models import PersistentIndex
 from tase.common.preprocessing import clean_text, empty_to_null
@@ -539,7 +540,7 @@ class Audio(BaseVertex):
 
     def get_thumb_telegram_url(self) -> str:
         if self.thumbnails:
-            return f"https://t.me/adgjlmbczqeyip/{self.thumbnails[0]}"
+            return f"https://t.me/{config('THUMBNAIL_ARCHIVE_CHANNEL_USERNAME')}/{self.thumbnails[0]}"
 
         return "https://telegra.ph/file/764498c89f7f1bea502d5.png"
 
