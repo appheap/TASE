@@ -181,10 +181,7 @@ class ForwardMessageTask(BaseTask):
 
                     from tase.common.utils import get_audio_thumbnail_vertices
 
-                    thumbnail_vertices, successful = await get_audio_thumbnail_vertices(db, telegram_client, message)
-                    if not successful:
-                        continue
-
+                    thumbnail_vertices = await get_audio_thumbnail_vertices(db, telegram_client, message)
                     await db.update_or_create_audio(
                         message,
                         telegram_client.telegram_id,
@@ -208,10 +205,7 @@ class ForwardMessageTask(BaseTask):
         for message in forwarded_messages:
             from tase.common.utils import get_audio_thumbnail_vertices
 
-            thumbs, successful = await get_audio_thumbnail_vertices(db, telegram_client, message)
-            if not successful:
-                continue
-
+            thumbs = await get_audio_thumbnail_vertices(db, telegram_client, message)
             archived_audio_vertex = await db.graph.update_or_create_audio(
                 message,
                 target_chat_id,
@@ -375,20 +369,18 @@ class ForwardMessageTask(BaseTask):
                             else:
                                 # this message content is protected and cannot be forwarded by a user client.
                                 # todo: this must not happen!
-
                                 from tase.common.utils import get_audio_thumbnail_vertices
 
-                                thumbs, successful = await get_audio_thumbnail_vertices(db, telegram_client, new_message)
-                                if successful:
-                                    await db.update_or_create_audio(
-                                        new_message,
-                                        telegram_client.telegram_id,
-                                        source_chat_id,
-                                        AudioType.NOT_ARCHIVED,
-                                        db_chat.get_chat_scores(),
-                                        thumbs,
-                                    )
-                                    logger.error(f"Message `{new_message.id}` from chat `{new_message.chat.id}` has content protection enabled!")
+                                thumbs = await get_audio_thumbnail_vertices(db, telegram_client, new_message)
+                                await db.update_or_create_audio(
+                                    new_message,
+                                    telegram_client.telegram_id,
+                                    source_chat_id,
+                                    AudioType.NOT_ARCHIVED,
+                                    db_chat.get_chat_scores(),
+                                    thumbs,
+                                )
+                                logger.error(f"Message `{new_message.id}` from chat `{new_message.chat.id}` has content protection enabled!")
                         else:
                             forwardable_messages.append(new_message)
                     else:
@@ -396,16 +388,15 @@ class ForwardMessageTask(BaseTask):
 
                         from tase.common.utils import get_audio_thumbnail_vertices
 
-                        thumbs, successful = await get_audio_thumbnail_vertices(db, telegram_client, new_message)
-                        if successful:
-                            await db.update_or_create_audio(
-                                new_message,
-                                telegram_client.telegram_id,
-                                source_chat_id,
-                                AudioType.NOT_ARCHIVED,
-                                db_chat.get_chat_scores(),
-                                thumbs,
-                            )
+                        thumbs = await get_audio_thumbnail_vertices(db, telegram_client, new_message)
+                        await db.update_or_create_audio(
+                            new_message,
+                            telegram_client.telegram_id,
+                            source_chat_id,
+                            AudioType.NOT_ARCHIVED,
+                            db_chat.get_chat_scores(),
+                            thumbs,
+                        )
 
         return forwardable_messages, non_forwardable_message_count
 

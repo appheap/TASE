@@ -121,11 +121,7 @@ class BaseHandler(BaseModel):
         messages = [(message, chat_id) for sub_messages_list, chat_id in messages_list if sub_messages_list for message in sub_messages_list if message]
         if messages:
             for message, chat_id in messages:
-                thumbs, successful = await get_audio_thumbnail_vertices(self.db, self.telegram_client, message)
-
-                if not successful:
-                    continue
-
+                thumbs = await get_audio_thumbnail_vertices(self.db, self.telegram_client, message)
                 await self.db.update_or_create_audio(
                     message,
                     self.telegram_client.telegram_id,
@@ -222,9 +218,7 @@ class BaseHandler(BaseModel):
                 logger.error("could not get the audio from telegram servers, what to do now?")
                 return chat, None
 
-            thumbnail_vertices, successful = await get_audio_thumbnail_vertices(self.db, self.telegram_client, messages)
-            if not successful:
-                return chat, None
+            thumbnail_vertices = await get_audio_thumbnail_vertices(self.db, self.telegram_client, messages)
 
             # update the audio in all databases
             await self.db.update_or_create_audio(

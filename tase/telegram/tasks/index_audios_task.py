@@ -148,13 +148,7 @@ class IndexAudiosTask(BaseTask):
                     if audio is None or audio_type == TelegramAudioType.NON_AUDIO:
                         continue
 
-                thumbs, successful = await get_audio_thumbnail_vertices(db, telegram_client, message)
-                if not successful:
-                    await self.task_failed(db)
-                    logger.error("Could not upload audio thumbnails!")
-
-                    return False
-
+                thumbs = await get_audio_thumbnail_vertices(db, telegram_client, message)
                 successful = await db.update_or_create_audio(
                     message,
                     telegram_client.telegram_id,

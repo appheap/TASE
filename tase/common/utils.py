@@ -450,7 +450,7 @@ async def get_audio_thumbnail_vertices(
     db: "DatabaseClient",
     telegram_client: "TelegramClient",
     message_or_messages: Union[List[pyrogram.types.Message], pyrogram.types.Message],
-) -> Tuple[Optional[Deque["graph_models.vertices.Thumbnail"]], bool]:
+) -> Deque["graph_models.vertices.Thumbnail"]:
     """
     Upload thumbnails of the audio files if it has any and store them in the database.
 
@@ -465,25 +465,25 @@ async def get_audio_thumbnail_vertices(
 
     Returns
     -------
-    Tuple
-        A tuple of **Thumbnail** vertices and whether the operation was successful or not.
+    Deque
+       A Deque of **Thumbnail** vertices.
 
     """
     if not db or not telegram_client or not message_or_messages:
-        return collections.deque(), False
+        return collections.deque()
 
     if isinstance(message_or_messages, list):
         _telegram_thumbs = message_or_messages[0].audio.thumbs if message_or_messages[0].audio and message_or_messages[0].audio.thumbs else []
 
         if not message_or_messages[0].audio:
-            return collections.deque(), False
+            return collections.deque()
 
         file_unique_id = message_or_messages[0].audio.file_unique_id
     else:
         _telegram_thumbs = message_or_messages.audio.thumbs if message_or_messages.audio and message_or_messages.audio.thumbs else []
 
         if not message_or_messages.audio:
-            return collections.deque(), False
+            return collections.deque()
 
         file_unique_id = message_or_messages.audio.file_unique_id
 
@@ -534,6 +534,6 @@ async def get_audio_thumbnail_vertices(
             await thumb_document.delete()
 
         logger.error("Could not upload audio thumbnails!")
-        return None, False
+        return collections.deque()
 
-    return thumbnail_vertices, True
+    return thumbnail_vertices
