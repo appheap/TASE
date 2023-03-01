@@ -459,7 +459,7 @@ class AudioInteractionMethods:
         else:
             # An interaction is created only if the status of the interaction is `is_active` and the `create_if_not_exists` parameter has been set to `True`.
             if create_if_not_exists:
-                if not is_active:
+                if is_active is False:
                     return False, False
 
                 # user has not interacted with the audio or playlist, create the interaction

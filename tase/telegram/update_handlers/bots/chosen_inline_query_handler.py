@@ -93,6 +93,22 @@ class ChosenInlineQueryHandler(BaseHandler):
                 logger.error("Could not create the `interaction_vertex` vertex:")
                 logger.error(chosen_inline_result)
 
+            # try:
+            #     audio_vertex = await self.db.graph.get_audio_from_hit_download_url(inline_item_info.hit_download_url)
+            #     thumb_doc = await self.db.document.get_thumbnail_doc_by_archive_message_info(
+            #         self.telegram_client.telegram_id,
+            #         audio_vertex.archive_chat_id,
+            #         audio_vertex.archive_message_id,
+            #     )
+            #     if thumb_doc:
+            #         await client.edit_inline_media(
+            #                 chosen_inline_result.inline_message_id,
+            #                 # InputMediaPhoto("AgACAgQAAx0CcA-0oQADCGPSUoTIJZeJmJQ65oAQ_N66MMcdAALZujEbNzqRUiY2iRARlVvvAAgBAAMCAANzAAceBA"),
+            #                 InputMediaPhoto(thumb_doc.photo_file_id),
+            #         )
+            # except Exception as e:
+            #     logger.exception(e)
+
             # update the keyboard markup of the downloaded audio
             # await self.update_audio_keyboard_markup(
             #     client,
