@@ -122,6 +122,9 @@ class Audio(BaseDocument):
     file_size: int
     date: int
 
+    thumbnail_archive_chat_id: Optional[int]
+    thumbnails: Optional[List[int]]
+
     hashtags: List[str] = Field(default_factory=list)
 
     views: int = Field(default=0)
@@ -208,6 +211,7 @@ class Audio(BaseDocument):
         chat_id: int,
         audio_type: AudioType,
         chat_scores: ChatScores,
+        audio_thumbnails: Optional[Deque[graph_models.vertices.Thumbnail]],
     ) -> Optional[Audio]:
         """
         Parse an `Audio` from the given `telegram_message` argument.
@@ -222,6 +226,8 @@ class Audio(BaseDocument):
             Type of the audio.
         chat_scores : ChatScores
             Scores of the parent chat.
+        audio_thumbnails : Deque of Thumbnail, optional
+            Deque of `Thumbnail` objects.
 
         Returns
         -------
@@ -278,6 +284,8 @@ class Audio(BaseDocument):
             mime_type=audio.mime_type,
             file_size=audio.file_size,
             date=datetime_to_timestamp(audio.date),
+            thumbnail_archive_chat_id=audio_thumbnails[0].archive_chat_id if audio_thumbnails else None,
+            thumbnails=[thumb.archive_message_id for thumb in audio_thumbnails] if audio_thumbnails else None,
             ########################################
             views=telegram_message.views or 0,
             valid_for_inline_search=valid_for_inline,
@@ -456,7 +464,18 @@ class Audio(BaseDocument):
         if self.type == AudioType.NOT_ARCHIVED:
             return parse_audio_document_key_from_raw_attributes(telegram_client_id, self.chat_id, self.message_id, self.file_unique_id)
         else:
-            return parse_audio_document_key_from_raw_attributes(telegram_client_id, self.archive_chat_id, self.archive_message_id, self.file_unique_id)
+            return parse_audio_document_key_from_raw_attributes(
+                telegram_client_id,
+                self.archive_chat_id,
+                self.archive_message_id,
+                self.file_unique_id,
+            )
+
+    def get_thumb_telegram_url(self) -> str:
+        if self.thumbnails:
+            return f"https://t.me/adgjlmbczqeyip/{self.thumbnails[0]}"
+
+        return "https://telegra.ph/file/764498c89f7f1bea502d5.png"
 
     @classmethod
     async def search_by_download_url(
@@ -682,6 +701,7 @@ class AudioMethods:
         chat_id: int,
         audio_type: AudioType,
         chat_scores: ChatScores,
+        audio_thumbnails: Optional[Deque[graph_models.vertices.Thumbnail]],
     ) -> Optional[Audio]:
         """
         Create Audio document in the ElasticSearch.
@@ -696,6 +716,8 @@ class AudioMethods:
             Type of the audio.
         chat_scores : ChatScores
             Scores of the parent chat.
+        audio_thumbnails : Deque of Thumbnail, optional
+            Deque of `Thumbnail` objects.
 
         Returns
         -------
@@ -704,7 +726,7 @@ class AudioMethods:
 
         """
         try:
-            audio, successful = await Audio.create(Audio.parse(telegram_message, chat_id, audio_type, chat_scores))
+            audio, successful = await Audio.create(Audio.parse(telegram_message, chat_id, audio_type, chat_scores, audio_thumbnails))
         except TelegramMessageWithNoAudio:
             # this message doesn't contain any valid audio file
             await self.mark_old_audios_as_deleted(
@@ -776,6 +798,7 @@ class AudioMethods:
         chat_id: int,
         audio_type: AudioType,
         chat_scores: ChatScores,
+        audio_thumbnails: Optional[Deque[graph_models.vertices.Thumbnail]],
     ) -> Optional[Audio]:
         """
         Update Audio document in the ElasticSearch if it exists, otherwise, create it.
@@ -790,6 +813,8 @@ class AudioMethods:
             Type of the audio.
         chat_scores : ChatScores
             Scores of the parent chat.
+        audio_thumbnails : Deque of Thumbnail, optional
+            Deque of `Thumbnail` objects.
 
         Returns
         -------
@@ -812,7 +837,7 @@ class AudioMethods:
         else:
             if audio is None:
                 # audio does not exist in the index, create it
-                audio = await self.create_audio(telegram_message, chat_id, audio_type, chat_scores)
+                audio = await self.create_audio(telegram_message, chat_id, audio_type, chat_scores, audio_thumbnails)
                 if audio:
                     await self.mark_old_audios_as_deleted(
                         chat_id=chat_id,
@@ -821,7 +846,7 @@ class AudioMethods:
                     )
             else:
                 # the type of the audio after update is not changed. So, the previous type is used for updating the current one.
-                if await audio.update(Audio.parse(telegram_message, chat_id, audio.type, chat_scores)):
+                if await audio.update(Audio.parse(telegram_message, chat_id, audio.type, chat_scores, audio_thumbnails)):
                     # get older valid audio docs to process
                     await self.mark_old_audios_as_deleted(
                         chat_id=chat_id,
@@ -830,6 +855,12 @@ class AudioMethods:
                     )
 
         return audio
+
+    def __getattr__(self, item):
+        if item in ("thumbnail_archive_chat_id", "thumbnails"):
+            return None
+
+        raise AttributeError
 
     async def get_audio_by_id(
         self,

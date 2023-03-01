@@ -81,6 +81,40 @@ def parse_audio_key(
     return f"{chat_id}:{telegram_message.id}:{audio.file_unique_id}"
 
 
+def parse_thumbnail_key(archive_chat_id: int, archive_message_id: int) -> Optional[str]:
+    if archive_chat_id is None or archive_message_id is None:
+        return None
+
+    return f"{archive_chat_id}:{archive_message_id}"
+
+
+def parse_thumbnail_document_key(
+    telegram_client_id: int,
+    archive_chat_id: int,
+    archive_message_id: int,
+) -> Optional[str]:
+    """
+    Parse the thumbnail document key from the given arguments.
+
+    Parameters
+    ----------
+    telegram_client_id : int
+        ID of the telegram client uploading this thumbnail.
+    archive_chat_id : int
+        ID of the chat this thumbnail message is archived in.
+    archive_message_id :
+        ID of the message this thumbnail message is archived in.
+
+    Returns
+    -------
+    str, optional
+        Parsed key of the thumbnail document.
+    """
+    if telegram_client_id is None or archive_chat_id is None or archive_message_id is None:
+        return None
+    return f"{telegram_client_id}:{archive_chat_id}:{archive_message_id}"
+
+
 def parse_audio_document_key(
     telegram_client_id: int,
     chat_id: int,

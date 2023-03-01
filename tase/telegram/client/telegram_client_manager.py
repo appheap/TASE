@@ -60,15 +60,15 @@ class TelegramClientManager(mp.Process):
             )
             # set the archive channel info for the client
             telegram_client.archive_channel_info = self.config.archive_channel_info
+            telegram_client.thumbnail_archive_channel_info = self.config.thumbnail_archive_channel_info
+
+            await telegram_client.start()
 
             self.clients.append(telegram_client)
-
             if isinstance(telegram_client, UserTelegramClient):
                 self.users.append(telegram_client)
             else:
                 self.bots.append(telegram_client)
-
-            await telegram_client.start()
 
             await telegram_client.set_bot_commands(self.db.graph.get_bot_commands_list_for_telegram(await self.db.graph.get_admins_and_owners()))
 

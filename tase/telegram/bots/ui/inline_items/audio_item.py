@@ -147,7 +147,7 @@ class AudioItem(BaseInlineItem):
                 id=result_id,
                 title=f"‎{title}‎",  # todo: set the direction based on the given query.
                 description=description,
-                thumb_url="https://telegra.ph/file/764498c89f7f1bea502d5.png",
+                thumb_url=audio.get_thumb_telegram_url(),
                 input_message_content=InputTextMessageContent(  # todo: add a task to delete this message after the downloaded audio has been sent.
                     f"/dl_{hit_download_url}" if send_download_url else f"{emoji._clock_emoji}",
                     disable_web_page_preview=True,
@@ -161,7 +161,7 @@ class AudioItem(BaseInlineItem):
                 id=result_id,
                 title=f"‎{title}‎",
                 description=description,
-                thumb_url="https://telegra.ph/file/764498c89f7f1bea502d5.png",
+                thumb_url=audio.get_thumb_telegram_url(),
                 input_message_content=InputTextMessageContent(
                     BaseTemplate.registry.audio_caption_template.render(
                         AudioCaptionData.parse_from_audio(

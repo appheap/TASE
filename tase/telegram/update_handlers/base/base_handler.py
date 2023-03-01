@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from pyrogram.enums import ParseMode
 from pyrogram.errors import ChannelInvalid
 
-from tase.common.utils import _trans, async_timed
+from tase.common.utils import _trans, async_timed, get_audio_thumbnail_vertices
 from tase.db.arangodb import graph as graph_models, document as document_models
 from tase.db.arangodb.enums import TelegramAudioType, ChatType, AudioType, AudioInteractionType, PlaylistInteractionType, HitMetadataType
 from tase.db.arangodb.helpers import AudioKeyboardStatus
@@ -48,6 +48,18 @@ class BaseHandler(BaseModel):
         """
         if not db_audios:
             return {}, collections.deque()
+
+        temp = collections.deque()
+        temp_keys = collections.deque()
+        for db_audio in db_audios:
+            if db_audio.key in temp_keys:
+                continue
+
+            temp_keys.append(db_audio.key)
+            temp.append(db_audio)
+
+        db_audios.clear()
+        db_audios.extend(temp)
 
         chat_msg = defaultdict(set)
         chats_dict: Dict[int, graph_models.vertices.Chat] = {}
@@ -105,18 +117,16 @@ class BaseHandler(BaseModel):
 
         messages = [(message, chat_id) for sub_messages_list, chat_id in messages_list if sub_messages_list for message in sub_messages_list if message]
         if messages:
-            await asyncio.gather(
-                *(
-                    self.db.update_or_create_audio(
-                        message,
-                        self.telegram_client.telegram_id,
-                        chat_id,
-                        AudioType.NOT_ARCHIVED,
-                        chats_dict[chat_id].get_chat_scores(),
-                    )
-                    for message, chat_id in messages
+            for message, chat_id in messages:
+                thumbs = await get_audio_thumbnail_vertices(self.db, self.telegram_client, message)
+                await self.db.update_or_create_audio(
+                    message,
+                    self.telegram_client.telegram_id,
+                    chat_id,
+                    AudioType.NOT_ARCHIVED,
+                    chats_dict[chat_id].get_chat_scores(),
+                    thumbs,
                 )
-            )
 
         return chats_dict, invalid_audio_keys
 
@@ -205,6 +215,8 @@ class BaseHandler(BaseModel):
                 logger.error("could not get the audio from telegram servers, what to do now?")
                 return chat, None
 
+            thumbnail_vertices = await get_audio_thumbnail_vertices(self.db, self.telegram_client, messages)
+
             # update the audio in all databases
             await self.db.update_or_create_audio(
                 messages[0],
@@ -212,6 +224,7 @@ class BaseHandler(BaseModel):
                 audio_vertex.chat_id,
                 AudioType.NOT_ARCHIVED,
                 chat.get_chat_scores(),
+                thumbnail_vertices,
             )
 
             audio, audio_type = get_telegram_message_media_type(messages[0])

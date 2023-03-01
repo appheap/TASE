@@ -185,6 +185,7 @@ class AddToPlaylistInlineButton(InlineButton):
                                 inline_item_info.chat_type,
                                 AudioInteractionType.ADD_TO_PUBLIC_PLAYLIST if chosen_playlist.is_public else AudioInteractionType.ADD_TO_PRIVATE_PLAYLIST,
                                 playlist_key=playlist_key,
+                                create_if_not_exists=True,
                                 is_active=True,
                             )
 

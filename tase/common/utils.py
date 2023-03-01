@@ -8,14 +8,17 @@ import time
 from collections import OrderedDict
 from datetime import datetime
 from functools import wraps
-from typing import Optional, List, Tuple, Dict, Match, Union, Callable, Any
+from typing import Optional, List, Tuple, Dict, Match, Union, Callable, Any, Deque
 
 import arrow
 import psutil
+import pyrogram
 import tomli
 from pydantic import BaseModel
 
 from tase.common.preprocessing import clean_hashtag, hashtags_regex, is_non_digit
+
+# from tase.db.arangodb import graph as graph_models, document as document_models
 from tase.db.arangodb.enums import MentionSource
 from tase.errors import NotEnoughRamError
 from tase.languages import Language, Languages
@@ -441,3 +444,96 @@ def group_list_by_step(
     step: int = 100,
 ) -> List[List[Any]]:
     return [l[i : i + step] for i in range(0, len(l), step)]
+
+
+async def get_audio_thumbnail_vertices(
+    db: "DatabaseClient",
+    telegram_client: "TelegramClient",
+    message_or_messages: Union[List[pyrogram.types.Message], pyrogram.types.Message],
+) -> Deque["graph_models.vertices.Thumbnail"]:
+    """
+    Upload thumbnails of the audio files if it has any and store them in the database.
+
+    Parameters
+    ----------
+    db : DatabaseClient
+        Database client to use for creating the objects.
+    telegram_client : TelegramClient
+        Telegram client that is uploading the audio thumbnails.
+    message_or_messages : list of pyrogram.types.Message or pyrogram.types.Message
+        Telegram message or a list of telegram messages.
+
+    Returns
+    -------
+    Deque
+       A Deque of **Thumbnail** vertices.
+
+    """
+    if not db or not telegram_client or not message_or_messages:
+        return collections.deque()
+
+    if isinstance(message_or_messages, list):
+        _telegram_thumbs = message_or_messages[0].audio.thumbs if message_or_messages[0].audio and message_or_messages[0].audio.thumbs else []
+
+        if not message_or_messages[0].audio:
+            return collections.deque()
+
+        file_unique_id = message_or_messages[0].audio.file_unique_id
+    else:
+        _telegram_thumbs = message_or_messages.audio.thumbs if message_or_messages.audio and message_or_messages.audio.thumbs else []
+
+        if not message_or_messages.audio:
+            return collections.deque()
+
+        file_unique_id = message_or_messages.audio.file_unique_id
+
+    from tase.db.arangodb import graph as graph_models, document as document_models
+
+    thumbs_upload_failed = False
+    uploaded_photos: Deque[pyrogram.types.Message] = collections.deque()
+    thumbnail_vertices: Deque[graph_models.vertices.Thumbnail] = collections.deque()
+    thumbnail_documents: Deque[document_models.Thumbnail] = collections.deque()
+
+    for thumb_idx, telegram_thumbnail in enumerate(_telegram_thumbs):
+        thumb_vertex = await db.graph.get_thumbnail(telegram_thumbnail)
+        if thumb_vertex:
+            thumbnail_vertices.append(thumb_vertex)
+            continue
+
+        thumbnail_binary_file = await telegram_client._client.download_media(telegram_thumbnail.file_id, in_memory=True)
+        if thumbnail_binary_file:
+            uploaded_photo_message = await telegram_client._client.send_photo(
+                telegram_client.thumbnail_archive_channel_info.chat_id,
+                thumbnail_binary_file,
+                caption=f"audio_file_unique_id: {file_unique_id}\n\n" f"thumb_file_unique_id: {telegram_thumbnail.file_unique_id}\n",
+            )
+            if uploaded_photo_message:
+                uploaded_photos.append(uploaded_photo_message)
+
+                thumb_vertex, thumb_document = await db.get_or_create_thumbnail(
+                    telegram_client.telegram_id,
+                    telegram_thumbnail,
+                    uploaded_photo_message,
+                )
+                if thumb_vertex and thumb_document:
+                    thumbnail_vertices.append(thumb_vertex)
+                    thumbnail_documents.append(thumb_document)
+                else:
+                    thumbs_upload_failed = True
+            else:
+                thumbs_upload_failed = True
+        else:
+            thumbs_upload_failed = True
+
+    if thumbs_upload_failed:
+        for uploaded_photo_message in uploaded_photos:
+            await uploaded_photo_message.delete()
+
+        for thumb_vertex, thumb_document in zip(thumbnail_vertices, thumbnail_documents):
+            await thumb_vertex.delete()
+            await thumb_document.delete()
+
+        logger.error("Could not upload audio thumbnails!")
+        return collections.deque()
+
+    return thumbnail_vertices

@@ -14,3 +14,4 @@ class TASEConfig(BaseConfig):
     pyrogram_config: PyrogramConfig
     clients_config: List[ClientConfig]
     archive_channel_info: Optional[ArchiveChannelInfo]
+    thumbnail_archive_channel_info: Optional[ArchiveChannelInfo]
