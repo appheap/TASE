@@ -11,6 +11,25 @@ from ...db_utils import parse_thumbnail_document_key
 
 
 class Thumbnail(BaseDocument):
+    """
+    Represents the information about the thumbnail of an audio file.
+
+    Attributes
+    ----------
+    telegram_client_id : int
+        ID of the telegram client that uploaded this thumbnail photo.
+    thumbnail_file_unique_id : str
+        File unique ID of the original thumbnail.
+    photo_file_unique_id : str
+        File unique ID of the uploaded photo.
+    photo_file_id : str
+        ID of the uploaded thumbnail which is used for accessing it on telegram servers.
+    archive_chat_id : int
+        ID of the chat where the photo was uploaded.
+    archive_message_id : int
+        ID of the message which the photo belongs to.
+    """
+
     __collection_name__ = "doc_thumbnails"
     schema_version = 1
     __indexes__ = [
