@@ -73,9 +73,9 @@ async def populate_playlist_list(
         )
     )
 
-    user_playlist_count = await handler.db.graph.get_user_playlists_count(from_user)
+    private_user_playlist_count = await handler.db.graph.get_user_playlists_count(from_user, is_public=False)
 
-    if result.is_first_page() and user_playlist_count < 11:
+    if result.is_first_page() and private_user_playlist_count < 11:
         # a total number of 10 playlists is allowed for each user (favorite playlist excluded)
         result.add_item(
             CreateNewPrivatePlaylistItem.get_item(
