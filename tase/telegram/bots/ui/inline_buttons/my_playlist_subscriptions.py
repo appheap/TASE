@@ -67,9 +67,9 @@ class MyPlaylistSubscriptionsInlineButton(InlineButton):
             offset=result.from_,
         )
 
-        user_playlist_count = await handler.db.graph.get_user_playlists_count(from_user)
+        public_user_playlist_count = await handler.db.graph.get_user_playlists_count(from_user, is_public=True)
 
-        if result.is_first_page() and chat_type == ChatType.BOT and user_playlist_count < 15:
+        if result.is_first_page() and chat_type == ChatType.BOT and public_user_playlist_count < 10:
             # a total number of 10 private playlists is allowed for each user (favorite playlist excluded)
             from tase.telegram.bots.ui.inline_items import CreateNewPublicPlaylistItem
 

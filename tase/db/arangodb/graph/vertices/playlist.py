@@ -213,6 +213,7 @@ class PlaylistMethods:
 
     _get_user_playlists_count_query = (
         "for v,e in 1..1 outbound @start_vertex graph @graph_name options {order:'dfs', edgeCollections:[@has],vertexCollections:[@playlists]}"
+        "   filter v.is_public == @is_public"
         "   COLLECT WITH COUNT INTO playlist_count"
         "   return playlist_count"
     )
@@ -1084,6 +1085,7 @@ class PlaylistMethods:
     async def get_user_playlists_count(
         self,
         user: User,
+        is_public: bool = True,
     ) -> int:
         """
         Get `User` playlists count.
@@ -1091,12 +1093,14 @@ class PlaylistMethods:
         Parameters
         ----------
         user : User
-            User to get playlist list for
+            User to count the playlists for.
+        is_public : bool, default : True
+            Whether to query the public playlists or private playlists.
 
         Returns
-        ------
+        -------
         int
-            Number of Playlists that the given user has
+            Number of Playlists the given user has.
 
         """
         if user is None:
@@ -1110,6 +1114,7 @@ class PlaylistMethods:
                 "start_vertex": user.id,
                 "has": Has.__collection_name__,
                 "playlists": Playlist.__collection_name__,
+                "is_public": is_public,
             },
         ) as cursor:
             async for doc in cursor:
