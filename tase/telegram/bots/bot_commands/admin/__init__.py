@@ -5,6 +5,7 @@ from .demote_user_command import DemoteUserCommand
 from .extract_usernames_command import ExtractUsernamesCommand
 from .index_channel_command import IndexChannelCommand
 from .promote_user_command import PromoteUserCommand
+from .reindex_channel_command import ReIndexChannelCommand
 from .shutdown_command import ShutdownCommand
 
 __all__ = [
@@ -15,5 +16,6 @@ __all__ = [
     "ExtractUsernamesCommand",
     "IndexChannelCommand",
     "PromoteUserCommand",
+    "ReIndexChannelCommand",
     "ShutdownCommand",
 ]
