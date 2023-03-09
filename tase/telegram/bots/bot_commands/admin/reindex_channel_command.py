@@ -6,13 +6,13 @@ from tase.common.preprocessing import find_telegram_usernames
 from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.graph.vertices.user import UserRole
 from tase.errors import NotEnoughRamError
-from tase.telegram.tasks import AddChannelTask, ReIndexAudiosTask
+from tase.telegram.tasks import AddChannelTask, ReindexAudiosTask
 from tase.telegram.update_handlers.base import BaseHandler
 from ..base_command import BaseCommand
 from ..bot_command_type import BotCommandType
 
 
-class ReIndexChannelCommand(BaseCommand):
+class ReindexChannelCommand(BaseCommand):
     """
     Reindex a public channel based on its username.
     """
@@ -39,7 +39,7 @@ class ReIndexChannelCommand(BaseCommand):
         chat = await handler.db.graph.get_chat_by_username(channel_username)
         if chat:
             try:
-                status, created = await ReIndexAudiosTask(kwargs={"chat_key": chat.key}).publish(handler.db)
+                status, created = await ReindexAudiosTask(kwargs={"chat_key": chat.key}).publish(handler.db)
             except NotEnoughRamError:
                 await message.reply_text(
                     f"Reindexing audio file from chat `{chat.title}` was cancelled due to high memory usage",

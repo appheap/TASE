@@ -17,7 +17,7 @@ from tase.telegram.client import TelegramClient
 from tase.telegram.client.client_worker import RabbitMQConsumer
 
 
-class ReIndexAudiosTask(BaseTask):
+class ReindexAudiosTask(BaseTask):
     target_worker_type = TargetWorkerType.ANY_TELEGRAM_CLIENTS_CONSUMER_WORK
     type = RabbitMQTaskType.REINDEX_AUDIOS_TASK
     priority = 3
