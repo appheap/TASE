@@ -25,6 +25,8 @@ class BotCommandType(Enum):
     PROMOTE_USER = "promote_user"
     DEMOTE_USER = "demote_user"
     INDEX_CHANNEL = "index_channel"
+    REINDEX_CHANNEL = "reindex_channel"
+    REINDEX_CHANNELS = "reindex_all_channels"
     SHUTDOWN_SYSTEM = "shutdown_system"
     CHECK_BOT_STATUS = "check_status"
     EXTRACT_USERNAMES = "extract_usernames"
