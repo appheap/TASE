@@ -733,6 +733,7 @@ class AudioMethods:
         else:
             if audio and successful:
                 from tase.db.arangodb.graph.edges import HasHashtag
+                from tase.db.arangodb.graph.edges import Has
 
                 audio: Audio = audio
                 try:
@@ -740,6 +741,10 @@ class AudioMethods:
                 except ValueError:
                     pass
                 else:
+                    for thumbnail in audio_thumbnails:
+                        if not await Has.get_or_create_edge(audio, thumbnail):
+                            raise EdgeCreationFailed(Has.__class__.__name__)
+
                     for hashtag, start_index, mention_source in hashtags:
                         hashtag_vertex = await self.get_or_create_hashtag(hashtag)
 
@@ -924,6 +929,9 @@ class AudioMethods:
                         message_id=audio.message_id,
                         excluded_key=audio.key,
                     )
+
+                    await self.update_connected_thumbnails(audio, audio_thumbnails)
+
             else:
                 # audio vertex does not exist in the database, create it.
                 audio = await self.create_audio(telegram_message, chat_id, audio_type, chat_scores, audio_thumbnails)

@@ -14,6 +14,7 @@ from ..vertices import (
     Username,
     Chat,
     PlaylistInteraction,
+    Thumbnail,
 )
 
 
@@ -39,6 +40,7 @@ class Has(BaseEdge):
         Keyword,
         AudioInteraction,
         Username,
+        Thumbnail,
     )
 
     @classmethod
