@@ -5,6 +5,7 @@ from itertools import chain
 from typing import Optional, Tuple, Deque, List
 
 import pyrogram
+from decouple import config
 from elastic_transport import ObjectApiResponse
 from pydantic import Field
 
@@ -473,7 +474,7 @@ class Audio(BaseDocument):
 
     def get_thumb_telegram_url(self) -> str:
         if self.thumbnails:
-            return f"https://t.me/adgjlmbczqeyip/{self.thumbnails[0]}"
+            return f"https://t.me/{config('THUMBNAIL_ARCHIVE_CHANNEL_USERNAME')}/{self.thumbnails[0]}"
 
         return "https://telegra.ph/file/764498c89f7f1bea502d5.png"
 
