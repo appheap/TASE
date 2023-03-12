@@ -528,35 +528,6 @@ async def download_audio_thumbnails(
             if not thumbnail_file_document:
                 thumbs_download_failed = True
                 break
-
-            # try:
-            #     uploaded_photo_message = await telegram_client._client.send_photo(
-            #         telegram_client.thumbnail_archive_channel_info.chat_id,
-            #         downloaded_thumb_file_path,
-            #         caption=f"audio_file_unique_id: {file_unique_id}\n\n" f"thumb_file_unique_id: {telegram_thumbnail.file_unique_id}\n",
-            #     )
-            # except Exception as e:
-            #     await revert_actions()
-            #     raise e
-            # else:
-            #     wait_time = random.randint(3, 7) + random.randint(1, 3)
-            #     logger.debug(f"Sleeping for {wait_time} seconds after uploading thumbnail photo...")
-            #     await asyncio.sleep(wait_time)
-            #
-            #     if uploaded_photo_message:
-            #
-            #         thumb_vertex, thumb_document = await db.get_or_create_thumbnail(
-            #             telegram_client.telegram_id,
-            #             telegram_thumbnail,
-            #             uploaded_photo_message,
-            #         )
-            #         if thumb_vertex and thumb_document:
-            #             thumbnail_vertices.append(thumb_vertex)
-            #             thumbnail_documents.append(thumb_document)
-            #         else:
-            #             thumbs_download_failed = True
-            #     else:
-            #         thumbs_download_failed = True
         else:
             thumbs_download_failed = True
 

@@ -11,6 +11,7 @@ from .dummy_job import DummyJob
 from .extract_usernames_job import ExtractUsernamesJob
 from .forward_audios_job import ForwardAudiosJob
 from .index_audios_job import IndexAudiosJob
+from .upload_audio_thumbnails_job import UploadAudioThumbnailsJob
 
 __all__ = [
     "BaseJob",
@@ -24,4 +25,5 @@ __all__ = [
     "ExtractUsernamesJob",
     "ForwardAudiosJob",
     "IndexAudiosJob",
+    "UploadAudioThumbnailsJob",
 ]

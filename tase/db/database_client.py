@@ -205,7 +205,7 @@ class DatabaseClient:
         """
         Remove the `Playlist` with the given `playlist_key` and return whether the deletion was successful or not.
 
-        This method deleted the playlist from both `ArangoDB` and `ElasticSearch`.
+        This method deletes the playlist from both `ArangoDB` and `ElasticSearch`.
 
         Parameters
         ----------
@@ -219,7 +219,7 @@ class DatabaseClient:
         Raises
         ------
         PlaylistDoesNotExists
-            If the user does not have a playlist with the given `playlist_key` parameter
+            If the user does not have a playlist with the given `playlist_key` parameter.
 
         Returns
         -------

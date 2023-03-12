@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import collections
 import hashlib
-from typing import Optional
+from typing import Optional, Deque
 
 import pyrogram
 from pydantic import Field
@@ -105,6 +106,46 @@ class ThumbnailFile(BaseDocument):
 
 
 class ThumbnailFileMethods:
+    _get_unchecked_thumbnail_files = (
+        "for doc in @@thumbnail_docs" "   filter doc.is_checked == false" "   sort doc.created_at asc" "   limit @skip, @size" "   return doc"
+    )
+
+    async def get_unchecked_thumbnail_files(
+        self,
+        from_: int = 0,
+        size: int = 500,
+    ) -> Deque[ThumbnailFile]:
+        """
+        Get unchecked thumbnail files that need to be uploaded.
+
+        Parameters
+        ----------
+        from_ : int, default : 0
+            Number of items to skip.
+        size : int, default : 500
+            Number of items to get.
+
+        Returns
+        -------
+        Deque of ThumbnailFile
+            A deque of unchecked thumbnail files.
+
+        """
+        res = collections.deque()
+        async with await ThumbnailFile.execute_query(
+            self._get_unchecked_thumbnail_files,
+            bind_vars={
+                "@thumbnail_docs": ThumbnailFile.__collection_name__,
+                "skip": from_,
+                "size": size,
+            },
+            stream=True,
+        ) as cursor:
+            async for doc in cursor:
+                res.append(ThumbnailFile.from_collection(doc))
+
+        return res
+
     async def get_thumbnail_file_document(
         self,
         chat_id: int,
@@ -120,6 +161,12 @@ class ThumbnailFileMethods:
                 index=index,
             )
         )
+
+    async def get_thumbnail_file_document_by_key(self, key: str) -> Optional[ThumbnailFile]:
+        if not key:
+            return None
+
+        return await ThumbnailFile.get(key)
 
     async def create_thumbnail_file_document(
         self,
