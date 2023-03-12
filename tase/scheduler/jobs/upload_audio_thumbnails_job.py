@@ -17,7 +17,7 @@ class UploadAudioThumbnailsJob(BaseJob):
 
     trigger = apscheduler.triggers.interval.IntervalTrigger(
         hours=1,
-        start_date=arrow.now().shift(seconds=+10).datetime,
+        start_date=arrow.now().shift(seconds=+15).datetime,
     )
 
     async def run(

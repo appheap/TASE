@@ -148,7 +148,6 @@ class IndexAudiosTask(BaseTask):
                     if audio is None or audio_type == TelegramAudioType.NON_AUDIO:
                         continue
 
-                await download_audio_thumbnails(db, telegram_client, message)
                 successful = await db.update_or_create_audio(
                     message,
                     telegram_client.telegram_id,
@@ -157,6 +156,7 @@ class IndexAudiosTask(BaseTask):
                     chat.get_chat_scores(),
                 )
                 if successful:
+                    await download_audio_thumbnails(db, telegram_client, message)
                     metadata.message_count += 1
 
                 if message.id > metadata.last_message_offset_id:

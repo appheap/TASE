@@ -37,6 +37,7 @@ from ...helpers import BitRateType
 
 if TYPE_CHECKING:
     from .. import ArangoGraphMethods
+    from .thumbnail_file import ThumbnailFile
 from ...enums import TelegramAudioType, MentionSource, AudioInteractionType, AudioType
 
 
@@ -480,6 +481,23 @@ class Audio(BaseVertex):
             check_for_revisions_match=False,
         )
 
+    async def update_thumbnails(self, thumbnail_file: ThumbnailFile) -> bool:
+        if not thumbnail_file:
+            return False
+
+        self_copy = self.copy(deep=True)
+        self_copy.thumbnail_archive_chat_id = thumbnail_file.archive_chat_id
+        if self_copy.thumbnails:
+            self_copy.thumbnails.append(thumbnail_file.archive_message_id)
+        else:
+            self_copy.thumbnails = [thumbnail_file.archive_message_id]
+
+        return await self.update(
+            self_copy,
+            reserve_non_updatable_fields=True,
+            check_for_revisions_match=False,
+        )
+
     @property
     def is_archived(self) -> bool:
         """
@@ -680,6 +698,14 @@ class AudioMethods:
         "for audio in @@audios"
         "   filter audio.chat_id == @chat_id and audio.is_deleted == false"
         "   update {_key: audio._key, is_deleted: true, modified_at : @modified_at, deleted_at: @deleted_at} in @@audios options {ignoreRevs: true}"
+    )
+
+    # todo: does it need to be streamed?
+    _get_audio_by_thumb_file_unique_id = (
+        "for thumbnail_vertex in @@thumbnails"
+        "   filter thumbnail_vertex.file_unique_id == @file_unique_id"
+        "   for audio_vertex in 1..1 inbound thumbnail_vertex graph @graph_name options {order: 'dfs', edgeCollections: [@has], vertexCollections: [@audios]}"
+        "       return audio_vertex"
     )
 
     async def create_audio(
@@ -1507,5 +1533,30 @@ class AudioMethods:
 
                 if group:
                     res.append(group)
+
+        return res
+
+    async def get_audio_files_by_thumbnail_file_unique_id(self, file_unique_id: str) -> Deque[Audio]:
+        if not file_unique_id:
+            return collections.deque()
+
+        from tase.db.arangodb.graph.edges import Has
+        from tase.db.arangodb.graph.vertices import Thumbnail
+
+        res = collections.deque()
+        async with await Audio.execute_query(
+            self._get_audio_by_thumb_file_unique_id,
+            bind_vars={
+                "@thumbnails": Thumbnail.__collection_name__,
+                "audios": Audio.__collection_name__,
+                "has": Has.__collection_name__,
+                "file_unique_id": file_unique_id,
+            },
+        ) as cursor:
+            async for audio_doc in cursor:
+                if not audio_doc:
+                    continue
+
+                res.append(Audio.from_collection(audio_doc))
 
         return res

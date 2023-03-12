@@ -118,7 +118,6 @@ class BaseHandler(BaseModel):
         messages = [(message, chat_id) for sub_messages_list, chat_id in messages_list if sub_messages_list for message in sub_messages_list if message]
         if messages:
             for message, chat_id in messages:
-                await download_audio_thumbnails(self.db, self.telegram_client, message)
                 await self.db.update_or_create_audio(
                     message,
                     self.telegram_client.telegram_id,
@@ -126,6 +125,7 @@ class BaseHandler(BaseModel):
                     AudioType.NOT_ARCHIVED,
                     chats_dict[chat_id].get_chat_scores(),
                 )
+                await download_audio_thumbnails(self.db, self.telegram_client, message)
 
         return chats_dict, invalid_audio_keys
 
@@ -214,8 +214,6 @@ class BaseHandler(BaseModel):
                 logger.error("could not get the audio from telegram servers, what to do now?")
                 return chat, None
 
-            await download_audio_thumbnails(self.db, self.telegram_client, messages)
-
             # update the audio in all databases
             await self.db.update_or_create_audio(
                 messages[0],
@@ -224,6 +222,7 @@ class BaseHandler(BaseModel):
                 AudioType.NOT_ARCHIVED,
                 chat.get_chat_scores(),
             )
+            await download_audio_thumbnails(self.db, self.telegram_client, messages)
 
             audio, audio_type = get_telegram_message_media_type(messages[0])
             if audio is None or audio_type == TelegramAudioType.NON_AUDIO:

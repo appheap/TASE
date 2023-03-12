@@ -29,7 +29,7 @@ class UploadAudioThumbnailTask(BaseTask):
             await self.task_failed(db)
             return
 
-        downloaded_thumb_file_path = f"downloads/{thumbnail_file_doc.file_name}"
+        downloaded_thumb_file_path = f"downloads/{thumbnail_file_doc.file_name}.jpg"
 
         try:
             uploaded_photo_message = await telegram_client._client.send_photo(
@@ -46,12 +46,15 @@ class UploadAudioThumbnailTask(BaseTask):
             await asyncio.sleep(wait_time)
 
             if uploaded_photo_message:
+                await thumbnail_file_doc.mark_as_checked()
+
                 await db.update_audio_thumbnails(
                     telegram_client.telegram_id,
                     thumbnail_file_doc.thumbnail_file_unique_id,
                     uploaded_photo_message,
                     thumbnail_file_doc.file_hash,
                 )
+
                 await self.task_done(db)
             else:
                 await self.task_failed(db)

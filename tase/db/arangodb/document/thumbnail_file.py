@@ -104,6 +104,15 @@ class ThumbnailFile(BaseDocument):
                 file_hash=hex_digest,
             )
 
+    async def mark_as_checked(self) -> bool:
+        self_copy = self.copy(deep=True)
+        self_copy.is_checked = True
+        return await self.update(
+            self_copy,
+            reserve_non_updatable_fields=False,
+            check_for_revisions_match=False,
+        )
+
 
 class ThumbnailFileMethods:
     _get_unchecked_thumbnail_files = (
@@ -167,6 +176,16 @@ class ThumbnailFileMethods:
             return None
 
         return await ThumbnailFile.get(key)
+
+    async def get_thumbnail_file_document_by_file_hash(self, file_hash: str) -> Optional[ThumbnailFile]:
+        if not file_hash:
+            return None
+
+        return await ThumbnailFile.find_one(
+            filters={
+                "file_hash": file_hash,
+            }
+        )
 
     async def create_thumbnail_file_document(
         self,

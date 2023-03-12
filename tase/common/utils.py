@@ -1,9 +1,8 @@
-import asyncio
 import collections
 import gettext
+import hashlib
 import json
 import os
-import random
 import re
 import secrets
 import time
@@ -22,7 +21,7 @@ from tase.common.preprocessing import clean_hashtag, hashtags_regex, is_non_digi
 
 # from tase.db.arangodb import graph as graph_models, document as document_models
 from tase.db.arangodb.enums import MentionSource
-from tase.errors import NotEnoughRamError
+from tase.errors import NotEnoughRamError, EdgeCreationFailed
 from tase.languages import Language, Languages
 from tase.my_logger import logger
 from tase.static import Emoji
@@ -508,26 +507,64 @@ async def download_audio_thumbnails(
             continue
 
         file_name = f"{message.chat.id}#{message.id}#{thumb_idx}"
-        downloaded_thumb_file_path = await telegram_client._client.download_media(
+        file_path = f"downloads/{file_name}.jpg"
+        binary_downloaded_thumb_file = await telegram_client._client.download_media(
             telegram_thumbnail.file_id,
-            file_name=f"downloads/{file_name}.jpg",
-            in_memory=False,
+            in_memory=True,
             block=True,
         )
-        if downloaded_thumb_file_path:
-            downloaded_photos.append(downloaded_thumb_file_path)
+        if binary_downloaded_thumb_file:
+            file_hash = hashlib.sha512(binary_downloaded_thumb_file.getbuffer()).hexdigest()
 
-            thumbnail_file_document = await db.document.get_or_create_thumbnail_file_document(
-                chat_id=message.chat.id,
-                message_id=message.id,
-                telegram_thumbnail=telegram_thumbnail,
-                telegram_audio=message.audio,
-                index=thumb_idx,
-                file_name=file_name,
-            )
-            if not thumbnail_file_document:
-                thumbs_download_failed = True
-                break
+            thumbnail_file_document = await db.document.get_thumbnail_file_document_by_file_hash(file_hash)
+            if thumbnail_file_document:
+                # This thumbnail already exists, so there is no need to upload the thumbnail again.
+                # However, the related audio and thumbnail vertices must be updated.
+                from tase.db.arangodb.graph.edges import Has
+
+                if thumbnail_file_document.is_checked:
+                    thumbnail_file = await db.graph.get_thumbnail_file_by_file_hash(thumbnail_file_document.file_hash)
+                    if thumbnail_file:
+                        thumbnail_vertices = await db.graph.get_thumbnails_by_file_unique_id(
+                            file_unique_id=telegram_thumbnail.file_unique_id,
+                            retrieve_all=True,
+                        )
+                        if thumbnail_vertices:
+                            for thumbnail_vertex in thumbnail_vertices:
+                                if not await Has.get_or_create_edge(thumbnail_vertex, thumbnail_file):
+                                    raise EdgeCreationFailed(Has.__class__.__name__)
+
+                                # Update the connected audio vertices only if the thumbnail file document is checked, which means it is uploaded.
+                                if thumbnail_file_document.is_checked and thumbnail_vertex.index == 0:
+                                    audio_vertices = await db.graph.get_audio_files_by_thumbnail_file_unique_id(file_unique_id=thumbnail_vertex.file_unique_id)
+                                    if audio_vertices:
+                                        for audio_vertex in audio_vertices:
+                                            if not await audio_vertex.update_thumbnails(thumbnail_file):
+                                                logger.error(f"Could not update audio vertex with key: `{audio_vertex.key}`")
+
+                                            es_audio_doc = await db.index.get_audio_by_id(audio_vertex.key)
+                                            if es_audio_doc:
+                                                if not await es_audio_doc.update_thumbnails(thumbnail_file):
+                                                    logger.error(f"Could not update es audio document with ID: `{es_audio_doc.id}`")
+                    else:
+                        logger.error(f"Could not find any `ThumbnailFile` with `file_hash`: `{thumbnail_file_document.file_hash}`")
+
+            else:
+                with open(file_path, "wb") as f:
+                    f.write(binary_downloaded_thumb_file.getbuffer())
+
+                downloaded_photos.append(file_path)
+                thumbnail_file_document = await db.document.get_or_create_thumbnail_file_document(
+                    chat_id=message.chat.id,
+                    message_id=message.id,
+                    telegram_thumbnail=telegram_thumbnail,
+                    telegram_audio=message.audio,
+                    index=thumb_idx,
+                    file_name=file_name,
+                )
+                if not thumbnail_file_document:
+                    thumbs_download_failed = True
+                    break
         else:
             thumbs_download_failed = True
 

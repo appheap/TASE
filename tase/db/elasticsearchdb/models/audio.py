@@ -691,8 +691,31 @@ class Audio(BaseDocument):
             retry_on_conflict=True,
         )
 
+    async def update_thumbnails(self, thumbnail_file: graph_models.vertices.ThumbnailFile) -> bool:
+        if not thumbnail_file:
+            return False
+
+        self_copy = self.copy(deep=True)
+        self_copy.thumbnail_archive_chat_id = thumbnail_file.archive_chat_id
+        if self_copy.thumbnails:
+            self_copy.thumbnails.append(thumbnail_file.archive_message_id)
+        else:
+            self_copy.thumbnails = [thumbnail_file.archive_message_id]
+
+        return await self.update(
+            self_copy,
+            reserve_non_updatable_fields=True,
+            retry_on_conflict=True,
+        )
+
 
 class AudioMethods:
+    async def get_audio_by_id(self, audio_vertex_key: str) -> Optional[Audio]:
+        if not audio_vertex_key:
+            return None
+
+        return await Audio.get(audio_vertex_key)
+
     async def create_audio(
         self,
         telegram_message: pyrogram.types.Message,

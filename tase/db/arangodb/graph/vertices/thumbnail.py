@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import collections
-from typing import Optional, Deque, Tuple, TYPE_CHECKING
+from typing import Optional, Deque, Tuple, TYPE_CHECKING, Union
 
 import pyrogram.types
 
@@ -97,17 +97,27 @@ class ThumbnailMethods:
     async def get_thumbnail(self, telegram_thumbnail: pyrogram.types.Thumbnail) -> Optional[Thumbnail]:
         return await Thumbnail.get(Thumbnail.parse_key(telegram_thumbnail))
 
-    async def get_thumbnail_by_archive_message_info(
+    async def get_thumbnails_by_file_unique_id(
         self,
-        archive_chat_id: int,
-        archive_message_id: int,
-    ) -> Optional[Thumbnail]:
-        return await Thumbnail.find_one(
-            filters={
-                "archive_chat_id": archive_chat_id,
-                "archive_message_id": archive_message_id,
-            }
-        )
+        file_unique_id: str,
+        retrieve_all: bool = True,
+    ) -> Union[Optional[Thumbnail], Deque[Thumbnail]]:
+        if retrieve_all:
+            res = collections.deque()
+            async for doc in Thumbnail.find(
+                filters={
+                    "file_unique_id": file_unique_id,
+                }
+            ):
+                res.append(doc)
+
+            return res
+        else:
+            return await Thumbnail.find_one(
+                filters={
+                    "file_unique_id": file_unique_id,
+                }
+            )
 
     async def create_thumbnail(
         self,

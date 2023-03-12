@@ -37,6 +37,7 @@ class ThumbnailFile(BaseVertex):
             fields=[
                 "file_hash",
             ],
+            unique=True,
         ),
     ]
 
@@ -77,6 +78,12 @@ class ThumbnailFile(BaseVertex):
 
 
 class ThumbnailFileMethods:
+    async def get_thumbnail_file_by_file_hash(self, file_hash: str) -> Optional[ThumbnailFile]:
+        if not file_hash:
+            return None
+
+        return await ThumbnailFile.get(file_hash)
+
     async def create_thumbnail_file(
         self,
         telegram_uploaded_photo_message: pyrogram.types.Message,
