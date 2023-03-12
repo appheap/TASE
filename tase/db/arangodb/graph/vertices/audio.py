@@ -32,7 +32,6 @@ from tase.my_logger import logger
 from .audio_interaction import AudioInteraction
 from .base_vertex import BaseVertex
 from .hit import Hit
-from .thumbnail import Thumbnail
 from .user import User
 from ...helpers import BitRateType
 
@@ -291,7 +290,6 @@ class Audio(BaseVertex):
         chat_id: int,
         audio_type: AudioType,
         chat_scores: ChatScores,
-        audio_thumbnails: Optional[Deque[Thumbnail]],
     ) -> Optional[Audio]:
         """
         Parse an `Audio` from the given `telegram_message` argument.
@@ -306,8 +304,6 @@ class Audio(BaseVertex):
             Type of the audio.
         chat_scores : ChatScores
             Scores of the parent chat.
-        audio_thumbnails : Deque of Thumbnail, optional
-            Deque of `Thumbnail` objects.
 
         Returns
         -------
@@ -392,8 +388,8 @@ class Audio(BaseVertex):
             mime_type=audio.mime_type,
             file_size=audio.file_size,
             date=datetime_to_timestamp(audio.date),
-            thumbnail_archive_chat_id=audio_thumbnails[0].archive_chat_id if audio_thumbnails else None,
-            thumbnails=[thumb.archive_message_id for thumb in audio_thumbnails] if audio_thumbnails else None,
+            # thumbnail_archive_chat_id=audio_thumbnails[0].archive_chat_id if audio_thumbnails else None,
+            # thumbnails=[thumb.archive_message_id for thumb in audio_thumbnails] if audio_thumbnails else None,
             ################################
             valid_for_inline_search=valid_for_inline,
             estimated_bit_rate_type=BitRateType.estimate(
@@ -692,7 +688,6 @@ class AudioMethods:
         chat_id: int,
         audio_type: AudioType,
         chat_scores: ChatScores,
-        audio_thumbnails: Optional[Deque[Thumbnail]],
     ) -> Optional[Audio]:
         """
         Create Audio alongside necessary vertices and edges in the ArangoDB.
@@ -707,8 +702,6 @@ class AudioMethods:
             Type of the Audio.
         chat_scores : ChatScores
             Scores of the parent chat.
-        audio_thumbnails : Deque of Thumbnail, optional
-            Deque of `Thumbnail` objects.
 
         Returns
         -------
@@ -724,7 +717,7 @@ class AudioMethods:
             return None
 
         try:
-            audio, successful = await Audio.insert(Audio.parse(telegram_message, chat_id, audio_type, chat_scores, audio_thumbnails))
+            audio, successful = await Audio.insert(Audio.parse(telegram_message, chat_id, audio_type, chat_scores))
         except TelegramMessageWithNoAudio as e:
             # this message doesn't contain any valid audio file
             await self.mark_old_audio_vertices_as_deleted(chat_id, telegram_message.id)
@@ -741,8 +734,12 @@ class AudioMethods:
                 except ValueError:
                     pass
                 else:
-                    for thumbnail in audio_thumbnails:
-                        if not await Has.get_or_create_edge(audio, thumbnail):
+                    for index, telegram_thumbnail in enumerate(telegram_message.audio.thumbs):
+                        thumbnail_vertex = await self.get_or_create_thumbnail(index=index, telegram_thumbnail=telegram_thumbnail)
+                        if not thumbnail_vertex:
+                            raise Exception(f"Could not create a `Thumbnail` vertex for audio with key: `{audio.key}`")
+
+                        if not await Has.get_or_create_edge(audio, thumbnail_vertex):
                             raise EdgeCreationFailed(Has.__class__.__name__)
 
                     for hashtag, start_index, mention_source in hashtags:
@@ -814,7 +811,6 @@ class AudioMethods:
         chat_id: int,
         audio_type: AudioType,
         chat_scores: ChatScores,
-        audio_thumbnails: Optional[Deque[Thumbnail]],
     ) -> Optional[Audio]:
         """
         Get Audio if it exists in ArangoDB, otherwise, create Audio alongside necessary vertices and edges in the
@@ -830,8 +826,6 @@ class AudioMethods:
             Type of the audio.
         chat_scores : ChatScores
             Scores of the parent chat.
-        audio_thumbnails : Deque of Thumbnail, optional
-            Deque of `Thumbnail` objects.
 
         Returns
         -------
@@ -855,7 +849,7 @@ class AudioMethods:
         else:
             if audio is None:
                 # audio vertex does not exist in the database, create it.
-                audio = await self.create_audio(telegram_message, chat_id, audio_type, chat_scores, audio_thumbnails)
+                audio = await self.create_audio(telegram_message, chat_id, audio_type, chat_scores)
 
                 if audio:
                     await self.mark_old_audio_vertices_as_deleted(
@@ -872,7 +866,6 @@ class AudioMethods:
         chat_id: int,
         audio_type: AudioType,
         chat_scores: ChatScores,
-        audio_thumbnails: Optional[Deque[Thumbnail]],
     ) -> Optional[Audio]:
         """
         Update Audio alongside necessary vertices and edges in the ArangoDB if it exists, otherwise, create it.
@@ -887,8 +880,6 @@ class AudioMethods:
             Type of the audio.
         chat_scores : ChatScores
             Scores of the parent chat.
-        audio_thumbnails : Deque of Thumbnail, optional
-            Deque of `Thumbnail` objects.
 
         Returns
         -------
@@ -915,7 +906,7 @@ class AudioMethods:
                 # the type of the audio after update is not changed. So, the previous type is used for updating the current one.
 
                 # since it is checked for `TelegramMessageWithNoAudio` error earlier, there is no need to do it again.
-                if await audio.update(Audio.parse(telegram_message, chat_id, audio.type, chat_scores, audio_thumbnails)):
+                if await audio.update(Audio.parse(telegram_message, chat_id, audio.type, chat_scores)):
                     # update connected hashtag vertices and edges
                     await self._update_connected_hashtags(audio)
 
@@ -930,11 +921,20 @@ class AudioMethods:
                         excluded_key=audio.key,
                     )
 
-                    await self.update_connected_thumbnails(audio, audio_thumbnails)
+                    if telegram_message.audio.thumbs:
+                        audio_thumbnails = collections.deque()
+                        for index, telegram_thumbnail in enumerate(telegram_message.audio.thumbs):
+                            thumbnail_vertex = await self.get_or_create_thumbnail(index=index, telegram_thumbnail=telegram_thumbnail)
+                            if not thumbnail_vertex:
+                                raise Exception(f"Could not create a `Thumbnail` vertex for audio with key: `{audio.key}`")
+
+                            audio_thumbnails.append(thumbnail_vertex)
+
+                        await self.update_connected_thumbnails(audio, audio_thumbnails)
 
             else:
                 # audio vertex does not exist in the database, create it.
-                audio = await self.create_audio(telegram_message, chat_id, audio_type, chat_scores, audio_thumbnails)
+                audio = await self.create_audio(telegram_message, chat_id, audio_type, chat_scores)
                 if audio:
                     await self.mark_old_audio_vertices_as_deleted(
                         chat_id=chat_id,

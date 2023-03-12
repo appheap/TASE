@@ -6,7 +6,6 @@ from typing import Optional, Deque, Tuple, TYPE_CHECKING
 import pyrogram.types
 
 from aioarango.models import PersistentIndex
-from tase.common.utils import datetime_to_timestamp
 from tase.errors import EdgeCreationFailed
 from tase.my_logger import logger
 from .base_vertex import BaseVertex
@@ -23,9 +22,9 @@ class Thumbnail(BaseVertex):
 
     Attributes
     ----------
-    photo_file_unique_id : str
-        File unique ID of the uploaded photo.
-    thumbnail_file_unique_id : str
+    index : int
+        Index of the original thumbnail in the list of thumbnails.
+    file_unique_id : str
         File unique ID of the original thumbnail.
     width : int
         Width of the original thumbnail and the uploaded photo.
@@ -33,11 +32,6 @@ class Thumbnail(BaseVertex):
         Height of the original thumbnail and the uploaded photo.
     file_size : int
         Size of the original thumbnail file or the uploaded photo.
-    date : int
-        Timestamp in which the photo was uploaded. (in nanoseconds)
-    archive_chat_id : int
-        ID of the chat where the photo was uploaded.
-    archive_message_id : int
         ID of the message which the photo belongs to.
     """
 
@@ -46,49 +40,19 @@ class Thumbnail(BaseVertex):
     __indexes__ = [
         PersistentIndex(
             custom_version=1,
-            name="photo_file_unique_id",
+            name="file_unique_id",
             fields=[
-                "photo_file_unique_id",
-            ],
-        ),
-        PersistentIndex(
-            custom_version=1,
-            name="thumbnail_file_unique_id",
-            fields=[
-                "thumbnail_file_unique_id",
-            ],
-        ),
-        PersistentIndex(
-            custom_version=1,
-            name="archive_chat_id",
-            fields=[
-                "archive_chat_id",
-            ],
-        ),
-        PersistentIndex(
-            custom_version=1,
-            name="archive_message_id",
-            fields=[
-                "archive_message_id",
+                "file_unique_id",
             ],
         ),
     ]
     __non_updatable_fields__ = []
 
-    photo_file_unique_id: str
-    thumbnail_file_unique_id: str
-
-    # These attributes are the same for both the thumbnail and the uploaded photo.
+    index: int
+    file_unique_id: str
     width: int
     height: int
     file_size: int
-
-    # This attribute is for the uploaded photo
-    date: int
-
-    # These attributes show the uploaded photo message information.
-    archive_chat_id: int
-    archive_message_id: int
 
     @classmethod
     def parse_key(
@@ -103,13 +67,11 @@ class Thumbnail(BaseVertex):
     @classmethod
     def parse(
         cls,
+        index: int,
         telegram_thumbnail: pyrogram.types.Thumbnail,
-        telegram_uploaded_photo_message: pyrogram.types.Message,
     ) -> Optional[Thumbnail]:
-        if not telegram_thumbnail or not telegram_uploaded_photo_message or not telegram_uploaded_photo_message.photo:
+        if index is None or not telegram_thumbnail:
             return None
-
-        photo = telegram_uploaded_photo_message.photo
 
         key = cls.parse_key(telegram_thumbnail)
         if not key:
@@ -117,14 +79,11 @@ class Thumbnail(BaseVertex):
 
         return Thumbnail(
             key=key,
-            photo_file_unique_id=photo.file_unique_id,
-            thumbnail_file_unique_id=telegram_thumbnail.file_unique_id,
-            width=photo.width,
-            height=photo.height,
-            file_size=photo.file_size,
-            date=datetime_to_timestamp(photo.date),
-            archive_chat_id=telegram_uploaded_photo_message.chat.id,
-            archive_message_id=telegram_uploaded_photo_message.id,
+            index=index,
+            file_unique_id=telegram_thumbnail.file_unique_id,
+            width=telegram_thumbnail.width,
+            height=telegram_thumbnail.height,
+            file_size=telegram_thumbnail.file_size,
         )
 
 
@@ -152,16 +111,14 @@ class ThumbnailMethods:
 
     async def create_thumbnail(
         self,
+        index: int,
         telegram_thumbnail: pyrogram.types.Thumbnail,
-        telegram_uploaded_photo_message: pyrogram.types.Message,
     ) -> Optional[Thumbnail]:
+        if index is None or not telegram_thumbnail:
+            return None
+
         try:
-            thumbnail, successful = await Thumbnail.insert(
-                Thumbnail.parse(
-                    telegram_thumbnail=telegram_thumbnail,
-                    telegram_uploaded_photo_message=telegram_uploaded_photo_message,
-                )
-            )
+            thumbnail, successful = await Thumbnail.insert(Thumbnail.parse(index=index, telegram_thumbnail=telegram_thumbnail))
         except Exception as e:
             logger.exception(e)
         else:
@@ -172,15 +129,12 @@ class ThumbnailMethods:
 
     async def get_or_create_thumbnail(
         self,
+        index: int,
         telegram_thumbnail: pyrogram.types.Thumbnail,
-        telegram_uploaded_photo_message: pyrogram.types.Message,
     ) -> Optional[Thumbnail]:
         thumbnail = await Thumbnail.get(Thumbnail.parse_key(telegram_thumbnail))
         if not thumbnail:
-            thumbnail = await self.create_thumbnail(
-                telegram_thumbnail=telegram_thumbnail,
-                telegram_uploaded_photo_message=telegram_uploaded_photo_message,
-            )
+            thumbnail = await self.create_thumbnail(index=index, telegram_thumbnail=telegram_thumbnail)
 
         return thumbnail
 
@@ -209,7 +163,7 @@ class ThumbnailMethods:
         # get the current thumbnail vertices and edges connected to this vertex
         current_thumbnails_and_edges = await self.get_audio_thumbnails_with_edges(audio_vertex_id=source_vertex.id)
         current_vertices = {thumbnail.key for thumbnail, _ in current_thumbnails_and_edges}
-        current_edges = {edge.key for _, edge, in current_vertices}
+        current_edges = {edge.key for _, edge, in current_thumbnails_and_edges}
 
         current_vertices_mapping = {thumbnail.key: thumbnail for thumbnail, _ in current_thumbnails_and_edges}
         current_edges_mapping = {edge.key: edge for _, edge, in current_thumbnails_and_edges}

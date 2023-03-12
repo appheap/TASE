@@ -4,6 +4,7 @@ from .bot_task import BotTask, BotTaskMethods
 from .job import Job, JobMethods
 from .rabbitmq_task import RabbitMQTask, RabbitMQTaskMethods
 from .thumbnail import Thumbnail, ThumbnailMethods
+from .thumbnail_file import ThumbnailFile, ThumbnailFileMethods
 
 
 class ArangoDocumentMethods(
@@ -12,6 +13,7 @@ class ArangoDocumentMethods(
     JobMethods,
     RabbitMQTaskMethods,
     ThumbnailMethods,
+    ThumbnailFileMethods,
 ):
     pass
 
@@ -22,4 +24,5 @@ document_classes = [
     Job,
     RabbitMQTask,
     Thumbnail,
+    ThumbnailFile,
 ]

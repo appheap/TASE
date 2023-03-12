@@ -179,16 +179,15 @@ class ForwardMessageTask(BaseTask):
                 for message in not_forwarded_messages:
                     logger.error(f"message ID `{message}`=> empty: {message.empty}, media: {message.media}")
 
-                    from tase.common.utils import get_audio_thumbnail_vertices
+                    from tase.common.utils import download_audio_thumbnails
 
-                    thumbnail_vertices = await get_audio_thumbnail_vertices(db, telegram_client, message)
+                    await download_audio_thumbnails(db, telegram_client, message)
                     await db.update_or_create_audio(
                         message,
                         telegram_client.telegram_id,
                         source_chat_id,
                         AudioType.NOT_ARCHIVED,
                         db_chat.get_chat_scores(),
-                        thumbnail_vertices,
                     )
 
     async def check_forwarded_messages(
@@ -203,15 +202,14 @@ class ForwardMessageTask(BaseTask):
         forwarded_file_unique_ids = set()
 
         for message in forwarded_messages:
-            from tase.common.utils import get_audio_thumbnail_vertices
+            from tase.common.utils import download_audio_thumbnails
 
-            thumbs = await get_audio_thumbnail_vertices(db, telegram_client, message)
+            await download_audio_thumbnails(db, telegram_client, message)
             archived_audio_vertex = await db.graph.update_or_create_audio(
                 message,
                 target_chat_id,
                 AudioType.ARCHIVED,
                 db_chat.get_chat_scores(),
-                thumbs,
             )
             archived_audio_doc = await db.document.update_or_create_audio(
                 message,
@@ -369,16 +367,15 @@ class ForwardMessageTask(BaseTask):
                             else:
                                 # this message content is protected and cannot be forwarded by a user client.
                                 # todo: this must not happen!
-                                from tase.common.utils import get_audio_thumbnail_vertices
+                                from tase.common.utils import download_audio_thumbnails
 
-                                thumbs = await get_audio_thumbnail_vertices(db, telegram_client, new_message)
+                                await download_audio_thumbnails(db, telegram_client, new_message)
                                 await db.update_or_create_audio(
                                     new_message,
                                     telegram_client.telegram_id,
                                     source_chat_id,
                                     AudioType.NOT_ARCHIVED,
                                     db_chat.get_chat_scores(),
-                                    thumbs,
                                 )
                                 logger.error(f"Message `{new_message.id}` from chat `{new_message.chat.id}` has content protection enabled!")
                         else:
@@ -386,16 +383,15 @@ class ForwardMessageTask(BaseTask):
                     else:
                         # message is not the same as the audio in the database, update the audio in all databases.
 
-                        from tase.common.utils import get_audio_thumbnail_vertices
+                        from tase.common.utils import download_audio_thumbnails
 
-                        thumbs = await get_audio_thumbnail_vertices(db, telegram_client, new_message)
+                        await download_audio_thumbnails(db, telegram_client, new_message)
                         await db.update_or_create_audio(
                             new_message,
                             telegram_client.telegram_id,
                             source_chat_id,
                             AudioType.NOT_ARCHIVED,
                             db_chat.get_chat_scores(),
-                            thumbs,
                         )
 
         return forwardable_messages, non_forwardable_message_count

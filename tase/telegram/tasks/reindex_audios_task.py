@@ -4,7 +4,7 @@ from typing import Optional
 
 from pyrogram.errors import FloodWait
 
-from tase.common.utils import get_now_timestamp, get_audio_thumbnail_vertices
+from tase.common.utils import get_now_timestamp, download_audio_thumbnails
 from tase.db import DatabaseClient
 from tase.db.arangodb import graph as graph_models
 from tase.db.arangodb.enums import RabbitMQTaskType, TelegramAudioType, AudioType
@@ -133,14 +133,13 @@ class ReindexAudiosTask(BaseTask):
                     if audio is None or audio_type == TelegramAudioType.NON_AUDIO:
                         continue
 
-                thumbs = await get_audio_thumbnail_vertices(db, telegram_client, message)
+                await download_audio_thumbnails(db, telegram_client, message)
                 successful = await db.update_or_create_audio(
                     message,
                     telegram_client.telegram_id,
                     chat.chat_id,
                     AudioType.NOT_ARCHIVED,
                     chat.get_chat_scores(),
-                    thumbs,
                 )
 
                 if idx + 1 % 500 == 0:

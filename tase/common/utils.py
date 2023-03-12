@@ -448,13 +448,13 @@ def group_list_by_step(
     return [l[i : i + step] for i in range(0, len(l), step)]
 
 
-async def get_audio_thumbnail_vertices(
+async def download_audio_thumbnails(
     db: "DatabaseClient",
     telegram_client: "TelegramClient",
     message_or_messages: Union[List[pyrogram.types.Message], pyrogram.types.Message],
 ) -> Deque["graph_models.vertices.Thumbnail"]:
     """
-    Upload thumbnails of the audio files if it has any and store them in the database.
+    Download thumbnails of the audio files if it has any and store them in the database.
 
     Parameters
     ----------
@@ -464,11 +464,6 @@ async def get_audio_thumbnail_vertices(
         Telegram client that is uploading the audio thumbnails.
     message_or_messages : list of pyrogram.types.Message or pyrogram.types.Message
         Telegram message or a list of telegram messages.
-
-    Returns
-    -------
-    Deque
-       A Deque of **Thumbnail** vertices.
 
     """
     if not db or not telegram_client or not message_or_messages:
@@ -480,73 +475,91 @@ async def get_audio_thumbnail_vertices(
         if not message_or_messages[0].audio:
             return collections.deque()
 
-        file_unique_id = message_or_messages[0].audio.file_unique_id
+        message = message_or_messages[0]
     else:
         _telegram_thumbs = message_or_messages.audio.thumbs if message_or_messages.audio and message_or_messages.audio.thumbs else []
 
         if not message_or_messages.audio:
             return collections.deque()
 
-        file_unique_id = message_or_messages.audio.file_unique_id
+        message = message_or_messages
 
-    from tase.db.arangodb import graph as graph_models, document as document_models
+    from tase.db.arangodb import document as document_models
 
-    thumbs_upload_failed = False
-    uploaded_photos: Deque[pyrogram.types.Message] = collections.deque()
-    thumbnail_vertices: Deque[graph_models.vertices.Thumbnail] = collections.deque()
-    thumbnail_documents: Deque[document_models.Thumbnail] = collections.deque()
+    thumbs_download_failed = False
+    downloaded_photos: Deque[str] = collections.deque()
+    thumbnail_file_documents: Deque[document_models.Thumbnail] = collections.deque()
 
     async def revert_actions():
-        for uploaded_photo_message in uploaded_photos:
-            await uploaded_photo_message.delete()
+        for downloaded_photo_path in downloaded_photos:
+            os.remove(downloaded_photo_path)
 
-        for thumb_vertex, thumb_document in zip(thumbnail_vertices, thumbnail_documents):
-            await thumb_vertex.delete()
-            await thumb_document.delete()
+        for thumb_file_document in thumbnail_file_documents:
+            await thumb_file_document.delete()
 
     for thumb_idx, telegram_thumbnail in enumerate(_telegram_thumbs):
-        thumb_vertex = await db.graph.get_thumbnail(telegram_thumbnail)
-        if thumb_vertex:
-            thumbnail_vertices.append(thumb_vertex)
+        thumb_file_vertex = await db.document.get_thumbnail_file_document(
+            chat_id=message.chat.id,
+            message_id=message.id,
+            telegram_audio=message.audio,
+            index=thumb_idx,
+        )
+        if thumb_file_vertex:
             continue
 
-        thumbnail_binary_file = await telegram_client._client.download_media(telegram_thumbnail.file_id, in_memory=True)
-        if thumbnail_binary_file:
-            try:
-                uploaded_photo_message = await telegram_client._client.send_photo(
-                    telegram_client.thumbnail_archive_channel_info.chat_id,
-                    thumbnail_binary_file,
-                    caption=f"audio_file_unique_id: {file_unique_id}\n\n" f"thumb_file_unique_id: {telegram_thumbnail.file_unique_id}\n",
-                )
-            except Exception as e:
-                await revert_actions()
-                raise e
-            else:
-                wait_time = random.randint(3, 7) + random.randint(1, 3)
-                logger.debug(f"Sleeping for {wait_time} seconds after uploading thumbnail photo...")
-                await asyncio.sleep(wait_time)
+        file_name = f"{message.chat.id}#{message.id}#{thumb_idx}"
+        downloaded_thumb_file_path = await telegram_client._client.download_media(
+            telegram_thumbnail.file_id,
+            file_name=f"downloads/{file_name}.jpg",
+            in_memory=False,
+            block=True,
+        )
+        if downloaded_thumb_file_path:
+            downloaded_photos.append(downloaded_thumb_file_path)
 
-                if uploaded_photo_message:
-                    uploaded_photos.append(uploaded_photo_message)
+            thumbnail_file_document = await db.document.get_or_create_thumbnail_file_document(
+                chat_id=message.chat.id,
+                message_id=message.id,
+                telegram_thumbnail=telegram_thumbnail,
+                telegram_audio=message.audio,
+                index=thumb_idx,
+                file_name=file_name,
+            )
+            if not thumbnail_file_document:
+                thumbs_download_failed = True
+                break
 
-                    thumb_vertex, thumb_document = await db.get_or_create_thumbnail(
-                        telegram_client.telegram_id,
-                        telegram_thumbnail,
-                        uploaded_photo_message,
-                    )
-                    if thumb_vertex and thumb_document:
-                        thumbnail_vertices.append(thumb_vertex)
-                        thumbnail_documents.append(thumb_document)
-                    else:
-                        thumbs_upload_failed = True
-                else:
-                    thumbs_upload_failed = True
+            # try:
+            #     uploaded_photo_message = await telegram_client._client.send_photo(
+            #         telegram_client.thumbnail_archive_channel_info.chat_id,
+            #         downloaded_thumb_file_path,
+            #         caption=f"audio_file_unique_id: {file_unique_id}\n\n" f"thumb_file_unique_id: {telegram_thumbnail.file_unique_id}\n",
+            #     )
+            # except Exception as e:
+            #     await revert_actions()
+            #     raise e
+            # else:
+            #     wait_time = random.randint(3, 7) + random.randint(1, 3)
+            #     logger.debug(f"Sleeping for {wait_time} seconds after uploading thumbnail photo...")
+            #     await asyncio.sleep(wait_time)
+            #
+            #     if uploaded_photo_message:
+            #
+            #         thumb_vertex, thumb_document = await db.get_or_create_thumbnail(
+            #             telegram_client.telegram_id,
+            #             telegram_thumbnail,
+            #             uploaded_photo_message,
+            #         )
+            #         if thumb_vertex and thumb_document:
+            #             thumbnail_vertices.append(thumb_vertex)
+            #             thumbnail_documents.append(thumb_document)
+            #         else:
+            #             thumbs_download_failed = True
+            #     else:
+            #         thumbs_download_failed = True
         else:
-            thumbs_upload_failed = True
+            thumbs_download_failed = True
 
-    if thumbs_upload_failed:
+    if thumbs_download_failed:
         await revert_actions()
         logger.error("Could not upload audio thumbnails!")
-        return collections.deque()
-
-    return thumbnail_vertices

@@ -1,8 +1,8 @@
-from typing import Optional, Deque, Tuple
+from typing import Optional
 
 import pyrogram
 
-from .arangodb import ArangoDB, graph as graph_models, document as document_models
+from .arangodb import ArangoDB, graph as graph_models
 from .arangodb.document import ArangoDocumentMethods
 from .arangodb.enums import AudioType
 from .arangodb.graph import ArangoGraphMethods
@@ -47,7 +47,6 @@ class DatabaseClient:
         chat_id: int,
         audio_type: AudioType,
         chat_scores: ChatScores,
-        audio_thumbnails: Deque[graph_models.vertices.Thumbnail],
     ) -> bool:
         """
         Create the audio vertex and document in the arangodb and audio document in the elasticsearch.
@@ -65,8 +64,6 @@ class DatabaseClient:
             Type of the audio to store in the databases.
         chat_scores : ChatScores
             Scores of the parent chat.
-        audio_thumbnails : Deque of Thumbnail
-            Deque of `Thumbnail` objects.
 
         Returns
         -------
@@ -77,7 +74,7 @@ class DatabaseClient:
             return False
 
         try:
-            audio_vertex = await self.graph.get_or_create_audio(telegram_message, chat_id, audio_type, chat_scores, audio_thumbnails)
+            audio_vertex = await self.graph.get_or_create_audio(telegram_message, chat_id, audio_type, chat_scores)
             audio_doc = await self.document.get_or_create_audio(telegram_message, telegram_client_id, chat_id)
             es_audio_doc = await self.index.get_or_create_audio(telegram_message, chat_id, audio_type, chat_scores)
         except Exception as e:
@@ -95,7 +92,6 @@ class DatabaseClient:
         chat_id: int,
         audio_type: AudioType,
         chat_scores: ChatScores,
-        audio_thumbnails: Optional[Deque[graph_models.vertices.Thumbnail]],
     ) -> bool:
         """
         Create the audio vertex and document in the arangodb and audio document in the elasticsearch.
@@ -113,8 +109,6 @@ class DatabaseClient:
             Type of the audio to store in the databases.
         chat_scores : ChatScores
             Scores of the parent chat.
-        audio_thumbnails : Deque of Thumbnail, optional
-            Deque of `Thumbnail` objects.
 
         Returns
         -------
@@ -125,9 +119,9 @@ class DatabaseClient:
             return False
 
         try:
-            audio_vertex = await self.graph.update_or_create_audio(telegram_message, chat_id, audio_type, chat_scores, audio_thumbnails)
+            audio_vertex = await self.graph.update_or_create_audio(telegram_message, chat_id, audio_type, chat_scores)
             audio_doc = await self.document.update_or_create_audio(telegram_message, telegram_client_id, chat_id)
-            es_audio_doc = await self.index.update_or_create_audio(telegram_message, chat_id, audio_type, chat_scores, audio_thumbnails)
+            es_audio_doc = await self.index.update_or_create_audio(telegram_message, chat_id, audio_type, chat_scores)
         except Exception as e:
             logger.exception(e)
         else:
@@ -181,24 +175,26 @@ class DatabaseClient:
         await self.graph.mark_chat_audios_as_deleted(chat_id=chat_id)
         await self.index.mark_chat_audios_as_deleted(chat_id=chat_id)
 
-    async def get_or_create_thumbnail(
+    async def update_audio_thumbnails(
         self,
         telegram_client_id: int,
-        telegram_thumbnail: pyrogram.types.Thumbnail,
+        thumbnail_file_unique_id: str,
         telegram_uploaded_photo_message: pyrogram.types.Message,
-    ) -> Tuple[Optional[graph_models.vertices.Thumbnail], Optional[document_models.Thumbnail]]:
-        thumbnail_vertex = await self.graph.get_or_create_thumbnail(
-            telegram_thumbnail=telegram_thumbnail,
-            telegram_uploaded_photo_message=telegram_uploaded_photo_message,
-        )
-
+        file_hash: str,
+    ) -> None:
         thumbnail_document = await self.document.get_or_create_thumbnail_document(
             telegram_client_id=telegram_client_id,
-            telegram_thumbnail=telegram_thumbnail,
+            thumbnail_file_unique_id=thumbnail_file_unique_id,
             telegram_uploaded_photo_message=telegram_uploaded_photo_message,
         )
 
-        return thumbnail_vertex, thumbnail_document
+        thumbnail_file_vertex = await self.graph.get_or_create_thumbnail_file(
+            telegram_uploaded_photo_message=telegram_uploaded_photo_message,
+            file_hash=file_hash,
+        )
+
+        # Connect all thumbnail vertices with the given `file_unique_id` to the new thumbnail file vertex.
+        # Update all audio vertices in the ArangoDB and all audio documents in the ElasticSearch to use the uploaded thumbnail photos.
 
     async def remove_playlist(
         self,

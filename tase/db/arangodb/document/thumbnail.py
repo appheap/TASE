@@ -106,10 +106,10 @@ class Thumbnail(BaseDocument):
     def parse(
         cls,
         telegram_client_id: int,
-        telegram_thumbnail: pyrogram.types.Thumbnail,
+        thumbnail_file_unique_id: str,
         telegram_uploaded_photo_message: pyrogram.types.Message,
     ) -> Optional[Thumbnail]:
-        if telegram_client_id is None or not telegram_thumbnail or not telegram_uploaded_photo_message or not telegram_uploaded_photo_message.photo:
+        if telegram_client_id is None or not thumbnail_file_unique_id or not telegram_uploaded_photo_message or not telegram_uploaded_photo_message.photo:
             return None
 
         photo = telegram_uploaded_photo_message.photo
@@ -122,7 +122,7 @@ class Thumbnail(BaseDocument):
             key=key,
             telegram_client_id=telegram_client_id,
             photo_file_unique_id=photo.file_unique_id,
-            thumbnail_file_unique_id=telegram_thumbnail.file_unique_id,
+            thumbnail_file_unique_id=thumbnail_file_unique_id,
             photo_file_id=photo.file_id,
             archive_chat_id=telegram_uploaded_photo_message.chat.id,
             archive_message_id=telegram_uploaded_photo_message.id,
@@ -147,7 +147,7 @@ class ThumbnailMethods:
     async def create_thumbnail_document(
         self,
         telegram_client_id: int,
-        telegram_thumbnail: pyrogram.types.Thumbnail,
+        thumbnail_file_unique_id: str,
         telegram_uploaded_photo_message: pyrogram.types.Message,
     ) -> Optional[Thumbnail]:
         """
@@ -157,8 +157,8 @@ class ThumbnailMethods:
         ----------
         telegram_client_id : int
             ID of the telegram client uploading this thumbnail.
-        telegram_thumbnail : pyrogram.types.Thumbnail
-            Telegram thumbnail object to use for creating the thumbnail object.
+        thumbnail_file_unique_id : str
+            File unique ID of the telegram thumbnail object to use for creating the thumbnail object.
         telegram_uploaded_photo_message : pyrogram.types.Message
             Telegram message to use for creating the thumbnail object.
 
@@ -171,7 +171,7 @@ class ThumbnailMethods:
             thumbnail, successful = await Thumbnail.insert(
                 Thumbnail.parse(
                     telegram_client_id=telegram_client_id,
-                    telegram_thumbnail=telegram_thumbnail,
+                    thumbnail_file_unique_id=thumbnail_file_unique_id,
                     telegram_uploaded_photo_message=telegram_uploaded_photo_message,
                 )
             )
@@ -186,7 +186,7 @@ class ThumbnailMethods:
     async def get_or_create_thumbnail_document(
         self,
         telegram_client_id: int,
-        telegram_thumbnail: pyrogram.types.Thumbnail,
+        thumbnail_file_unique_id: str,
         telegram_uploaded_photo_message: pyrogram.types.Message,
     ) -> Optional[Thumbnail]:
         """
@@ -196,8 +196,8 @@ class ThumbnailMethods:
         ----------
         telegram_client_id : int
             ID of the telegram client uploading this thumbnail.
-        telegram_thumbnail : pyrogram.types.Thumbnail
-            Telegram thumbnail object to use for creating or getting the thumbnail object.
+        thumbnail_file_unique_id : str
+            File unique ID of the telegram thumbnail object to use for creating the thumbnail object.
         telegram_uploaded_photo_message : pyrogram.types.Message
             Telegram message to use for creating or getting the thumbnail object.
 
@@ -210,7 +210,7 @@ class ThumbnailMethods:
         if not thumbnail:
             thumbnail = await self.create_thumbnail_document(
                 telegram_client_id=telegram_client_id,
-                telegram_thumbnail=telegram_thumbnail,
+                thumbnail_file_unique_id=thumbnail_file_unique_id,
                 telegram_uploaded_photo_message=telegram_uploaded_photo_message,
             )
 
