@@ -22,20 +22,20 @@ class UploadAudioThumbnailTask(BaseTask):
     ):
         await self.task_in_worker(db)
 
-        thumbnail_file_doc_key = self.kwargs.get("thumbnail_file_doc_key", None)
+        downloaded_thumbnail_file_doc = self.kwargs.get("thumbnail_file_doc_key", None)
 
-        thumbnail_file_doc = await db.document.get_thumbnail_file_by_key(thumbnail_file_doc_key)
-        if not thumbnail_file_doc:
+        downloaded_thumbnail_file_doc = await db.document.get_downloaded_thumbnail_file_by_key(downloaded_thumbnail_file_doc)
+        if not downloaded_thumbnail_file_doc:
             await self.task_failed(db)
             return
 
-        downloaded_thumb_file_path = f"downloads/{thumbnail_file_doc.file_name}.jpg"
+        downloaded_thumb_file_path = f"downloads/{downloaded_thumbnail_file_doc.file_name}.jpg"
 
         try:
             uploaded_photo_message = await telegram_client._client.send_photo(
                 telegram_client.thumbnail_archive_channel_info.chat_id,
                 downloaded_thumb_file_path,
-                caption=f"thumb_file_unique_id: {thumbnail_file_doc.thumbnail_file_unique_id}",
+                caption=f"thumb_file_unique_id: {downloaded_thumbnail_file_doc.thumbnail_file_unique_id}",
             )
         except Exception as e:
             await self.task_failed(db)
@@ -46,13 +46,13 @@ class UploadAudioThumbnailTask(BaseTask):
             await asyncio.sleep(wait_time)
 
             if uploaded_photo_message:
-                await thumbnail_file_doc.mark_as_checked()
+                await downloaded_thumbnail_file_doc.mark_as_checked()
 
                 await db.update_audio_thumbnails(
                     telegram_client.telegram_id,
-                    thumbnail_file_doc.thumbnail_file_unique_id,
+                    downloaded_thumbnail_file_doc.thumbnail_file_unique_id,
                     uploaded_photo_message,
-                    thumbnail_file_doc.file_hash,
+                    downloaded_thumbnail_file_doc.file_hash,
                 )
 
                 await self.task_done(db)

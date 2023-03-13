@@ -497,13 +497,13 @@ async def download_audio_thumbnails(
             await thumb_file_document.delete()
 
     for thumb_idx, telegram_thumbnail in enumerate(_telegram_thumbs):
-        thumb_file_doc = await db.document.get_thumbnail_file(
+        downloaded_thumbnail_file_doc = await db.document.get_downloaded_thumbnail_file(
             chat_id=message.chat.id,
             message_id=message.id,
             telegram_audio=message.audio,
             index=thumb_idx,
         )
-        if thumb_file_doc:
+        if downloaded_thumbnail_file_doc:
             continue
 
         file_name = f"{message.chat.id}#{message.id}#{thumb_idx}"
@@ -516,14 +516,14 @@ async def download_audio_thumbnails(
         if binary_downloaded_thumb_file:
             file_hash = hashlib.sha512(binary_downloaded_thumb_file.getbuffer()).hexdigest()
 
-            thumbnail_file_document = await db.document.get_thumbnail_file_by_file_hash(file_hash)
-            if thumbnail_file_document:
+            downloaded_thumbnail_file_document = await db.document.get_downloaded_thumbnail_file_by_file_hash(file_hash)
+            if downloaded_thumbnail_file_document:
                 # This thumbnail already exists, so there is no need to upload the thumbnail again.
                 # However, the related audio and thumbnail vertices must be updated.
                 from tase.db.arangodb.graph.edges import Has
 
-                if thumbnail_file_document.is_checked:
-                    thumbnail_file = await db.graph.get_thumbnail_file_by_file_hash(thumbnail_file_document.file_hash)
+                if downloaded_thumbnail_file_document.is_checked:
+                    thumbnail_file = await db.graph.get_thumbnail_file_by_file_hash(downloaded_thumbnail_file_document.file_hash)
                     if thumbnail_file:
                         thumbnail_vertices = await db.graph.get_thumbnails_by_file_unique_id(
                             file_unique_id=telegram_thumbnail.file_unique_id,
@@ -535,7 +535,7 @@ async def download_audio_thumbnails(
                                     raise EdgeCreationFailed(Has.__class__.__name__)
 
                                 # Update the connected audio vertices only if the thumbnail file document is checked, which means it is uploaded.
-                                if thumbnail_file_document.is_checked and thumbnail_vertex.index == 0:
+                                if downloaded_thumbnail_file_document.is_checked and thumbnail_vertex.index == 0:
                                     audio_vertices = await db.graph.get_audio_files_by_thumbnail_file_unique_id(file_unique_id=thumbnail_vertex.file_unique_id)
                                     if audio_vertices:
                                         for audio_vertex in audio_vertices:
@@ -547,14 +547,14 @@ async def download_audio_thumbnails(
                                                 if not await es_audio_doc.update_thumbnails(thumbnail_file):
                                                     logger.error(f"Could not update es audio document with ID: `{es_audio_doc.id}`")
                     else:
-                        logger.error(f"Could not find any `ThumbnailFile` with `file_hash`: `{thumbnail_file_document.file_hash}`")
+                        logger.error(f"Could not find any `ThumbnailFile` with `file_hash`: `{downloaded_thumbnail_file_document.file_hash}`")
 
             else:
                 with open(file_path, "wb") as f:
                     f.write(binary_downloaded_thumb_file.getbuffer())
 
                 downloaded_photos.append(file_path)
-                thumbnail_file_document = await db.document.get_or_create_thumbnail_file_document(
+                downloaded_thumbnail_file_document = await db.document.get_or_create_downloaded_thumbnail_file(
                     chat_id=message.chat.id,
                     message_id=message.id,
                     telegram_thumbnail=telegram_thumbnail,
@@ -562,7 +562,7 @@ async def download_audio_thumbnails(
                     index=thumb_idx,
                     file_name=file_name,
                 )
-                if not thumbnail_file_document:
+                if not downloaded_thumbnail_file_document:
                     thumbs_download_failed = True
                     break
         else:
