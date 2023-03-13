@@ -105,6 +105,15 @@ class ThumbnailFile(BaseDocument):
             )
 
     async def mark_as_checked(self) -> bool:
+        """
+        Mark the object as checked. It is done after the file is successfully uploaded to telegram.
+
+        Returns
+        -------
+        bool
+            Whether the update was successful or not.
+
+        """
         self_copy = self.copy(deep=True)
         self_copy.is_checked = True
         return await self.update(
@@ -155,13 +164,32 @@ class ThumbnailFileMethods:
 
         return res
 
-    async def get_thumbnail_file_document(
+    async def get_thumbnail_file(
         self,
         chat_id: int,
         message_id: int,
         telegram_audio: pyrogram.types.Audio,
         index: int,
     ) -> Optional[ThumbnailFile]:
+        """
+        Get a `ThumbnailFile` document by the given parameters.
+
+        Parameters
+        ----------
+        chat_id : int
+            ID of the chat the thumbnail belongs to.
+        message_id :
+            ID of the message the thumbnail belongs to.
+        telegram_audio : pyrogram.types.Audio
+            Telegram audio object the thumbnail belongs to.
+        index : int
+            Index of the thumbnail in the audio's thumbnail list.
+
+        Returns
+        -------
+        ThumbnailFile, optional
+            `ThumbnailFile` document is returned if it was found on the database, otherwise `None` is returned.
+        """
         return await ThumbnailFile.get(
             ThumbnailFile.parse_key(
                 chat_id=chat_id,
@@ -171,13 +199,39 @@ class ThumbnailFileMethods:
             )
         )
 
-    async def get_thumbnail_file_document_by_key(self, key: str) -> Optional[ThumbnailFile]:
+    async def get_thumbnail_file_by_key(self, key: str) -> Optional[ThumbnailFile]:
+        """
+        Get a `ThumbnailFile` document by its `key`.
+
+        Parameters
+        ----------
+        key : str
+            Key string to use for getting the object.
+
+        Returns
+        -------
+        ThumbnailFile, optional
+            `ThumbnailFile` document is returned if it was found on the database, otherwise `None` is returned.
+        """
         if not key:
             return None
 
         return await ThumbnailFile.get(key)
 
-    async def get_thumbnail_file_document_by_file_hash(self, file_hash: str) -> Optional[ThumbnailFile]:
+    async def get_thumbnail_file_by_file_hash(self, file_hash: str) -> Optional[ThumbnailFile]:
+        """
+        Get a `ThumbnailFile` document by its `file_hash`.
+
+        Parameters
+        ----------
+        file_hash : str
+            File hash to use for getting the `ThumbnailFile` document.
+
+        Returns
+        -------
+        ThumbnailFile, optional
+            `ThumbnailFile` with the given `file_hash` is returned if it was found on the database, otherwise `None` is returned.
+        """
         if not file_hash:
             return None
 

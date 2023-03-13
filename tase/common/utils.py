@@ -497,13 +497,13 @@ async def download_audio_thumbnails(
             await thumb_file_document.delete()
 
     for thumb_idx, telegram_thumbnail in enumerate(_telegram_thumbs):
-        thumb_file_vertex = await db.document.get_thumbnail_file_document(
+        thumb_file_doc = await db.document.get_thumbnail_file(
             chat_id=message.chat.id,
             message_id=message.id,
             telegram_audio=message.audio,
             index=thumb_idx,
         )
-        if thumb_file_vertex:
+        if thumb_file_doc:
             continue
 
         file_name = f"{message.chat.id}#{message.id}#{thumb_idx}"
@@ -516,7 +516,7 @@ async def download_audio_thumbnails(
         if binary_downloaded_thumb_file:
             file_hash = hashlib.sha512(binary_downloaded_thumb_file.getbuffer()).hexdigest()
 
-            thumbnail_file_document = await db.document.get_thumbnail_file_document_by_file_hash(file_hash)
+            thumbnail_file_document = await db.document.get_thumbnail_file_by_file_hash(file_hash)
             if thumbnail_file_document:
                 # This thumbnail already exists, so there is no need to upload the thumbnail again.
                 # However, the related audio and thumbnail vertices must be updated.

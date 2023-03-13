@@ -130,20 +130,6 @@ class Thumbnail(BaseDocument):
 
 
 class ThumbnailMethods:
-    async def get_thumbnail_doc_by_archive_message_info(
-        self,
-        telegram_client_id: int,
-        archive_chat_id: int,
-        archive_message_id: int,
-    ) -> Optional[Thumbnail]:
-        return await Thumbnail.find_one(
-            filters={
-                "telegram_client_id": telegram_client_id,
-                "archive_chat_id": archive_chat_id,
-                "archive_message_id": archive_message_id,
-            }
-        )
-
     async def create_thumbnail_document(
         self,
         telegram_client_id: int,

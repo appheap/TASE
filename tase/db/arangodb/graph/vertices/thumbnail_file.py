@@ -12,7 +12,7 @@ from .base_vertex import BaseVertex
 
 class ThumbnailFile(BaseVertex):
     """
-    Represents the information about the downloaded thumbnail of an audio file.
+    Represents the information about the uploaded thumbnail of an audio file.
 
     Attributes
     ----------
@@ -79,6 +79,19 @@ class ThumbnailFile(BaseVertex):
 
 class ThumbnailFileMethods:
     async def get_thumbnail_file_by_file_hash(self, file_hash: str) -> Optional[ThumbnailFile]:
+        """
+        Get a `ThumbnailFile` vertex by its `file_hash`.
+
+        Parameters
+        ----------
+        file_hash : str
+            File hash to use for getting the `ThumbnailFile` vertex.
+
+        Returns
+        -------
+        ThumbnailFile, optional
+            `ThumbnailFile` with the given `file_hash` is returned if it was found on the database, otherwise `None` is returned.
+        """
         if not file_hash:
             return None
 

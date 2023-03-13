@@ -24,7 +24,7 @@ class UploadAudioThumbnailTask(BaseTask):
 
         thumbnail_file_doc_key = self.kwargs.get("thumbnail_file_doc_key", None)
 
-        thumbnail_file_doc = await db.document.get_thumbnail_file_document_by_key(thumbnail_file_doc_key)
+        thumbnail_file_doc = await db.document.get_thumbnail_file_by_key(thumbnail_file_doc_key)
         if not thumbnail_file_doc:
             await self.task_failed(db)
             return

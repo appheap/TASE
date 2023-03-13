@@ -95,6 +95,20 @@ class ThumbnailMethods:
     )
 
     async def get_thumbnail(self, telegram_thumbnail: pyrogram.types.Thumbnail) -> Optional[Thumbnail]:
+        """
+        Get a `Thumbnail` vertex from the given `telegram_thumbnail` parameter.
+
+        Parameters
+        ----------
+        telegram_thumbnail : pyrogram.types.Thumbnail
+            Telegram thumbnail object to use for parsing the key.
+
+        Returns
+        -------
+        Thumbnail, optional
+            `Thumbnail` vertex if it was in the database, otherwise, return `None`.
+
+        """
         return await Thumbnail.get(Thumbnail.parse_key(telegram_thumbnail))
 
     async def get_thumbnails_by_file_unique_id(
@@ -102,6 +116,22 @@ class ThumbnailMethods:
         file_unique_id: str,
         retrieve_all: bool = True,
     ) -> Union[Optional[Thumbnail], Deque[Thumbnail]]:
+        """
+        Get all `Thumbnail` vertices that have the given `file_unique_id`.
+
+        Parameters
+        ----------
+        file_unique_id : str
+            File unique ID to filter the `Thumbnail` vertices by.
+        retrieve_all : bool, default : True
+            Whether to retrieve all matching `Thumbnail` vertices or just get the first matching one.
+
+        Returns
+        -------
+        Union
+            Matched `Thumbnail` vertices are returned on success.
+
+        """
         if retrieve_all:
             res = collections.deque()
             async for doc in Thumbnail.find(
@@ -124,6 +154,21 @@ class ThumbnailMethods:
         index: int,
         telegram_thumbnail: pyrogram.types.Thumbnail,
     ) -> Optional[Thumbnail]:
+        """
+        Create a `Thumbnail` vertex with the given parameters.
+
+        Parameters
+        ----------
+        index : int
+            Index of this thumbnail in the original list.
+        telegram_thumbnail : pyrogram.types.Thumbnail
+            Telegram thumbnail object to use for creating the `Thumbnail` vertex.
+
+        Returns
+        -------
+        Thumbnail, optional
+            Created `Thumbnail` vertex is returned on success, otherwise, `None` is returned.
+        """
         if index is None or not telegram_thumbnail:
             return None
 
@@ -142,6 +187,21 @@ class ThumbnailMethods:
         index: int,
         telegram_thumbnail: pyrogram.types.Thumbnail,
     ) -> Optional[Thumbnail]:
+        """
+        Get or create a `Thumbnail` vertex with the given parameters.
+
+        Parameters
+        ----------
+        index : int
+            Index of this thumbnail in the original list.
+        telegram_thumbnail : pyrogram.types.Thumbnail
+            Telegram thumbnail object to use for getting or creating the `Thumbnail` vertex.
+
+        Returns
+        -------
+        Thumbnail, optional
+            `Thumbnail` vertex is returned if it was found on the database, otherwise, the created object is returned.
+        """
         thumbnail = await Thumbnail.get(Thumbnail.parse_key(telegram_thumbnail))
         if not thumbnail:
             thumbnail = await self.create_thumbnail(index=index, telegram_thumbnail=telegram_thumbnail)
@@ -219,6 +279,20 @@ class ThumbnailMethods:
                     raise EdgeCreationFailed(Has.__class__.__name__)
 
     async def get_audio_thumbnails_with_edges(self, audio_vertex_id: str) -> Deque[Tuple[Thumbnail, Has]]:
+        """
+        Get an `Audio` vertex along with it connected `Thumbnail` vertices and edges.
+
+        Parameters
+        ----------
+        audio_vertex_id : str
+            ID of the `Audio` vertex in query.
+
+        Returns
+        -------
+        Deque
+            A deque of tuple of vertices and edges is returned on success.
+
+        """
         if not audio_vertex_id:
             return collections.deque()
 
