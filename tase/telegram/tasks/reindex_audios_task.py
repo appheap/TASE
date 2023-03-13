@@ -37,8 +37,7 @@ class ReindexAudiosTask(BaseTask):
             await self.task_failed(db)
             return
 
-        # if chat.audio_indexer_metadata is None or get_now_timestamp() - chat.audio_indexer_metadata.last_run_at > 1 * 24 * 60 * 60 * 1000:
-        if chat.audio_indexer_metadata is None or get_now_timestamp() - chat.audio_indexer_metadata.last_run_at > 1 * 60 * 1000:
+        if chat.audio_indexer_metadata is None or get_now_timestamp() - chat.audio_indexer_metadata.last_run_at > 1 * 24 * 60 * 60 * 1000:
             chat = await self.get_updated_chat(telegram_client, db, chat)
             if chat:
                 logger.info(f"Started reindexing audio files from  `{chat.title}`")

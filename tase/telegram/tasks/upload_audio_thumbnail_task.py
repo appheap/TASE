@@ -23,7 +23,7 @@ class UploadAudioThumbnailTask(BaseTask):
     ):
         await self.task_in_worker(db)
 
-        downloaded_thumbnail_file_doc = self.kwargs.get("thumbnail_file_doc_key", None)
+        downloaded_thumbnail_file_doc = self.kwargs.get("downloaded_thumbnail_file_doc_key", None)
 
         downloaded_thumbnail_file_doc = await db.document.get_downloaded_thumbnail_file_by_key(downloaded_thumbnail_file_doc)
         if not downloaded_thumbnail_file_doc:
@@ -52,12 +52,13 @@ class UploadAudioThumbnailTask(BaseTask):
             uploaded_photo_message = await telegram_client._client.send_photo(
                 telegram_client.thumbnail_archive_channel_info.chat_id,
                 downloaded_thumb_file_path,
+                caption=downloaded_thumbnail_file_doc.file_hash,
             )
         except Exception as e:
             await self.task_failed(db)
             logger.exception(e)
         else:
-            wait_time = random.randint(3, 7) + random.randint(1, 3)
+            wait_time = random.randint(4, 10)
             logger.debug(f"Sleeping for {wait_time} seconds after uploading thumbnail photo...")
             await asyncio.sleep(wait_time)
 

@@ -509,7 +509,7 @@ async def download_audio_thumbnails(
         )
 
         # Sleep for a while to avoid flood wait errors
-        await asyncio.sleep(random.random() + random.randint(1, 3))
+        await asyncio.sleep(random.randint(3, 5))
 
         if binary_downloaded_thumb_file:
             file_hash = hashlib.sha512(binary_downloaded_thumb_file.getbuffer()).hexdigest()
