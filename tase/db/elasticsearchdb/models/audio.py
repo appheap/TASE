@@ -5,6 +5,7 @@ from itertools import chain
 from typing import Optional, Tuple, Deque, List
 
 import pyrogram
+from decouple import config
 from elastic_transport import ObjectApiResponse
 from pydantic import Field
 
@@ -211,7 +212,6 @@ class Audio(BaseDocument):
         chat_id: int,
         audio_type: AudioType,
         chat_scores: ChatScores,
-        audio_thumbnails: Optional[Deque[graph_models.vertices.Thumbnail]],
     ) -> Optional[Audio]:
         """
         Parse an `Audio` from the given `telegram_message` argument.
@@ -226,8 +226,6 @@ class Audio(BaseDocument):
             Type of the audio.
         chat_scores : ChatScores
             Scores of the parent chat.
-        audio_thumbnails : Deque of Thumbnail, optional
-            Deque of `Thumbnail` objects.
 
         Returns
         -------
@@ -284,8 +282,8 @@ class Audio(BaseDocument):
             mime_type=audio.mime_type,
             file_size=audio.file_size,
             date=datetime_to_timestamp(audio.date),
-            thumbnail_archive_chat_id=audio_thumbnails[0].archive_chat_id if audio_thumbnails else None,
-            thumbnails=[thumb.archive_message_id for thumb in audio_thumbnails] if audio_thumbnails else None,
+            # thumbnail_archive_chat_id=audio_thumbnails[0].archive_chat_id if audio_thumbnails else None,
+            # thumbnails=[thumb.archive_message_id for thumb in audio_thumbnails] if audio_thumbnails else None,
             ########################################
             views=telegram_message.views or 0,
             valid_for_inline_search=valid_for_inline,
@@ -473,7 +471,7 @@ class Audio(BaseDocument):
 
     def get_thumb_telegram_url(self) -> str:
         if self.thumbnails:
-            return f"https://t.me/adgjlmbczqeyip/{self.thumbnails[0]}"
+            return f"https://t.me/{config('THUMBNAIL_ARCHIVE_CHANNEL_USERNAME')}/{self.thumbnails[0]}"
 
         return "https://telegra.ph/file/764498c89f7f1bea502d5.png"
 
@@ -693,15 +691,50 @@ class Audio(BaseDocument):
             retry_on_conflict=True,
         )
 
+    async def update_thumbnails(self, thumbnail_file: graph_models.vertices.ThumbnailFile) -> bool:
+        """
+        Update the thumbnails of this audio document using the given `ThumbnailFile` object.
+
+        Parameters
+        ----------
+        thumbnail_file : ThumbnailFile
+            Uploaded Thumbnail file to use for updating this audio's attributes.
+
+        Returns
+        -------
+        bool
+            Whether this update was successful or not.
+        """
+        if not thumbnail_file:
+            return False
+
+        self_copy = self.copy(deep=True)
+        self_copy.thumbnail_archive_chat_id = thumbnail_file.archive_chat_id
+        if self_copy.thumbnails:
+            self_copy.thumbnails.append(thumbnail_file.archive_message_id)
+        else:
+            self_copy.thumbnails = [thumbnail_file.archive_message_id]
+
+        return await self.update(
+            self_copy,
+            reserve_non_updatable_fields=True,
+            retry_on_conflict=True,
+        )
+
 
 class AudioMethods:
+    async def get_audio_by_id(self, audio_vertex_key: str) -> Optional[Audio]:
+        if not audio_vertex_key:
+            return None
+
+        return await Audio.get(audio_vertex_key)
+
     async def create_audio(
         self,
         telegram_message: pyrogram.types.Message,
         chat_id: int,
         audio_type: AudioType,
         chat_scores: ChatScores,
-        audio_thumbnails: Optional[Deque[graph_models.vertices.Thumbnail]],
     ) -> Optional[Audio]:
         """
         Create Audio document in the ElasticSearch.
@@ -716,8 +749,6 @@ class AudioMethods:
             Type of the audio.
         chat_scores : ChatScores
             Scores of the parent chat.
-        audio_thumbnails : Deque of Thumbnail, optional
-            Deque of `Thumbnail` objects.
 
         Returns
         -------
@@ -726,7 +757,7 @@ class AudioMethods:
 
         """
         try:
-            audio, successful = await Audio.create(Audio.parse(telegram_message, chat_id, audio_type, chat_scores, audio_thumbnails))
+            audio, successful = await Audio.create(Audio.parse(telegram_message, chat_id, audio_type, chat_scores))
         except TelegramMessageWithNoAudio:
             # this message doesn't contain any valid audio file
             await self.mark_old_audios_as_deleted(
@@ -798,7 +829,6 @@ class AudioMethods:
         chat_id: int,
         audio_type: AudioType,
         chat_scores: ChatScores,
-        audio_thumbnails: Optional[Deque[graph_models.vertices.Thumbnail]],
     ) -> Optional[Audio]:
         """
         Update Audio document in the ElasticSearch if it exists, otherwise, create it.
@@ -813,8 +843,6 @@ class AudioMethods:
             Type of the audio.
         chat_scores : ChatScores
             Scores of the parent chat.
-        audio_thumbnails : Deque of Thumbnail, optional
-            Deque of `Thumbnail` objects.
 
         Returns
         -------
@@ -837,7 +865,7 @@ class AudioMethods:
         else:
             if audio is None:
                 # audio does not exist in the index, create it
-                audio = await self.create_audio(telegram_message, chat_id, audio_type, chat_scores, audio_thumbnails)
+                audio = await self.create_audio(telegram_message, chat_id, audio_type, chat_scores)
                 if audio:
                     await self.mark_old_audios_as_deleted(
                         chat_id=chat_id,
@@ -846,7 +874,7 @@ class AudioMethods:
                     )
             else:
                 # the type of the audio after update is not changed. So, the previous type is used for updating the current one.
-                if await audio.update(Audio.parse(telegram_message, chat_id, audio.type, chat_scores, audio_thumbnails)):
+                if await audio.update(Audio.parse(telegram_message, chat_id, audio.type, chat_scores)):
                     # get older valid audio docs to process
                     await self.mark_old_audios_as_deleted(
                         chat_id=chat_id,

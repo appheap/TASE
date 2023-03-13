@@ -5,6 +5,7 @@ from .extract_usernames_task import ExtractUsernamesTask
 from .forward_message_task import ForwardMessageTask
 from .index_audios_task import IndexAudiosTask
 from .reindex_audios_task import ReindexAudiosTask
+from .upload_audio_thumbnail_task import UploadAudioThumbnailTask
 
 __all__ = [
     "AddChannelTask",
@@ -14,4 +15,5 @@ __all__ = [
     "ForwardMessageTask",
     "IndexAudiosTask",
     "ReindexAudiosTask",
+    "UploadAudioThumbnailTask",
 ]

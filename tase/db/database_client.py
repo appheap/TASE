@@ -1,8 +1,8 @@
-from typing import Optional, Deque, Tuple
+from typing import Optional
 
 import pyrogram
 
-from .arangodb import ArangoDB, graph as graph_models, document as document_models
+from .arangodb import ArangoDB, graph as graph_models
 from .arangodb.document import ArangoDocumentMethods
 from .arangodb.enums import AudioType
 from .arangodb.graph import ArangoGraphMethods
@@ -11,7 +11,7 @@ from .elasticsearchdb import ElasticsearchDatabase
 from .elasticsearchdb.models import ElasticSearchMethods
 from .helpers import ChatScores
 from ..configs import ArangoDBConfig, ElasticConfig
-from ..errors import UserDoesNotHasPlaylist
+from ..errors import UserDoesNotHasPlaylist, EdgeCreationFailed
 from ..my_logger import logger
 
 
@@ -47,7 +47,6 @@ class DatabaseClient:
         chat_id: int,
         audio_type: AudioType,
         chat_scores: ChatScores,
-        audio_thumbnails: Deque[graph_models.vertices.Thumbnail],
     ) -> bool:
         """
         Create the audio vertex and document in the arangodb and audio document in the elasticsearch.
@@ -65,8 +64,6 @@ class DatabaseClient:
             Type of the audio to store in the databases.
         chat_scores : ChatScores
             Scores of the parent chat.
-        audio_thumbnails : Deque of Thumbnail
-            Deque of `Thumbnail` objects.
 
         Returns
         -------
@@ -77,7 +74,7 @@ class DatabaseClient:
             return False
 
         try:
-            audio_vertex = await self.graph.get_or_create_audio(telegram_message, chat_id, audio_type, chat_scores, audio_thumbnails)
+            audio_vertex = await self.graph.get_or_create_audio(telegram_message, chat_id, audio_type, chat_scores)
             audio_doc = await self.document.get_or_create_audio(telegram_message, telegram_client_id, chat_id)
             es_audio_doc = await self.index.get_or_create_audio(telegram_message, chat_id, audio_type, chat_scores)
         except Exception as e:
@@ -95,7 +92,6 @@ class DatabaseClient:
         chat_id: int,
         audio_type: AudioType,
         chat_scores: ChatScores,
-        audio_thumbnails: Optional[Deque[graph_models.vertices.Thumbnail]],
     ) -> bool:
         """
         Create the audio vertex and document in the arangodb and audio document in the elasticsearch.
@@ -113,8 +109,6 @@ class DatabaseClient:
             Type of the audio to store in the databases.
         chat_scores : ChatScores
             Scores of the parent chat.
-        audio_thumbnails : Deque of Thumbnail, optional
-            Deque of `Thumbnail` objects.
 
         Returns
         -------
@@ -125,9 +119,9 @@ class DatabaseClient:
             return False
 
         try:
-            audio_vertex = await self.graph.update_or_create_audio(telegram_message, chat_id, audio_type, chat_scores, audio_thumbnails)
+            audio_vertex = await self.graph.update_or_create_audio(telegram_message, chat_id, audio_type, chat_scores)
             audio_doc = await self.document.update_or_create_audio(telegram_message, telegram_client_id, chat_id)
-            es_audio_doc = await self.index.update_or_create_audio(telegram_message, chat_id, audio_type, chat_scores, audio_thumbnails)
+            es_audio_doc = await self.index.update_or_create_audio(telegram_message, chat_id, audio_type, chat_scores)
         except Exception as e:
             logger.exception(e)
         else:
@@ -142,6 +136,19 @@ class DatabaseClient:
         message_id: int,
         excluded_audio_vertex_key: Optional[str] = None,
     ) -> None:
+        """
+        Invalid old audios after a new audio has replaced an existent audio in the original chat.
+
+        Parameters
+        ----------
+        chat_id : int
+            ID of the chat the audio belongs to.
+        message_id : int
+            ID of the telegram message that audio belongs to.
+        excluded_audio_vertex_key : str, default : `None`
+            Audio key to exclude from this update. All audio objects in the database with the given key/ID will not be affected.
+
+        """
         if not chat_id or message_id is None:
             return
 
@@ -181,24 +188,75 @@ class DatabaseClient:
         await self.graph.mark_chat_audios_as_deleted(chat_id=chat_id)
         await self.index.mark_chat_audios_as_deleted(chat_id=chat_id)
 
-    async def get_or_create_thumbnail(
+    async def update_audio_thumbnails(
         self,
         telegram_client_id: int,
-        telegram_thumbnail: pyrogram.types.Thumbnail,
+        thumbnail_file_unique_id: str,
         telegram_uploaded_photo_message: pyrogram.types.Message,
-    ) -> Tuple[Optional[graph_models.vertices.Thumbnail], Optional[document_models.Thumbnail]]:
-        thumbnail_vertex = await self.graph.get_or_create_thumbnail(
-            telegram_thumbnail=telegram_thumbnail,
-            telegram_uploaded_photo_message=telegram_uploaded_photo_message,
-        )
+        file_hash: str,
+    ) -> None:
+        """
+        Update the related vertices and documents after a thumbnail file is uploaded.
 
-        thumbnail_document = await self.document.get_or_create_thumbnail_document(
+        Parameters
+        ----------
+        telegram_client_id : int
+            ID of the telegram client that uploaded the thumbnail file.
+        thumbnail_file_unique_id : str
+            File unique ID of the thumbnail file that was uploaded.
+        telegram_uploaded_photo_message : pyrogram.types.Message
+            Telegram message containing the uploaded thumbnail file.
+        file_hash : str
+            Hash of the uploaded thumbnail file.
+
+        Raises
+        ------
+        EdgeCreationFailed
+            If creation of the related edges was failed.
+        """
+        uploaded_thumbnail_file_document = await self.document.get_or_create_uploaded_thumbnail_file(
             telegram_client_id=telegram_client_id,
-            telegram_thumbnail=telegram_thumbnail,
+            thumbnail_file_unique_id=thumbnail_file_unique_id,
             telegram_uploaded_photo_message=telegram_uploaded_photo_message,
         )
 
-        return thumbnail_vertex, thumbnail_document
+        thumbnail_file_vertex = await self.graph.get_or_create_thumbnail_file(
+            telegram_uploaded_photo_message=telegram_uploaded_photo_message,
+            file_hash=file_hash,
+        )
+
+        # Connect all thumbnail vertices with the given `file_unique_id` to the new thumbnail file vertex.
+        thumbnail_vertices = await self.graph.get_thumbnails_by_file_unique_id(
+            file_unique_id=thumbnail_file_unique_id,
+            retrieve_all=True,
+        )
+        if not thumbnail_vertices:
+            return
+
+        for thumbnail_vertex in thumbnail_vertices:
+            from tase.db.arangodb.graph.edges import Has
+
+            if not await Has.get_or_create_edge(thumbnail_vertex, thumbnail_file_vertex):
+                raise EdgeCreationFailed(Has.__class__.__name__)
+
+            if thumbnail_vertex.index != 0:
+                # Update all audio vertices in the ArangoDB and all audio documents in the ElasticSearch to use the uploaded thumbnail photos.
+                continue
+
+            audio_vertices = await self.graph.get_audio_files_by_thumbnail_file_unique_id(file_unique_id=thumbnail_vertex.file_unique_id)
+            if not audio_vertices:
+                continue
+
+            for audio_vertex in audio_vertices:
+                if not await audio_vertex.update_thumbnails(thumbnail_file_vertex):
+                    logger.error(f"Could not update audio vertex with key: `{audio_vertex.key}`")
+
+                es_audio_doc = await self.index.get_audio_by_id(audio_vertex.key)
+                if not es_audio_doc:
+                    continue
+
+                if not await es_audio_doc.update_thumbnails(thumbnail_file_vertex):
+                    logger.error(f"Could not update es audio document with ID: `{es_audio_doc.id}`")
 
     async def remove_playlist(
         self,
@@ -209,7 +267,7 @@ class DatabaseClient:
         """
         Remove the `Playlist` with the given `playlist_key` and return whether the deletion was successful or not.
 
-        This method deleted the playlist from both `ArangoDB` and `ElasticSearch`.
+        This method deletes the playlist from both `ArangoDB` and `ElasticSearch`.
 
         Parameters
         ----------
@@ -223,7 +281,7 @@ class DatabaseClient:
         Raises
         ------
         PlaylistDoesNotExists
-            If the user does not have a playlist with the given `playlist_key` parameter
+            If the user does not have a playlist with the given `playlist_key` parameter.
 
         Returns
         -------

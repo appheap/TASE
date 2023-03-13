@@ -156,7 +156,7 @@ class HashTagMethods:
         hashtags: List[Tuple[str, int, MentionSource]],
     ) -> None:
         """
-        Update connected `hashtag` vertices and edges connected to and `Audio` vertex after being updated.
+        Update connected `hashtag` vertices and edges connected to an `Audio` vertex after being updated.
 
         Parameters
         ----------
