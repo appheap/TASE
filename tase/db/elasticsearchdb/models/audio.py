@@ -124,7 +124,7 @@ class Audio(BaseDocument):
     date: int
 
     thumbnail_archive_chat_id: Optional[int]
-    thumbnails: Optional[List[int]]
+    thumbnail_archive_message_ids: Optional[List[int]]
 
     hashtags: List[str] = Field(default_factory=list)
 
@@ -470,8 +470,8 @@ class Audio(BaseDocument):
             )
 
     def get_thumb_telegram_url(self) -> str:
-        if self.thumbnails:
-            return f"https://t.me/{config('THUMBNAIL_ARCHIVE_CHANNEL_USERNAME')}/{self.thumbnails[0]}"
+        if self.thumbnail_archive_message_ids:
+            return f"https://t.me/{config('THUMBNAIL_ARCHIVE_CHANNEL_USERNAME')}/{self.thumbnail_archive_message_ids[0]}"
 
         return "https://telegra.ph/file/764498c89f7f1bea502d5.png"
 
@@ -710,10 +710,10 @@ class Audio(BaseDocument):
 
         self_copy = self.copy(deep=True)
         self_copy.thumbnail_archive_chat_id = thumbnail_file.archive_chat_id
-        if self_copy.thumbnails:
-            self_copy.thumbnails.append(thumbnail_file.archive_message_id)
+        if self_copy.thumbnail_archive_message_ids:
+            self_copy.thumbnail_archive_message_ids.insert(0, thumbnail_file.archive_message_id)
         else:
-            self_copy.thumbnails = [thumbnail_file.archive_message_id]
+            self_copy.thumbnail_archive_message_ids = [thumbnail_file.archive_message_id]
 
         return await self.update(
             self_copy,
