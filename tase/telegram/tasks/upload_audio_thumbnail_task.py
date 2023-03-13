@@ -1,4 +1,5 @@
 import asyncio
+import os
 import random
 
 from tase.db import DatabaseClient
@@ -30,12 +31,21 @@ class UploadAudioThumbnailTask(BaseTask):
             return
 
         downloaded_thumb_file_path = f"downloads/{downloaded_thumbnail_file_doc.file_name}.jpg"
+        if not os.path.exists(downloaded_thumb_file_path) or not os.path.isfile(downloaded_thumb_file_path):
+            await self.task_failed(db)
+            logger.error(f"Path for the thumbnail file does not exist!: `{downloaded_thumb_file_path}`")
+            return
+
+        # Don't upload the file if it is already uploaded!
+        if await db.graph.get_thumbnail_file_by_file_hash(downloaded_thumbnail_file_doc.file_hash):
+            await self.task_failed(db)
+            logger.debug(f"This thumbnail file is already uploaded!: `{downloaded_thumbnail_file_doc.file_hash}")
+            return
 
         try:
             uploaded_photo_message = await telegram_client._client.send_photo(
                 telegram_client.thumbnail_archive_channel_info.chat_id,
                 downloaded_thumb_file_path,
-                caption=f"thumb_file_unique_id: {downloaded_thumbnail_file_doc.thumbnail_file_unique_id}",
             )
         except Exception as e:
             await self.task_failed(db)

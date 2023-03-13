@@ -136,6 +136,19 @@ class DatabaseClient:
         message_id: int,
         excluded_audio_vertex_key: Optional[str] = None,
     ) -> None:
+        """
+        Invalid old audios after a new audio has replaced an existent audio in the original chat.
+
+        Parameters
+        ----------
+        chat_id : int
+            ID of the chat the audio belongs to.
+        message_id : int
+            ID of the telegram message that audio belongs to.
+        excluded_audio_vertex_key : str, default : `None`
+            Audio key to exclude from this update. All audio objects in the database with the given key/ID will not be affected.
+
+        """
         if not chat_id or message_id is None:
             return
 
@@ -182,6 +195,25 @@ class DatabaseClient:
         telegram_uploaded_photo_message: pyrogram.types.Message,
         file_hash: str,
     ) -> None:
+        """
+        Update the related vertices and documents after a thumbnail file is uploaded.
+
+        Parameters
+        ----------
+        telegram_client_id : int
+            ID of the telegram client that uploaded the thumbnail file.
+        thumbnail_file_unique_id : str
+            File unique ID of the thumbnail file that was uploaded.
+        telegram_uploaded_photo_message : pyrogram.types.Message
+            Telegram message containing the uploaded thumbnail file.
+        file_hash : str
+            Hash of the uploaded thumbnail file.
+
+        Raises
+        ------
+        EdgeCreationFailed
+            If creation of the related edges was failed.
+        """
         uploaded_thumbnail_file_document = await self.document.get_or_create_uploaded_thumbnail_file(
             telegram_client_id=telegram_client_id,
             thumbnail_file_unique_id=thumbnail_file_unique_id,
