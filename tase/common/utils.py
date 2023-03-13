@@ -1,8 +1,10 @@
+import asyncio
 import collections
 import gettext
 import hashlib
 import json
 import os
+import random
 import re
 import secrets
 import time
@@ -505,43 +507,55 @@ async def download_audio_thumbnails(
             in_memory=True,
             block=True,
         )
+
+        # Sleep for a while to avoid flood wait errors
+        await asyncio.sleep(random.random() + random.randint(1, 3))
+
         if binary_downloaded_thumb_file:
             file_hash = hashlib.sha512(binary_downloaded_thumb_file.getbuffer()).hexdigest()
 
-            downloaded_thumbnail_file_document = await db.document.get_downloaded_thumbnail_file_by_file_hash(file_hash)
-            if downloaded_thumbnail_file_document:
+            thumbnail_file_vertex = await db.graph.get_thumbnail_file_by_file_hash(file_hash)
+            if thumbnail_file_vertex:
                 # This thumbnail already exists, so there is no need to upload the thumbnail again.
                 # However, the related audio and thumbnail vertices must be updated.
                 from tase.db.arangodb.graph.edges import Has
 
-                if downloaded_thumbnail_file_document.is_checked:
-                    thumbnail_file = await db.graph.get_thumbnail_file_by_file_hash(downloaded_thumbnail_file_document.file_hash)
-                    if thumbnail_file:
-                        thumbnail_vertices = await db.graph.get_thumbnails_by_file_unique_id(
-                            file_unique_id=telegram_thumbnail.file_unique_id,
-                            retrieve_all=True,
-                        )
-                        if thumbnail_vertices:
-                            for thumbnail_vertex in thumbnail_vertices:
-                                if not await Has.get_or_create_edge(thumbnail_vertex, thumbnail_file):
-                                    raise EdgeCreationFailed(Has.__class__.__name__)
+                thumbnail_vertices = await db.graph.get_thumbnails_by_file_unique_id(
+                    file_unique_id=telegram_thumbnail.file_unique_id,
+                    retrieve_all=True,
+                )
+                if not thumbnail_vertices:
+                    continue
 
-                                # Update the connected audio vertices only if the thumbnail file document is checked, which means it is uploaded.
-                                if downloaded_thumbnail_file_document.is_checked and thumbnail_vertex.index == 0:
-                                    audio_vertices = await db.graph.get_audio_files_by_thumbnail_file_unique_id(file_unique_id=thumbnail_vertex.file_unique_id)
-                                    if audio_vertices:
-                                        for audio_vertex in audio_vertices:
-                                            if not await audio_vertex.update_thumbnails(thumbnail_file):
-                                                logger.error(f"Could not update audio vertex with key: `{audio_vertex.key}`")
+                for thumbnail_vertex in thumbnail_vertices:
+                    if not await Has.get_or_create_edge(thumbnail_vertex, thumbnail_file_vertex):
+                        raise EdgeCreationFailed(Has.__class__.__name__)
 
-                                            es_audio_doc = await db.index.get_audio_by_id(audio_vertex.key)
-                                            if es_audio_doc:
-                                                if not await es_audio_doc.update_thumbnails(thumbnail_file):
-                                                    logger.error(f"Could not update es audio document with ID: `{es_audio_doc.id}`")
-                    else:
-                        logger.error(f"Could not find any `ThumbnailFile` with `file_hash`: `{downloaded_thumbnail_file_document.file_hash}`")
+                    # Update the connected audio vertices only if the thumbnail file document is checked, which means it is uploaded.
+                    if thumbnail_vertex.index != 0:
+                        continue
+
+                    audio_vertices = await db.graph.get_audio_files_by_thumbnail_file_unique_id(file_unique_id=thumbnail_vertex.file_unique_id)
+                    if not audio_vertices:
+                        continue
+
+                    for audio_vertex in audio_vertices:
+                        if not await audio_vertex.update_thumbnails(thumbnail_file_vertex):
+                            logger.error(f"Could not update audio vertex with key: `{audio_vertex.key}`")
+
+                        es_audio_doc = await db.index.get_audio_by_id(audio_vertex.key)
+                        if not es_audio_doc:
+                            continue
+
+                        if not await es_audio_doc.update_thumbnails(thumbnail_file_vertex):
+                            logger.error(f"Could not update es audio document with ID: `{es_audio_doc.id}`")
 
             else:
+                downloaded_thumbnail_file_document = await db.document.get_downloaded_thumbnail_file_by_file_hash(file_hash)
+                if downloaded_thumbnail_file_document:
+                    # This thumbnail file is already downloaded and hasn't been processed yet!
+                    continue
+
                 with open(file_path, "wb") as f:
                     f.write(binary_downloaded_thumb_file.getbuffer())
 

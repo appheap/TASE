@@ -22,6 +22,10 @@ class DownloadedThumbnailFile(BaseDocument):
         File unique ID of the original thumbnail.
     index : int
         Index of the original thumbnail in the list of thumbnails.
+    chat_id : int
+        ID of the chat this thumbnail was downloaded from.
+    message_id : int
+        ID of the message this thumbnail was downloaded from.
     file_name : str
         Name of the thumbnail file stored on disk.
     file_hash : str
@@ -58,6 +62,9 @@ class DownloadedThumbnailFile(BaseDocument):
 
     thumbnail_file_unique_id: str
     index: int
+
+    chat_id: int
+    message_id: int
 
     file_name: str
     file_hash: str
@@ -100,6 +107,8 @@ class DownloadedThumbnailFile(BaseDocument):
                 key=key,
                 thumbnail_file_unique_id=telegram_thumbnail.file_unique_id,
                 index=index,
+                chat_id=chat_id,
+                message_id=message_id,
                 file_name=file_name,
                 file_hash=hex_digest,
             )

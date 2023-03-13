@@ -230,25 +230,33 @@ class DatabaseClient:
             file_unique_id=thumbnail_file_unique_id,
             retrieve_all=True,
         )
-        if thumbnail_vertices:
-            for thumbnail_vertex in thumbnail_vertices:
-                from tase.db.arangodb.graph.edges import Has
+        if not thumbnail_vertices:
+            return
 
-                if not await Has.get_or_create_edge(thumbnail_vertex, thumbnail_file_vertex):
-                    raise EdgeCreationFailed(Has.__class__.__name__)
+        for thumbnail_vertex in thumbnail_vertices:
+            from tase.db.arangodb.graph.edges import Has
 
-                if thumbnail_vertex.index == 0:
-                    # Update all audio vertices in the ArangoDB and all audio documents in the ElasticSearch to use the uploaded thumbnail photos.
-                    audio_vertices = await self.graph.get_audio_files_by_thumbnail_file_unique_id(file_unique_id=thumbnail_vertex.file_unique_id)
-                    if audio_vertices:
-                        for audio_vertex in audio_vertices:
-                            if not await audio_vertex.update_thumbnails(thumbnail_file_vertex):
-                                logger.error(f"Could not update audio vertex with key: `{audio_vertex.key}`")
+            if not await Has.get_or_create_edge(thumbnail_vertex, thumbnail_file_vertex):
+                raise EdgeCreationFailed(Has.__class__.__name__)
 
-                            es_audio_doc = await self.index.get_audio_by_id(audio_vertex.key)
-                            if es_audio_doc:
-                                if not await es_audio_doc.update_thumbnails(thumbnail_file_vertex):
-                                    logger.error(f"Could not update es audio document with ID: `{es_audio_doc.id}`")
+            if thumbnail_vertex.index != 0:
+                # Update all audio vertices in the ArangoDB and all audio documents in the ElasticSearch to use the uploaded thumbnail photos.
+                continue
+
+            audio_vertices = await self.graph.get_audio_files_by_thumbnail_file_unique_id(file_unique_id=thumbnail_vertex.file_unique_id)
+            if not audio_vertices:
+                continue
+
+            for audio_vertex in audio_vertices:
+                if not await audio_vertex.update_thumbnails(thumbnail_file_vertex):
+                    logger.error(f"Could not update audio vertex with key: `{audio_vertex.key}`")
+
+                es_audio_doc = await self.index.get_audio_by_id(audio_vertex.key)
+                if not es_audio_doc:
+                    continue
+
+                if not await es_audio_doc.update_thumbnails(thumbnail_file_vertex):
+                    logger.error(f"Could not update es audio document with ID: `{es_audio_doc.id}`")
 
     async def remove_playlist(
         self,

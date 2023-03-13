@@ -42,6 +42,12 @@ class UploadAudioThumbnailTask(BaseTask):
             logger.debug(f"This thumbnail file is already uploaded!: `{downloaded_thumbnail_file_doc.file_hash}")
             return
 
+        # check whether the file has downloaded correctly by checking its size
+        if not os.path.getsize(downloaded_thumb_file_path):
+            await self.task_failed(db)
+            logger.debug(f"This thumbnail file size is zero!: `{downloaded_thumbnail_file_doc.file_name}")
+            return
+
         try:
             uploaded_photo_message = await telegram_client._client.send_photo(
                 telegram_client.thumbnail_archive_channel_info.chat_id,
@@ -64,6 +70,9 @@ class UploadAudioThumbnailTask(BaseTask):
                     uploaded_photo_message,
                     downloaded_thumbnail_file_doc.file_hash,
                 )
+
+                # remove the downloaded thumbnail file to free space
+                os.remove(downloaded_thumb_file_path)
 
                 await self.task_done(db)
             else:
