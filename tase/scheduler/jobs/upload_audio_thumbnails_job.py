@@ -35,7 +35,7 @@ class UploadAudioThumbnailsJob(BaseJob):
             try:
                 await UploadAudioThumbnailTask(
                     kwargs={
-                        "thumbnail_file_doc_key": thumbnail_file.key,
+                        "downloaded_thumbnail_file_doc_key": thumbnail_file.key,
                     }
                 ).publish(db)
             except NotEnoughRamError:
