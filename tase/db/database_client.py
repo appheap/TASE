@@ -188,7 +188,7 @@ class DatabaseClient:
             telegram_uploaded_photo_message=telegram_uploaded_photo_message,
         )
 
-        thumbnail_file = await self.graph.get_or_create_thumbnail_file(
+        thumbnail_file_vertex = await self.graph.get_or_create_thumbnail_file(
             telegram_uploaded_photo_message=telegram_uploaded_photo_message,
             file_hash=file_hash,
         )
@@ -202,7 +202,7 @@ class DatabaseClient:
             for thumbnail_vertex in thumbnail_vertices:
                 from tase.db.arangodb.graph.edges import Has
 
-                if not await Has.get_or_create_edge(thumbnail_vertex, thumbnail_file):
+                if not await Has.get_or_create_edge(thumbnail_vertex, thumbnail_file_vertex):
                     raise EdgeCreationFailed(Has.__class__.__name__)
 
                 if thumbnail_vertex.index == 0:
@@ -210,12 +210,12 @@ class DatabaseClient:
                     audio_vertices = await self.graph.get_audio_files_by_thumbnail_file_unique_id(file_unique_id=thumbnail_vertex.file_unique_id)
                     if audio_vertices:
                         for audio_vertex in audio_vertices:
-                            if not await audio_vertex.update_thumbnails(thumbnail_file):
+                            if not await audio_vertex.update_thumbnails(thumbnail_file_vertex):
                                 logger.error(f"Could not update audio vertex with key: `{audio_vertex.key}`")
 
                             es_audio_doc = await self.index.get_audio_by_id(audio_vertex.key)
                             if es_audio_doc:
-                                if not await es_audio_doc.update_thumbnails(thumbnail_file):
+                                if not await es_audio_doc.update_thumbnails(thumbnail_file_vertex):
                                     logger.error(f"Could not update es audio document with ID: `{es_audio_doc.id}`")
 
     async def remove_playlist(

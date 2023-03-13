@@ -482,6 +482,19 @@ class Audio(BaseVertex):
         )
 
     async def update_thumbnails(self, thumbnail_file: ThumbnailFile) -> bool:
+        """
+        Update the thumbnails of this audio vertex using the given `ThumbnailFile` object.
+
+        Parameters
+        ----------
+        thumbnail_file : ThumbnailFile
+            Uploaded Thumbnail file to use for updating this audio's attributes.
+
+        Returns
+        -------
+        bool
+            Whether this update was successful or not.
+        """
         if not thumbnail_file:
             return False
 
