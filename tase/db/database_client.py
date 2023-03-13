@@ -182,7 +182,7 @@ class DatabaseClient:
         telegram_uploaded_photo_message: pyrogram.types.Message,
         file_hash: str,
     ) -> None:
-        thumbnail_document = await self.document.get_or_create_thumbnail_document(
+        uploaded_thumbnail_file_document = await self.document.get_or_create_uploaded_thumbnail_file(
             telegram_client_id=telegram_client_id,
             thumbnail_file_unique_id=thumbnail_file_unique_id,
             telegram_uploaded_photo_message=telegram_uploaded_photo_message,

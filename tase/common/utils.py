@@ -18,8 +18,6 @@ import tomli
 from pydantic import BaseModel
 
 from tase.common.preprocessing import clean_hashtag, hashtags_regex, is_non_digit
-
-# from tase.db.arangodb import graph as graph_models, document as document_models
 from tase.db.arangodb.enums import MentionSource
 from tase.errors import NotEnoughRamError, EdgeCreationFailed
 from tase.languages import Language, Languages
@@ -483,18 +481,12 @@ async def download_audio_thumbnails(
 
         message = message_or_messages
 
-    from tase.db.arangodb import document as document_models
-
     thumbs_download_failed = False
     downloaded_photos: Deque[str] = collections.deque()
-    thumbnail_file_documents: Deque[document_models.Thumbnail] = collections.deque()
 
     async def revert_actions():
         for downloaded_photo_path in downloaded_photos:
             os.remove(downloaded_photo_path)
-
-        for thumb_file_document in thumbnail_file_documents:
-            await thumb_file_document.delete()
 
     for thumb_idx, telegram_thumbnail in enumerate(_telegram_thumbs):
         downloaded_thumbnail_file_doc = await db.document.get_downloaded_thumbnail_file(

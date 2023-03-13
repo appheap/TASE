@@ -10,9 +10,9 @@ from .base_document import BaseDocument
 from ...db_utils import parse_thumbnail_document_key
 
 
-class Thumbnail(BaseDocument):
+class UploadedThumbnailFile(BaseDocument):
     """
-    Represents the information about the thumbnail of an audio file.
+    Represents the information about the uploaded thumbnail file of an audio.
 
     Attributes
     ----------
@@ -30,7 +30,7 @@ class Thumbnail(BaseDocument):
         ID of the message which the photo belongs to.
     """
 
-    __collection_name__ = "doc_thumbnails"
+    __collection_name__ = "doc_uploaded_thumbnail_files"
     schema_version = 1
     __indexes__ = [
         PersistentIndex(
@@ -108,7 +108,7 @@ class Thumbnail(BaseDocument):
         telegram_client_id: int,
         thumbnail_file_unique_id: str,
         telegram_uploaded_photo_message: pyrogram.types.Message,
-    ) -> Optional[Thumbnail]:
+    ) -> Optional[UploadedThumbnailFile]:
         if telegram_client_id is None or not thumbnail_file_unique_id or not telegram_uploaded_photo_message or not telegram_uploaded_photo_message.photo:
             return None
 
@@ -118,7 +118,7 @@ class Thumbnail(BaseDocument):
         if not key:
             return None
 
-        return Thumbnail(
+        return UploadedThumbnailFile(
             key=key,
             telegram_client_id=telegram_client_id,
             photo_file_unique_id=photo.file_unique_id,
@@ -129,33 +129,33 @@ class Thumbnail(BaseDocument):
         )
 
 
-class ThumbnailMethods:
-    async def create_thumbnail_document(
+class UploadedThumbnailFileMethods:
+    async def create_uploaded_thumbnail_file(
         self,
         telegram_client_id: int,
         thumbnail_file_unique_id: str,
         telegram_uploaded_photo_message: pyrogram.types.Message,
-    ) -> Optional[Thumbnail]:
+    ) -> Optional[UploadedThumbnailFile]:
         """
-        Create a thumbnail from the given arguments.
+        Create an uploaded thumbnail file document from the given arguments.
 
         Parameters
         ----------
         telegram_client_id : int
             ID of the telegram client uploading this thumbnail.
         thumbnail_file_unique_id : str
-            File unique ID of the telegram thumbnail object to use for creating the thumbnail object.
+            File unique ID of the telegram thumbnail object to use for creating the object.
         telegram_uploaded_photo_message : pyrogram.types.Message
-            Telegram message to use for creating the thumbnail object.
+            Telegram message to use for creating the object.
 
         Returns
         -------
-        Thumbnail, optional
-            Created Thumbnail document if the operation was successful, otherwise return `None`.
+        UploadedThumbnailFile, optional
+            Created `UploadedThumbnailFile` document if the operation was successful, otherwise return `None`.
         """
         try:
-            thumbnail, successful = await Thumbnail.insert(
-                Thumbnail.parse(
+            thumbnail, successful = await UploadedThumbnailFile.insert(
+                UploadedThumbnailFile.parse(
                     telegram_client_id=telegram_client_id,
                     thumbnail_file_unique_id=thumbnail_file_unique_id,
                     telegram_uploaded_photo_message=telegram_uploaded_photo_message,
@@ -169,32 +169,32 @@ class ThumbnailMethods:
 
         return None
 
-    async def get_or_create_thumbnail_document(
+    async def get_or_create_uploaded_thumbnail_file(
         self,
         telegram_client_id: int,
         thumbnail_file_unique_id: str,
         telegram_uploaded_photo_message: pyrogram.types.Message,
-    ) -> Optional[Thumbnail]:
+    ) -> Optional[UploadedThumbnailFile]:
         """
-        Get a thumbnail from the given arguments if it exists in the database, otherwise create it.
+        Get an uploaded thumbnail file document from the given arguments if it exists in the database, otherwise create it.
 
         Parameters
         ----------
         telegram_client_id : int
-            ID of the telegram client uploading this thumbnail.
+            ID of the telegram client uploading this thumbnail file.
         thumbnail_file_unique_id : str
-            File unique ID of the telegram thumbnail object to use for creating the thumbnail object.
+            File unique ID of the telegram thumbnail object to use for creating the thumbnail file object.
         telegram_uploaded_photo_message : pyrogram.types.Message
-            Telegram message to use for creating or getting the thumbnail object.
+            Telegram message to use for creating or getting the thumbnail file object.
 
         Returns
         -------
-        Thumbnail, optional
-            Thumbnail document if the operation was successful, otherwise return `None`.
+        UploadedThumbnailFile, optional
+            `UploadedThumbnailFile` document if the operation was successful, otherwise return `None`.
         """
-        thumbnail = await Thumbnail.get(Thumbnail.parse_key(telegram_client_id, telegram_uploaded_photo_message))
+        thumbnail = await UploadedThumbnailFile.get(UploadedThumbnailFile.parse_key(telegram_client_id, telegram_uploaded_photo_message))
         if not thumbnail:
-            thumbnail = await self.create_thumbnail_document(
+            thumbnail = await self.create_uploaded_thumbnail_file(
                 telegram_client_id=telegram_client_id,
                 thumbnail_file_unique_id=thumbnail_file_unique_id,
                 telegram_uploaded_photo_message=telegram_uploaded_photo_message,
