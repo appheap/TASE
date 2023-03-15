@@ -26,9 +26,14 @@ class QueryResultsTemplate(BaseTemplate):
         "{{c_dir}}         {{emoji._floppy_emoji}} {{item.file_size}} {{s_MB}}   {{c_dir}}{{emoji._clock_emoji}} {{item.time}}{{c_dir}}   {{emoji._cd}} {{item.quality_string}}"
         "{{c_new_line}}"
         "{{c_dir}}         {{s_download}} /dl_{{item.url}}"
+        "{% if item.last_item %}"
+        "{{c_new_line}}"
+        "{{c_dir}}{{c_new_line}}"
+        "{% else %}"
         "{{c_new_line}}"
         "{{c_new_line}}"
         "{{c_new_line}}"
+        "{% endif %}"
         "{% endfor %}"
     )
 
@@ -87,6 +92,7 @@ class QueryResultsData(BaseTemplateData):
             "url": hit_download_url,
             "sep": f"{40 * '-' if index != 0 else ''}",
             "quality_string": es_audio_doc.estimated_bit_rate_type.get_bit_rate_string(),
+            "last_item": index == 0,
         }
 
     @classmethod
