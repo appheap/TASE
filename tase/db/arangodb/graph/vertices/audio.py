@@ -773,8 +773,9 @@ class AudioMethods:
                 except ValueError:
                     pass
                 else:
-                    for index, telegram_thumbnail in enumerate(telegram_message.audio.thumbs):
-                        thumbnail_vertex = await self.get_or_create_thumbnail(index=index, telegram_thumbnail=telegram_thumbnail)
+                    if telegram_message.audio and telegram_message.audio.thumbs:
+                        for index, telegram_thumbnail in enumerate(telegram_message.audio.thumbs):
+                            thumbnail_vertex = await self.get_or_create_thumbnail(index=index, telegram_thumbnail=telegram_thumbnail)
                         if not thumbnail_vertex:
                             raise Exception(f"Could not create a `Thumbnail` vertex for audio with key: `{audio.key}`")
 
@@ -960,7 +961,7 @@ class AudioMethods:
                         excluded_key=audio.key,
                     )
 
-                    if telegram_message.audio.thumbs:
+                    if telegram_message.audio and telegram_message.audio.thumbs:
                         audio_thumbnails = collections.deque()
                         for index, telegram_thumbnail in enumerate(telegram_message.audio.thumbs):
                             thumbnail_vertex = await self.get_or_create_thumbnail(index=index, telegram_thumbnail=telegram_thumbnail)

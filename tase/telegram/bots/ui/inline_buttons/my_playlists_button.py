@@ -113,6 +113,8 @@ class MyPlaylistsInlineButton(InlineButton):
             # the chosen inline item is a playlist
             from tase.telegram.bots.ui.inline_buttons.common import update_playlist_keyboard_markup
 
+            # todo: handle errors when chosen inline result does not have an inline message ID set.
+
             await update_playlist_keyboard_markup(
                 handler.db,
                 client,

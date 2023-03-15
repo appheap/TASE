@@ -7,6 +7,7 @@ from .arangodb.document import ArangoDocumentMethods
 from .arangodb.enums import AudioType
 from .arangodb.graph import ArangoGraphMethods
 from .arangodb.graph.edges import SubscribeTo
+from .arangodb.graph.vertices import ThumbnailFile
 from .elasticsearchdb import ElasticsearchDatabase
 from .elasticsearchdb.models import ElasticSearchMethods
 from .helpers import ChatScores
@@ -226,10 +227,29 @@ class DatabaseClient:
         )
 
         # Connect all thumbnail vertices with the given `file_unique_id` to the new thumbnail file vertex.
-        thumbnail_vertices = await self.graph.get_thumbnails_by_file_unique_id(
-            file_unique_id=thumbnail_file_unique_id,
-            retrieve_all=True,
-        )
+        await self.update_connected_thumbnail_files(thumbnail_file_unique_id, thumbnail_file_vertex)
+
+    async def update_connected_thumbnail_files(
+        self,
+        thumbnail_file_unique_id: str,
+        thumbnail_file_vertex: ThumbnailFile,
+    ):
+        """
+        Connect all thumbnail files with the same file unique ID to the given `ThumbnailFile` vertex. Also, all `Audio` vertices in the ArangoDb and `Audio`
+        documents in the ElasticSearch that are connected to the updated `Thumbnail` vertices will also be updated.
+
+        Parameters
+        ----------
+        thumbnail_file_unique_id : str
+            File unique ID of the `Thumbnail` vertices to connect to the given `ThumbnailFile` vertex.
+        thumbnail_file_vertex : ThumbnailFile
+            `ThumbnailFile` vertex to connect the `Thumbnail` vertices to.
+
+        """
+        if not thumbnail_file_vertex or not thumbnail_file_unique_id:
+            return
+
+        thumbnail_vertices = await self.graph.get_thumbnails_by_file_unique_id(file_unique_id=thumbnail_file_unique_id)
         if not thumbnail_vertices:
             return
 

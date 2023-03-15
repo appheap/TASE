@@ -58,10 +58,6 @@ class UploadAudioThumbnailTask(BaseTask):
             await self.task_failed(db)
             logger.exception(e)
         else:
-            wait_time = random.randint(4, 10)
-            logger.debug(f"Sleeping for {wait_time} seconds after uploading thumbnail photo...")
-            await asyncio.sleep(wait_time)
-
             if uploaded_photo_message:
                 await downloaded_thumbnail_file_doc.mark_as_checked()
 
@@ -78,3 +74,7 @@ class UploadAudioThumbnailTask(BaseTask):
                 await self.task_done(db)
             else:
                 await self.task_failed(db)
+
+            wait_time = random.randint(4, 10)
+            logger.debug(f"Sleeping for {wait_time} seconds after uploading thumbnail photo...")
+            await asyncio.sleep(wait_time)
