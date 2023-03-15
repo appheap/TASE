@@ -97,6 +97,8 @@ class Audio(BaseDocument):
         "favorite_playlists",
         "private_playlists",
         "public_playlists",
+        "thumbnail_archive_chat_id",
+        "thumbnail_archive_message_ids",
     )
     __search_fields__ = [
         "performer",
@@ -282,8 +284,6 @@ class Audio(BaseDocument):
             mime_type=audio.mime_type,
             file_size=audio.file_size,
             date=datetime_to_timestamp(audio.date),
-            # thumbnail_archive_chat_id=audio_thumbnails[0].archive_chat_id if audio_thumbnails else None,
-            # thumbnails=[thumb.archive_message_id for thumb in audio_thumbnails] if audio_thumbnails else None,
             ########################################
             views=telegram_message.views or 0,
             valid_for_inline_search=valid_for_inline,
@@ -717,7 +717,7 @@ class Audio(BaseDocument):
 
         return await self.update(
             self_copy,
-            reserve_non_updatable_fields=True,
+            reserve_non_updatable_fields=False,
             retry_on_conflict=True,
         )
 

@@ -78,6 +78,13 @@ class ThumbnailFile(BaseVertex):
 
 
 class ThumbnailFileMethods:
+    _get_thumbnail_files_of_an_thumbnail_vertex_query = (
+        "for thumbnail_v in @@thumbnails"
+        "   filter thumbnail_v.file_unique_id == @thumbnail_file_unique_id"
+        "   for thumb_file_v in 1..1 outbound thumbnail_v graph @graph_name options {order: 'dfs', edgeCollections: [@has], vertexCollections: [@thumbnail_files]}"
+        "       return distinct thumb_file_v"
+    )
+
     async def get_thumbnail_file_by_file_hash(self, file_hash: str) -> Optional[ThumbnailFile]:
         """
         Get a `ThumbnailFile` vertex by its `file_hash`.
@@ -96,6 +103,41 @@ class ThumbnailFileMethods:
             return None
 
         return await ThumbnailFile.get(file_hash)
+
+    async def get_thumbnail_file_by_thumbnail_file_unique_id(self, thumbnail_file_unique_id: str) -> Optional[ThumbnailFile]:
+        """
+        Get the `ThumbnailFile` vertex that belong to a `Thumbnail` vertex with the given `file_unique_id` parameter.
+
+        Parameters
+        ----------
+        thumbnail_file_unique_id : str
+            File unique iD of the thumbnail vertex in query.
+
+        Returns
+        -------
+        ThumbnailFile
+            A `ThumbnailFile` vertex is returned on success.
+        """
+        if not thumbnail_file_unique_id:
+            return None
+
+        from tase.db.arangodb.graph.vertices import Thumbnail, ThumbnailFile
+        from tase.db.arangodb.graph.edges import Has
+
+        async with await ThumbnailFile.execute_query(
+            self._get_thumbnail_files_of_an_thumbnail_vertex_query,
+            bind_vars={
+                "@thumbnails": Thumbnail.__collection_name__,
+                "thumbnail_file_unique_id": thumbnail_file_unique_id,
+                "has": Has.__collection_name__,
+                "thumbnail_files": ThumbnailFile.__collection_name__,
+            },
+        ) as cursor:
+            async for doc in cursor:
+                obj = ThumbnailFile.from_collection(doc)
+                return obj
+
+        return None
 
     async def create_thumbnail_file(
         self,

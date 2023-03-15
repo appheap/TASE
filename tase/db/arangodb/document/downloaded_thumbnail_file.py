@@ -73,15 +73,12 @@ class DownloadedThumbnailFile(BaseDocument):
     @classmethod
     def parse_key(
         cls,
-        chat_id: int,
-        message_id: int,
-        telegram_audio: pyrogram.types.Audio,
-        index: int,
+        thumbnail_file_unique_id: str,
     ) -> Optional[str]:
-        if chat_id is None or message_id is None or not telegram_audio or index is None:
+        if not thumbnail_file_unique_id:
             return None
 
-        return f"{chat_id}:{message_id}:{telegram_audio.file_unique_id}:{index}"
+        return thumbnail_file_unique_id
 
     @classmethod
     def parse(
@@ -96,7 +93,7 @@ class DownloadedThumbnailFile(BaseDocument):
         if not telegram_thumbnail or not file_name:
             return None
 
-        key = cls.parse_key(chat_id, message_id, telegram_audio, index)
+        key = cls.parse_key(telegram_thumbnail.file_unique_id)
         if not key:
             return None
 
@@ -173,40 +170,21 @@ class DownloadedThumbnailFileMethods:
 
         return res
 
-    async def get_downloaded_thumbnail_file(
-        self,
-        chat_id: int,
-        message_id: int,
-        telegram_audio: pyrogram.types.Audio,
-        index: int,
-    ) -> Optional[DownloadedThumbnailFile]:
+    async def get_downloaded_thumbnail_file(self, thumbnail_file_unique_id: str) -> Optional[DownloadedThumbnailFile]:
         """
         Get a `DownloadedThumbnailFile` document by the given parameters.
 
         Parameters
         ----------
-        chat_id : int
-            ID of the chat the thumbnail belongs to.
-        message_id :
-            ID of the message the thumbnail belongs to.
-        telegram_audio : pyrogram.types.Audio
-            Telegram audio object the thumbnail belongs to.
-        index : int
-            Index of the thumbnail in the audio's thumbnail list.
+        thumbnail_file_unique_id : str
+            File unique ID of the telegram thumbnail object.
 
         Returns
         -------
         DownloadedThumbnailFile, optional
             `DownloadedThumbnailFile` document is returned if it was found on the database, otherwise `None` is returned.
         """
-        return await DownloadedThumbnailFile.get(
-            DownloadedThumbnailFile.parse_key(
-                chat_id=chat_id,
-                message_id=message_id,
-                telegram_audio=telegram_audio,
-                index=index,
-            )
-        )
+        return await DownloadedThumbnailFile.get(DownloadedThumbnailFile.parse_key(thumbnail_file_unique_id))
 
     async def get_downloaded_thumbnail_file_by_key(self, key: str) -> Optional[DownloadedThumbnailFile]:
         """
@@ -337,14 +315,7 @@ class DownloadedThumbnailFileMethods:
         DownloadedThumbnailFile, optional
             DownloadedThumbnailFile document if the operation was successful, otherwise return `None`.
         """
-        thumbnail = await DownloadedThumbnailFile.get(
-            DownloadedThumbnailFile.parse_key(
-                chat_id=chat_id,
-                message_id=message_id,
-                telegram_audio=telegram_audio,
-                index=index,
-            )
-        )
+        thumbnail = await DownloadedThumbnailFile.get(DownloadedThumbnailFile.parse_key(telegram_thumbnail.file_unique_id))
         if not thumbnail:
             thumbnail = await self.create_downloaded_thumbnail_file_document(
                 chat_id=chat_id,

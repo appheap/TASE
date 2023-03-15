@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import collections
-from typing import Optional, Deque, Tuple, TYPE_CHECKING, Union
+from typing import Optional, Deque, Tuple, TYPE_CHECKING
 
 import pyrogram.types
 
@@ -111,11 +111,7 @@ class ThumbnailMethods:
         """
         return await Thumbnail.get(Thumbnail.parse_key(telegram_thumbnail))
 
-    async def get_thumbnails_by_file_unique_id(
-        self,
-        file_unique_id: str,
-        retrieve_all: bool = True,
-    ) -> Union[Optional[Thumbnail], Deque[Thumbnail]]:
+    async def get_thumbnails_by_file_unique_id(self, file_unique_id: str) -> Deque[Thumbnail]:
         """
         Get all `Thumbnail` vertices that have the given `file_unique_id`.
 
@@ -123,31 +119,22 @@ class ThumbnailMethods:
         ----------
         file_unique_id : str
             File unique ID to filter the `Thumbnail` vertices by.
-        retrieve_all : bool, default : True
-            Whether to retrieve all matching `Thumbnail` vertices or just get the first matching one.
 
         Returns
         -------
-        Union
+        Deque
             Matched `Thumbnail` vertices are returned on success.
 
         """
-        if retrieve_all:
-            res = collections.deque()
-            async for doc in Thumbnail.find(
-                filters={
-                    "file_unique_id": file_unique_id,
-                }
-            ):
-                res.append(doc)
+        res = collections.deque()
+        async for doc in Thumbnail.find(
+            filters={
+                "file_unique_id": file_unique_id,
+            }
+        ):
+            res.append(doc)
 
-            return res
-        else:
-            return await Thumbnail.find_one(
-                filters={
-                    "file_unique_id": file_unique_id,
-                }
-            )
+        return res
 
     async def create_thumbnail(
         self,

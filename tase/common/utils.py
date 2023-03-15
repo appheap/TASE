@@ -11,7 +11,7 @@ import time
 from collections import OrderedDict
 from datetime import datetime
 from functools import wraps
-from typing import Optional, List, Tuple, Dict, Match, Union, Callable, Any, Deque
+from typing import Optional, List, Tuple, Dict, Match, Union, Callable, Any, Deque, TYPE_CHECKING
 
 import arrow
 import psutil
@@ -21,10 +21,13 @@ from pydantic import BaseModel
 
 from tase.common.preprocessing import clean_hashtag, hashtags_regex, is_non_digit
 from tase.db.arangodb.enums import MentionSource
-from tase.errors import NotEnoughRamError, EdgeCreationFailed
+from tase.errors import NotEnoughRamError
 from tase.languages import Language, Languages
 from tase.my_logger import logger
 from tase.static import Emoji
+
+if TYPE_CHECKING:
+    from tase.db import DatabaseClient
 
 # todo: it's not a good practice to hardcode like this, fix it
 languages = dict()
@@ -455,6 +458,10 @@ async def download_audio_thumbnails(
     """
     Download thumbnails of the audio files if it has any and store them in the database.
 
+    Notes
+    -----
+    This function is to be called only after the `db.update_or_create_audio` method is executed.
+
     Parameters
     ----------
     db : DatabaseClient
@@ -491,88 +498,65 @@ async def download_audio_thumbnails(
             os.remove(downloaded_photo_path)
 
     for thumb_idx, telegram_thumbnail in enumerate(_telegram_thumbs):
-        downloaded_thumbnail_file_doc = await db.document.get_downloaded_thumbnail_file(
-            chat_id=message.chat.id,
-            message_id=message.id,
-            telegram_audio=message.audio,
-            index=thumb_idx,
-        )
+        downloaded_thumbnail_file_doc = await db.document.get_downloaded_thumbnail_file(telegram_thumbnail.file_unique_id)
         if downloaded_thumbnail_file_doc:
+            continue
+
+        thumbnail_file_vertex = await db.graph.get_thumbnail_file_by_thumbnail_file_unique_id(telegram_thumbnail.file_unique_id)
+        if thumbnail_file_vertex:
+            await db.update_connected_thumbnail_files(telegram_thumbnail.file_unique_id, thumbnail_file_vertex)
             continue
 
         file_name = f"{message.chat.id}#{message.id}#{thumb_idx}"
         file_path = f"downloads/{file_name}.jpg"
-        binary_downloaded_thumb_file = await telegram_client._client.download_media(
-            telegram_thumbnail.file_id,
-            in_memory=True,
-            block=True,
-        )
+        try:
+            logger.debug(f"Triggered a thumbnail download for message ID: {message.id}")
+
+            binary_downloaded_thumb_file = await telegram_client._client.download_media(
+                telegram_thumbnail.file_id,
+                in_memory=True,
+                block=True,
+            )
+        except Exception as e:
+            logger.exception(e)
+        else:
+            if binary_downloaded_thumb_file:
+                file_hash = hashlib.sha512(binary_downloaded_thumb_file.getbuffer()).hexdigest()
+
+                thumbnail_file_vertex = await db.graph.get_thumbnail_file_by_file_hash(file_hash)
+                if thumbnail_file_vertex:
+                    # This thumbnail already exists, so there is no need to upload the thumbnail again.
+                    # However, the related audio and thumbnail vertices must be updated.
+                    await db.update_connected_thumbnail_files(telegram_thumbnail.file_unique_id, thumbnail_file_vertex)
+                    logger.debug(f"Thumbnail file with this hash exists! : {message.id}")
+
+                else:
+                    downloaded_thumbnail_file_document = await db.document.get_downloaded_thumbnail_file_by_file_hash(file_hash)
+                    if downloaded_thumbnail_file_document:
+                        # This thumbnail file is already downloaded and hasn't been processed yet!
+                        logger.debug(f"Downloaded Thumbnail with this hash exists! : {message.id}")
+                        continue
+
+                    with open(file_path, "wb") as f:
+                        f.write(binary_downloaded_thumb_file.getbuffer())
+
+                    downloaded_photos.append(file_path)
+                    downloaded_thumbnail_file_document = await db.document.get_or_create_downloaded_thumbnail_file(
+                        chat_id=message.chat.id,
+                        message_id=message.id,
+                        telegram_thumbnail=telegram_thumbnail,
+                        telegram_audio=message.audio,
+                        index=thumb_idx,
+                        file_name=file_name,
+                    )
+                    if not downloaded_thumbnail_file_document:
+                        thumbs_download_failed = True
+                        break
+            else:
+                thumbs_download_failed = True
 
         # Sleep for a while to avoid flood wait errors
-        await asyncio.sleep(random.randint(3, 5))
-
-        if binary_downloaded_thumb_file:
-            file_hash = hashlib.sha512(binary_downloaded_thumb_file.getbuffer()).hexdigest()
-
-            thumbnail_file_vertex = await db.graph.get_thumbnail_file_by_file_hash(file_hash)
-            if thumbnail_file_vertex:
-                # This thumbnail already exists, so there is no need to upload the thumbnail again.
-                # However, the related audio and thumbnail vertices must be updated.
-                from tase.db.arangodb.graph.edges import Has
-
-                thumbnail_vertices = await db.graph.get_thumbnails_by_file_unique_id(
-                    file_unique_id=telegram_thumbnail.file_unique_id,
-                    retrieve_all=True,
-                )
-                if not thumbnail_vertices:
-                    continue
-
-                for thumbnail_vertex in thumbnail_vertices:
-                    if not await Has.get_or_create_edge(thumbnail_vertex, thumbnail_file_vertex):
-                        raise EdgeCreationFailed(Has.__class__.__name__)
-
-                    # Update the connected audio vertices only if the thumbnail file document is checked, which means it is uploaded.
-                    if thumbnail_vertex.index != 0:
-                        continue
-
-                    audio_vertices = await db.graph.get_audio_files_by_thumbnail_file_unique_id(file_unique_id=thumbnail_vertex.file_unique_id)
-                    if not audio_vertices:
-                        continue
-
-                    for audio_vertex in audio_vertices:
-                        if not await audio_vertex.update_thumbnails(thumbnail_file_vertex):
-                            logger.error(f"Could not update audio vertex with key: `{audio_vertex.key}`")
-
-                        es_audio_doc = await db.index.get_audio_by_id(audio_vertex.key)
-                        if not es_audio_doc:
-                            continue
-
-                        if not await es_audio_doc.update_thumbnails(thumbnail_file_vertex):
-                            logger.error(f"Could not update es audio document with ID: `{es_audio_doc.id}`")
-
-            else:
-                downloaded_thumbnail_file_document = await db.document.get_downloaded_thumbnail_file_by_file_hash(file_hash)
-                if downloaded_thumbnail_file_document:
-                    # This thumbnail file is already downloaded and hasn't been processed yet!
-                    continue
-
-                with open(file_path, "wb") as f:
-                    f.write(binary_downloaded_thumb_file.getbuffer())
-
-                downloaded_photos.append(file_path)
-                downloaded_thumbnail_file_document = await db.document.get_or_create_downloaded_thumbnail_file(
-                    chat_id=message.chat.id,
-                    message_id=message.id,
-                    telegram_thumbnail=telegram_thumbnail,
-                    telegram_audio=message.audio,
-                    index=thumb_idx,
-                    file_name=file_name,
-                )
-                if not downloaded_thumbnail_file_document:
-                    thumbs_download_failed = True
-                    break
-        else:
-            thumbs_download_failed = True
+        await asyncio.sleep(random.randint(4, 6))
 
     if thumbs_download_failed:
         await revert_actions()
