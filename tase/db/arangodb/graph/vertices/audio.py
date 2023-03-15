@@ -192,6 +192,8 @@ class Audio(BaseVertex):
         "deleted_at",
         "archive_chat_id",
         "archive_message_id",
+        "thumbnail_archive_chat_id",
+        "thumbnail_archive_message_ids",
     ]
 
     chat_id: int
@@ -389,8 +391,6 @@ class Audio(BaseVertex):
             mime_type=audio.mime_type,
             file_size=audio.file_size,
             date=datetime_to_timestamp(audio.date),
-            # thumbnail_archive_chat_id=audio_thumbnails[0].archive_chat_id if audio_thumbnails else None,
-            # thumbnails=[thumb.archive_message_id for thumb in audio_thumbnails] if audio_thumbnails else None,
             ################################
             valid_for_inline_search=valid_for_inline,
             estimated_bit_rate_type=BitRateType.estimate(
@@ -507,8 +507,8 @@ class Audio(BaseVertex):
 
         return await self.update(
             self_copy,
-            reserve_non_updatable_fields=True,
-            check_for_revisions_match=False,
+            reserve_non_updatable_fields=False,
+            check_for_revisions_match=True,
         )
 
     @property
