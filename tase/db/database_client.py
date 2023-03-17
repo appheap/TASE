@@ -170,6 +170,24 @@ class DatabaseClient:
             excluded_id=excluded_audio_vertex_key,
         )
 
+    async def mark_chat_as_invalid(self, chat: graph_models.vertices.Chat) -> None:
+        """
+        Mark a `Chat` vertex in the ArangoDB as invalid and invalidate its connected `Audio` vertices and documents as well.
+
+        Parameters
+        ----------
+        chat : graph_models.vertices.Chat
+            `Chat` vertex to mark as invalid.
+
+        """
+        if not chat:
+            return
+
+        if await chat.mark_as_invalid():
+            await self.mark_chat_audios_as_deleted(chat.chat_id)
+        else:
+            logger.error(f"Error in marking the `Chat` with key `{chat.key}` as invalid.")
+
     async def mark_chat_audios_as_deleted(
         self,
         chat_id: int,

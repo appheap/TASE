@@ -6,7 +6,7 @@ from typing import Dict, List, Union, Deque, Tuple, Optional
 import pyrogram
 from pydantic import BaseModel
 from pyrogram.enums import ParseMode
-from pyrogram.errors import ChannelInvalid
+from pyrogram.errors import ChannelInvalid, UsernameNotOccupied
 
 from tase.common.utils import _trans, async_timed, download_audio_thumbnails
 from tase.db.arangodb import graph as graph_models, document as document_models
@@ -86,30 +86,15 @@ class BaseHandler(BaseModel):
         ) -> Tuple[List[pyrogram.types.Message], int]:
             try:
                 res = await self.telegram_client.get_messages(chat_id=chats_dict[chat_id].username, message_ids=list(message_ids))
-            except KeyError:
+            except (KeyError, ChannelInvalid, UsernameNotOccupied):
                 # this chat is no longer is public or available, update the databases accordingly
                 if chat_id in chats_dict:
                     chat_v = chats_dict[chat_id]
                 else:
                     chat_v = await self.db.graph.get_chat_by_key(str(chat_id))
 
-                if chat_v:
-                    if await chat_v.mark_as_invalid():
-                        await self.db.mark_chat_audios_as_deleted(chat_id)
-                    else:
-                        logger.error(f"Error in marking the `Chat` with key `{chat_v.key}` as invalid.")
+                await self.db.mark_chat_as_invalid(chat_v)
                 return [], chat_id
-            except ChannelInvalid:
-                if chat_id in chats_dict:
-                    chat_v = chats_dict[chat_id]
-                else:
-                    chat_v = await self.db.graph.get_chat_by_key(str(chat_id))
-
-                if chat_v:
-                    if await chat_v.mark_as_invalid():
-                        await self.db.mark_chat_audios_as_deleted(chat_id)
-                    else:
-                        logger.error(f"Error in marking the `Chat` with key `{chat_v.key}` as invalid.")
             else:
                 return res, chat_id
 
@@ -186,7 +171,7 @@ class BaseHandler(BaseModel):
                     messages = await self.telegram_client.get_messages(audio_vertex.chat_id, [audio_vertex.message_id])
                 else:
                     messages = await self.telegram_client.get_messages(chat.username, [audio_vertex.message_id])
-            except KeyError:
+            except (KeyError, ChannelInvalid, UsernameNotOccupied):
                 # todo: this chat is no longer is public or available, update the databases accordingly
                 if chat_type == ChatType.BOT:
                     await client.send_message(
@@ -194,7 +179,7 @@ class BaseHandler(BaseModel):
                         "The sender chat of the message containing this audio does not exist anymore, " "please try again!",
                     )
 
-                logger.error("The sender chat of the message containing this audio does not exist anymore, please try again!")
+                await self.db.mark_chat_as_invalid(chat)
                 return chat, None
             except Exception as e:
                 logger.exception(e)
