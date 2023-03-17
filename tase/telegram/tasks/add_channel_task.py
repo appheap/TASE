@@ -2,7 +2,7 @@ import asyncio
 import random
 
 from pyrogram.enums import ChatType
-from pyrogram.errors import UsernameNotOccupied, FloodWait
+from pyrogram.errors import UsernameNotOccupied, FloodWait, ChannelInvalid
 
 from tase.db import DatabaseClient
 from tase.db.arangodb.enums import RabbitMQTaskType
@@ -55,6 +55,10 @@ class AddChannelTask(BaseTask):
             await self.task_failed(db)
         except KeyError as e:
             # the provided username is not valid
+            # todo: send an appropriate message to notify the user of this situation
+            await self.task_failed(db)
+        except ChannelInvalid as e:
+            # the channel is invalid
             # todo: send an appropriate message to notify the user of this situation
             await self.task_failed(db)
         except FloodWait as e:

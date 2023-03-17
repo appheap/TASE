@@ -4,7 +4,7 @@ from typing import List, Optional, Union
 
 import pyrogram
 from pydantic import Field
-from pyrogram.errors import FloodWait
+from pyrogram.errors import FloodWait, ChannelInvalid, UsernameNotOccupied
 
 from tase.common.preprocessing import find_telegram_usernames
 from tase.common.utils import datetime_to_timestamp, prettify, get_now_timestamp
@@ -147,7 +147,7 @@ class ExtractUsernamesTask(BaseTask):
                 # In case the chat invite link points to a chat that this telegram client hasn't joined yet.
                 await self.task_failed(db)
                 logger.exception(e)
-            except KeyError as e:
+            except (KeyError, ChannelInvalid, UsernameNotOccupied) as e:
                 await self.task_failed(db)
                 logger.exception(e)
             except FloodWait as e:

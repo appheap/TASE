@@ -1,7 +1,7 @@
 import asyncio
 import random
 
-from pyrogram.errors import UsernameNotOccupied, UsernameInvalid, FloodWait
+from pyrogram.errors import UsernameNotOccupied, UsernameInvalid, FloodWait, ChannelInvalid
 
 from tase.common.utils import get_now_timestamp
 from tase.db import DatabaseClient
@@ -36,10 +36,11 @@ class CheckUsernameTask(BaseTask):
         logger.info(f"Checking: {username_vertex.username}")
         try:
             tg_mentioned_chat = await telegram_client.get_chat(username_vertex.username)
-        except (KeyError, ValueError, UsernameNotOccupied, UsernameInvalid) as e:
+        except (KeyError, ValueError, UsernameNotOccupied, UsernameInvalid, ChannelInvalid) as e:
             # ValueError: In case the chat invite link points to a chat that this telegram client hasn't joined yet.
-            # KeyError or UsernameNotOccupied: The username is not occupied by anyone, so update the username
-            # UsernameInvalid: The username is invalid
+            # KeyError or UsernameNotOccupied: The username is not occupied by anyone, so update the username.
+            # UsernameInvalid: The username is invalid.
+            # ChannelInvalid: The channel is invalid.
             logger.info(f"Username `{username_vertex.username}` is invalid")
 
             if await username_vertex.check(True, get_now_timestamp(), False):
