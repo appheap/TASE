@@ -55,6 +55,10 @@ class HelpCatalogInlineButton(InlineButton):
         query_date: int,
         inline_button_data: Optional[HelpCatalogButtonData] = None,
     ):
+        if not result.is_first_page():
+            # do not populate result if it is not the first page.
+            return
+
         # todo: make these messages translatable
         results = [
             InlineQueryResultArticle(
