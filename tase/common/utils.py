@@ -450,11 +450,12 @@ def group_list_by_step(
     return [l[i : i + step] for i in range(0, len(l), step)]
 
 
+@async_exception_handler()
 async def download_audio_thumbnails(
     db: "DatabaseClient",
     telegram_client: "TelegramClient",
     message_or_messages: Union[List[pyrogram.types.Message], pyrogram.types.Message],
-) -> Deque["graph_models.vertices.Thumbnail"]:
+) -> None:
     """
     Download thumbnails of the audio files if it has any and store them in the database.
 
